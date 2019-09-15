@@ -6,7 +6,7 @@ import defaults from 'fetch-defaults';
 import { CookieJar } from 'tough-cookie';
 import { pick } from 'lodash';
 
-import { Runner } from '../../constants';
+import { Runner, Platforms } from '../../constants';
 import { createLogger } from '../../common/logger';
 import pickVariant from '../classes/utils/pickVariant';
 import { rfrl, userAgent } from '../../common';
@@ -39,7 +39,7 @@ class ShippingRatesRunner {
     this.aborter = new AbortController();
 
     this._request = defaults(request, this.task.site.url, {
-      timeout: 60000, // to be overridden as necessary
+      timeout: 120000, // to be overridden as necessary
       signal: this.aborter.signal, // generic abort signal
     });
 
@@ -141,7 +141,7 @@ class ShippingRatesRunner {
         return { nextState: this.states.ERROR, message: error.message || 'No product found' };
       }
     }
-
+    this.task.product.restockUrl = parsed.url;
     this.task.product.variants = parsed.variants.map(v =>
       pick(
         v,
@@ -181,7 +181,7 @@ class ShippingRatesRunner {
         return { nextState: this.states.ERROR, message: error.message || 'No product found' };
       }
     }
-
+    this.task.product.restockUrl = fullProductInfo.url;
     this.task.product.variants = fullProductInfo.variants.map(v =>
       pick(
         v,
@@ -201,9 +201,12 @@ class ShippingRatesRunner {
   }
 
   async special() {
+    const { product } = this.task;
     const ParserCreator = getSpecialParser(this.task.site);
+    const parseType = getParseType(product, null, Platforms.Shopify);
     const parser = ParserCreator(
       this._monitorRequest,
+      parseType,
       this.task,
       this.proxy,
       this.monitorAborter,
@@ -222,6 +225,7 @@ class ShippingRatesRunner {
       return { nextState: this.states.CART, message: 'Adding to cart' };
     }
 
+    this.task.product.restockUrl = parsed.url;
     this.task.product.variants = parsed.variants.map(v =>
       pick(
         v,
@@ -277,7 +281,7 @@ class ShippingRatesRunner {
   async cart() {
     const {
       site: { name, url },
-      product: { variants, hash },
+      product: { variants, hash, restockUrl },
       size,
     } = this.task;
 
@@ -298,12 +302,17 @@ class ShippingRatesRunner {
     try {
       res = await this._request('/cart/add.js', {
         method: 'POST',
+        agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
         headers: {
-          'User-Agent': userAgent,
-          'Content-Type': 'application/json',
+          'user-agent': userAgent,
+          referer: restockUrl,
+          origin: url,
+          host: `${url.split('/')[2]}`,
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'en-US,en;q=0.9',
+          'content-type': 'application/json',
         },
         body: JSON.stringify(addToCart(id, name, hash)),
-        agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
       });
 
       const body = await res.json();
@@ -335,9 +344,13 @@ class ShippingRatesRunner {
     let res;
     try {
       res = await this._request(
-        `/cart/shipping_rates.json?shipping_address[zip]=${zipCode}&shipping_address[country]=${
-          country.value
-        }&shipping_address[province]=${province ? province.value : ''}`,
+        `/cart/shipping_rates.json?shipping_address[zip]=${zipCode.replace(
+          /\s/g,
+          '+',
+        )}&shipping_address[country]=${country.value.replace(
+          /\s/g,
+          '+',
+        )}&shipping_address[province]=${province ? province.value.replace(/\s/g, '+') : ''}`,
         {
           method: 'GET',
           agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
@@ -349,12 +362,11 @@ class ShippingRatesRunner {
       );
 
       const { status } = res;
+      const body = await res.json();
 
       if (status === 422) {
-        return { message: 'Country not supported', nextState: this.states.ERROR };
+        return { message: 'Country not supported / Cart error', nextState: this.states.ERROR };
       }
-
-      const body = await res.json();
 
       if (body && (!body.shipping_rates || !body.shipping_rates.length)) {
         return { nextState: this.states.RATES, message: 'Polling for rates' };

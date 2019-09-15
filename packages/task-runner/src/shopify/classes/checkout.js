@@ -54,6 +54,7 @@ class Checkout {
       };
     }
 
+    this.cartForm = '';
     this.paymentToken = null;
     this.note = null;
     this.paymentGateway = '';
@@ -127,7 +128,7 @@ class Checkout {
   async getPaymentToken() {
     const {
       task: {
-        site: { apiKey, url },
+        site: { apiKey, name },
         profile: { payment, billing },
         type,
       },
@@ -171,6 +172,10 @@ class Checkout {
 
         if (this.needsLogin) {
           return { message: 'Logging in', nextState: States.LOGIN };
+        }
+
+        if (/dsm uk|dsm jp|dsm sg/i.test(name)) {
+          return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
         }
 
         if (type === Modes.SAFE) {
@@ -399,13 +404,13 @@ class Checkout {
       const res = await this._request(`${url}/checkout`, {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: 'manual',
-        follow: 0,
+        redirect: type === Modes.FAST ? 'manual' : 'follow',
+        follow: type === Modes.FAST ? 1 : 5,
         headers: getHeaders({ url, apiKey }),
         body: JSON.stringify({}),
       });
 
-      const { status, headers } = res;
+      const { status } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -419,9 +424,12 @@ class Checkout {
         return checkStatus;
       }
 
-      const redirectUrl = headers.get('location');
-      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
+      let redirectUrl = res.url;
+      if (type === Modes.FAST) {
+        redirectUrl = res.headers.get('location');
+      }
 
+      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
       if (redirectUrl) {
         if (/login/i.test(redirectUrl)) {
           return { message: 'Account needed. Stopping..', nextState: States.STOP };
@@ -460,9 +468,12 @@ class Checkout {
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
+
+          // should take care of dsm sg/jp/uk
           if (type === Modes.SAFE) {
             return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
           }
+
           return {
             message: 'Submitting information',
             nextState: States.SUBMIT_CUSTOMER,
@@ -504,6 +515,7 @@ class Checkout {
     store.getAllCookies((_, cookies) => {
       for (let i = 0; i < cookies.length; i += 1) {
         const cookie = cookies[i];
+        this._logger.info(`Cookie key/value: %j/%j`, cookie.key, cookie.value);
         if (cookie.key.indexOf(name) > -1) {
           this._logger.debug('Found existing ctd cookie %j', cookie.value);
           found = cookie.value;
@@ -537,15 +549,15 @@ class Checkout {
       const res = await this._request(`${url}/checkout/poll?js_poll=1`, {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: 'manual',
-        follow: 0,
+        redirect: 'follow',
+        follow: 5,
         headers: {
           'User-Agent': userAgent,
           Connection: 'Keep-Alive',
         },
       });
 
-      const { status, headers } = res;
+      const { status } = res;
 
       this._logger.debug('Checkout: poll response %d', status);
       const checkStatus = stateForError(
@@ -567,12 +579,11 @@ class Checkout {
         return { message: `Invalid checkout!`, nextState: States.CREATE_CHECKOUT };
       }
 
+      let { url: redirectUrl } = res;
+
       this._logger.debug('CHECKOUT: Queue response: %j \nBody: %j', status, body);
 
-      let redirectUrl = null;
       if (status === 302) {
-        redirectUrl = headers.get('location');
-
         if (!redirectUrl || /throttle/i.test(redirectUrl)) {
           return { message: `Polling queue - (${status})`, nextState: States.QUEUE };
         }
@@ -657,7 +668,7 @@ class Checkout {
         }
       }
       this._logger.debug('QUEUE: RedirectUrl at end of fn body: %j', redirectUrl);
-      if (redirectUrl) {
+      if (redirectUrl && /checkouts/.test(redirectUrl)) {
         const [redirectNoQs] = redirectUrl.split('?');
         [, , , this.storeId, , this.checkoutToken] = redirectNoQs.split('/');
 

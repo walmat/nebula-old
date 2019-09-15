@@ -86,13 +86,27 @@ const ErrorCodes = {
  * Queue state -> next state
  */
 const QueueNextState = {
-  [CheckoutStates.ADD_TO_CART]: type => {
+  [CheckoutStates.ADD_TO_CART]: (type, task, shippingMethod) => {
     if (type === Modes.FAST) {
       return {
         message: 'Going to checkout',
         nextState: CheckoutStates.GO_TO_CHECKOUT,
       };
     }
+
+    if (type === Modes.SAFE && /dsm sg|dsm jp|dsm uk/i.test(task.site.name)) {
+      if (shippingMethod && shippingMethod.id) {
+        return {
+          message: 'Submitting payment',
+          nextState: CheckoutStates.SUBMIT_PAYMENT,
+        };
+      }
+      return {
+        message: 'Fetching shipping rates',
+        nextState: CheckoutStates.GO_TO_SHIPPING,
+      };
+    }
+
     return {
       message: 'Go to checkout',
       nextState: CheckoutStates.CREATE_CHECKOUT,
@@ -100,6 +114,13 @@ const QueueNextState = {
   },
   [CheckoutStates.CREATE_CHECKOUT]: (type, task) => {
     if (type === Modes.FAST) {
+      return {
+        message: 'Submitting information',
+        nextState: CheckoutStates.SUBMIT_CUSTOMER,
+      };
+    }
+
+    if (/dsm sg|dsm jp|dsm uk/i.test(task.site.name) && type === Modes.SAFE) {
       return {
         message: 'Submitting information',
         nextState: CheckoutStates.SUBMIT_CUSTOMER,
@@ -130,13 +151,21 @@ const QueueNextState = {
       nextState: CheckoutStates.GO_TO_CHECKOUT,
     };
   },
-  [CheckoutStates.SUBMIT_CUSTOMER]: type => {
+  [CheckoutStates.SUBMIT_CUSTOMER]: (type, task) => {
     if (type === Modes.FAST) {
       return {
         message: 'Monitoring for product',
         nextState: CheckoutStates.MONITOR,
       };
     }
+
+    if (/dsm sg|dsm jp|dsm uk/i.test(task.site.name)) {
+      return {
+        message: 'Waiting for product',
+        nextState: CheckoutStates.WAIT_FOR_PRODUCT,
+      };
+    }
+
     return {
       message: 'Fetching shipping rates',
       nextState: CheckoutStates.GO_TO_SHIPPING,

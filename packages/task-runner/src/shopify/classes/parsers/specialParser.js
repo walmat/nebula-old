@@ -31,8 +31,6 @@ class SpecialParser extends Parser {
       initialUrl = this._task.product.url;
     }
 
-    console.log(this._type);
-
     // Make initial request to site
     let response;
     try {
@@ -79,13 +77,12 @@ class SpecialParser extends Parser {
     } catch (error) {
       // Handle other error responses
       this._logger.error(
-        '%s: %d ERROR making request! %s',
+        '%s: %s ERROR making request! %s',
         this._name,
         error.status,
         error.messsage,
-        error.stack,
       );
-      const rethrow = new Error('unable to make request');
+      const rethrow = new Error(error.message || 'Unable to make request');
       rethrow.status = error.status || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;
     }
@@ -169,7 +166,7 @@ class SpecialParser extends Parser {
         products.length,
       );
       try {
-        matchedProduct = super.match(products);
+        matchedProduct = await super.match(products);
       } catch (error) {
         this._logger.error('%s: ERROR matching product!', this._name, error);
         // TODO: Maybe replace with a custom error object?
@@ -270,11 +267,23 @@ class SpecialParser extends Parser {
     try {
       const res = await this._request(productUrl, {
         method: 'GET',
+        redirect: 'follow',
+        follow: 5,
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         headers: {
           'User-Agent': userAgent,
         },
       });
+
+      const { url: redirectUrl } = res;
+
+      if (redirectUrl) {
+        if (/password/i.test(redirectUrl)) {
+          const error = new Error('Password Page');
+          error.status = ErrorCodes.PasswordPage;
+          throw error;
+        }
+      }
 
       const body = await res.text();
       const response = cheerio.load(body, {

@@ -467,7 +467,11 @@ class TaskRunner {
     }
 
     // poll queue map should be used to determine where to go next
-    ({ message, delay, nextState } = StateMap[this._prevState](type, this._context.task));
+    ({ message, delay, nextState } = StateMap[this._prevState](
+      type,
+      this._context.task,
+      this._checkout.chosenShippingMethod,
+    ));
     this._emitTaskEvent({ message, proxy: rawProxy });
     return nextState;
   }
@@ -641,8 +645,9 @@ class TaskRunner {
       aborted,
       rawProxy,
       task: {
-        site: { url },
+        site: { url, name },
         monitorDelay,
+        type,
       },
     } = this._context;
 
@@ -656,13 +661,17 @@ class TaskRunner {
     let delay;
     let shouldBan;
     let nextState;
-    if (this._context.task.type === Modes.SAFE) {
-      ({ message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
-        this._state,
-        'Going to checkout',
-        'contact_information',
-        'contact_information',
-      ));
+    if (type === Modes.SAFE) {
+      if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
+        ({ message, delay, shouldBan, nextState } = await this._checkout.goToCheckout());
+      } else {
+        ({ message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
+          this._state,
+          'Going to checkout',
+          'contact_information',
+          'contact_information',
+        ));
+      }
     } else {
       ({ message, delay, shouldBan, nextState } = await this._checkout.getCheckout());
     }
@@ -777,7 +786,7 @@ class TaskRunner {
       rawProxy,
       task: {
         monitorDelay,
-        site: { url },
+        site: { url, name },
       },
     } = this._context;
 
@@ -791,7 +800,7 @@ class TaskRunner {
     let delay;
     let shouldBan;
     let nextState;
-    if (this._context.task.type === Modes.SAFE) {
+    if (this._context.task.type === Modes.SAFE && !/dsm sg|dsm jp|dsm uk/i.test(name)) {
       ({ message, delay, shouldBan, nextState } = await this._checkout.getCheckout(
         this._state,
         'Fetching shipping rates',

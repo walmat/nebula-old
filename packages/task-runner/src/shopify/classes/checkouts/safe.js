@@ -1,7 +1,11 @@
+/* eslint-disable no-nested-ternary */
+/* eslint-disable array-callback-return */
+/* eslint-disable consistent-return */
 /* eslint-disable no-return-assign */
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
+import { min } from 'lodash';
 import { parse } from 'query-string';
 import Checkout from '../checkout';
 
@@ -9,7 +13,7 @@ const { States, Modes } = require('../utils/constants').TaskRunner;
 const { ParseType } = require('../utils/constants').Monitor;
 const { userAgent } = require('../../../common');
 const { stateForError, getHeaders } = require('../utils');
-const { addToCart } = require('../utils/forms');
+const { addToCart, patchCheckoutForm } = require('../utils/forms');
 const pickVariant = require('../utils/pickVariant');
 
 class SafeCheckout extends Checkout {
@@ -21,13 +25,17 @@ class SafeCheckout extends Checkout {
     const {
       task: {
         site: { name, url },
-        product: { variants, barcode, hash, randomInStock },
+        product: { variants, barcode, hash, restockUrl, randomInStock },
         size,
         monitorDelay,
       },
       proxy,
       parseType,
     } = this._context;
+
+    if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
+      return this.backupAddToCart();
+    }
 
     let properties = {};
 
@@ -57,17 +65,23 @@ class SafeCheckout extends Checkout {
     this._context.task.product.size = option;
 
     try {
-      const res = await this._request('/cart/add.js', {
+      const res = await this._request(`${url}/cart/add.js`, {
         method: 'POST',
-        headers: {
-          'User-Agent': userAgent,
-          'content-type': 'application/json',
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
-        },
-        body: JSON.stringify(addToCart(id, name, hash, properties)),
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        headers: {
+          origin: url,
+          host: `${url.split('/')[2]}`,
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'en-US,en;q=0.9',
+          'user-agent': userAgent,
+          Accept: 'application/json,text/javascript,*/*;q=0.01',
+          referer: restockUrl,
+          'content-type': /eflash/i.test(url)
+            ? 'application/x-www-form-urlencoded'
+            : 'application/json',
+        },
+        body: addToCart(id, name, hash, properties),
       });
 
       const { status, headers } = res;
@@ -129,7 +143,7 @@ class SafeCheckout extends Checkout {
         }
       }
 
-      const body = await res.json();
+      const body = await res.text();
 
       if (/cannot find variant/i.test(body)) {
         this._emitTaskEvent({ message: `Variant not live, delaying ${monitorDelay}ms` });
@@ -162,6 +176,452 @@ class SafeCheckout extends Checkout {
       const message = err.status ? `Adding to cart - (${err.status})` : 'Adding to cart';
 
       return nextState || { message, nextState: States.ADD_TO_CART };
+    }
+  }
+
+  async backupAddToCart() {
+    const {
+      task: {
+        site: { url, name, apiKey },
+        product: { variants, hash, randomInStock },
+        size,
+        monitorDelay,
+      },
+      proxy,
+      timers: { checkout: checkoutTimer },
+      parseType,
+    } = this._context;
+
+    let variant;
+    if (parseType !== ParseType.Variant) {
+      variant = await pickVariant(variants, size, url, this._logger, randomInStock);
+    } else {
+      [variant] = variants;
+    }
+
+    if (!variant) {
+      return {
+        message: 'No size matched! Stopping...',
+        nextState: States.ERROR,
+      };
+    }
+
+    const { option, id } = variant;
+
+    this._context.task.product.size = option;
+
+    let opts = {};
+    const base = {
+      checkout: {
+        line_items: [
+          {
+            variant_id: id,
+            quantity: '1',
+            properties: /dsm uk/i.test(name)
+              ? {
+                  _hash: hash,
+                }
+              : /dsm us/i.test(name)
+              ? {
+                  _HASH: hash,
+                }
+              : {},
+          },
+        ],
+      },
+    };
+
+    if (this.chosenShippingMethod.id) {
+      opts = {
+        shipping_rate: {
+          id: this.chosenShippingMethod.id,
+        },
+      };
+    }
+
+    try {
+      const res = await this._request(`/wallets/checkouts/${this.checkoutToken}.json`, {
+        method: 'PATCH',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...base,
+          checkout: {
+            ...base.checkout,
+            ...opts,
+          },
+        }),
+      });
+
+      const { status, headers } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Adding to cart',
+          nextState: States.ADD_TO_CART,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const redirectUrl = headers.get('location');
+      this._logger.silly('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
+
+      // check redirects
+      if (redirectUrl) {
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.ADD_TO_CART };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          let ctdUrl;
+          if (/_ctd/.test(redirectUrl)) {
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          }
+
+          try {
+            await this._request(ctdUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+      }
+
+      const body = await res.json();
+
+      if (body.errors && body.errors.line_items) {
+        const error = body.errors.line_items[0];
+        this._logger.silly('Error adding to cart: %j', error);
+        if (error && error.quantity) {
+          return {
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.ADD_TO_CART,
+          };
+          // return { message: `Out of stock! Delaying ${monitorDelay}ms`, nextState: States. };
+        }
+        if (error && error.variant_id[0]) {
+          return {
+            message: `Variant not found! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.ADD_TO_CART,
+          };
+        }
+
+        const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
+        return { message, nextState: States.ADD_TO_CART };
+      }
+
+      if (body.checkout && body.checkout.line_items && body.checkout.line_items.length) {
+        const { total_price: totalPrice } = body.checkout;
+
+        this._context.task.product.name = body.checkout.line_items[0].title;
+        this._context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
+          ? body.checkout.line_items[0].image_url
+          : `http:${body.checkout.line_items[0].image_url}`;
+
+        checkoutTimer.reset();
+        checkoutTimer.start();
+
+        this.prices.item = parseFloat(totalPrice).toFixed(2);
+
+        if (this.chosenShippingMethod.id) {
+          this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
+          this.prices.total = (
+            parseFloat(this.prices.item) + parseFloat(this.chosenShippingMethod.price)
+          ).toFixed(2);
+          return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
+        }
+        return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+      }
+      const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
+      return { message, nextState: States.ADD_TO_CART };
+    } catch (err) {
+      this._logger.error(
+        'API CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
+        err.type,
+        err.message,
+        err.stack,
+      );
+      const nextState = stateForError(err, {
+        message: 'Adding to cart',
+        nextState: States.ADD_TO_CART,
+      });
+
+      const message = err.status ? `Adding to cart – (${err.status})` : 'Adding to cart';
+      return nextState || { message, nextState: States.ADD_TO_CART };
+    }
+  }
+
+  async goToCheckout() {
+    const {
+      task: {
+        site: { url, apiKey },
+        forceCaptcha,
+        monitorDelay,
+      },
+      timers: { monitor },
+      proxy,
+    } = this._context;
+
+    // reset monitor timer
+    monitor.stop();
+    monitor.reset();
+
+    try {
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
+        method: 'GET',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+        },
+      });
+
+      const { status, headers } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Going to checkout',
+          nextState: States.GO_TO_CHECKOUT,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const redirectUrl = headers.get('location');
+      this._logger.silly('CHECKOUT: Get checkout redirect url: %s', redirectUrl);
+
+      // check if redirected
+      if (redirectUrl) {
+        if (/login/i.test(redirectUrl)) {
+          return {
+            message: 'Login needed! Stopping...',
+            nextState: States.STOP,
+          };
+        }
+        if (/cart/i.test(redirectUrl)) {
+          return {
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.GO_TO_CHECKOUT,
+          };
+        }
+
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.GO_TO_CHECKOUT };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          let ctdUrl;
+          if (/_ctd/.test(redirectUrl)) {
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          }
+
+          try {
+            await this._request(ctdUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+      }
+
+      const body = await res.text();
+
+      if (!this.checkoutKey) {
+        const match = body.match(
+          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
+        );
+
+        if (match) {
+          [, this.checkoutKey] = match;
+          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
+        }
+      }
+
+      if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
+        this.needsCaptcha = true; // mark this to do later
+      }
+
+      if (this.chosenShippingMethod.id) {
+        if (this.needsCaptcha) {
+          return {
+            message: 'Waiting for captcha',
+            nextState: States.CAPTCHA,
+          };
+        }
+        return {
+          message: 'Submitting pament',
+          nextState: States.SUBMIT_PAYMENT,
+        };
+      }
+
+      return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %s Request Error..\n Step: Ping Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Going to checkout',
+        nextState: States.GO_TO_CHECKOUT,
+      });
+
+      const message = err.statusCode
+        ? `Going to checkout - (${err.statusCode})`
+        : 'Going to checkout';
+
+      return nextState || { message, nextState: States.GO_TO_CHECKOUT };
+    }
+  }
+
+  async shippingRates() {
+    const {
+      task: {
+        site: { url, apiKey },
+        monitorDelay,
+      },
+      proxy,
+    } = this._context;
+
+    try {
+      const res = await this._request(
+        `/wallets/checkouts/${this.checkoutToken}/shipping_rates.json`,
+        {
+          method: 'GET',
+          agent: proxy ? new HttpsProxyAgent(proxy) : null,
+          headers: getHeaders({ url, apiKey }),
+        },
+      );
+
+      const { status } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Fetching shipping rates',
+          nextState: States.GO_TO_SHIPPING,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      // extra check for country not supported / cart error
+      if (status === 422) {
+        return { message: 'Country not supported', nextState: States.ERROR };
+      }
+
+      const body = await res.json();
+      if (body && body.errors) {
+        this._logger.silly('API CHECKOUT: Error getting shipping rates: %j', body.errors);
+        const { checkout } = body.errors;
+        if (checkout) {
+          const errorMessage = JSON.stringify(checkout);
+          if (errorMessage.indexOf('does_not_require_shipping') > -1) {
+            this._logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
+            return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
+          }
+
+          if (errorMessage.indexOf("can't be blank") > -1) {
+            this._logger.silly('API CHECKOUT: Country not supported');
+            return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
+          }
+        }
+        return { message: 'Polling shipping rates', delay: true, nextState: States.GO_TO_SHIPPING };
+      }
+
+      if (body && body.shipping_rates && body.shipping_rates.length > 0) {
+        const { shipping_rates: shippingRates } = body;
+        shippingRates.forEach(rate => {
+          this.shippingMethods.push(rate);
+        });
+
+        const cheapest = min(this.shippingMethods, rate => rate.price);
+        // Store cheapest shipping rate
+        this.selectedShippingRate = cheapest;
+        const { id, title } = cheapest;
+        this.chosenShippingMethod = { id, name: title };
+        this._logger.silly('API CHECKOUT: Using shipping method: %s', title);
+
+        // set shipping price for cart
+        this.prices.shipping = parseFloat(cheapest.price).toFixed(2);
+        this.prices.total = (
+          parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
+        ).toFixed(2);
+        this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
+        if (this.needsCaptcha) {
+          return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+        }
+        return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
+      }
+      this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
+      return { message: 'Polling shipping rates', delay: true, nextState: States.GO_TO_SHIPPING };
+    } catch (err) {
+      this._logger.error(
+        'API CHECKOUT: %s Request Error..\n Step: Shipping Rates.\n\n %j %j',
+        err.status,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Fetching shipping rates',
+        nextState: States.ShippingRates,
+      });
+
+      const message = err.status
+        ? `Fetching shipping rates – (${err.status})`
+        : 'Fetching shipping rates';
+
+      return nextState || { message, nextState: States.ShippingRates };
     }
   }
 
@@ -213,9 +673,16 @@ class SafeCheckout extends Checkout {
 
       this.note = $('input[name="note"]').attr('value');
 
-      const form = $('form[action="/cart"]');
+      $('form[action="/cart"] input, select, textarea').each((_, el) => {
+        const name = $(el).attr('name');
+        const value = $(el).attr('value') || '';
+        // BLACKLIST values/names
+        if (!/update cart|{{itemQty}}/i.test(value)) {
+          this.cartForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+        }
+      });
 
-      // TODO: PARSE OUT FORM VALUES FOR POST /cart
+      this.cartForm = this.cartForm.slice(0, -1);
 
       return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
     } catch (err) {
@@ -239,24 +706,13 @@ class SafeCheckout extends Checkout {
   async createCheckout() {
     const {
       task: {
-        product: { variants },
-        site: { url, apiKey },
+        site: { url, name, apiKey },
       },
       proxy,
     } = this._context;
 
-    let params = `updates%5B%5D=1&checkout=Checkout`;
-
-    if (/eflash/i.test(url)) {
-      params = `updates%5B%5D=1&checkout=Checkout&attributes%5Bcheckout_clicked%5D=true`;
-    }
-
-    if (/palace/i.test(url)) {
-      params = `updates%5B${variants[0]}%5D=1&terms=on&checkout=Checkout`;
-    }
-
-    if (this.note) {
-      params += `&note=${this.note}`;
+    if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
+      return this.backupCreateCheckout();
     }
 
     try {
@@ -271,9 +727,11 @@ class SafeCheckout extends Checkout {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: params,
+        body: this.cartForm,
       });
 
+      // reset cart form in case we need to parse it again...
+      this.cartForm = '';
       const { status, headers } = res;
 
       const checkStatus = stateForError(
@@ -326,10 +784,128 @@ class SafeCheckout extends Checkout {
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
-          if (/eflash/i.test(url) || /palace/i.test(url)) {
-            return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+          return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+        }
+      }
+
+      const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
+      return { message, nextState: States.CREATE_CHECKOUT };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Creating checkout',
+        nextState: States.CREATE_CHECKOUT,
+      });
+
+      const message = err.statusCode
+        ? `Creating checkout - (${err.statusCode})`
+        : 'Creating checkout';
+
+      return nextState || { message, nextState: States.CREATE_CHECKOUT };
+    }
+  }
+
+  /**
+   * Used by DSM UK/SG/JP to enter queue right away
+   */
+  async backupCreateCheckout() {
+    const {
+      task: {
+        site: { url, apiKey },
+      },
+      proxy,
+    } = this._context;
+
+    try {
+      const res = await this._request(`${url}/wallets/checkouts`, {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'follow',
+        follow: 5,
+        headers: getHeaders({ url, apiKey }),
+        body: JSON.stringify({
+          card_source: 'vault',
+          pollingOptions: {
+            poll: false,
+          },
+          complete: '1',
+          checkout: {
+            secret: true,
+            wallet_name: 'default',
+          },
+        }),
+      });
+
+      const { status, url: redirectUrl } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Creating checkout',
+          nextState: States.CREATE_CHECKOUT,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
+
+      if (redirectUrl) {
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
-          return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
+
+          try {
+            await this._request(decodeURIComponent(redirectUrl), {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+      }
+
+      const body = await res.json();
+
+      if (body && body.error) {
+        if (/channel is locked/i.test(body.error)) {
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
+        }
+        return { message: 'Invalid checkout! Retrying..', nextState: States.CREATE_CHECKOUT };
+      }
+
+      if (body && body.checkout) {
+        const { web_url: checkoutUrl } = body.checkout;
+        if (/checkouts/i.test(checkoutUrl)) {
+          [, , , this.storeId, , this.checkoutToken] = checkoutUrl.split('/');
+          return { message: 'Submitting information', nextState: States.SUBMIT_CUSTOMER };
         }
       }
 
@@ -404,6 +980,21 @@ class SafeCheckout extends Checkout {
         return checkStatus;
       }
 
+      const body = await res.text();
+      const $ = cheerio.load(body);
+
+      // grab the checkoutKey if it's exists and we don't have it yet..
+      if (!this.checkoutKey) {
+        const match = body.match(
+          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
+        );
+
+        if (match) {
+          [, this.checkoutKey] = match;
+          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
+        }
+      }
+
       const redirectUrl = headers.get('location');
       this._logger.silly(`CHECKOUT: ${state} redirect url: %s`, redirectUrl);
 
@@ -414,28 +1005,16 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let newUrl = null;
-
-          // if redirect has the cookie, let's just use the redirect
+          let ctdUrl;
           if (/_ctd/.test(redirectUrl)) {
-            newUrl = redirectUrl;
-          }
-
-          // else, try to find the cookie in our jar
-          const ctd = this.getCtdCookie(this._jar);
-
-          // if neither, just jump to the queue
-          if (!ctd && !newUrl) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
-          }
-
-          // if it doesn't have the cookie, and our jar does, build the new url
-          if (!newUrl) {
-            newUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
           }
 
           try {
-            await this._request(newUrl, {
+            await this._request(ctdUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -466,25 +1045,11 @@ class SafeCheckout extends Checkout {
         }
       }
 
-      const body = await res.text();
-      const $ = cheerio.load(body);
-
       this.protection = await this.parseBotProtection($);
       this.authToken = $('form.edit_checkout input[name=authenticity_token]').attr('value');
 
       if (/Getting available shipping rates/i.test(body)) {
         return { message: 'Polling shipping rates', nextState: States.GO_TO_SHIPPING };
-      }
-
-      if (!this.checkoutKey) {
-        const match = body.match(
-          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
-        );
-
-        if (match) {
-          [, this.checkoutKey] = match;
-          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
-        }
       }
 
       if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
@@ -544,12 +1109,16 @@ class SafeCheckout extends Checkout {
   async submitCustomer() {
     const {
       task: {
-        site: { url, apiKey },
+        site: { url, name, apiKey },
         profile: { shipping, payment },
         monitorDelay,
       },
       proxy,
     } = this._context;
+
+    if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
+      return this.backupPatchCheckout();
+    }
 
     let params = `_method=patch&authenticty_token=${
       this.authToken
@@ -594,10 +1163,9 @@ class SafeCheckout extends Checkout {
     }&checkout%5Bremember_me%5D=false&checkout%5Bremember_me%5D=0&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1358&checkout%5Bclient_details%5D%5Bbrowser_height%5D=655&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;
 
     if (this.protection.length) {
-      params += '&field_start=hidden';
       this.protection.map(hash => (params += `&${hash}=`));
-      params += '&field_end=hidden';
       params += `&${this.checkoutToken}-count=${this.protection.length}`;
+      params += `&${this.checkoutToken}-count=fs_count`;
     }
 
     if (this.captchaToken) {
@@ -686,28 +1254,16 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let newUrl = null;
-
-          // if redirect has the cookie, let's just use the redirect
+          let ctdUrl;
           if (/_ctd/.test(redirectUrl)) {
-            newUrl = redirectUrl;
-          }
-
-          // else, try to find the cookie in our jar
-          const ctd = this.getCtdCookie(this._jar);
-
-          // if neither, just jump to the queue
-          if (!ctd && !newUrl) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
-          }
-
-          // if it doesn't have the cookie, and our jar does, build the new url
-          if (!newUrl) {
-            newUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
           }
 
           try {
-            await this._request(newUrl, {
+            await this._request(ctdUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -741,6 +1297,116 @@ class SafeCheckout extends Checkout {
 
       const message = err.status
         ? `Submitting information - (${err.status})`
+        : 'Submitting information';
+
+      return nextState || { message, nextState: States.SUBMIT_CUSTOMER };
+    }
+  }
+
+  async backupPatchCheckout() {
+    const {
+      task: {
+        site: { url, apiKey },
+        profile: { shipping, billing, payment, billingMatchesShipping },
+        product: { variants },
+      },
+      proxy,
+    } = this._context;
+
+    try {
+      const res = await this._request(`/wallets/checkouts/${this.checkoutToken}.json`, {
+        method: 'PATCH',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'follow',
+        follow: 1,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          'Content-Type': 'application/json',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        body: JSON.stringify(
+          patchCheckoutForm(billingMatchesShipping, shipping, billing, payment, this.captchaToken),
+        ),
+      });
+
+      this._logger.silly('API CHECKOUT: Patch checkout status: %s', res.status);
+
+      const { status, url: redirectUrl } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Submitting information',
+          nextState: States.SUBMIT_CUSTOMER,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      // if we followed a redirect at some point...
+      if (res.redirected) {
+        if (/throttle/i.test(redirectUrl)) {
+          let ctdUrl;
+          if (/_ctd/.test(redirectUrl)) {
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          }
+
+          try {
+            await this._request(ctdUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+      }
+
+      const body = await res.json();
+
+      if (
+        body &&
+        body.checkout &&
+        !body.checkout.shipping_address &&
+        !body.checkout.billing_address
+      ) {
+        const message = status ? `Submitting information – (${status})` : 'Submitting information';
+        return { message, nextState: States.SUBMIT_CUSTOMER };
+      }
+
+      if (variants && variants.length) {
+        return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
+      }
+      return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
+    } catch (err) {
+      this._logger.error(
+        'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
+        err.status,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Submitting information',
+        nextState: States.SUBMIT_CUSTOMER,
+      });
+
+      const message = err.status
+        ? `Submitting information – (${err.status})`
         : 'Submitting information';
 
       return nextState || { message, nextState: States.SUBMIT_CUSTOMER };
@@ -870,28 +1536,16 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let newUrl = null;
-
-          // if redirect has the cookie, let's just use the redirect
+          let ctdUrl;
           if (/_ctd/.test(redirectUrl)) {
-            newUrl = redirectUrl;
-          }
-
-          // else, try to find the cookie in our jar
-          const ctd = this.getCtdCookie(this._jar);
-
-          // if neither, just jump to the queue
-          if (!ctd && !newUrl) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
-          }
-
-          // if it doesn't have the cookie, and our jar does, build the new url
-          if (!newUrl) {
-            newUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
           }
 
           try {
-            await this._request(newUrl, {
+            await this._request(ctdUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -932,13 +1586,17 @@ class SafeCheckout extends Checkout {
   async submitPayment() {
     const {
       task: {
-        site: { url, apiKey },
+        site: { url, name, apiKey },
         profile: { billing, billingMatchesShipping },
         monitorDelay,
       },
       timers: { checkout },
       proxy,
     } = this._context;
+
+    if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
+      return this.backupSubmitPayment();
+    }
 
     let params = `_method=patch&authenticity_token=${encodeURIComponent(
       this.authToken,
@@ -989,10 +1647,9 @@ class SafeCheckout extends Checkout {
     }
 
     if (this.protection.length) {
-      params += '&field_start=hidden';
       this.protection.map(hash => (params += `&${hash}=`));
-      params += '&field_end=hidden';
       params += `&${this.checkoutToken}-count=${this.protection.length}`;
+      params += `&${this.checkoutToken}-count=fs_count`;
     }
 
     params = params.replace(/\s/g, '+');
@@ -1106,28 +1763,16 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let newUrl = null;
-
-          // if redirect has the cookie, let's just use the redirect
+          let ctdUrl;
           if (/_ctd/.test(redirectUrl)) {
-            newUrl = redirectUrl;
-          }
-
-          // else, try to find the cookie in our jar
-          const ctd = this.getCtdCookie(this._jar);
-
-          // if neither, just jump to the queue
-          if (!ctd && !newUrl) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
-          }
-
-          // if it doesn't have the cookie, and our jar does, build the new url
-          if (!newUrl) {
-            newUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
           }
 
           try {
-            await this._request(newUrl, {
+            await this._request(ctdUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -1165,7 +1810,7 @@ class SafeCheckout extends Checkout {
     }
   }
 
-  async completePayment() {
+  async backupSubmitPayment() {
     const {
       task: {
         site: { url, apiKey },
@@ -1174,6 +1819,184 @@ class SafeCheckout extends Checkout {
       timers: { checkout },
       proxy,
     } = this._context;
+
+    const { id } = this.chosenShippingMethod;
+
+    const checkoutUrl = this.checkoutKey
+      ? `/${this.storeId}/checkouts/${this.checkoutToken}?key=${this.checkoutKey}`
+      : `/${this.storeId}/checkouts/${this.checkoutToken}`;
+
+    let formBody = {
+      complete: '1',
+      s: this.paymentToken,
+      checkout: {
+        shipping_rate: {
+          id,
+        },
+      },
+    };
+
+    if (this.captchaToken) {
+      formBody = {
+        ...formBody,
+        'g-recaptcha-response': this.captchaToken,
+      };
+    }
+
+    try {
+      const res = await this._request(checkoutUrl, {
+        method: 'PATCH',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        follow: 0,
+        redirect: 'manual',
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          'Content-Type': 'application/json',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+        },
+        body: JSON.stringify(formBody),
+      });
+
+      const { status, headers } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Submitting payment',
+          nextState: States.SUBMIT_PAYMENT,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const redirectUrl = headers.get('location');
+      this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
+
+      const body = await res.text();
+
+      if (!this.checkoutKey) {
+        const match = body.match(
+          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
+        );
+
+        if (match) {
+          [, this.checkoutKey] = match;
+          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
+        }
+      }
+
+      // check if redirected
+      if (redirectUrl) {
+        if (/processing/i.test(redirectUrl)) {
+          this.captchaToken = '';
+          this._context.task.checkoutSpeed = checkout.getRunTime();
+          checkout.stop();
+          checkout.reset();
+          return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+        }
+
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.SUBMIT_PAYMENT };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          let ctdUrl;
+          if (/_ctd/.test(redirectUrl)) {
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          }
+
+          try {
+            await this._request(ctdUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+
+        if (/stock_problems/i.test(redirectUrl)) {
+          return {
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.COMPLETE_PAYMENT,
+          };
+        }
+      }
+
+      if ((this.needsCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
+        this._context.task.checkoutSpeed = checkout.getRunTime();
+        checkout.stop();
+        checkout.reset();
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
+      const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
+      if (match && /review/i.test(match)) {
+        return { message: 'Completing payment', nextState: States.COMPLETE_PAYMENT };
+      }
+
+      if (match && /payment/i.test(match)) {
+        return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
+      }
+
+      if (match && /shipping/i.test(match)) {
+        return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+      }
+
+      this._context.task.checkoutSpeed = checkout.getRunTime();
+      checkout.stop();
+      checkout.reset();
+      return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %s Request Error..\n Step: Post Payment.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Submitting payment',
+        nextState: States.SUBMIT_PAYMENT,
+      });
+
+      const message = err.statusCode
+        ? `Submitting payment - (${err.statusCode})`
+        : 'Submitting payment';
+
+      return nextState || { message, nextState: States.SUBMIT_PAYMENT };
+    }
+  }
+
+  async completePayment() {
+    const {
+      task: {
+        site: { url, name, apiKey },
+        monitorDelay,
+      },
+      timers: { checkout },
+      proxy,
+    } = this._context;
+
+    if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
+      return this.backupCompletePayment();
+    }
 
     let params = `_method=patch&authenticity_token=${this.authToken}&complete=1&button=`;
 
@@ -1185,10 +2008,9 @@ class SafeCheckout extends Checkout {
       '&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1';
 
     if (this.protection.length) {
-      params += '&field_start=hidden';
       this.protection.map(hash => (params += `&${hash}=`));
-      params += '&field_end=hidden';
       params += `&${this.checkoutToken}-count=${this.protection.length}`;
+      params += `&${this.checkoutToken}-count=fs_count`;
     }
 
     params = params.replace(/\s/g, '+');
@@ -1316,6 +2138,158 @@ class SafeCheckout extends Checkout {
       const message = err.status ? `Submitting payment - (${err.status})` : 'Submitting payment';
 
       return nextState || { message, nextState: States.COMPLTE_PAYMENT };
+    }
+  }
+
+  async backupCompletePayment() {
+    const {
+      task: {
+        site: { url, apiKey },
+        monitorDelay,
+      },
+      timers: { checkout },
+      proxy,
+    } = this._context;
+
+    let form = {
+      complete: 1,
+    };
+
+    if (this.captchaToken) {
+      form = {
+        ...form,
+        'g-recaptcha-response': this.captchaToken,
+      };
+    }
+
+    try {
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
+        method: 'PATCH',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        follow: 5,
+        redirect: 'follow',
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          'Content-Type': 'application/json',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+        },
+        body: JSON.stringify(form),
+      });
+
+      const { status, url: redirectUrl } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Completing payment',
+          nextState: States.COMPLETE_PAYMENT,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      this._logger.silly('CHECKOUT: Complete payment redirect url: %s', redirectUrl);
+
+      const body = await res.text();
+
+      if (!this.checkoutKey) {
+        const match = body.match(
+          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
+        );
+
+        if (match) {
+          [, this.checkoutKey] = match;
+          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this.checkoutKey);
+        }
+      }
+
+      if (redirectUrl) {
+        if (/processing/i.test(redirectUrl)) {
+          this.captchaToken = '';
+          checkout.stop();
+          checkout.reset();
+          return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+        }
+
+        if (/stock_problems/i.test(redirectUrl)) {
+          return {
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            delay: true,
+            nextState: States.COMPLETE_PAYMENT,
+          };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          let ctdUrl;
+          if (/_ctd/.test(redirectUrl)) {
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          }
+
+          try {
+            await this._request(ctdUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.COMPLETE_PAYMENT };
+        }
+      }
+
+      if ((this.needsCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
+        this._context.task.checkoutSpeed = checkout.getRunTime();
+        checkout.stop();
+        checkout.reset();
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
+      const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
+      if (match && /payment/i.test(match)) {
+        return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
+      }
+
+      if (match && /shipping/i.test(match)) {
+        return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
+      }
+
+      return { message: 'Submitting payment', nextState: States.COMPLETE_PAYMENT };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %s Request Error..\n Step: Complete Payment.\n\n %j %j',
+        err.statusCode,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Processing payment',
+        nextState: States.COMPLETE_PAYMENT,
+      });
+
+      const message = err.statusCode
+        ? `Processing payment - (${err.statusCode})`
+        : 'Processing payment';
+
+      return nextState || { message, nextState: States.COMPLETE_PAYMENT };
     }
   }
 }

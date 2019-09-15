@@ -8,6 +8,11 @@ async function pickVariant(variants, size, url, logger = { log: () => {} }, rand
 
   if (randomInStock) {
     variantGroup = variantGroup.filter(v => v.available);
+
+    // if we filtered all the products out, undo...
+    if (!variantGroup || !variantGroup.length) {
+      variantGroup = variants;
+    }
   }
 
   if (/random/i.test(size)) {

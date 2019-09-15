@@ -98,14 +98,16 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          const ctd = this.getCtdCookie(this._jar);
-
-          if (!ctd) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
+          let ctdUrl;
+          if (/_ctd/.test(redirectUrl)) {
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
           }
 
           try {
-            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+            await this._request(ctdUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -200,7 +202,7 @@ class FastCheckout extends Checkout {
     } = this._context;
 
     try {
-      const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
+      const res = await this._request(`/wallets/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: {
@@ -334,14 +336,16 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          const ctd = this.getCtdCookie(this._jar);
-
-          if (!ctd) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
+          let ctdUrl;
+          if (/_ctd/.test(redirectUrl)) {
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
           }
 
           try {
-            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+            await this._request(ctdUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -422,11 +426,14 @@ class FastCheckout extends Checkout {
     } = this._context;
 
     try {
-      const res = await this._request(`/api/checkouts/${this.checkoutToken}/shipping_rates.json`, {
-        method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        headers: getHeaders({ url, apiKey }),
-      });
+      const res = await this._request(
+        `/wallets/checkouts/${this.checkoutToken}/shipping_rates.json`,
+        {
+          method: 'GET',
+          agent: proxy ? new HttpsProxyAgent(proxy) : null,
+          headers: getHeaders({ url, apiKey }),
+        },
+      );
 
       const { status } = res;
 
@@ -606,14 +613,16 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          const ctd = this.getCtdCookie(this._jar);
-
-          if (!ctd) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
+          let ctdUrl;
+          if (/_ctd/.test(redirectUrl)) {
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
           }
 
           try {
-            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+            await this._request(ctdUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -771,14 +780,16 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          const ctd = this.getCtdCookie(this._jar);
-
-          if (!ctd) {
-            return { message: 'Polling queue', nextState: States.QUEUE };
+          let ctdUrl;
+          if (/_ctd/.test(redirectUrl)) {
+            ctdUrl = redirectUrl;
+          } else {
+            const ctd = this.getCookie(this._jar, '_ctd');
+            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
           }
 
           try {
-            await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+            await this._request(ctdUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',

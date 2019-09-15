@@ -141,6 +141,7 @@ const sites = [
     url: 'https://eflash-us.doverstreetmarket.com',
     apiKey: 'c61dfd7121456f05d58cedf7a0b068b6',
     auth: false,
+    special: true,
     supported: true,
   },
   {
@@ -156,6 +157,7 @@ const sites = [
     url: 'https://eflash-sg.doverstreetmarket.com',
     apiKey: '0867cfd02e49786c54fd1a9fd02f03cd',
     auth: false,
+    special: true,
     supported: true,
   },
   {
@@ -163,6 +165,7 @@ const sites = [
     url: 'https://eflash-jp.doverstreetmarket.com',
     apiKey: '8cbefa53e1484d3a39a41396a00b9fe9',
     auth: false,
+    special: true,
     supported: true,
   },
   {
@@ -597,6 +600,7 @@ const sites = [
     url: 'https://yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
     auth: false,
+    special: true,
     supported: true,
   },
   {
@@ -604,6 +608,7 @@ const sites = [
     url: 'https://yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
     auth: false,
+    special: true,
     supported: true,
   },
   {
@@ -611,6 +616,7 @@ const sites = [
     url: 'https://europe.yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
     auth: false,
+    special: true,
     supported: true,
   },
   {
@@ -618,6 +624,7 @@ const sites = [
     url: 'https://350.yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
     auth: false,
+    special: true,
     supported: true,
   },
   {
@@ -625,6 +632,7 @@ const sites = [
     url: 'https://700.yeezysupply.com',
     apiKey: 'afa13d942580749aa2985b086cc0bdcb',
     auth: false,
+    special: true,
     supported: true,
   },
   {

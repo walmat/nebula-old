@@ -1,6 +1,9 @@
 const SpecialParser = require('../specialParser');
-const { ParseType, matchKeywords } = require('../../utils/parse');
-const { ErrorCodes } = require('../../utils/constants');
+const { matchKeywords } = require('../../utils/parse');
+const {
+  ErrorCodes,
+  Monitor: { ParseType },
+} = require('../../utils/constants');
 
 /**
  * Base Special Parser for all DSM Sites

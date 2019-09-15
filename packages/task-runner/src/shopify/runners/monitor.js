@@ -2,9 +2,11 @@ import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { pick, isEqual } from 'lodash';
+import { getParseType } from '../classes/utils/parse';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
 const { Events } = require('../../constants').Runner;
+const { Platforms } = require('../../constants');
 const { Parser, getSpecialParser, getParsers } = require('../classes/parsers');
 const { rfrl, capitalizeFirstLetter, waitForDelay } = require('../../common');
 const {
@@ -221,6 +223,7 @@ class Monitor {
         !delayStatus &&
         (status === ErrorCodes.ProductNotFound ||
           status === ErrorCodes.ProductNotLive ||
+          status === ErrorCodes.PasswordPage ||
           status >= 400)
       ) {
         delayStatus = status; // find the first error that is either a product not found or 4xx response
@@ -437,17 +440,11 @@ class Monitor {
     }
 
     const { task, proxy, logger } = this._context;
-    const { site } = task;
+    const { site, product } = task;
     // Get the correct special parser
     const ParserCreator = getSpecialParser(site);
-    const parser = ParserCreator(
-      this._request,
-      this._parseType,
-      task,
-      proxy,
-      this._aborter,
-      logger,
-    );
+    const parseType = getParseType(product, null, Platforms.Shopify);
+    const parser = ParserCreator(this._request, parseType, task, proxy, this._aborter, logger);
 
     let parsed;
     try {
