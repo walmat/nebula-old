@@ -16,7 +16,6 @@ const notification = async (slack, discord, payload) => {
     order,
     profile,
     size,
-    checkoutSpeed,
     shippingMethod,
     image,
   } = payload;
@@ -32,7 +31,6 @@ const notification = async (slack, discord, payload) => {
       order,
       profile,
       size,
-      checkoutSpeed,
       shippingMethod,
       image,
     ),
@@ -46,7 +44,6 @@ const notification = async (slack, discord, payload) => {
       order,
       profile,
       size,
-      checkoutSpeed,
       shippingMethod,
       image,
     ),
@@ -64,7 +61,6 @@ const notification = async (slack, discord, payload) => {
         null, // order
         null, // profile
         size,
-        checkoutSpeed,
         null,
         image,
       ),

@@ -1,6 +1,6 @@
 import HttpsProxyAgent from 'https-proxy-agent';
 
-const { userAgent } = require('../../../common');
+const { userAgent, getRandomIntInclusive } = require('../../../common');
 const Parser = require('./parser');
 
 class JsonParser extends Parser {
@@ -21,13 +21,17 @@ class JsonParser extends Parser {
     try {
       this._logger.silly(`%s: Making request for %s/products.json ...`, this._name, url);
 
-      const res = await this._request('/products.json', {
-        method: 'GET',
-        headers: {
-          'User-Agent': userAgent,
+      const res = await this._request(
+        `/products.json?page=-${getRandomIntInclusive(500000000000, 900000000000)}`,
+        {
+          method: 'GET',
+          headers: {
+            'X-Shopify-Api-Features': getRandomIntInclusive(30000, 90000),
+            'User-Agent': userAgent,
+          },
+          agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         },
-        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
-      });
+      );
 
       if (/429|430|403/.test(res.status)) {
         const error = new Error('Proxy banned!');

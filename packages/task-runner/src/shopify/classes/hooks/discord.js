@@ -18,7 +18,6 @@ class Discord {
     order,
     profile,
     size,
-    checkoutSpeed,
     shippingMethod,
     image,
   ) {
@@ -31,15 +30,21 @@ class Discord {
         .addField('Product', `[${product.name}](${product.url})`, true)
         .addField('Price', `${price}`, true)
         .addField('Store', `[${site.name}](${site.url})`, true)
-        .addField('Order #', order ? `[${order.number}](${order.url})` : 'None', true)
-        .addField('Billing Profile', profile ? `${profile}` : 'None', true)
-        .addField('Size(s)', `${size}`, true)
-        .addField('Checkout Speed (ms)', `${checkoutSpeed || NaN}`, true)
-        .addField('Shipping Method', shippingMethod ? `${shippingMethod}` : 'None', true)
         .setFooter(
           'Nebula Orion © 2019',
           'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
         );
+
+      if (order) {
+        embed.addField('Order #', `[${order.number}](${order.url})`, true);
+        embed.setURL(order.url);
+      }
+
+      if (profile) {
+        embed.addField('Billing Profile', `${profile}`, true);
+      }
+
+      embed.addField('Size', size, true);
 
       if (checkoutUrl) {
         embed.setURL(checkoutUrl);

@@ -42,7 +42,6 @@ class TaskRunner {
 
     this._delayer = null;
     this._captchaQueue = null;
-    this._state = States.PAYMENT_TOKEN;
 
     this._timers = {
       checkout: new Timer(),
@@ -75,6 +74,23 @@ class TaskRunner {
       aborted: this._aborted,
       harvestState: HarvestStates.idle,
     };
+
+    this.needsLogin = this._context.task.account || false;
+    this._state = States.STARTED;
+
+    // decide what our start state should be!
+    if (!this._context.task.site.apiKey) {
+      this._state = States.GET_SITE_DATA;
+    } else if (this.needsLogin) {
+      this._state = States.LOGIN;
+    } else if (
+      /dsm uk|dsm jp|dsm sg/i.test(this._context.task.site.name) ||
+      this._context.task.type === Modes.FAST
+    ) {
+      this._state = States.CREATE_CHECKOUT;
+    } else {
+      this._state = States.WAIT_FOR_PRODUCT;
+    }
 
     /**
      * Create a new checkout object to be used for this task
@@ -357,7 +373,7 @@ class TaskRunner {
       await this._delayer;
     }
 
-    return nextState;
+    return States.SUBMIT_PAYMENT;
   }
 
   async _handleGetSiteData() {

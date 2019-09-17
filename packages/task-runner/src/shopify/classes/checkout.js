@@ -61,12 +61,9 @@ class Checkout {
 
     this.cartForm = '';
     this.paymentToken = null;
-    this.note = null;
-    this.paymentGateway = '';
     this.checkoutToken = null;
     this.checkoutKey = null;
     this.storeId = null;
-    this.protection = [];
     this.needsCaptcha = false;
 
     this.prices = {
@@ -79,6 +76,7 @@ class Checkout {
     this.captchaToken = '';
     this.needsLogin = this._context.task.account || false;
     this.needsPatched = true;
+    this.needsPaymentToken = true;
     this.captchaTokenRequest = null;
   }
 
@@ -101,27 +99,6 @@ class Checkout {
     this._emitEvent(Events.TaskStatus, { ...payload, type: Types.Normal });
   }
 
-  async parseBotProtection($) {
-    const elements = $('input#field_start').nextUntil('input#field_end', 'textarea');
-
-    if (!elements || !elements.length) {
-      return [];
-    }
-
-    const hashes = [];
-    elements.each((_, textarea) => {
-      const hash = $(textarea).attr('id');
-
-      this._logger.debug('BOT PROTECTION HASH: ', hash);
-      if (!hash) {
-        return;
-      }
-      hashes.push(hash);
-    });
-
-    return hashes;
-  }
-
   async addToCart() {
     throw new Error('Should be defined in subclasses');
   }
@@ -133,9 +110,7 @@ class Checkout {
   async getPaymentToken() {
     const {
       task: {
-        site: { apiKey, name },
         profile: { payment, billing },
-        type,
       },
       proxy,
     } = this._context;
@@ -171,23 +146,7 @@ class Checkout {
       if (id) {
         this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
-        if (!apiKey) {
-          return { message: 'Getting site data', nextState: States.GET_SITE_DATA };
-        }
-
-        if (this.needsLogin) {
-          return { message: 'Logging in', nextState: States.LOGIN };
-        }
-
-        if (/dsm uk|dsm jp|dsm sg/i.test(name)) {
-          return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
-        }
-
-        if (type === Modes.SAFE) {
-          return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
-        }
-
-        return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+        return { done: true };
       }
       return {
         message: 'Creating payment session',
@@ -709,7 +668,6 @@ class Checkout {
         site: { url, apiKey, name },
         product: { size, name: productName, url: productUrl },
         profile: { profileName },
-        checkoutSpeed,
         type,
         monitorDelay,
       },
@@ -787,8 +745,7 @@ class Checkout {
               },
               profile: profileName,
               size,
-              checkoutSpeed,
-              shippingMethod: this.chosenShippingMethod.id,
+              shippingMethod: this.chosenShippingMethod.name,
               image: imageUrl,
             });
           } catch (err) {
@@ -817,7 +774,6 @@ class Checkout {
               order: null,
               profile: profileName,
               size,
-              checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
               image: imageUrl,
             });
@@ -845,7 +801,6 @@ class Checkout {
                 order: null,
                 profile: profileName,
                 size,
-                checkoutSpeed,
                 shippingMethod: this.chosenShippingMethod.id,
                 image: imageUrl,
               });
@@ -854,7 +809,7 @@ class Checkout {
             }
             return {
               message: `Out of stock! Delaying ${monitorDelay}ms`,
-              nextState: States.COMPLETE_PAYMENT,
+              nextState: States.GO_TO_PAYMENT,
             };
           }
 
@@ -872,14 +827,13 @@ class Checkout {
               order: null,
               profile: profileName,
               size,
-              checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
               image: imageUrl,
             });
           } catch (err) {
             // fail silently...
           }
-          return { message: 'Payment failed!', nextState: States.COMPLETE_PAYMENT };
+          return { message: 'Payment failed!', nextState: States.GO_TO_PAYMENT };
         }
       }
       this._logger.silly('CHECKOUT: Processing payment');
