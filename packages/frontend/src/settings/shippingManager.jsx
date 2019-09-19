@@ -23,7 +23,6 @@ import addTestId from '../utils/addTestId';
 
 export class ShippingManagerPrimitive extends PureComponent {
   static createOption(value) {
-    console.log(value);
     const URL = parseURL(value);
     if (!URL || !URL.host) {
       return null;
