@@ -108,8 +108,7 @@ export class CreateTaskPrimitive extends PureComponent {
     };
     const fsrSize = fsrMap[task.size];
     if (fsrSize) {
-      const fsrCategory = fsrMap[fsrSize];
-      const sizes = getAllSizes.buildSizesForCategory(fsrCategory);
+      const sizes = getAllSizes.buildSizesForCategory(fsrSize);
       sizes.forEach(s => {
         task.size = s.value;
         onAddNewTask(task, amount);
