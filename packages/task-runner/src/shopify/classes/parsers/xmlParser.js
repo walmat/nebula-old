@@ -47,6 +47,11 @@ class XmlParser extends Parser {
       const body = await res.text();
       responseJson = await convertToJson(body);
     } catch (error) {
+      if (error && error.type && /system/i.test(error.type)) {
+        const rethrow = new Error(error.errno);
+        rethrow.status = error.code;
+        throw rethrow;
+      }
       this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
       const rethrow = new Error('Unable to make request');
       rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given

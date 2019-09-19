@@ -33,7 +33,7 @@ class JsonParser extends Parser {
         },
       );
 
-      if (/429|430|403/.test(res.status)) {
+      if (/429|430/.test(res.status)) {
         const error = new Error('Proxy banned!');
         error.status = res.status;
         throw error;
@@ -41,6 +41,11 @@ class JsonParser extends Parser {
 
       ({ products } = await res.json());
     } catch (error) {
+      if (error && error.type && /system/i.test(error.type)) {
+        const rethrow = new Error(error.errno);
+        rethrow.status = error.code;
+        throw rethrow;
+      }
       this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given

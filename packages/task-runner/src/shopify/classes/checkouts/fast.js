@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-return-assign */
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
@@ -8,7 +9,7 @@ const { States, Modes } = require('../utils/constants').TaskRunner;
 const { ParseType } = require('../utils/constants').Monitor;
 const { userAgent } = require('../../../common');
 const { getHeaders, stateForError } = require('../utils');
-const { patchToCart, patchCheckoutForm } = require('../utils/forms');
+const { patchCheckoutForm } = require('../utils/forms');
 const pickVariant = require('../utils/pickVariant');
 
 class FastCheckout extends Checkout {
@@ -35,8 +36,8 @@ class FastCheckout extends Checkout {
   async addToCart() {
     const {
       task: {
-        site: { url, apiKey },
-        product: { variants, randomInStock },
+        site: { url, name, apiKey },
+        product: { variants, hash, randomInStock },
         size,
         monitorDelay,
       },
@@ -63,15 +64,50 @@ class FastCheckout extends Checkout {
 
     this._context.task.product.size = option;
 
+    let opts = {};
+    const base = {
+      checkout: {
+        line_items: [
+          {
+            variant_id: id,
+            quantity: 1,
+            properties: /dsm uk/i.test(name)
+              ? {
+                  _hash: hash,
+                }
+              : /dsm us/i.test(name)
+              ? {
+                  _HASH: hash,
+                }
+              : {},
+          },
+        ],
+      },
+    };
+
+    if (this.chosenShippingMethod.id) {
+      opts = {
+        shipping_rate: {
+          id: this.chosenShippingMethod.id,
+        },
+      };
+    }
+
     try {
-      const res = await this._request(`/api/checkouts/${this.checkoutToken}.json`, {
+      const res = await this._request(`/wallets/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: {
           ...getHeaders({ url, apiKey }),
-          'Content-Type': 'application/json',
+          'content-type': 'application/json',
         },
-        body: JSON.stringify(patchToCart(id)),
+        body: JSON.stringify({
+          ...base,
+          checkout: {
+            ...base.checkout,
+            ...opts,
+          },
+        }),
       });
 
       const { status, headers } = res;
@@ -150,7 +186,7 @@ class FastCheckout extends Checkout {
         return { message, nextState: States.ADD_TO_CART };
       }
 
-      if (body.checkout && body.checkout.line_items) {
+      if (body.checkout && body.checkout.line_items && body.checkout.line_items.length) {
         const { total_price: totalPrice } = body.checkout;
 
         this._context.task.product.name = body.checkout.line_items[0].title;
@@ -177,7 +213,7 @@ class FastCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
-        err.type,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -186,7 +222,11 @@ class FastCheckout extends Checkout {
         nextState: States.ADD_TO_CART,
       });
 
-      const message = err.status ? `Adding to cart – (${err.status})` : 'Adding to cart';
+      const message =
+        err.status || err.errno
+          ? `Adding to cart - (${err.status || err.errno})`
+          : 'Adding to cart';
+
       return nextState || { message, nextState: States.ADD_TO_CART };
     }
   }
@@ -196,7 +236,6 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         profile: { shipping, billing, payment, billingMatchesShipping },
-        product: { variants },
       },
       proxy,
     } = this._context;
@@ -244,14 +283,14 @@ class FastCheckout extends Checkout {
       }
 
       this.needsPatched = false;
-      if (variants && variants.length) {
+      if (this._context.task.product.variants) {
         return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
       }
       return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -261,9 +300,10 @@ class FastCheckout extends Checkout {
         nextState: States.SUBMIT_CUSTOMER,
       });
 
-      const message = err.status
-        ? `Submitting information – (${err.status})`
-        : 'Submitting information';
+      const message =
+        err.status || err.errno
+          ? `Submitting information - (${err.status || err.errno})`
+          : 'Submitting information';
 
       return nextState || { message, nextState: States.SUBMIT_CUSTOMER };
     }
@@ -390,7 +430,7 @@ class FastCheckout extends Checkout {
         }
         return {
           message: 'Submitting pament',
-          nextState: States.SUBMIT_PAYMENT,
+          nextState: States.PAYMENT_TOKEN,
         };
       }
 
@@ -398,7 +438,7 @@ class FastCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Ping Checkout.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -408,9 +448,10 @@ class FastCheckout extends Checkout {
         nextState: States.GO_TO_CHECKOUT,
       });
 
-      const message = err.statusCode
-        ? `Going to checkout - (${err.statusCode})`
-        : 'Going to checkout';
+      const message =
+        err.status || err.errno
+          ? `Going to checkout - (${err.status || err.errno})`
+          : 'Going to checkout';
 
       return nextState || { message, nextState: States.GO_TO_CHECKOUT };
     }
@@ -421,6 +462,7 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         monitorDelay,
+        forceCaptcha,
       },
       proxy,
     } = this._context;
@@ -462,7 +504,10 @@ class FastCheckout extends Checkout {
           const errorMessage = JSON.stringify(checkout);
           if (errorMessage.indexOf('does_not_require_shipping') > -1) {
             this._logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
-            return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
+            if (this.needsCaptcha || forceCaptcha) {
+              return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+            }
+            return { message: 'Submitting payment', nextState: States.PAYMENT_TOKEN };
           }
 
           if (errorMessage.indexOf("can't be blank") > -1) {
@@ -492,17 +537,17 @@ class FastCheckout extends Checkout {
           parseFloat(this.prices.item) + parseFloat(this.prices.shipping)
         ).toFixed(2);
         this._logger.silly('API CHECKOUT: Shipping total: %s', this.prices.shipping);
-        if (this.needsCaptcha) {
+        if (this.needsCaptcha || forceCaptcha) {
           return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
         }
-        return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
+        return { message: 'Submitting payment', nextState: States.PAYMENT_TOKEN };
       }
       this._logger.silly('No shipping rates available, polling %d ms', monitorDelay);
       return { message: 'Polling shipping rates', delay: true, nextState: States.GO_TO_SHIPPING };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Shipping Rates.\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -512,9 +557,10 @@ class FastCheckout extends Checkout {
         nextState: States.ShippingRates,
       });
 
-      const message = err.status
-        ? `Fetching shipping rates – (${err.status})`
-        : 'Fetching shipping rates';
+      const message =
+        err.status || err.errno
+          ? `Fetching shipping rates - (${err.status || err.errno})`
+          : 'Fetching shipping rates';
 
       return nextState || { message, nextState: States.ShippingRates };
     }
@@ -525,6 +571,7 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         monitorDelay,
+        forceCaptcha,
       },
       timers: { checkout },
       proxy,
@@ -532,19 +579,22 @@ class FastCheckout extends Checkout {
 
     const { id } = this.chosenShippingMethod;
 
-    const checkoutUrl = this.checkoutKey
-      ? `/${this.storeId}/checkouts/${this.checkoutToken}?key=${this.checkoutKey}`
-      : `/${this.storeId}/checkouts/${this.checkoutToken}`;
-
     let formBody = {
       complete: '1',
       s: this.paymentToken,
-      checkout: {
-        shipping_rate: {
-          id,
-        },
-      },
     };
+
+    if (id) {
+      formBody = {
+        ...formBody,
+        checkout: {
+          ...formBody.checkout,
+          shipping_rate: {
+            id,
+          },
+        },
+      };
+    }
 
     if (this.captchaToken) {
       formBody = {
@@ -554,7 +604,7 @@ class FastCheckout extends Checkout {
     }
 
     try {
-      const res = await this._request(checkoutUrl, {
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         follow: 0,
@@ -601,7 +651,7 @@ class FastCheckout extends Checkout {
       // check if redirected
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
-          this.captchaToken = '';
+          this.isRestocking = true;
           this._context.task.checkoutSpeed = checkout.getRunTime();
           checkout.stop();
           checkout.reset();
@@ -649,13 +699,6 @@ class FastCheckout extends Checkout {
         }
       }
 
-      if ((this.needsCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
-        this._context.task.checkoutSpeed = checkout.getRunTime();
-        checkout.stop();
-        checkout.reset();
-        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
-      }
-
       const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
       if (match && /review/i.test(match)) {
         return { message: 'Completing payment', nextState: States.COMPLETE_PAYMENT };
@@ -673,14 +716,21 @@ class FastCheckout extends Checkout {
         return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
       }
 
+      if ((forceCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
+        this._context.task.checkoutSpeed = checkout.getRunTime();
+        checkout.stop();
+        checkout.reset();
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
       this._context.task.checkoutSpeed = checkout.getRunTime();
       checkout.stop();
       checkout.reset();
-      return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+      return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Post Payment.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -690,9 +740,10 @@ class FastCheckout extends Checkout {
         nextState: States.SUBMIT_PAYMENT,
       });
 
-      const message = err.statusCode
-        ? `Submitting payment - (${err.statusCode})`
-        : 'Submitting payment';
+      const message =
+        err.status || err.errno
+          ? `Submitting payment - (${err.status || err.errno})`
+          : 'Submitting payment';
 
       return nextState || { message, nextState: States.SUBMIT_PAYMENT };
     }
@@ -703,6 +754,7 @@ class FastCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         monitorDelay,
+        forceCaptcha,
       },
       timers: { checkout },
       proxy,
@@ -712,7 +764,7 @@ class FastCheckout extends Checkout {
       complete: 1,
     };
 
-    if (this.captchaToken) {
+    if (this.isRestocking) {
       form = {
         ...form,
         'g-recaptcha-response': this.captchaToken,
@@ -765,7 +817,8 @@ class FastCheckout extends Checkout {
 
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
-          this.captchaToken = '';
+          this.isRestocking = true;
+          this._context.task.checkoutSpeed = checkout.getRunTime();
           checkout.stop();
           checkout.reset();
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
@@ -812,13 +865,6 @@ class FastCheckout extends Checkout {
         }
       }
 
-      if ((this.needsCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
-        this._context.task.checkoutSpeed = checkout.getRunTime();
-        checkout.stop();
-        checkout.reset();
-        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
-      }
-
       const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
       if (match && /review/i.test(match)) {
         return { message: 'Completing payment', nextState: States.COMPLETE_PAYMENT };
@@ -836,23 +882,31 @@ class FastCheckout extends Checkout {
         return { message: 'Fetching shipping rates', nextState: States.GO_TO_SHIPPING };
       }
 
+      if ((forceCaptcha || /captcha/i.test(body)) && !this.captchaToken) {
+        this._context.task.checkoutSpeed = checkout.getRunTime();
+        checkout.stop();
+        checkout.reset();
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
+
       return { message: 'Submitting payment', nextState: States.COMPLETE_PAYMENT };
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Complete Payment.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
 
       const nextState = stateForError(err, {
-        message: 'Processing payment',
+        message: 'Completing payment',
         nextState: States.COMPLETE_PAYMENT,
       });
 
-      const message = err.statusCode
-        ? `Processing payment - (${err.statusCode})`
-        : 'Processing payment';
+      const message =
+        err.status || err.errno
+          ? `Completing payment - (${err.status || err.errno})`
+          : 'Completing payment';
 
       return nextState || { message, nextState: States.COMPLETE_PAYMENT };
     }

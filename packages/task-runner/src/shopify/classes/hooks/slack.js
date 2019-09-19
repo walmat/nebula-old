@@ -103,7 +103,6 @@ class Slack {
         ],
       };
 
-      console.log(payload);
       return this.hook.send(payload);
     }
     return null;

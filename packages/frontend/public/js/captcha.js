@@ -201,7 +201,7 @@ async function _registerStartHandler(_, runnerId, siteKey) {
     container.setAttribute('id', 'captchaContainer');
     container.setAttribute('class', 'g-recaptcha');
     container.setAttribute('data-sitekey', `${siteKey}`);
-    container.setAttribute('data-theme', 'light');
+    container.setAttribute('data-theme', 'dark');
     container.setAttribute('data-size', 'normal');
     container.setAttribute('data-callback', 'submitCaptcha');
     while (form.lastChild) {

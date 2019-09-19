@@ -3,10 +3,10 @@ const { States } = require('./constants').TaskRunner;
 const buildPaymentForm = (payment, billing) => ({
   credit_card: {
     number: payment.cardNumber,
-    verification_value: payment.cvv,
     name: `${billing.firstName} ${billing.lastName}`,
     month: parseInt(payment.exp.slice(0, 2), 10),
-    year: parseInt(payment.exp.slice(3, 5), 10),
+    year: `20${parseInt(payment.exp.slice(3, 5), 10)}`,
+    verification_value: payment.cvv,
   },
 });
 
@@ -105,13 +105,20 @@ const addToCart = (variant, name, hash, props = {}) => {
         quantity: 1,
       });
     }
+    case 'eraserfase.com': {
+      return JSON.stringify({
+        id: variant,
+        quantity: 1,
+        success: undefined,
+      });
+    }
     default:
-      break;
+      return JSON.stringify({
+        id: variant,
+        quantity: 1,
+      });
   }
-  return JSON.stringify({
-    id: variant,
-    quantity: 1,
-  });
+
 };
 
 const patchToCart = variant => ({
@@ -155,6 +162,10 @@ const parseForm = async (
           return;
         }
 
+        if (/vault_phone|authenticity_token/i.test(name)) {
+          value = encodeURIComponent(value);
+        }
+
         // just set the dba to true and fill the rest of the form
         if (/different_billing_address/i.test(name)) {
           value = !profile.billingMatchesShipping;
@@ -172,6 +183,10 @@ const parseForm = async (
 
         // prevent multiple buttons from being included...
         if (/button/i.test(name)) {
+          if (state === States.GO_TO_PAYMENT) {
+            return;
+          }
+
           if (data.some(({ name: existing }) => /button/i.test(existing))) {
             return;
           }
@@ -180,7 +195,7 @@ const parseForm = async (
           }
         }
 
-        if (/shipping_rate|authenticity_token/i.test(name)) {
+        if (/shipping_rate/i.test(name)) {
           if (data.some(({ name: existing }) => /shipping_rate/i.test(existing))) {
             return;
           }
@@ -212,12 +227,16 @@ const parseForm = async (
   });
 
   // push things that aren't found, but might be needed...
-  data.push({ name: 'checkout[client_details][browser_width]', value: '1238' });
-  data.push({ name: 'checkout[client_details][browser_height]', value: '453' });
-  data.push({ name: 'checkout[client_details][javascript_enabled]', value: '1' });
+  data.push({ name: 'checkout[client_details][browser_width]', value: 1238 });
+  data.push({ name: 'checkout[client_details][browser_height]', value: 453 });
+  data.push({ name: 'checkout[client_details][javascript_enabled]', value: 1 });
+  data.push({ name: 'checkout[client_details][color_depth]', value: 24 });
+  data.push({ name: 'checkout[client_details][java_enabled]', value: false });
+  data.push({ name: 'checkout[client_details][browser_tz]', value: 240 });
 
   const formValuesObj = {
-    'checkout[email]': profile.payment.email,
+    'checkout[email]': encodeURIComponent(profile.payment.email),
+    'checkout[email_or_phone]': encodeURIComponent(profile.payment.email),
     'checkout[shipping_address][first_name]': profile.shipping.firstName,
     'checkout[shipping_address][last_name]': profile.shipping.lastName,
     'checkout[shipping_address][address1]': profile.shipping.address,
@@ -244,15 +263,20 @@ const parseForm = async (
 
   const formValues = await data.map(({ name, value }) => {
     let val = value.toString();
-    if (!val) {
-      val = formValuesObj[name];
-      if (!val) {
-        return `${encodeURIComponent(name)}=&`;
-      }
+
+    const predictedVal = formValuesObj[name];
+    if (predictedVal) {
+      val = predictedVal;
     }
-    return `${encodeURIComponent(name)}=${val.replace(/\s/g, '+')}&`;
+
+    if (!val) {
+      return `${encodeURI(name)}=&`;
+    }
+
+    val = val.replace(/\s/g, '+');
+    return `${encodeURI(name)}=${val}&`;
   });
-  console.log(formValues);
+
   return formValues.join('').slice(0, -1);
 };
 

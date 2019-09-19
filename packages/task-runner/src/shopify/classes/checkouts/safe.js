@@ -167,7 +167,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -176,7 +176,10 @@ class SafeCheckout extends Checkout {
         nextState: States.ADD_TO_CART,
       });
 
-      const message = err.status ? `Adding to cart - (${err.status})` : 'Adding to cart';
+      const message =
+        err.status || err.errno
+          ? `Adding to cart - (${err.status || err.errno})`
+          : 'Adding to cart';
 
       return nextState || { message, nextState: States.ADD_TO_CART };
     }
@@ -359,7 +362,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
-        err.type,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -368,7 +371,11 @@ class SafeCheckout extends Checkout {
         nextState: States.ADD_TO_CART,
       });
 
-      const message = err.status ? `Adding to cart – (${err.status})` : 'Adding to cart';
+      const message =
+        err.status || err.errno
+          ? `Adding to cart - (${err.status || err.errno})`
+          : 'Adding to cart';
+
       return nextState || { message, nextState: States.ADD_TO_CART };
     }
   }
@@ -502,7 +509,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Ping Checkout.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -512,9 +519,10 @@ class SafeCheckout extends Checkout {
         nextState: States.GO_TO_CHECKOUT,
       });
 
-      const message = err.statusCode
-        ? `Going to checkout - (${err.statusCode})`
-        : 'Going to checkout';
+      const message =
+        err.status || err.errno
+          ? `Going to checkout - (${err.status || err.errno})`
+          : 'Going to checkout';
 
       return nextState || { message, nextState: States.GO_TO_CHECKOUT };
     }
@@ -606,7 +614,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Shipping Rates.\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -616,9 +624,10 @@ class SafeCheckout extends Checkout {
         nextState: States.ShippingRates,
       });
 
-      const message = err.status
-        ? `Fetching shipping rates – (${err.status})`
-        : 'Fetching shipping rates';
+      const message =
+        err.status || err.errno
+          ? `Fetching shipping rates - (${err.status || err.errno})`
+          : 'Fetching shipping rates';
 
       return nextState || { message, nextState: States.ShippingRates };
     }
@@ -685,12 +694,11 @@ class SafeCheckout extends Checkout {
 
       this.cartForm = this.cartForm.slice(0, -1);
       this._logger.info('Cart form parsed: %j', this.cartForm);
-
       return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -699,7 +707,8 @@ class SafeCheckout extends Checkout {
         nextState: States.GO_TO_CART,
       });
 
-      const message = err.status ? `Going to cart - (${err.status})` : 'Going to cart';
+      const message =
+        err.status || err.errno ? `Going to cart - (${err.status || err.errno})` : 'Going to cart';
 
       return nextState || { message, nextState: States.GO_TO_CART };
     }
@@ -760,12 +769,13 @@ class SafeCheckout extends Checkout {
           const parsed = parse(queryStrings);
 
           if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
             this._logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(decodeURIComponent(redirectUrl), {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -773,7 +783,13 @@ class SafeCheckout extends Checkout {
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
+                connection: 'close',
+                referer: url,
+                accept:
+                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'en-US,en;q=0.9',
+                host: `${url.split('/')[2]}`,
               },
             });
           } catch (error) {
@@ -785,7 +801,14 @@ class SafeCheckout extends Checkout {
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
+          if (/stock_problems/i.test(redirectUrl)) {
+            this.outOfStock = true;
+          }
           return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+        }
+
+        if (/cart/i.test(redirectUrl)) {
+          return { message: 'Creating checkout', nextState: States.ADD_TO_CART };
         }
       }
 
@@ -794,7 +817,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -804,9 +827,10 @@ class SafeCheckout extends Checkout {
         nextState: States.CREATE_CHECKOUT,
       });
 
-      const message = err.statusCode
-        ? `Creating checkout - (${err.statusCode})`
-        : 'Creating checkout';
+      const message =
+        err.status || err.errno
+          ? `Creating checkout - (${err.status || err.errno})`
+          : 'Creating checkout';
 
       return nextState || { message, nextState: States.CREATE_CHECKOUT };
     }
@@ -874,7 +898,7 @@ class SafeCheckout extends Checkout {
           }
 
           try {
-            await this._request(decodeURIComponent(redirectUrl), {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -915,7 +939,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -925,9 +949,10 @@ class SafeCheckout extends Checkout {
         nextState: States.CREATE_CHECKOUT,
       });
 
-      const message = err.statusCode
-        ? `Creating checkout - (${err.statusCode})`
-        : 'Creating checkout';
+      const message =
+        err.status || err.errno
+          ? `Creating checkout - (${err.status || err.errno})`
+          : 'Creating checkout';
 
       return nextState || { message, nextState: States.CREATE_CHECKOUT };
     }
@@ -944,18 +969,33 @@ class SafeCheckout extends Checkout {
       proxy,
     } = this._context;
 
-    const stepUrl = prevStep
-      ? `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}?previous_step=${prevStep}`
-      : `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}`;
+    let fetchUrl = `/${this.storeId}/checkouts/${this.checkoutToken}`;
+
+    switch (state) {
+      case States.GO_TO_SHIPPING:
+      case States.GO_TO_PAYMENT:
+      case States.GO_TO_REVIEW: {
+        fetchUrl = prevStep
+          ? `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}?previous_step=${prevStep}`
+          : `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}`;
+        break;
+      }
+      default:
+        break;
+    }
+
+    if (this.outOfStock) {
+      fetchUrl += '/stock_problems';
+    }
 
     monitor.stop();
     monitor.reset();
     try {
-      const res = await this._request(stepUrl, {
+      const res = await this._request(fetchUrl, {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'follow',
-        follow: 5,
+        follow: 100,
         headers: {
           ...getHeaders({ url, apiKey }),
           Connection: 'Keep-Alive',
@@ -968,7 +1008,7 @@ class SafeCheckout extends Checkout {
       });
 
       const { status, url: redirectUrl } = res;
-
+      this.outOfStock = false;
       const checkStatus = stateForError(
         { status },
         {
@@ -1033,6 +1073,7 @@ class SafeCheckout extends Checkout {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
+          this.outOfStock = true;
           return {
             message: `Out of stock! Delaying ${monitorDelay}ms`,
             delay: true,
@@ -1045,14 +1086,16 @@ class SafeCheckout extends Checkout {
         }
       }
 
-      if (/Getting available shipping rates/i.test(body)) {
-        return { message: 'Polling shipping rates', nextState: States.GO_TO_SHIPPING };
+      if (/stock_problems/i.test(body)) {
+        this.outOfStock = true;
+        return {
+          message: `Out of stock! Delaying ${monitorDelay}ms`,
+          nextState: States.GO_TO_CHECKOUT,
+        };
       }
 
-      if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
-        this._emitTaskEvent({ message: 'Captcha found!' });
-        this.needsCaptcha = true;
-        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      if (/Getting available shipping rates/i.test(body)) {
+        return { message: 'Polling shipping rates', nextState: States.GO_TO_SHIPPING };
       }
 
       if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
@@ -1069,6 +1112,12 @@ class SafeCheckout extends Checkout {
         'form.edit_checkout',
         'input, select, textarea, button',
       );
+
+      if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
+        this._emitTaskEvent({ message: 'Captcha found!' });
+        this.needsCaptcha = true;
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
 
       switch (state) {
         case States.GO_TO_CHECKOUT: {
@@ -1090,7 +1139,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         `CHECKOUT: %s Request Error..\n Step: ${step}.\n\n %j %j`,
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -1100,7 +1149,8 @@ class SafeCheckout extends Checkout {
         nextState: state,
       });
 
-      const msg = err.statusCode ? `${message} - (${err.statusCode})` : `${message}`;
+      const msg =
+        err.status || err.errno ? `${message} - (${err.status || err.errno})` : `${message}`;
 
       return nextState || { message: msg, nextState: state };
     }
@@ -1117,6 +1167,20 @@ class SafeCheckout extends Checkout {
 
     if (/dsm sg|dsm jp|dsm uk/i.test(siteName)) {
       return this.backupPatchCheckout();
+    }
+
+    if (this.captchaToken && !/g-recaptcha-response/i.test(this.formValues)) {
+      const parts = this.formValues.split('button=');
+      if (parts && parts.length) {
+        this.formValues = '';
+        await parts.map((part, i) => {
+          if (i === 0) {
+            this.formValues += `${part}g-recaptcha-response=${this.captchaToken}`;
+          } else {
+            this.formValues += part;
+          }
+        });
+      }
     }
 
     this._logger.info('CONTACT FORM VALUES: %j', this.formValues);
@@ -1160,6 +1224,7 @@ class SafeCheckout extends Checkout {
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
       if (/captcha validation failed/i.test(body)) {
+        this.captchaToken = '';
         return { message: 'Captcha validation failed!', nextState: States.GO_TO_CHECKOUT };
       }
 
@@ -1232,7 +1297,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -1241,9 +1306,10 @@ class SafeCheckout extends Checkout {
         nextState: States.SUBMIT_CUSTOMER,
       });
 
-      const message = err.status
-        ? `Submitting information - (${err.status})`
-        : 'Submitting information';
+      const message =
+        err.status || err.errno
+          ? `Submitting information - (${err.status || err.errno})`
+          : 'Submitting information';
 
       return nextState || { message, nextState: States.SUBMIT_CUSTOMER };
     }
@@ -1254,7 +1320,6 @@ class SafeCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         profile: { shipping, billing, payment, billingMatchesShipping },
-        product: { variants },
       },
       proxy,
     } = this._context;
@@ -1334,14 +1399,14 @@ class SafeCheckout extends Checkout {
         return { message, nextState: States.SUBMIT_CUSTOMER };
       }
 
-      if (variants && variants.length) {
+      if (this._context.task.product.variants) {
         return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
       }
       return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -1351,9 +1416,10 @@ class SafeCheckout extends Checkout {
         nextState: States.SUBMIT_CUSTOMER,
       });
 
-      const message = err.status
-        ? `Submitting information – (${err.status})`
-        : 'Submitting information';
+      const message =
+        err.status || err.errno
+          ? `Submitting information - (${err.status || err.errno})`
+          : 'Submitting information';
 
       return nextState || { message, nextState: States.SUBMIT_CUSTOMER };
     }
@@ -1498,7 +1564,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit shipping .\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -1507,7 +1573,10 @@ class SafeCheckout extends Checkout {
         nextState: States.SUBMIT_SHIPPING,
       });
 
-      const message = err.status ? `Submitting shipping - (${err.status})` : 'Submitting shipping';
+      const message =
+        err.status || err.errno
+          ? `Submitting shipping - (${err.status || err.errno})`
+          : 'Submitting shipping';
 
       return nextState || { message, nextState: States.SUBMIT_SHIPPING };
     }
@@ -1548,12 +1617,14 @@ class SafeCheckout extends Checkout {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: 'follow',
-        follow: 5,
+        redirect: 'manual',
+        follow: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           Connection: 'Keep-Alive',
           'content-type': 'application/x-www-form-urlencoded',
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'en-US,en;q=0.9',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
           'sec-fetch-mode': 'navigate',
@@ -1565,8 +1636,7 @@ class SafeCheckout extends Checkout {
         body: this.formValues,
       });
 
-      const { status, url: redirectUrl } = res;
-
+      const { status, headers } = res;
       const checkStatus = stateForError(
         { status },
         {
@@ -1579,8 +1649,12 @@ class SafeCheckout extends Checkout {
         return checkStatus;
       }
 
+      this.needsPaymentToken = true;
+      this.paymentToken = '';
+
       const body = await res.text();
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+
       if (/stock_problems/i.test(body)) {
         return {
           message: `Out of stock, delaying ${monitorDelay}ms`,
@@ -1602,55 +1676,53 @@ class SafeCheckout extends Checkout {
       }
 
       // if we followed a redirect at some point...
-      if (res.redirected) {
-        if (/processing/i.test(redirectUrl)) {
-          this.needsPaymentToken = true;
-          this.paymentToken = '';
-          this._context.task.checkoutSpeed = checkout.getRunTime();
-          checkout.stop();
-          checkout.reset();
-          return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+      const redirectUrl = headers.get('location');
+
+      if (/processing/i.test(redirectUrl)) {
+        this._context.task.checkoutSpeed = checkout.getRunTime();
+        checkout.stop();
+        checkout.reset();
+        return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+      }
+
+      if (/stock_problems/i.test(redirectUrl)) {
+        return {
+          message: `Out of stock, delaying ${monitorDelay}ms`,
+          delay: true,
+          nextState: States.SUBMIT_PAYMENT,
+        };
+      }
+
+      if (/password/i.test(redirectUrl)) {
+        return { message: 'Password page', delay: true, nextState: States.GO_TO_PAYMENT };
+      }
+
+      if (/throttle/i.test(redirectUrl)) {
+        let ctdUrl;
+        if (/_ctd/.test(redirectUrl)) {
+          ctdUrl = redirectUrl;
+        } else {
+          const ctd = this.getCookie(this._jar, '_ctd');
+          ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
         }
 
-        if (/stock_problems/i.test(redirectUrl)) {
-          return {
-            message: `Out of stock, delaying ${monitorDelay}ms`,
-            delay: true,
-            nextState: States.SUBMIT_PAYMENT,
-          };
+        try {
+          await this._request(ctdUrl, {
+            method: 'GET',
+            agent: proxy ? new HttpsProxyAgent(proxy) : null,
+            redirect: 'manual',
+            follow: 0,
+            headers: {
+              'Upgrade-Insecure-Requests': 1,
+              'User-Agent': userAgent,
+              Connection: 'Keep-Alive',
+            },
+          });
+        } catch (error) {
+          // fail silently...
         }
 
-        if (/password/i.test(redirectUrl)) {
-          return { message: 'Password page', delay: true, nextState: States.GO_TO_PAYMENT };
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
-          }
-
-          try {
-            await this._request(ctdUrl, {
-              method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          return { message: 'Polling queue', nextState: States.QUEUE };
-        }
+        return { message: 'Polling queue', nextState: States.QUEUE };
       }
 
       // step tests
@@ -1685,7 +1757,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit shipping information .\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -1694,7 +1766,10 @@ class SafeCheckout extends Checkout {
         nextState: States.SUBMIT_PAYMENT,
       });
 
-      const message = err.status ? `Submitting payment - (${err.status})` : 'Submitting payment';
+      const message =
+        err.status || err.errno
+          ? `Submitting payment - (${err.status || err.errno})`
+          : 'Submitting payment';
 
       return nextState || { message, nextState: States.SUBMIT_PAYMENT };
     }
@@ -1856,7 +1931,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Post Payment.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -1866,9 +1941,10 @@ class SafeCheckout extends Checkout {
         nextState: States.SUBMIT_PAYMENT,
       });
 
-      const message = err.statusCode
-        ? `Submitting payment - (${err.statusCode})`
-        : 'Submitting payment';
+      const message =
+        err.status || err.errno
+          ? `Submitting payment - (${err.status || err.errno})`
+          : 'Submitting payment';
 
       return nextState || { message, nextState: States.SUBMIT_PAYMENT };
     }
@@ -1999,7 +2075,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submitting payment .\n\n %j %j',
-        err.status,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -2008,7 +2084,10 @@ class SafeCheckout extends Checkout {
         nextState: States.COMPLTE_PAYMENT,
       });
 
-      const message = err.status ? `Submitting payment - (${err.status})` : 'Submitting payment';
+      const message =
+        err.status || err.errno
+          ? `Submitting payment - (${err.status || err.errno})`
+          : 'Submitting payment';
 
       return nextState || { message, nextState: States.COMPLTE_PAYMENT };
     }
@@ -2148,7 +2227,7 @@ class SafeCheckout extends Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Complete Payment.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -2158,9 +2237,10 @@ class SafeCheckout extends Checkout {
         nextState: States.COMPLETE_PAYMENT,
       });
 
-      const message = err.statusCode
-        ? `Processing payment - (${err.statusCode})`
-        : 'Processing payment';
+      const message =
+        err.status || err.errno
+          ? `Processing payment - (${err.status || err.errno})`
+          : 'Processing payment';
 
       return nextState || { message, nextState: States.COMPLETE_PAYMENT };
     }

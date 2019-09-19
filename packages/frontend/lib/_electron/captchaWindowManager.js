@@ -297,6 +297,20 @@ class CaptchaWindowManager {
       win.show();
     });
 
+    win.webContents.session.webRequest.onBeforeSendHeaders(
+      { urls: ['https://*.google.com, https://*.gstatic.com'] },
+      (details, callback) =>
+        callback({
+          requestHeaders: {
+            ...details.requestHeaders,
+            DNT: 1,
+            'User-Agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+            'Content-Language': 'en-US,en;q=0.9',
+          },
+        }),
+    );
+
     win.webContents.once('did-finish-load', () => {
       CaptchaWindowManager.setProxy(win, {});
       // If we are actively harvesting, start harvesting on the new window as well

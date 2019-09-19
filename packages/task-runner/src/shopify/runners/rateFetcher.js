@@ -285,7 +285,7 @@ class ShippingRatesRunner {
       size,
     } = this.task;
 
-    const variant = await pickVariant(variants, size, url, this._logger);
+    const variant = await pickVariant(variants, size, url, this._logger, false);
 
     this._logger.debug('Adding %j to cart', variant);
     if (!variant) {
@@ -298,9 +298,8 @@ class ShippingRatesRunner {
     const { option, id } = variant;
 
     this.task.product.size = option;
-    let res;
     try {
-      res = await this._request('/cart/add.js', {
+      const res = await this._request('/cart/add.js', {
         method: 'POST',
         agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
         headers: {
@@ -312,7 +311,7 @@ class ShippingRatesRunner {
           'accept-language': 'en-US,en;q=0.9',
           'content-type': 'application/json',
         },
-        body: JSON.stringify(addToCart(id, name, hash)),
+        body: addToCart(id, name, hash),
       });
 
       const body = await res.json();

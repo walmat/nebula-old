@@ -18,6 +18,9 @@ function _setUpEnvironment(envFname) {
     });
     _isDevelopment = process.env.NEBULA_ENV === 'development';
     // TEMPORARY PATCH TO CHANGE THREADPOOL SIZE
+    if (_isDevelopment) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
     process.env.UV_THREADPOOL_SIZE = 128;
     process.env.NEBULA_ENV_LOADED = true;
   }
