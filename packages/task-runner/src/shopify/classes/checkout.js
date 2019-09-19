@@ -76,7 +76,6 @@ class Checkout {
     this.captchaToken = '';
     this.needsLogin = this._context.task.account || false;
     this.needsPatched = true;
-    this.needsPaymentToken = true;
     this.captchaTokenRequest = null;
   }
 
