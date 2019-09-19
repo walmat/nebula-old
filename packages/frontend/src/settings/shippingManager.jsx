@@ -73,7 +73,6 @@ export class ShippingManagerPrimitive extends PureComponent {
 
   handleCreate(field, value) {
     const { onSettingsChange } = this.props;
-    console.log(value);
     this.setState({ isLoading: true });
     setTimeout(() => {
       const newOption = ShippingManagerPrimitive.createOption(value);
