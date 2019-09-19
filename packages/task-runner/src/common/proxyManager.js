@@ -15,11 +15,6 @@ class ProxyManager {
 
   format(rawData) {
     this._logger.debug('Formatting proxy data %s...', rawData);
-
-    if (/^127/.test(rawData)) {
-      return 'http://127.0.0.1:8888';
-    }
-
     if (!rawData || /^(127.*|localhost)/.test(rawData)) {
       return null;
     }
