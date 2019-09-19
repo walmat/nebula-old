@@ -1,9 +1,9 @@
 const { userAgent } = require('../../../common');
 const { States } = require('./constants').TaskRunner;
 
-const stateForError = ({ status, name, code }, { message, nextState }) => {
+const stateForError = ({ status, name, errno }, { message, nextState }) => {
   // Look for errors in cause
-  const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND)/.exec(code);
+  const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED)/.exec(errno);
 
   if (/aborterror/i.test(name)) {
     return { nextState: States.ABORT };
@@ -14,10 +14,10 @@ const stateForError = ({ status, name, code }, { message, nextState }) => {
     switch (match[1]) {
       // connection reset
       case 'ENOTFOUND':
+      case 'ECONNREFUSED':
       case 'ECONNRESET': {
         return {
           message: 'Swapping proxy',
-          shouldBan: 0, // just swap with no ban
           nextState: States.SWAP,
         };
       }

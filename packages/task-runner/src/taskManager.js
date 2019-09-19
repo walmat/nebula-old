@@ -132,14 +132,13 @@ class TaskManager {
    *
    * @param {String} runnerId
    * @param {Object} proxy
-   * @param {Bool} shouldBan
    */
-  async handleSwapProxy(runnerId, proxy, shouldBan) {
+  async handleSwapProxy(runnerId, proxy) {
     this._logger.debug('Swapping proxy: %j for task %s', proxy, runnerId);
 
     const proxyId = proxy ? proxy.id : null;
-    const { site } = this._runners[runnerId];
-    const newProxy = await this._proxyManager.swap(runnerId, proxyId, site, shouldBan);
+    const { site, platform } = this._runners[runnerId];
+    const newProxy = await this._proxyManager.swap(runnerId, proxyId, site, platform);
     this._events.emit(Events.SendProxy, runnerId, newProxy);
   }
 
@@ -283,11 +282,11 @@ class TaskManager {
   }
 
   cleanup(runnerId) {
-    const { proxy, site } = this._runners[runnerId];
+    const { proxy, site, platform } = this._runners[runnerId];
     delete this._runners[runnerId];
     delete this._monitors[runnerId];
     if (proxy) {
-      this._proxyManager.release(runnerId, site, proxy.id, true);
+      this._proxyManager.release(runnerId, site, platform, proxy.id);
     }
   }
 
@@ -593,6 +592,7 @@ class TaskManager {
     }
 
     runner.site = task.site.url;
+    runner.platform = platform;
     runner.type = type;
     this._monitors[runnerId] = monitor;
     this._runners[runnerId] = runner;

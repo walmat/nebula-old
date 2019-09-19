@@ -42,7 +42,6 @@ class TaskRunner {
 
     this._delayer = null;
     this._captchaQueue = null;
-    this._state = States.PAYMENT_TOKEN;
 
     this._timers = {
       checkout: new Timer(),
@@ -75,6 +74,23 @@ class TaskRunner {
       aborted: this._aborted,
       harvestState: HarvestStates.idle,
     };
+
+    this.needsLogin = this._context.task.account || false;
+    this._state = States.STARTED;
+
+    // decide what our start state should be!
+    if (!this._context.task.site.apiKey) {
+      this._state = States.GET_SITE_DATA;
+    } else if (this.needsLogin) {
+      this._state = States.LOGIN;
+    } else if (
+      /dsm uk|dsm jp|dsm sg/i.test(this._context.task.site.name) ||
+      this._context.task.type === Modes.FAST
+    ) {
+      this._state = States.CREATE_CHECKOUT;
+    } else {
+      this._state = States.WAIT_FOR_PRODUCT;
+    }
 
     /**
      * Create a new checkout object to be used for this task
@@ -115,6 +131,7 @@ class TaskRunner {
   _handleHarvest(id, token) {
     if (id === this._context.id && this._captchaQueue) {
       this._captchaQueue.insert(token);
+      this._checkout.needsCaptcha = false;
     }
   }
 
@@ -148,7 +165,8 @@ class TaskRunner {
           ...this._context.task.product,
           ...product,
         };
-
+        // patch checkout context
+        this._checkout._context.task.product = this._context.task.product;
         this._context.productFound = true;
       }
     }
@@ -158,8 +176,10 @@ class TaskRunner {
     if (id === this._context.id) {
       if (type === DelayTypes.error) {
         this._context.task.errorDelay = delay;
+        this._checkout._context.task.errorDelay = delay;
       } else if (type === DelayTypes.monitor) {
         this._context.task.monitorDelay = delay;
+        this._checkout._context.task.monitorDelay = delay;
       }
       if (this._delayer) {
         this._delayer.clear();
@@ -357,7 +377,11 @@ class TaskRunner {
       await this._delayer;
     }
 
-    return nextState;
+    if (nextState) {
+      return nextState;
+    }
+
+    return States.SUBMIT_PAYMENT;
   }
 
   async _handleGetSiteData() {
@@ -596,7 +620,7 @@ class TaskRunner {
 
         if (this._prevState === States.GO_TO_SHIPPING) {
           if (type === Modes.FAST) {
-            return States.SUBMIT_PAYMENT;
+            return States.PAYMENT_TOKEN;
           }
           return States.SUBMIT_SHIPPING;
         }
@@ -604,7 +628,7 @@ class TaskRunner {
         if (this._prevState === States.GO_TO_CHECKOUT) {
           if (type === Modes.FAST) {
             if (this._checkout.chosenShippingMethod.id) {
-              return States.SUBMIT_PAYMENT;
+              return States.PAYMENT_TOKEN;
             }
             return States.GO_TO_SHIPPING;
           }
@@ -1205,17 +1229,29 @@ class TaskRunner {
         this.shouldBanProxy,
       );
       // Proxy is fine, update the references
-      if (proxy) {
-        this.proxy = proxy;
-        this._context.proxy = proxy.proxy;
-        this._context.rawProxy = proxy.raw;
-        this._checkout._context.proxy = proxy.proxy;
-        this.shouldBanProxy = 0; // reset ban flag
-        this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-        this._emitTaskEvent({
-          message: `Swapped proxy to: ${proxy.raw}`,
-          proxy: proxy.raw,
-        });
+      if (proxy || proxy === null) {
+        if (proxy === null) {
+          this.proxy = proxy;
+          this._context.proxy = proxy;
+          this._context.rawProxy = 'localhost';
+          this._checkout._context.proxy = proxy;
+          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+          this._emitTaskEvent({
+            message: `Swapped proxy to: localhost`,
+            proxy,
+          });
+        } else {
+          this.proxy = proxy;
+          this._context.proxy = proxy.proxy;
+          this._context.rawProxy = proxy.raw;
+          this._checkout._context.proxy = proxy.proxy;
+          this.shouldBanProxy = 0; // reset ban flag
+          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+          this._emitTaskEvent({
+            message: `Swapped proxy to: ${proxy.raw}`,
+            proxy: proxy.raw,
+          });
+        }
         this._logger.debug('Rewinding to state: %s', this._prevState);
         return this._prevState;
       }

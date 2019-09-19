@@ -215,10 +215,11 @@ class Monitor {
         return;
       }
 
-      if (status !== 429 && status !== 430) {
+      if (!/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(status)) {
         // status is neither 429, 430, so set ban to false
         ban = false;
       }
+
       if (
         !delayStatus &&
         (status === ErrorCodes.ProductNotFound ||
@@ -271,16 +272,29 @@ class Monitor {
         this.shouldBanProxy,
       );
       // Proxy is fine, update the references
-      if (proxy) {
-        this.proxy = proxy;
-        this._context.proxy = proxy.proxy;
-        this._context.rawProxy = proxy.raw;
-        this.shouldBanProxy = 0; // reset ban flag
-        this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-        this._emitMonitorEvent({
-          message: `Swapped proxy to: ${proxy.raw}`,
-          proxy: proxy.raw,
-        });
+      if (proxy || proxy === null) {
+        if (proxy === null) {
+          this.proxy = proxy;
+          this._context.proxy = proxy;
+          this._context.rawProxy = 'localhost';
+          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+          this._emitTaskEvent({
+            message: `Swapped proxy to: localhost`,
+            proxy,
+          });
+        } else {
+          this.proxy = proxy;
+          this._context.proxy = proxy.proxy;
+          this._context.rawProxy = proxy.raw;
+          this._checkout._context.proxy = proxy.proxy;
+          this.shouldBanProxy = 0; // reset ban flag
+          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+          this._emitTaskEvent({
+            message: `Swapped proxy to: ${proxy.raw}`,
+            proxy: proxy.raw,
+          });
+        }
+        this._logger.debug('Rewinding to state: %s', this._prevState);
         return this._prevState;
       }
 

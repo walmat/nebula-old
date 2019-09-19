@@ -1,6 +1,6 @@
 import HttpsProxyAgent from 'https-proxy-agent';
 
-const { userAgent } = require('../../../common');
+const { userAgent, getRandomIntInclusive } = require('../../../common');
 const Parser = require('./parser');
 
 class JsonParser extends Parser {
@@ -21,15 +21,19 @@ class JsonParser extends Parser {
     try {
       this._logger.silly(`%s: Making request for %s/products.json ...`, this._name, url);
 
-      const res = await this._request('/products.json', {
-        method: 'GET',
-        headers: {
-          'User-Agent': userAgent,
+      const res = await this._request(
+        `/products.json?page=-${getRandomIntInclusive(500000000000, 900000000000)}`,
+        {
+          method: 'GET',
+          headers: {
+            'X-Shopify-Api-Features': getRandomIntInclusive(30000, 90000),
+            'User-Agent': userAgent,
+          },
+          agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
         },
-        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
-      });
+      );
 
-      if (/429|430|403/.test(res.status)) {
+      if (/429|430/.test(res.status)) {
         const error = new Error('Proxy banned!');
         error.status = res.status;
         throw error;
@@ -37,6 +41,11 @@ class JsonParser extends Parser {
 
       ({ products } = await res.json());
     } catch (error) {
+      if (error && error.type && /system/i.test(error.type)) {
+        const rethrow = new Error(error.errno);
+        rethrow.status = error.code;
+        throw rethrow;
+      }
       this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given

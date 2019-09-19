@@ -23,18 +23,6 @@ import addTestId from '../utils/addTestId';
 
 export class ShippingManagerPrimitive extends PureComponent {
   static createOption(value) {
-    const sites = getAllSupportedSitesSorted();
-    const exists = sites.find(s => s.value.indexOf(value) > -1);
-    if (exists) {
-      return {
-        name: exists.label,
-        url: exists.value,
-        localCheckout: exists.localCheckout || false,
-        special: exists.special || false,
-        apiKey: exists.apiKey,
-        auth: exists.auth,
-      };
-    }
     const URL = parseURL(value);
     if (!URL || !URL.host) {
       return null;
@@ -83,18 +71,18 @@ export class ShippingManagerPrimitive extends PureComponent {
     return opts;
   }
 
-  handleCreate(value) {
+  handleCreate(field, value) {
     const { onSettingsChange } = this.props;
     this.setState({ isLoading: true });
     setTimeout(() => {
       const newOption = ShippingManagerPrimitive.createOption(value);
       if (newOption) {
-        onSettingsChange({ field: SETTINGS_FIELDS.EDIT_SHIPPING_SITE, value: newOption });
+        onSettingsChange({ field, value: newOption });
       }
       this.setState({
         isLoading: false,
       });
-    }, 100);
+    }, 500);
   }
 
   createOnChangeHandler(field) {
@@ -184,6 +172,7 @@ export class ShippingManagerPrimitive extends PureComponent {
             isClearable={false}
             isDisabled={isLoading}
             isLoading={isLoading}
+            isOptionDisabled={option => !option.supported && option.supported !== undefined}
             required
             placeholder={placeholder}
             components={{ DropdownIndicator, IndicatorSeparator }}
@@ -192,6 +181,7 @@ export class ShippingManagerPrimitive extends PureComponent {
             classNamePrefix="select"
             styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
             onChange={this.createOnChangeHandler(field)}
+            onCreateOption={v => this.handleCreate(field, v)}
             value={value}
             options={options}
           />

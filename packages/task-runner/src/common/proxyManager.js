@@ -15,7 +15,6 @@ class ProxyManager {
 
   format(rawData) {
     this._logger.debug('Formatting proxy data %s...', rawData);
-
     if (!rawData || /^(127.*|localhost)/.test(rawData)) {
       return null;
     }
@@ -208,15 +207,10 @@ class ProxyManager {
     // Attempt to reserve a proxy first before releasing the old one
     const newProxy = await this.reserve(id, site, platform);
 
-    if (!newProxy) {
-      this._logger.debug('No new proxy available, skipping release/ban');
-      return null;
-    }
-
     this._logger.debug(
       'Swapped old proxy: %s \n Returned new proxy: %s',
       oldProxy ? oldProxy.proxy : null,
-      newProxy.proxy,
+      newProxy ? newProxy.proxy : null,
     );
 
     // Check if we need to release and ban the old proxy
@@ -226,6 +220,12 @@ class ProxyManager {
       await this.release(id, site, platform, proxyId, true);
       // await this.ban(id, site, proxyId, shouldBan);
     }
+
+    if (!newProxy) {
+      this._logger.debug('No new proxy available, skipping release/ban');
+      return null;
+    }
+
     this._logger.debug('New proxy: %j', newProxy.proxy);
     // Return the new reserved proxy
     return newProxy;

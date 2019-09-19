@@ -23,7 +23,16 @@ export default function shippingReducer(state = initialSettingsStates.shipping, 
         if (!URL || !URL.host) {
           break;
         }
-        const newSite = getAllSites().find(s => URL.host === parseURL(s.value).host);
+        let newSite;
+        const allSites = getAllSites();
+
+        allSites.forEach(category => {
+          const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
+          if (exists) {
+            newSite = exists;
+          }
+        });
+
         if (!newSite || newSite.label === state.site.name) {
           break;
         }

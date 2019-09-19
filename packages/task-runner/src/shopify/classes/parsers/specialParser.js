@@ -82,6 +82,13 @@ class SpecialParser extends Parser {
         error.status,
         error.messsage,
       );
+
+      if (error && error.type && error.type === 'system') {
+        const rethrow = new Error(error.errno);
+        rethrow.status = error.code;
+        throw rethrow;
+      }
+
       const rethrow = new Error(error.message || 'Unable to make request');
       rethrow.status = error.status || 404; // Use the status code, or a 404 is no code is given
       throw rethrow;
@@ -108,6 +115,11 @@ class SpecialParser extends Parser {
             error.message,
             error.stack,
           );
+          if (error && error.type && error.type === 'system') {
+            const rethrow = new Error(error.errno);
+            rethrow.status = error.code;
+            throw rethrow;
+          }
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.status || 404;
@@ -125,6 +137,11 @@ class SpecialParser extends Parser {
             error.message,
             error.stack,
           );
+          if (error && error.type && error.type === 'system') {
+            const rethrow = new Error(error.errno);
+            rethrow.status = error.code;
+            throw rethrow;
+          }
           // TODO: Maybe replace with a custom error object?
           const rethrow = new Error('unable to parse initial page');
           rethrow.status = error.status || 404;

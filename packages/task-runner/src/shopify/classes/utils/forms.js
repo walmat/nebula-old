@@ -1,12 +1,12 @@
-const phoneFormatter = require('phone-formatter');
+const { States } = require('./constants').TaskRunner;
 
 const buildPaymentForm = (payment, billing) => ({
   credit_card: {
     number: payment.cardNumber,
-    verification_value: payment.cvv,
     name: `${billing.firstName} ${billing.lastName}`,
     month: parseInt(payment.exp.slice(0, 2), 10),
-    year: parseInt(payment.exp.slice(3, 5), 10),
+    year: `20${parseInt(payment.exp.slice(3, 5), 10)}`,
+    verification_value: payment.cvv,
   },
 });
 
@@ -105,13 +105,20 @@ const addToCart = (variant, name, hash, props = {}) => {
         quantity: 1,
       });
     }
+    case 'eraserfase.com': {
+      return JSON.stringify({
+        id: variant,
+        quantity: 1,
+        success: undefined,
+      });
+    }
     default:
-      break;
+      return JSON.stringify({
+        id: variant,
+        quantity: 1,
+      });
   }
-  return JSON.stringify({
-    id: variant,
-    quantity: 1,
-  });
+
 };
 
 const patchToCart = variant => ({
@@ -126,9 +133,157 @@ const patchToCart = variant => ({
   },
 });
 
+const parseForm = async (
+  $,
+  state,
+  captchaToken,
+  checkoutToken,
+  paymentToken,
+  profile,
+  formName,
+  wanted,
+) => {
+  let count = 0;
+  const data = [];
+  await $(formName).each((i, form) => {
+    if ($(form).children().length > 4) {
+      const fields = $(form).find(wanted);
+      $(fields).each((_, el) => {
+        const name = $(el).attr('name');
+        let value = $(el).attr('value') || '';
+
+        // keep a count of the number of hashes!
+        if (/[a-fA-F0-9]{32}/.test(name)) {
+          count += 1;
+        }
+
+        if (name === 's' && paymentToken) {
+          data.push({ name, value: paymentToken });
+          return;
+        }
+
+        if (/vault_phone|authenticity_token/i.test(name)) {
+          value = encodeURIComponent(value);
+        }
+
+        // just set the dba to true and fill the rest of the form
+        if (/different_billing_address/i.test(name)) {
+          value = !profile.billingMatchesShipping;
+        }
+
+        if (
+          (profile.billingMatchesShipping &&
+            /billing_address/i.test(name) &&
+            !/different_billing_address/i.test(name)) ||
+          (/different_billing_address/i.test(name) &&
+            data.some(({ name: existing }) => /different_billing_address/i.test(existing)))
+        ) {
+          return;
+        }
+
+        // prevent multiple buttons from being included...
+        if (/button/i.test(name)) {
+          if (state === States.GO_TO_PAYMENT) {
+            return;
+          }
+
+          if (data.some(({ name: existing }) => /button/i.test(existing))) {
+            return;
+          }
+          if (captchaToken && state === States.GO_TO_CHECKOUT) {
+            data.push({ name: 'g-recaptcha-response', value: captchaToken });
+          }
+        }
+
+        if (/shipping_rate/i.test(name)) {
+          if (data.some(({ name: existing }) => /shipping_rate/i.test(existing))) {
+            return;
+          }
+          value = encodeURIComponent(value);
+        }
+
+        // blacklist some values...
+        if (
+          /hosted_fields_redirect|field_start|field_end/i.test(name) ||
+          ((/payment_gateway/i.test(name) && /free|3700574/i.test(value)) ||
+            (/payment_gateway/i.test(name) &&
+              data.some(({ name: existing }) => /payment_gateway/i.test(existing))))
+        ) {
+          // added check for the field_end to patch in the count...
+          if (/field_end/i.test(name)) {
+            data.push({
+              name: `${checkoutToken}-count`,
+              value: count,
+            });
+          }
+          return;
+        }
+
+        if (name) {
+          data.push({ name, value });
+        }
+      });
+    }
+  });
+
+  // push things that aren't found, but might be needed...
+  data.push({ name: 'checkout[client_details][browser_width]', value: 1238 });
+  data.push({ name: 'checkout[client_details][browser_height]', value: 453 });
+  data.push({ name: 'checkout[client_details][javascript_enabled]', value: 1 });
+  data.push({ name: 'checkout[client_details][color_depth]', value: 24 });
+  data.push({ name: 'checkout[client_details][java_enabled]', value: false });
+  data.push({ name: 'checkout[client_details][browser_tz]', value: 240 });
+
+  const formValuesObj = {
+    'checkout[email]': encodeURIComponent(profile.payment.email),
+    'checkout[email_or_phone]': encodeURIComponent(profile.payment.email),
+    'checkout[shipping_address][first_name]': profile.shipping.firstName,
+    'checkout[shipping_address][last_name]': profile.shipping.lastName,
+    'checkout[shipping_address][address1]': profile.shipping.address,
+    'checkout[shipping_address][address2]': profile.shipping.apt,
+    'checkout[shipping_address][city]': profile.shipping.city,
+    'checkout[shipping_address][country]': profile.shipping.country.label,
+    'checkout[shipping_address][province]': profile.shipping.province
+      ? profile.shipping.province.value
+      : '',
+    'checkout[shipping_address][zip]': profile.shipping.zipCode,
+    'checkout[shipping_address][phone]': profile.shipping.phone,
+    'checkout[billing_address][first_name]': profile.billing.firstName,
+    'checkout[billing_address][last_name]': profile.billing.lastName,
+    'checkout[billing_address][address1]': profile.billing.address,
+    'checkout[billing_address][address2]': profile.billing.apt,
+    'checkout[billing_address][city]': profile.billing.city,
+    'checkout[billing_address][country]': profile.billing.country.label,
+    'checkout[billing_address][province]': profile.billing.province
+      ? profile.billing.province.value
+      : '',
+    'checkout[billing_address][zip]': profile.billing.zipCode,
+    'checkout[billing_address][phone]': profile.billing.phone,
+  };
+
+  const formValues = await data.map(({ name, value }) => {
+    let val = value.toString();
+
+    const predictedVal = formValuesObj[name];
+    if (predictedVal) {
+      val = predictedVal;
+    }
+
+    if (!val) {
+      return `${encodeURI(name)}=&`;
+    }
+
+    val = val.replace(/\s/g, '+');
+    return `${encodeURI(name)}=${val}&`;
+  });
+
+  return formValues.join('').slice(0, -1);
+};
+
 module.exports = {
   buildPaymentForm,
   patchCheckoutForm,
   addToCart,
   patchToCart,
+  parseForm,
 };

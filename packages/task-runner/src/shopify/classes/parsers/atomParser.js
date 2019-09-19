@@ -37,14 +37,21 @@ class AtomParser extends Parser {
         agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
       });
 
-      if (/429|430|403/.test(res.status)) {
+      if (!/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(res.status)) {
         const error = new Error('Proxy banned!');
         error.status = res.status;
         throw error;
       }
+
       const body = await res.text();
       responseJson = await convertToJson(body);
     } catch (error) {
+      if (error && error.type && /system/i.test(error.type)) {
+        const rethrow = new Error(error.errno);
+        rethrow.status = error.code;
+        throw rethrow;
+      }
+
       this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given

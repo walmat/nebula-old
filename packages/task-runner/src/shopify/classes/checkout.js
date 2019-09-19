@@ -61,12 +61,9 @@ class Checkout {
 
     this.cartForm = '';
     this.paymentToken = null;
-    this.note = null;
-    this.paymentGateway = '';
     this.checkoutToken = null;
     this.checkoutKey = null;
     this.storeId = null;
-    this.protection = [];
     this.needsCaptcha = false;
 
     this.prices = {
@@ -101,27 +98,6 @@ class Checkout {
     this._emitEvent(Events.TaskStatus, { ...payload, type: Types.Normal });
   }
 
-  async parseBotProtection($) {
-    const elements = $('input#field_start').nextUntil('input#field_end', 'textarea');
-
-    if (!elements || !elements.length) {
-      return [];
-    }
-
-    const hashes = [];
-    elements.each((_, textarea) => {
-      const hash = $(textarea).attr('id');
-
-      this._logger.debug('BOT PROTECTION HASH: ', hash);
-      if (!hash) {
-        return;
-      }
-      hashes.push(hash);
-    });
-
-    return hashes;
-  }
-
   async addToCart() {
     throw new Error('Should be defined in subclasses');
   }
@@ -133,21 +109,50 @@ class Checkout {
   async getPaymentToken() {
     const {
       task: {
-        site: { apiKey, name },
         profile: { payment, billing },
-        type,
+        site: { url },
       },
       proxy,
     } = this._context;
 
+    let location = `${url}/${this.storeId}/checkouts/${this.checkoutToken}?previous_step=shipping_method&step=payment_method`;
+    location = encodeURIComponent(location);
+    location += `&dir=ltr&fonts[]=Roboto`;
+
     try {
-      const res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
+      let res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
+        method: 'OPTIONS',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        headers: {
+          'User-Agent': userAgent,
+          'Content-Type': 'application/json',
+          'Access-Control-Request-Headers': 'content-type',
+          'Access-Control-Request-Method': 'POST',
+          DNT: 1,
+          Connection: 'Keep-Alive',
+          Origin: 'https://checkout.shopifycs.com',
+          'Sec-Fetch-Mode': 'no-cors',
+          Referer: `https://checkout.shopifycs.com/number?identifier=${this.checkoutToken}&location=${location}`,
+        },
+      });
+
+      if (!res.ok) {
+        return { nextState: States.PAYMENT_TOKEN };
+      }
+
+      res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
+          'Access-Control-Request-Headers': 'content-type',
+          'Access-Control-Request-Method': 'POST',
+          DNT: 1,
           Connection: 'Keep-Alive',
+          Origin: 'https://checkout.shopifycs.com',
+          'Sec-Fetch-Mode': 'no-cors',
+          Referer: `https://checkout.shopifycs.com/number?identifier=${this.checkoutToken}&location=${location}`,
         },
         body: JSON.stringify(buildPaymentForm(payment, billing)),
       });
@@ -171,23 +176,7 @@ class Checkout {
       if (id) {
         this._logger.silly('Payment token: %s', id);
         this.paymentToken = id;
-        if (!apiKey) {
-          return { message: 'Getting site data', nextState: States.GET_SITE_DATA };
-        }
-
-        if (this.needsLogin) {
-          return { message: 'Logging in', nextState: States.LOGIN };
-        }
-
-        if (/dsm uk|dsm jp|dsm sg/i.test(name)) {
-          return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
-        }
-
-        if (type === Modes.SAFE) {
-          return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
-        }
-
-        return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+        return { done: true };
       }
       return {
         message: 'Creating payment session',
@@ -196,7 +185,7 @@ class Checkout {
     } catch (err) {
       this._logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Payment Token.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -206,9 +195,10 @@ class Checkout {
         nextState: States.PAYMENT_TOKEN,
       });
 
-      const message = err.statusCode
-        ? `Creating payment session - (${err.statusCode})`
-        : 'Creating payment session';
+      const message =
+        err.status || err.errno
+          ? `Creating payment session - (${err.status || err.errno})`
+          : 'Creating payment session';
 
       return nextState || { message, nextState: States.PAYMENT_TOKEN };
     }
@@ -298,7 +288,7 @@ class Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -308,7 +298,9 @@ class Checkout {
         nextState: States.LOGIN,
       });
 
-      const message = err.statusCode ? `Logging in - (${err.statusCode})` : 'Logging in';
+      const message =
+        err.status || err.errno ? `Logging in - (${err.status || err.errno})` : 'Logging in';
+
       return nextState || { message, nextState: States.LOGIN };
     }
   }
@@ -365,7 +357,7 @@ class Checkout {
         [, accessToken] = match;
         this._context.task.site.apiKey = accessToken;
       }
-      if (type === Modes.SAFE && (/eflash/i.test(url) || /palace/i.test(url))) {
+      if (type === Modes.SAFE) {
         if (!this.needsLogin) {
           return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
         }
@@ -378,7 +370,7 @@ class Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Parse Access Token.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -388,9 +380,10 @@ class Checkout {
         nextState: States.GET_SITE_DATA,
       });
 
-      const message = err.statusCode
-        ? `Getting site data - (${err.statusCode})`
-        : 'Getting site data';
+      const message =
+        err.status || err.errno
+          ? `Getting site data - (${err.status || err.errno})`
+          : 'Getting site data';
 
       return nextState || { message, nextState: States.GET_SITE_DATA };
     }
@@ -448,6 +441,7 @@ class Checkout {
           const parsed = parse(queryStrings);
 
           if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
             this._logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
@@ -461,7 +455,13 @@ class Checkout {
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
+                connection: 'close',
+                referer: url,
+                accept:
+                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'en-US,en;q=0.9',
+                host: `${url.split('/')[2]}`,
               },
             });
           } catch (error) {
@@ -491,7 +491,7 @@ class Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -501,9 +501,10 @@ class Checkout {
         nextState: States.CREATE_CHECKOUT,
       });
 
-      const message = err.statusCode
-        ? `Creating checkout - (${err.statusCode})`
-        : 'Creating checkout';
+      const message =
+        err.status || err.errno
+          ? `Creating checkout - (${err.status || err.errno})`
+          : 'Creating checkout';
 
       return nextState || { message, nextState: States.CREATE_CHECKOUT };
     }
@@ -559,6 +560,12 @@ class Checkout {
         headers: {
           'User-Agent': userAgent,
           Connection: 'Keep-Alive',
+          referer: this.queueReferer,
+          connection: 'close',
+          accept: '*/*',
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'en-US,en;q=0.9',
+          host: `${url.split('/')[2]}`,
         },
       });
 
@@ -688,7 +695,7 @@ class Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Poll Queue.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -697,7 +704,8 @@ class Checkout {
         nextState: States.QUEUE,
       });
 
-      const message = err.statusCode ? `Polling queue - (${err.statusCode})` : 'Polling queue';
+      const message =
+        err.status || err.errno ? `Polling queue - (${err.status || err.errno})` : 'Polling queue';
 
       return nextState || { message, nextState: States.QUEUE };
     }
@@ -709,7 +717,6 @@ class Checkout {
         site: { url, apiKey, name },
         product: { size, name: productName, url: productUrl },
         profile: { profileName },
-        checkoutSpeed,
         type,
         monitorDelay,
       },
@@ -787,8 +794,7 @@ class Checkout {
               },
               profile: profileName,
               size,
-              checkoutSpeed,
-              shippingMethod: this.chosenShippingMethod.id,
+              shippingMethod: this.chosenShippingMethod.name,
               image: imageUrl,
             });
           } catch (err) {
@@ -817,14 +823,14 @@ class Checkout {
               order: null,
               profile: profileName,
               size,
-              checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
               image: imageUrl,
             });
           } catch (err) {
             // fail silently...
           }
-          return { message: 'Card declined', nextState: States.COMPLETE_PAYMENT };
+          const nextState = type === Modes.FAST ? States.COMPLETE_PAYMENT : States.GO_TO_PAYMENT;
+          return { message: 'Card declined', nextState };
         }
 
         const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
@@ -845,16 +851,16 @@ class Checkout {
                 order: null,
                 profile: profileName,
                 size,
-                checkoutSpeed,
                 shippingMethod: this.chosenShippingMethod.id,
                 image: imageUrl,
               });
             } catch (err) {
               // fail silently...
             }
+            const nextState = type === Modes.FAST ? States.COMPLETE_PAYMENT : States.GO_TO_PAYMENT;
             return {
               message: `Out of stock! Delaying ${monitorDelay}ms`,
-              nextState: States.COMPLETE_PAYMENT,
+              nextState,
             };
           }
 
@@ -872,14 +878,14 @@ class Checkout {
               order: null,
               profile: profileName,
               size,
-              checkoutSpeed,
               shippingMethod: this.chosenShippingMethod.id,
               image: imageUrl,
             });
           } catch (err) {
             // fail silently...
           }
-          return { message: 'Payment failed!', nextState: States.COMPLETE_PAYMENT };
+          const nextState = type === Modes.FAST ? States.COMPLETE_PAYMENT : States.GO_TO_PAYMENT;
+          return { message: 'Payment failed!', nextState };
         }
       }
       this._logger.silly('CHECKOUT: Processing payment');
@@ -887,7 +893,7 @@ class Checkout {
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Process Payment.\n\n %j %j',
-        err.statusCode,
+        err.status || err.errno,
         err.message,
         err.stack,
       );
@@ -897,9 +903,10 @@ class Checkout {
         nextState: States.PROCESS_PAYMENT,
       });
 
-      const message = err.statusCode
-        ? `Processing payment - (${err.statusCode})`
-        : 'Processing payment';
+      const message =
+        err.status || err.errno
+          ? `Processing payment - (${err.status || err.errno})`
+          : 'Processing payment';
 
       return nextState || { message, nextState: States.PROCESS_PAYMENT };
     }

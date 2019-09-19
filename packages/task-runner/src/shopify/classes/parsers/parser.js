@@ -50,6 +50,11 @@ class Parser {
             return res.json();
           },
           async error => {
+            if (error && error.type && /system/i.test(error.type)) {
+              const rethrow = new Error(error.errno);
+              rethrow.status = error.code;
+              throw rethrow;
+            }
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
             err.status = error.status || 404;
@@ -82,6 +87,11 @@ class Parser {
             };
           },
           async error => {
+            if (error && error.type && /system/i.test(error.type)) {
+              const rethrow = new Error(error.errno);
+              rethrow.status = error.code;
+              throw rethrow;
+            }
             // Error occured, return a rejection with the status code attached
             const err = new Error(error.message);
             err.status = error.status || 404;
