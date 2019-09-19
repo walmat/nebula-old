@@ -402,13 +402,13 @@ class Checkout {
       const res = await this._request(`${url}/checkout`, {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: type === Modes.FAST ? 'manual' : 'follow',
-        follow: type === Modes.FAST ? 1 : 5,
+        redirect: 'manual',
+        follow: 0,
         headers: getHeaders({ url, apiKey }),
         body: JSON.stringify({}),
       });
 
-      const { status } = res;
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -422,11 +422,7 @@ class Checkout {
         return checkStatus;
       }
 
-      let redirectUrl = res.url;
-      if (type === Modes.FAST) {
-        redirectUrl = res.headers.get('location');
-      }
-
+      const redirectUrl = headers.get('location');
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
       if (redirectUrl) {
         if (/login/i.test(redirectUrl)) {
@@ -586,7 +582,7 @@ class Checkout {
 
       const body = await res.text();
 
-      // check server error
+      // check queue error
       if (status === 400) {
         return { message: `Invalid checkout!`, nextState: States.CREATE_CHECKOUT };
       }
@@ -726,7 +722,7 @@ class Checkout {
     } = this._context;
 
     try {
-      const res = await this._request(`${url}/api/checkouts/${this.checkoutToken}/payments`, {
+      const res = await this._request(`${url}/wallets/checkouts/${this.checkoutToken}/payments`, {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',

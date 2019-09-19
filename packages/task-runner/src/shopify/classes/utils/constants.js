@@ -108,29 +108,22 @@ const QueueNextState = {
     }
 
     return {
-      message: 'Go to checkout',
+      message: 'Going to cart',
+      nextState: CheckoutStates.GO_TO_CART,
+    };
+  },
+  // should only be called in safe mode!
+  [CheckoutStates.GO_TO_CART]: () => {
+    return {
+      message: 'Creating checkout',
       nextState: CheckoutStates.CREATE_CHECKOUT,
     };
   },
   [CheckoutStates.CREATE_CHECKOUT]: (type, task) => {
-    if (type === Modes.FAST) {
+    if (type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(task.site.name)) {
       return {
         message: 'Submitting information',
         nextState: CheckoutStates.SUBMIT_CUSTOMER,
-      };
-    }
-
-    if (/dsm sg|dsm jp|dsm uk/i.test(task.site.name) && type === Modes.SAFE) {
-      return {
-        message: 'Submitting information',
-        nextState: CheckoutStates.SUBMIT_CUSTOMER,
-      };
-    }
-
-    if (!/eflash|palace/i.test(task.site.url)) {
-      return {
-        message: 'Waiting for product',
-        nextState: CheckoutStates.WAIT_FOR_PRODUCT,
       };
     }
 
@@ -139,8 +132,20 @@ const QueueNextState = {
       nextState: CheckoutStates.GO_TO_CHECKOUT,
     };
   },
-  [CheckoutStates.GO_TO_CHECKOUT]: type => {
+  [CheckoutStates.GO_TO_CHECKOUT]: (type, task, shippingMethod) => {
     if (type === Modes.FAST) {
+      if (shippingMethod && shippingMethod.id) {
+        if (task.forceCaptcha) {
+          return {
+            message: 'Waiting for captcha',
+            nextState: States.CAPTCHA,
+          };
+        }
+        return {
+          message: 'Submitting pament',
+          nextState: States.PAYMENT_TOKEN,
+        };
+      }
       return {
         message: 'Fetching shipping rates',
         nextState: CheckoutStates.SUBMIT_CUSTOMER,
@@ -152,17 +157,16 @@ const QueueNextState = {
     };
   },
   [CheckoutStates.SUBMIT_CUSTOMER]: (type, task) => {
-    if (type === Modes.FAST) {
+    if (type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(task.site.name)) {
+      if (!task.product.variants) {
+        return {
+          message: 'Waiting for product',
+          nextState: CheckoutStates.WAIT_FOR_PRODUCT,
+        };
+      }
       return {
-        message: 'Monitoring for product',
-        nextState: CheckoutStates.MONITOR,
-      };
-    }
-
-    if (/dsm sg|dsm jp|dsm uk/i.test(task.site.name)) {
-      return {
-        message: 'Waiting for product',
-        nextState: CheckoutStates.WAIT_FOR_PRODUCT,
+        message: 'Adding to cart',
+        nextState: CheckoutStates.ADD_TO_CART,
       };
     }
 

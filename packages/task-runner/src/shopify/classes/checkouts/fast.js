@@ -3,6 +3,7 @@
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 import { min } from 'lodash';
+import { parse } from 'query-string';
 import Checkout from '../checkout';
 
 const { States, Modes } = require('../utils/constants').TaskRunner;
@@ -134,16 +135,17 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -376,16 +378,17 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -663,16 +666,17 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -833,16 +837,17 @@ class FastCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',

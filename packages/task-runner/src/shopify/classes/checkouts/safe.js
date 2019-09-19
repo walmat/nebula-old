@@ -118,16 +118,17 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -282,16 +283,17 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -447,16 +449,17 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -730,8 +733,8 @@ class SafeCheckout extends Checkout {
       const res = await this._request(`${url}/cart`, {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: 'follow',
-        follow: 5,
+        redirect: 'manual',
+        follow: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/x-www-form-urlencoded',
@@ -743,7 +746,7 @@ class SafeCheckout extends Checkout {
 
       // reset cart form in case we need to parse it again...
       this.cartForm = '';
-      const { status, url: redirectUrl } = res;
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -757,6 +760,7 @@ class SafeCheckout extends Checkout {
         return checkStatus;
       }
 
+      const redirectUrl = headers.get('location');
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
@@ -851,8 +855,8 @@ class SafeCheckout extends Checkout {
       const res = await this._request(`${url}/wallets/checkouts`, {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: 'follow',
-        follow: 5,
+        redirect: 'manual',
+        follow: 0,
         headers: getHeaders({ url, apiKey }),
         body: JSON.stringify({
           card_source: 'vault',
@@ -867,7 +871,7 @@ class SafeCheckout extends Checkout {
         }),
       });
 
-      const { status, url: redirectUrl } = res;
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -881,6 +885,7 @@ class SafeCheckout extends Checkout {
         return checkStatus;
       }
 
+      const redirectUrl = headers.get('location');
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
@@ -893,6 +898,7 @@ class SafeCheckout extends Checkout {
           const parsed = parse(queryStrings);
 
           if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
             this._logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
@@ -1045,16 +1051,17 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -1265,16 +1272,17 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -1359,16 +1367,17 @@ class SafeCheckout extends Checkout {
       // if we followed a redirect at some point...
       if (res.redirected) {
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -1532,16 +1541,17 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -1698,16 +1708,17 @@ class SafeCheckout extends Checkout {
       }
 
       if (/throttle/i.test(redirectUrl)) {
-        let ctdUrl;
-        if (/_ctd/.test(redirectUrl)) {
-          ctdUrl = redirectUrl;
-        } else {
-          const ctd = this.getCookie(this._jar, '_ctd');
-          ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+        const queryStrings = new URL(redirectUrl).search;
+        const parsed = parse(queryStrings);
+
+        if (parsed && parsed._ctd) {
+          this.queueReferer = redirectUrl;
+          this._logger.info('FIRST _CTD: %j', parsed._ctd);
+          this._ctd = parsed._ctd;
         }
 
         try {
-          await this._request(ctdUrl, {
+          await this._request(redirectUrl, {
             method: 'GET',
             agent: proxy ? new HttpsProxyAgent(proxy) : null,
             redirect: 'manual',
@@ -1868,16 +1879,17 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
@@ -2017,6 +2029,31 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(step)) {
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
+          }
+
+          try {
+            await this._request(redirectUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
           return { message: 'Polling queue', nextState: States.QUEUE };
         }
 
@@ -2055,6 +2092,31 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/.test(redirectUrl)) {
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
+          }
+
+          try {
+            await this._request(redirectUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
           return { message: 'Polling queue', nextState: States.QUEUE };
         }
       }
@@ -2175,16 +2237,17 @@ class SafeCheckout extends Checkout {
         }
 
         if (/throttle/i.test(redirectUrl)) {
-          let ctdUrl;
-          if (/_ctd/.test(redirectUrl)) {
-            ctdUrl = redirectUrl;
-          } else {
-            const ctd = this.getCookie(this._jar, '_ctd');
-            ctdUrl = `${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`;
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
           }
 
           try {
-            await this._request(ctdUrl, {
+            await this._request(redirectUrl, {
               method: 'GET',
               agent: proxy ? new HttpsProxyAgent(proxy) : null,
               redirect: 'manual',
