@@ -995,7 +995,7 @@ class SafeCheckout extends Checkout {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'follow',
-        follow: 100,
+        follow: 5,
         headers: {
           ...getHeaders({ url, apiKey }),
           Connection: 'Keep-Alive',
