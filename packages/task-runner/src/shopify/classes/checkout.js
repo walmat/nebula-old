@@ -790,7 +790,6 @@ class Checkout {
               },
               profile: profileName,
               size,
-              shippingMethod: this.chosenShippingMethod.name,
               image: imageUrl,
             });
           } catch (err) {
@@ -819,7 +818,6 @@ class Checkout {
               order: null,
               profile: profileName,
               size,
-              shippingMethod: this.chosenShippingMethod.id,
               image: imageUrl,
             });
           } catch (err) {
@@ -847,7 +845,6 @@ class Checkout {
                 order: null,
                 profile: profileName,
                 size,
-                shippingMethod: this.chosenShippingMethod.id,
                 image: imageUrl,
               });
             } catch (err) {
@@ -874,7 +871,6 @@ class Checkout {
               order: null,
               profile: profileName,
               size,
-              shippingMethod: this.chosenShippingMethod.id,
               image: imageUrl,
             });
           } catch (err) {
