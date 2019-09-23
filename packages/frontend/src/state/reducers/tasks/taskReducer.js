@@ -31,7 +31,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
         case TASK_FIELDS.EDIT_PRODUCT: {
           change = {
             product: {
-              ...initialTaskStates.product,
+              ...state.product,
               raw: action.value || '',
             },
             errors: Object.assign({}, state.errors, action.errors),

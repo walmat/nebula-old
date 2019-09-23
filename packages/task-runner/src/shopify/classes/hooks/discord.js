@@ -8,19 +8,7 @@ class Discord {
     }
   }
 
-  build(
-    success = false,
-    type,
-    checkoutUrl,
-    product,
-    price,
-    site,
-    order,
-    profile,
-    size,
-    shippingMethod,
-    image,
-  ) {
+  build(success = false, type, checkoutUrl, product, price, site, order, profile, size, image) {
     if (this.hook) {
       const embed = new RichEmbed()
         .setTitle(success ? `Successful checkout (${type})` : `Payment failed! (${type})`)

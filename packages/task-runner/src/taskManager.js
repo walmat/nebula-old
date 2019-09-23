@@ -252,14 +252,11 @@ class TaskManager {
       'SAFE',
       null,
       { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
-      '$150.00',
+      '$220.00',
       { name: 'Test Site', url: 'https://example.com' },
       { number: '#123123', url: 'https://example.com' },
       'Test Profile',
-      ['Random'],
-      '1678.12',
-      'shopify-Free%20Shipping-0.00',
-      null,
+      'Random',
       'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
     ];
     if (type === HookTypes.discord) {
