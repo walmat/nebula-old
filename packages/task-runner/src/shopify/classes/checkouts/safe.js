@@ -1061,7 +1061,10 @@ class SafeCheckout extends Checkout {
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         redirect: 'manual',
         follow: 0,
-        headers: getHeaders({ url, apiKey }),
+        headers: {
+           ...getHeaders({ url, apiKey }),
+           'content-type': 'application/x-www-form-urlencoded',
+        },
         body: this.checkpointForm,
       });
 
