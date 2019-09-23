@@ -19,9 +19,7 @@ const pickVariant = require('../utils/pickVariant');
 class SafeCheckout extends Checkout {
   constructor(context, type = Modes.SAFE) {
     super(context, type);
-
-    this.formValues = [];
-    this.form = '';
+    this.formValues = '';
   }
 
   async addToCart() {
@@ -68,7 +66,7 @@ class SafeCheckout extends Checkout {
     this._context.task.product.size = option;
 
     try {
-      const res = await this._request(`${url}/cart/add.js`, {
+      const res = await this._request('/cart/add.js', {
         method: 'POST',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
         compress: true,
@@ -682,8 +680,6 @@ class SafeCheckout extends Checkout {
         xmlMode: false,
       });
 
-      this.note = $('input[name="note"]').attr('value');
-
       $('form[action="/cart"] input, select, textarea').each((_, el) => {
         const name = $(el).attr('name');
         const value = $(el).attr('value') || '';
@@ -764,6 +760,10 @@ class SafeCheckout extends Checkout {
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.CHECKPOINT };
+        }
+
         if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
         }
@@ -837,6 +837,250 @@ class SafeCheckout extends Checkout {
           : 'Creating checkout';
 
       return nextState || { message, nextState: States.CREATE_CHECKOUT };
+    }
+  }
+
+  async getCheckpoint() {
+    const {
+      task: {
+        site: { url, apiKey },
+      },
+      proxy,
+    } = this._context;
+
+    try {
+      const res = await this._request(`/checkpoint`, {
+        method: 'GET',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'manual',
+        follow: 0,
+        headers: getHeaders({ url, apiKey }),
+      });
+
+      const { status, headers } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Going to checkpoint',
+          nextState: States.GO_TO_CHECKPOINT,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const redirectUrl = headers.get('location');
+      this._logger.debug('Checkpoint redirect url: %j', redirectUrl);
+
+      if (redirectUrl) {
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
+          }
+
+          try {
+            await this._request(redirectUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                connection: 'close',
+                referer: url,
+                accept:
+                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'en-US,en;q=0.9',
+                host: `${url.split('/')[2]}`,
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+
+        if (/checkouts/i.test(redirectUrl)) {
+          [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
+          return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+        }
+      }
+
+      const body = await res.text();
+
+      const $ = cheerio.load(body, { normalizeWhitespace: true, xmlMode: false });
+
+      $('form[action="/checkpoint"] input, textarea, select, button').each((_, el) => {
+        const name = $(el).attr('name');
+        let value = $(el).attr('value') || '';
+
+        if (/authenticity_token/i.test(name)) {
+          value = encodeURIComponent(value);
+        }
+
+        if (/g-recaptcha-response/i.test(name)) {
+          return;
+        }
+
+        this._logger.info('Checkpoint form value detected: { name: %j, value: %j }', name, value);
+        this.checkpointForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+      });
+
+      this.checkpointForm = this.checkpointForm.slice(0, -1);
+
+      return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Going to checkpoint.\n\n %j %j',
+        err.status || err.errno,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Going to checkpoint',
+        nextState: States.GO_TO_CHECKPOINT,
+      });
+
+      const message =
+        err.status || err.errno
+          ? `Going to checkpoint - (${err.status || err.errno})`
+          : 'Going to checkpoint';
+
+      return nextState || { message, nextState: States.GO_TO_CHECKPOINT };
+    }
+  }
+
+  async submitCheckpoint() {
+    const {
+      task: {
+        site: { url, apiKey },
+      },
+      proxy,
+    } = this._context;
+
+    if (this.captchaToken && !/g-recaptcha-response/i.test(this.checkpointForm)) {
+      const parts = this.checkpointForm.split('g-recaptcha-response=');
+      if (parts && parts.length) {
+        this.checkpointForm = '';
+        await parts.map((part, i) => {
+          if (i === 0) {
+            this.checkpointForm += `${part}g-recaptcha-response=${this.captchaToken}`;
+          } else {
+            this.checkpointForm += part;
+          }
+        });
+      }
+    }
+
+    try {
+      const res = await this._request(`/checkpoint`, {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'manual',
+        follow: 0,
+        headers: getHeaders({ url, apiKey }),
+        body: this.checkpointForm,
+      });
+
+      const { status, headers } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Submitting checkpoint',
+          nextState: States.SUBMIT_CHECKPOINT,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const redirectUrl = headers.get('location');
+      this._logger.debug('Checkpoint redirect url: %j', redirectUrl);
+
+      if (redirectUrl) {
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
+          }
+
+          try {
+            await this._request(redirectUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                connection: 'close',
+                referer: url,
+                accept:
+                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'en-US,en;q=0.9',
+                host: `${url.split('/')[2]}`,
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+
+        if (/checkouts/i.test(redirectUrl)) {
+          [, , , this.storeId, , this.checkoutToken] = redirectUrl.split('/');
+          return { message: 'Going to checkout', nextState: States.GO_TO_CHECKOUT };
+        }
+      }
+
+      const message = status ? `Submitting checkpoint - (${status})` : 'Submitting checkpoint';
+      return { message, nextState: States.SUBMIT_CHECKPOINT };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %d Request Error..\n Step: Checkpoint.\n\n %j %j',
+        err.status || err.errno,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Going to checkpoint',
+        nextState: States.GO_TO_CHECKPOINT,
+      });
+
+      const message =
+        err.status || err.errno
+          ? `Going to checkpoint - (${err.status || err.errno})`
+          : 'Going to checkpoint';
+
+      return nextState || { message, nextState: States.GO_TO_CHECKPOINT };
     }
   }
 
