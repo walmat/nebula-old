@@ -286,7 +286,6 @@ class Monitor {
           this.proxy = proxy;
           this._context.proxy = proxy.proxy;
           this._context.rawProxy = proxy.raw;
-          this._checkout._context.proxy = proxy.proxy;
           this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitTaskEvent({

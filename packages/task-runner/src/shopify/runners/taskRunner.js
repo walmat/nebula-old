@@ -1299,8 +1299,8 @@ class TaskRunner {
         if (proxy === null) {
           this.proxy = proxy;
           this._context.proxy = proxy;
-          this._context.rawProxy = 'localhost';
           this._checkout._context.proxy = proxy;
+          this._context.rawProxy = 'localhost';
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitTaskEvent({
             message: `Swapped proxy to: localhost`,
@@ -1309,8 +1309,8 @@ class TaskRunner {
         } else {
           this.proxy = proxy;
           this._context.proxy = proxy.proxy;
-          this._context.rawProxy = proxy.raw;
           this._checkout._context.proxy = proxy.proxy;
+          this._context.rawProxy = proxy.raw;
           this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitTaskEvent({
