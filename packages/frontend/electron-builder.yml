@@ -1,6 +1,6 @@
 appId: com.nebula.orion
 copyright: 2019 © Nebula Automation, LLC
-productName: nebula orion
+productName: Nebula Orion
 asar: true
 compression: maximum
 extends: null
@@ -22,7 +22,7 @@ files:
 
 dmg:
   backgroundColor: "#46adb4"
-  artifactName: 'nebula.orion-${version}.${ext}'
+  artifactName: 'Nebula.Orion-${version}-installer.${ext}'
   icon: "build/assets/icons/mac/icon.icns"
   iconSize: 128
   contents:
@@ -36,12 +36,12 @@ dmg:
 
 mac:
   icon: "build/assets/icons/mac/icon.icns"
-  artifactName: 'nebula.orion-${version}.${ext}'
+  artifactName: 'Nebula.Orion-${version}-installer.${ext}'
   category: public.app-category.productivity
 
 linux:
   icon: "build/assets/icons/png/"
-  artifactName: 'nebula.orion-${version}.${ext}'
+  artifactName: 'Nebula.Orion-${version}-installer.${ext}'
   target: AppImage
   category: linux.category.productivity
 
@@ -50,7 +50,7 @@ win:
   icon: "build/assets/icons/win/icon.ico"
 
 nsis:
-  artifactName: 'nebula.orion-${version}.${ext}'
+  artifactName: 'Nebula.Orion-${version}-installer.${ext}'
   createDesktopShortcut: true
   createStartMenuShortcut: true
   perMachine: true
