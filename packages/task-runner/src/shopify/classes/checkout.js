@@ -593,7 +593,7 @@ class Checkout {
 
       if (status === 302) {
         if (!redirectUrl || /throttle/i.test(redirectUrl)) {
-          return { message: `Polling queue - (${status})`, nextState: States.QUEUE };
+          return { message: `Not through queue! (${status})`, nextState: States.QUEUE };
         }
 
         if (/_ctd/i.test(redirectUrl)) {
@@ -686,7 +686,7 @@ class Checkout {
         return { queue: 'done' };
       }
       this._logger.silly('CHECKOUT: Not passed queue, delaying 2000 ms');
-      const message = status ? `Polling queue - (${status})` : 'Polling queue';
+      const message = status ? `Not through queue! (${status})` : 'Not through queue!';
       return { message, delay: true, nextState: States.QUEUE };
     } catch (err) {
       this._logger.error(
@@ -890,6 +890,13 @@ class Checkout {
         err.stack,
       );
 
+      if (/invalid json response/i.test(err.message)) {
+        return {
+          message: 'Processing payment',
+          nextState: States.BACKUP_PROCESS_PAYMENT,
+        };
+      }
+
       const nextState = stateForError(err, {
         message: 'Processing payment',
         nextState: States.PROCESS_PAYMENT,
@@ -901,6 +908,107 @@ class Checkout {
           : 'Processing payment';
 
       return nextState || { message, nextState: States.PROCESS_PAYMENT };
+    }
+  }
+
+  async backupPaymentProcessing() {
+    const {
+      task: {
+        site: { url, apiKey },
+      },
+      proxy,
+    } = this._context;
+
+    try {
+      const res = await this._request(
+        `${url}/${this.storeId}/checkouts/${this.checkoutToken}/processing`,
+        {
+          method: 'GET',
+          agent: proxy ? new HttpsProxyAgent(proxy) : null,
+          redirect: 'manual',
+          follow: 0,
+          headers: {
+            ...getHeaders({ url, apiKey }),
+            'Content-Type': 'application/json',
+            'Upgrade-Insecure-Requests': '1',
+            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          },
+        },
+      );
+
+      const { status, headers } = res;
+
+      const checkStatus = stateForError(
+        { status },
+        {
+          message: 'Processing payment',
+          nextState: States.BACKUP_PROCESS_PAYMENT,
+        },
+      );
+
+      if (checkStatus) {
+        return checkStatus;
+      }
+
+      const redirectUrl = headers.get('location');
+
+      if (redirectUrl) {
+        if (/thank_you/i.test(redirectUrl)) {
+          return {
+            message: `Payment successful!`,
+            nextState: States.DONE,
+          };
+        }
+      }
+
+      const body = await res.text();
+
+      if (/card declined/i.test(body)) {
+        return {
+          message: 'Card declined!',
+          nextState: States.PAYMENT_TOKEN,
+        };
+      }
+
+      if (/no match/i.test(body)) {
+        return {
+          message: 'Payment failed - No match',
+          nextState: States.PAYMENT_TOKEN,
+        };
+      }
+
+      if (/Your payment can’t be processed/i.test(body)) {
+        return {
+          message: 'Payment failed - Processing error',
+          nextState: States.PAYMENT_TOKEN,
+        };
+      }
+
+      this._logger.silly('CHECKOUT: Processing payment');
+      return {
+        message: 'Processing payment',
+        delay: true,
+        nextState: States.BACKUP_PROCESS_PAYMENT,
+      };
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %s Request Error..\n Step: Process Payment.\n\n %j %j',
+        err.status || err.errno,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Processing payment',
+        nextState: States.BACKUP_PROCESS_PAYMENT,
+      });
+
+      const message =
+        err.status || err.errno
+          ? `Processing payment - (${err.status || err.errno})`
+          : 'Processing payment';
+
+      return nextState || { message, nextState: States.BACKUP_PROCESS_PAYMENT };
     }
   }
 }

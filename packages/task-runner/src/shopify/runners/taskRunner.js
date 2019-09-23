@@ -481,6 +481,37 @@ class TaskRunner {
     return nextState;
   }
 
+  async _handleSubmitCheckpoint() {
+    const {
+      aborted,
+      rawProxy,
+      task: { monitorDelay },
+    } = this._context;
+
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { message, delay, shouldBan, nextState } = await this._checkout.submitCheckpoint();
+
+    this._emitTaskEvent({ message, proxy: rawProxy });
+
+    if (nextState === States.SWAP) {
+      this._emitTaskEvent({ message: `Proxy banned!` });
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+      await this._delayer;
+      this._emitTaskEvent({ message: 'Submitting checkpoint' });
+    }
+
+    return nextState;
+  }
+
   async _handleCreateCheckout() {
     const {
       aborted,
@@ -1380,7 +1411,8 @@ class TaskRunner {
       [States.PAYMENT_TOKEN]: this._handlePaymentToken,
       [States.GET_SITE_DATA]: this._handleGetSiteData,
       [States.CREATE_CHECKOUT]: this._handleCreateCheckout,
-      [States.CHECKPOINT]: this._handleCheckpoint,
+      [States.GO_TO_CHECKPOINT]: this._handleGetCheckpoint,
+      [States.SUBMIT_CHECKPOINT]: this._handleSubmitCheckpoint,
       [States.QUEUE]: this._handlePollQueue,
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,

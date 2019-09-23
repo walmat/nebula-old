@@ -20,6 +20,7 @@ class SafeCheckout extends Checkout {
   constructor(context, type = Modes.SAFE) {
     super(context, type);
     this.formValues = '';
+    this.checkpointForm = '';
   }
 
   async addToCart() {
@@ -994,9 +995,11 @@ class SafeCheckout extends Checkout {
         if (/g-recaptcha-response/i.test(name)) {
           return;
         }
-
         this._logger.info('Checkpoint form value detected: { name: %j, value: %j }', name, value);
-        this.checkpointForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+
+        if (name) {
+          this.checkpointForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+        }
       });
 
       this.checkpointForm = this.checkpointForm.slice(0, -1);
@@ -1038,7 +1041,7 @@ class SafeCheckout extends Checkout {
         this.checkpointForm = '';
         await parts.map(part => {
           if (/authenticity_token/i.test(part)) {
-            this.checkpointForm += `${part}&g-recaptcha-response=${this.captchaToken}`;
+            this.checkpointForm += `${part}&g-recaptcha-response=${this.captchaToken}&`;
           } else {
             this.checkpointForm += `${part}&`;
           }
@@ -1050,6 +1053,8 @@ class SafeCheckout extends Checkout {
       this.checkpointForm = this.checkpointForm.slice(0, -1);
     }
 
+    this._logger.debug('FORM: %j', this.checkpointForm);
+
     try {
       const res = await this._request(`/checkpoint`, {
         method: 'POST',
@@ -1059,6 +1064,8 @@ class SafeCheckout extends Checkout {
         headers: getHeaders({ url, apiKey }),
         body: this.checkpointForm,
       });
+
+      console.log(await res.text());
 
       const { status, headers } = res;
 
@@ -1115,6 +1122,10 @@ class SafeCheckout extends Checkout {
           }
 
           return { message: 'Polling queue', nextState: States.QUEUE };
+        }
+
+        if (/cart/i.test(redirectUrl)) {
+          return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
         }
 
         if (/checkouts/i.test(redirectUrl)) {
