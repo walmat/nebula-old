@@ -687,6 +687,10 @@ class TaskRunner {
           return States.SUBMIT_SHIPPING;
         }
 
+        if (this._prevState === States.GO_TO_CHECKPOINT) {
+          return States.SUBMIT_CHECKPOINT;
+        }
+
         if (this._prevState === States.GO_TO_CHECKOUT) {
           if (type === Modes.FAST) {
             if (this._checkout.chosenShippingMethod.id) {

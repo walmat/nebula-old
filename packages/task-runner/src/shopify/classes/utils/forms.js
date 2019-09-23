@@ -118,7 +118,6 @@ const addToCart = (variant, name, hash, props = {}) => {
         quantity: 1,
       });
   }
-
 };
 
 const patchToCart = variant => ({

@@ -103,6 +103,10 @@ class SafeCheckout extends Checkout {
       this._logger.silly('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/stock_problems/i.test(redirectUrl)) {
           return {
             message: `Out of stock! Delaying ${monitorDelay}ms`,
@@ -276,6 +280,10 @@ class SafeCheckout extends Checkout {
 
       // check redirects
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.ADD_TO_CART };
         }
@@ -428,6 +436,10 @@ class SafeCheckout extends Checkout {
 
       // check if redirected
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/login/i.test(redirectUrl)) {
           return {
             message: 'Login needed! Stopping...',
@@ -659,7 +671,7 @@ class SafeCheckout extends Checkout {
         },
       });
 
-      const { status } = res;
+      const { status, headers } = res;
 
       const checkStatus = stateForError(
         { status },
@@ -671,6 +683,53 @@ class SafeCheckout extends Checkout {
 
       if (checkStatus) {
         return checkStatus;
+      }
+
+      const redirectUrl = headers.get('location');
+
+      if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.GO_TO_CART };
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
+          }
+
+          try {
+            await this._request(redirectUrl, {
+              method: 'GET',
+              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                connection: 'close',
+                referer: url,
+                accept:
+                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'en-US,en;q=0.9',
+                host: `${url.split('/')[2]}`,
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          return { message: 'Polling queue', nextState: States.QUEUE };
+        }
       }
 
       const body = await res.text();
@@ -761,7 +820,7 @@ class SafeCheckout extends Checkout {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          return { message: 'Going to checkpoint', nextState: States.CHECKPOINT };
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
         }
 
         if (/password/i.test(redirectUrl)) {
@@ -974,17 +1033,21 @@ class SafeCheckout extends Checkout {
     } = this._context;
 
     if (this.captchaToken && !/g-recaptcha-response/i.test(this.checkpointForm)) {
-      const parts = this.checkpointForm.split('g-recaptcha-response=');
+      const parts = this.checkpointForm.split('&');
       if (parts && parts.length) {
         this.checkpointForm = '';
-        await parts.map((part, i) => {
-          if (i === 0) {
-            this.checkpointForm += `${part}g-recaptcha-response=${this.captchaToken}`;
+        await parts.map(part => {
+          if (/authenticity_token/i.test(part)) {
+            this.checkpointForm += `${part}&g-recaptcha-response=${this.captchaToken}`;
           } else {
-            this.checkpointForm += part;
+            this.checkpointForm += `${part}&`;
           }
         });
       }
+    }
+
+    if (this.checkpointForm.endsWith('&')) {
+      this.checkpointForm = this.checkpointForm.slice(0, -1);
     }
 
     try {
