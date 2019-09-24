@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html id="root">
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https:; script-src 'self' https:; img-src 'self' https:; style-src 'self' 'unsafe-inline'"/>
@@ -7,17 +7,20 @@
     <title>Nebula</title>
     <script src="./js/disableEval.js"></script>
     <script src="./js/lottie.js"></script>
-    <link rel="stylesheet" type="text/css" href="./css/auth.css">
+    <script src="./js/splash.js"></script>
+    <link rel="stylesheet" type="text/css" href="./css/splash.css">
   </head>
   <body>
     <div id="titlebar"></div>
-    <img src="./assets/close.svg" id="close" draggable="false"/>
     <div class="row row--expand row--gutter">
       <div class="col col--expand col--gutter">
         <div class="row row--expand">
           <div class="col col--expand">
             <div id="bodymovin" draggable="false"></div>
           </div>
+        </div>
+        <div class="row row--expand">
+          <h4 id="status-text">Initializing...</h4>
         </div>
       </div>
     </div>

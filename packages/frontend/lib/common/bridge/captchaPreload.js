@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { remote } = require('electron');
 
-const IPCKeys = require('../constants');
+const { IPCKeys } = require('../constants');
 const nebulaEnv = require('../../_electron/env');
 const { base, util } = require('./index');
 

@@ -3,9 +3,15 @@ const Electron = require('electron');
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 
-const IPCKeys = require('../common/constants');
+const { IPCKeys } = require('../common/constants');
 const nebulaEnv = require('./env');
-const { createAboutWindow, createSplashWindow, createAuthWindow, createMainWindow, urls } = require('./windows');
+const {
+  createAboutWindow,
+  createSplashWindow,
+  createAuthWindow,
+  createMainWindow,
+  urls,
+} = require('./windows');
 
 const CaptchaWindowManager = require('./captchaWindowManager');
 
@@ -155,6 +161,10 @@ class WindowManager {
     }
   }
 
+  static sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   /**
    * Switch the display of the developer tools window at focused window, For debug.
    * @param {BrowserWindow} win Browser Window Reference
@@ -198,6 +208,7 @@ class WindowManager {
           }
           w = createSplashWindow();
           this._splash = w;
+          break;
         }
         case 'main': {
           if (this._main) {
@@ -232,7 +243,7 @@ class WindowManager {
    * @param {BrowserWindow} win reference to the window being shown
    */
   handleShow(win) {
-    return () => {
+    return async () => {
       // open dev tools if dev env
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`Window was opened, id = ${win.id}`);
@@ -243,10 +254,16 @@ class WindowManager {
       this._notifyUpdateWindowIDs(win.id);
       win.show();
 
-      if (win === this._main) {
+      if (win === this._main || win === this._auth) {
         if (this._splash) {
-          this._splash.close();
+          console.log('Destroying splash page!');
+          this._windows.delete(this._splash.id);
+          this._splash.destroy();
+          this._splash = null;
         }
+      }
+
+      if (win === this._main) {
         log.info('Starting update check...');
         autoUpdater.checkForUpdatesAndNotify();
         // generate captcha window sessions
@@ -281,6 +298,8 @@ class WindowManager {
       } else if (this._auth && winId === this._auth.id) {
         this._auth = null;
       } else if (this._splash && winId === this._splash.id) {
+        this._windows.delete(winId);
+        this._splash.destroy();
         this._splash = null;
       }
     };
@@ -294,6 +313,7 @@ class WindowManager {
     if (this._auth) {
       return this._auth;
     }
+
     this._auth = await createAuthWindow();
     const winUrl = urls.get('auth');
     this._auth.loadURL(winUrl);
@@ -314,23 +334,39 @@ class WindowManager {
    * Function to handle the transition between auth -> main window
    */
   async transitiontoAuthedState() {
+    console.log('transitioning to authed state!');
     // Main window is already open, no need to open it again
     if (this._main) {
       return this._main;
     }
-    this._main = await createMainWindow();
-    this._context.taskLauncher.start();
-    const winUrl = urls.get('main');
-    this._main.loadURL(winUrl);
 
-    this._main.on('ready-to-show', this.handleShow(this._main));
-    this._main.on('close', this.handleClose(this._main));
+    this._splash = await createSplashWindow();
 
-    this._windows.forEach(w => {
-      if (w.id !== this._main.id) {
-        w.close();
-      }
-    });
+    if (this._auth) {
+      this._windows.delete(this._auth.id);
+      this._auth.destroy();
+      this._auth = null;
+    }
+
+    const splashUrl = urls.get('splash');
+    this._splash.loadURL(splashUrl);
+
+    await setTimeout(async () => {
+      // create the main window
+      this._main = await createMainWindow();
+      this._context.taskLauncher.start();
+      const winUrl = urls.get('main');
+      this._main.loadURL(winUrl);
+
+      this._main.on('ready-to-show', this.handleShow(this._main));
+      this._main.on('close', this.handleClose(this._main));
+
+      this._windows.forEach(w => {
+        if (w.id !== this._main.id) {
+          w.close();
+        }
+      });
+    }, 3000);
     return this._main;
   }
 

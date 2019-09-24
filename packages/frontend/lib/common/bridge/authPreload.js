@@ -1,4 +1,4 @@
-const IPCKeys = require('../constants');
+const { IPCKeys } = require('../constants');
 const nebulaEnv = require('../../_electron/env');
 const { util, base } = require('./index');
 

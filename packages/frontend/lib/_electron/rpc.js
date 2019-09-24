@@ -1,5 +1,6 @@
 const {
   app: { getVersion },
+  // eslint-disable-next-line import/no-extraneous-dependencies
 } = require('electron');
 const DiscordRPC = require('discord-rpc');
 const nebulaEnv = require('./env');
@@ -28,15 +29,17 @@ class RPC {
       return;
     }
 
-    await this.rpc.setActivity({
-      state: this.version,
-      startTimestamp: this.startTimestamp,
-      largeImageKey: 'logo',
-      largeImageText: 'Nebula Orion',
-      smallImageKey: 'twitter',
-      smallImageText: '@nebulabots',
-      instance: false,
-    }).catch(console.error);
+    await this.rpc
+      .setActivity({
+        state: this.version,
+        startTimestamp: this.startTimestamp,
+        largeImageKey: 'logo',
+        largeImageText: 'Nebula Orion',
+        smallImageKey: 'twitter',
+        smallImageText: '@nebulabots',
+        instance: false,
+      })
+      .catch(console.error);
   }
 }
 

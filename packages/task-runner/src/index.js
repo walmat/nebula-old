@@ -1,14 +1,11 @@
-// Main entry point in the Task Runner
 const logger = require('./common/logger');
-const shopify = require('./shopify');
-const mesh = require('./mesh');
-const supreme = require('./supreme');
-const footsites = require('./footsites');
+const TaskManager = require('./taskManager');
+const {
+  TaskRunner: { Types: TaskRunnerTypes },
+} = require('./shopify/classes/utils/constants');
 
 module.exports = {
   logger,
-  shopify,
-  mesh,
-  supreme,
-  footsites,
+  TaskManager,
+  TaskRunnerTypes,
 };

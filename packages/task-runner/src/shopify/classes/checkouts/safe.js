@@ -751,7 +751,10 @@ class SafeCheckout extends Checkout {
         }
       });
 
-      this.cartForm = this.cartForm.slice(0, -1);
+      if (this.cartForm.endsWith('&')) {
+        this.cartForm = this.cartForm.slice(0, -1);
+      }
+
       this._logger.info('Cart form parsed: %j', this.cartForm);
       return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
     } catch (err) {
@@ -935,6 +938,10 @@ class SafeCheckout extends Checkout {
       this._logger.debug('Checkpoint redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
         }
@@ -1002,7 +1009,9 @@ class SafeCheckout extends Checkout {
         }
       });
 
-      this.checkpointForm = this.checkpointForm.slice(0, -1);
+      if (this.checkpointForm.endsWith('&')) {
+        this.checkpointForm = this.checkpointForm.slice(0, -1);
+      }
 
       return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
     } catch (err) {
@@ -1062,13 +1071,11 @@ class SafeCheckout extends Checkout {
         redirect: 'manual',
         follow: 0,
         headers: {
-           ...getHeaders({ url, apiKey }),
-           'content-type': 'application/x-www-form-urlencoded',
+          ...getHeaders({ url, apiKey }),
+          'content-type': 'application/x-www-form-urlencoded',
         },
         body: this.checkpointForm,
       });
-
-      console.log(await res.text());
 
       const { status, headers } = res;
 
@@ -1088,6 +1095,10 @@ class SafeCheckout extends Checkout {
       this._logger.debug('Checkpoint redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
         }
@@ -1210,6 +1221,10 @@ class SafeCheckout extends Checkout {
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.CREATE_CHECKOUT };
         }
@@ -1367,6 +1382,10 @@ class SafeCheckout extends Checkout {
 
       // check if redirected
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: state };
         }
@@ -2195,6 +2214,10 @@ class SafeCheckout extends Checkout {
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
         }
 
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/password/i.test(redirectUrl)) {
           return { message: 'Password page', delay: true, nextState: States.SUBMIT_PAYMENT };
         }
@@ -2396,6 +2419,10 @@ class SafeCheckout extends Checkout {
       }
 
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/stock_problems/.test(redirectUrl)) {
           return {
             message: `Out of stock, delaying ${monitorDelay}ms`,
@@ -2547,6 +2574,10 @@ class SafeCheckout extends Checkout {
           checkout.stop();
           checkout.reset();
           return { message: 'Processing payment', nextState: States.PROCESS_PAYMENT };
+        }
+
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
         }
 
         if (/stock_problems/i.test(redirectUrl)) {

@@ -2,7 +2,7 @@
 const Electron = require('electron');
 const path = require('path');
 
-const IPCKeys = require('../common/constants');
+const { IPCKeys } = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
 
 nebulaEnv.setUpEnvironment();

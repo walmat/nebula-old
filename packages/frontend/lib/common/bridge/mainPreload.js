@@ -2,9 +2,9 @@
 const { ipcRenderer, shell } = require('electron');
 const axios = require('axios');
 const HttpsProxyAgent = require('https-proxy-agent');
-const { TaskRunnerTypes } = require('@nebula/task-runner-built').shopify;
+const { TaskRunnerTypes } = require('@nebula/task-runner-built');
 
-const IPCKeys = require('../constants');
+const { IPCKeys } = require('../constants');
 const nebulaEnv = require('../../_electron/env');
 const { base, util } = require('./index');
 

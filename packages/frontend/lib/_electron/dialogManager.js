@@ -1,5 +1,6 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
-const IPCKeys = require('../common/constants');
+const { IPCKeys } = require('../common/constants');
 
 /**
  * Manage the dialog.

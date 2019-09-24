@@ -59,4 +59,12 @@ const IPCKeys = {
   ChangeTheme: 'ChangeTheme',
 };
 
-module.exports = IPCKeys;
+const HARVEST_STATES = {
+  IDLE: 'idle',
+  SUSPEND: 'suspend',
+  ACTIVE: 'active',
+};
+
+module.exports.IPCKeys = IPCKeys;
+
+module.exports.HARVEST_STATES = HARVEST_STATES;

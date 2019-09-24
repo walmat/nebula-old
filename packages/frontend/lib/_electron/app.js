@@ -82,6 +82,8 @@ class App {
       console.log('Initialize Application');
       bindDebugEvents(this);
     }
+
+    this._rpcInterval = null;
   }
 
   /**
@@ -152,6 +154,12 @@ class App {
       await App.installExtensions();
     }
 
+    const session = await this._authManager.getSession();
+
+    if (session) {
+      await this._windowManager.createNewWindow('splash');
+    }
+
     if (!nebulaEnv.isDevelopment()) {
       // attach an interval to check for any logging applications
       setInterval(async () => {
@@ -162,16 +170,20 @@ class App {
       }, 1500);
     }
 
-    // create the window
-    await this._windowManager.createNewWindow('main');
-    // set the menu
-    const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
-    Electron.Menu.setApplicationMenu(menu);
-    // add discord RPC
     this._rpc.rpc.on('ready', async () => {
       await this._rpc.setActivity();
-      setInterval(async () => await this._rpc.setActivity(), 15e3);
+      // eslint-disable-next-line no-return-await
+      this._rpcInterval = setInterval(async () => await this._rpc.setActivity(), 15e3);
     });
+
+    setTimeout(async () => {
+      // create the window
+      await this._windowManager.createNewWindow('main');
+      // set the menu
+      const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
+      Electron.Menu.setApplicationMenu(menu);
+      // add discord RPC
+    }, 3000);
   }
 
   /**
@@ -181,6 +193,7 @@ class App {
   async onBeforeQuit() {
     // Perform any cleanup that needs to get done
     if (nebulaEnv.isDevelopment()) {
+      this._rpcInterval = null;
       console.log('cleaning up tasks...');
     }
   }

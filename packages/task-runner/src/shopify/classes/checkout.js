@@ -1,9 +1,9 @@
 /* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
+import cheerio from 'cheerio';
 import { isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
-const cheerio = require('cheerio');
 const { Events } = require('../../constants').Runner;
 const { userAgent, currencyWithSymbol } = require('../../common');
 const { notification } = require('./hooks');
@@ -261,26 +261,32 @@ class Checkout {
 
       const redirectUrl = headers.get('location');
 
-      if (/password/i.test(redirectUrl)) {
-        return { message: 'Password page', delay: true, nextState: States.LOGIN };
-      }
-
-      if (/challenge/i.test(redirectUrl)) {
-        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
-      }
-
-      if (/login/i.test(redirectUrl)) {
-        return { message: 'Invalid login credentials', nextState: States.ERROR };
-      }
-
-      if (/account/i.test(redirectUrl)) {
-        this.needsLogin = false; // update global check for login
-
-        // reset captcha token
-        if (this.captchaToken) {
-          this.captchaToken = '';
+      if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
         }
-        return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+
+        if (/password/i.test(redirectUrl)) {
+          return { message: 'Password page', delay: true, nextState: States.LOGIN };
+        }
+
+        if (/challenge/i.test(redirectUrl)) {
+          return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+        }
+
+        if (/login/i.test(redirectUrl)) {
+          return { message: 'Invalid login credentials', nextState: States.ERROR };
+        }
+
+        if (/account/i.test(redirectUrl)) {
+          this.needsLogin = false; // update global check for login
+
+          // reset captcha token
+          if (this.captchaToken) {
+            this.captchaToken = '';
+          }
+          return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
+        }
       }
 
       const message = status ? `Logging in - (${status})` : 'Logging in';
@@ -425,6 +431,10 @@ class Checkout {
       const redirectUrl = headers.get('location');
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
       if (redirectUrl) {
+        if (/checkpoint/i.test(redirectUrl)) {
+          return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+        }
+
         if (/login/i.test(redirectUrl)) {
           return { message: 'Account needed. Stopping..', nextState: States.STOP };
         }
@@ -676,6 +686,11 @@ class Checkout {
         }
       }
       this._logger.debug('QUEUE: RedirectUrl at end of fn body: %j', redirectUrl);
+
+      if (redirectUrl && /checkpoint/i.test(redirectUrl)) {
+        return { message: 'Going to checkpoint', nextState: States.GO_TO_CHECKPOINT };
+      }
+
       if (redirectUrl && /checkouts/.test(redirectUrl)) {
         const [redirectNoQs] = redirectUrl.split('?');
         [, , , this.storeId, , this.checkoutToken] = redirectNoQs.split('/');

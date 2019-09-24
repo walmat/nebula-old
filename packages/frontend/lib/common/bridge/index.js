@@ -8,7 +8,7 @@ const {
 
 const jsonfile = require('jsonfile');
 
-const IPCKeys = require('../constants');
+const { IPCKeys } = require('../constants');
 const nebulaEnv = require('../../_electron/env');
 
 nebulaEnv.setUpEnvironment();

@@ -1,31 +1,25 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable global-require */
-const Electron = require('electron');
+const { app: _app } = require('electron');
+const { setUpEnvironment, isDevelopment } = require('./env');
 
-const debug = require('electron-debug');
-
-const nebulaEnv = require('./env');
 const App = require('./app');
 
 // setup nebula environment
-nebulaEnv.setUpEnvironment();
+setUpEnvironment();
 
 // reference to our application
 const app = new App();
-// Allow insecure content if in dev mode
-// if (nebulaEnv.isDevelopment()) {
-//   Electron.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
-// }
-// TEMPORARY - Allow insecure content to load the captcha page
-// TODO: Disable this in prod when we find a solution!
-Electron.app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
 
-const appLock = Electron.app.requestSingleInstanceLock();
+// TODO: Disable this in prod when we find a solution!
+_app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
+
+const appLock = _app.requestSingleInstanceLock();
 
 if (!appLock) {
-  Electron.app.quit();
+  _app.quit();
 } else {
-  Electron.app.on('second-instance', () => {
+  _app.on('second-instance', () => {
     // Someone tried to run a second instance, we should focus our window instead
     const main = app.windowManager._main;
     if (main) {
@@ -37,19 +31,18 @@ if (!appLock) {
   /**
    * Event fired when IPCRenderer triggers 'ready'
    */
-  Electron.app.on('ready', async () => {
-    if (nebulaEnv.isDevelopment()) {
+  _app.on('ready', async () => {
+    if (isDevelopment()) {
       console.log('Application is ready');
     }
-    // await app._windowManager.createNewWindow('splash');
     app.onReady();
   });
 
   /**
    * Event fired when IPCRenderer triggers 'quit'
    */
-  Electron.app.on('quit', () => {
-    if (nebulaEnv.isDevelopment()) {
+  _app.on('quit', () => {
+    if (isDevelopment()) {
       console.log('Application is quitting');
     }
   });
@@ -57,8 +50,8 @@ if (!appLock) {
   /**
    * Event fired when IPCRenderer triggers 'window-all-closed'
    */
-  Electron.app.on('window-all-closed', () => {
-    if (nebulaEnv.isDevelopment()) {
+  _app.on('window-all-closed', () => {
+    if (isDevelopment()) {
       console.log('All of the window was closed.');
     }
 
@@ -68,12 +61,12 @@ if (!appLock) {
   /**
    * Handle certificate error event
    */
-  Electron.app.on('certificate-error', app.onCertificateErrorHandler);
+  _app.on('certificate-error', app.onCertificateErrorHandler);
 
   /**
    * Check web contents when they are created
    */
-  Electron.app.on('web-contents-created', (evt1, contents) => {
+  _app.on('web-contents-created', (evt1, contents) => {
     /**
      * Ensure webview options are valid before creation
      */

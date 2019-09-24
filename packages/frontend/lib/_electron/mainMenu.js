@@ -1,8 +1,9 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
 const nebulaEnv = require('./env');
 
 const APP_NAME = 'Nebula Orion';
-const HELP_URL = 'https://nebulabots.com/about';
+const HELP_URL = 'https://nebulabots.com';
 
 nebulaEnv.setUpEnvironment();
 

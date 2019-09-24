@@ -5,17 +5,10 @@ const { differenceInSeconds } = require('date-fns');
 
 const { createCaptchaWindow, createYouTubeWindow, urls } = require('./windows');
 const nebulaEnv = require('./env');
-const IPCKeys = require('../common/constants');
+const { IPCKeys, HARVEST_STATES } = require('../common/constants');
 const AsyncQueue = require('../common/classes/asyncQueue');
 
 nebulaEnv.setUpEnvironment();
-
-// TODO: Should we move this to the constants file?
-const HARVEST_STATE = {
-  IDLE: 'idle',
-  SUSPEND: 'suspend',
-  ACTIVE: 'active',
-};
 
 const MAX_HARVEST_CAPTCHA_COUNT = 5;
 
@@ -62,7 +55,7 @@ class CaptchaWindowManager {
      * Current Harvest State
      */
     this._harvestStatus = {
-      state: HARVEST_STATE.IDLE,
+      state: HARVEST_STATES.IDLE,
       runnerId: null,
       siteKey: null,
     };
@@ -183,7 +176,7 @@ class CaptchaWindowManager {
    */
   async startHarvesting(runnerId, siteKey) {
     this._harvestStatus = {
-      state: HARVEST_STATE.ACTIVE,
+      state: HARVEST_STATES.ACTIVE,
       runnerId,
       siteKey,
     };
@@ -207,7 +200,7 @@ class CaptchaWindowManager {
    */
   suspendHarvesting(runnerId, siteKey) {
     this._harvestStatus = {
-      state: HARVEST_STATE.SUSPEND,
+      state: HARVEST_STATES.SUSPEND,
       runnerId,
       siteKey,
     };
@@ -224,7 +217,7 @@ class CaptchaWindowManager {
    */
   stopHarvesting(runnerId, siteKey) {
     this._harvestStatus = {
-      state: HARVEST_STATE.IDLE,
+      state: HARVEST_STATES.IDLE,
       runnerId: null,
       siteKey: null,
     };
@@ -315,7 +308,7 @@ class CaptchaWindowManager {
       CaptchaWindowManager.setProxy(win, {});
       // If we are actively harvesting, start harvesting on the new window as well
       const { state, runnerId, siteKey } = this._harvestStatus;
-      if (state === HARVEST_STATE.ACTIVE) {
+      if (state === HARVEST_STATES.ACTIVE) {
         win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
         if (Notification.isSupported()) {
           const sound = nebulaEnv.isDevelopment()
@@ -469,7 +462,7 @@ class CaptchaWindowManager {
    */
   _handleTokenExpirationUpdate() {
     const { state, runnerId, siteKey } = this._harvestStatus;
-    if (this._tokenQueue.backlogLength === 0 && state === HARVEST_STATE.SUSPEND) {
+    if (this._tokenQueue.backlogLength === 0 && state === HARVEST_STATES.SUSPEND) {
       console.log('[DEBUG]: Resuming harvesters...');
       this.startHarvesting(runnerId, siteKey);
     }

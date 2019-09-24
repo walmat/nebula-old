@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
 const Path = require('path');
 const nebulaEnv = require('./env');
@@ -75,7 +76,8 @@ const _createWindow = options => {
 
   win.webContents.session.webRequest.onBeforeSendHeaders(
     { urls: ['https://*.google.com, https://*.gstatic.com'] },
-    (details, callback) => callback({
+    (details, callback) =>
+      callback({
         requestHeaders: {
           ...details.requestHeaders,
           DNT: 1,
@@ -88,7 +90,8 @@ const _createWindow = options => {
 
   win.webContents.session.webRequest.onBeforeSendHeaders(
     { urls: ['https://*.amazonaws.com'] },
-    (details, callback) => callback({
+    (details, callback) =>
+      callback({
         requestHeaders: {
           ...details.requestHeaders,
           DNT: 1,
@@ -167,9 +170,11 @@ urls.set('auth', authUrl);
 const createSplashWindow = () =>
   _createWindow({
     width: 450,
-    height: 450,
+    height: 350,
     show: true,
     frame: false,
+    transparent: true,
+    alwaysOnTop: true,
   });
 
 let splashUrl = `file:///${Path.join(__dirname, '../../build/splash.html')}`;
@@ -187,6 +192,8 @@ const createAboutWindow = () =>
   _createWindow({
     width: 300,
     height: 215,
+    transparent: true,
+    frame: false,
     webPreferences: {
       ..._defaultWebPreferences,
       preload: Path.join(__dirname, '../common/bridge/aboutPreload.js'),
@@ -214,6 +221,7 @@ const createCaptchaWindow = (options = {}, webPreferences = {}) =>
     resizable: false,
     fullscreenable: false,
     transparent: true,
+    frame: false,
     acceptFirstMouse: true,
     webPreferences: {
       ..._defaultWebPreferences,
@@ -271,6 +279,8 @@ const createMainWindow = () =>
   _createWindow({
     width: 1000,
     height: 715,
+    transparent: true,
+    frame: false,
     webPreferences: {
       ..._defaultWebPreferences,
       preload: Path.join(__dirname, '../common/bridge/mainPreload.js'),
