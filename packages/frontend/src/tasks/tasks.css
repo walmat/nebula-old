@@ -75,8 +75,9 @@
  * Implementation of themes
  */
 .tasks .tasks-create {
-  height: 226px;
-  width: 277px;
+  max-height: 285px;
+  min-height: 225px;
+  flex-grow: 0.5;
   border-width: 1px;
   border-style: solid;
   border-radius: 3px;
@@ -133,7 +134,6 @@
   border-style: solid;
 }
 .tasks .tasks-create__input--field {
-  width: 119px;
   height: 29px;
 }
 .theme-light .tasks .tasks-create__input--field {
@@ -149,7 +149,6 @@
   background: #262626;
 }
 .tasks .tasks-create__input--field__short {
-  width: 79px;
   height: 29px;
 }
 .theme-light .tasks .tasks-create__input--field__short {
@@ -248,8 +247,7 @@
 }
 
 .tasks .tasks-log-container {
-  width: 504px;
-  height: 300px;
+  flex-grow: 5;
   border-width: 1px;
   border-style: solid;
   border-radius: 3px;
@@ -266,7 +264,7 @@
   top: 30px;
   left: 125px;
   height: calc(100% - 60px);
-  width: calc(100% - 259px);
+  width: calc(100% - 235px);
 }
 .theme-light .tasks .tasks-log-container--fullscreen {
   background-color: #f4f4f4;
@@ -547,8 +545,7 @@
 }
 
 .tasks .tasks-table-container {
-  width: 741px;
-  height: 300px;
+  flex-grow: 3;
   border-style: solid;
   border-width: 1px;
   border-radius: 3px;

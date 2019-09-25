@@ -91,39 +91,39 @@ export class TasksPrimitive extends PureComponent {
     const { errorDelay, monitorDelay, onKeyPress } = this.props;
     return (
       <div className="container tasks">
-        <div className="row">
-          <div className="col col--start">
+        <div className="row row--expand" style={{ width: '100%' }}>
+          <div className="col col--expand col--start" style={{ flexGrow: 1 }}>
             <div className="row row--start">
               <div className="col col--no-gutter-left">
                 <h1 className="text-header tasks__title">Tasks</h1>
               </div>
             </div>
-            <div className="row">
-              <div className="col">
+            <div className="row row--expand">
+              <div className="col col--expand">
                 <div className="row row--start">
                   <div className="col col--no-gutter-left">
                     <p className="body-text section-header tasks-create__section-header">Create</p>
                   </div>
                 </div>
-                <div className="row">
-                  <div className="col col--no-gutter-left">
+                <div className="row row--expand">
+                  <div className="col col--start col--expand col--no-gutter-left">
                     <CreateTask />
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="col col--start">
+          <div className="col col--expand col--start" style={{ flexGrow: 5 }}>
             <LogTask />
           </div>
         </div>
-        <div className="row row--start">
-          <div className="col col--start">
+        <div className="row row--expand row--start" style={{ width: '100%' }}>
+          <div className="col col--expand col--start">
             <div className="row row--start">
               <p className="body-text section-header tasks-table__section-header">View</p>
             </div>
-            <div className="row row--expand">
-              <div className="col col--start tasks-table-container">
+            <div className="row row--start row--expand">
+              <div className="col col--expand col--start tasks-table-container">
                 <div className="row tasks-table__header">
                   <div className="col tasks-table__header__edit" />
                   <div className="col tasks-table__header__id">

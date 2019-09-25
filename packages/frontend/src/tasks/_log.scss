@@ -35,8 +35,7 @@
 
 .tasks {
   .tasks-log-container {
-    width: 504px;
-    height: 300px;
+    flex-grow: 5;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
     }
@@ -53,7 +52,7 @@
       top: 30px;
       left: 125px;
       height: calc(100% - 60px);
-      width: calc(100% - 259px);
+      width: calc(100% - 235px);
     }
   }
 

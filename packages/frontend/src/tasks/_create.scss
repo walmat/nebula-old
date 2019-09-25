@@ -4,11 +4,12 @@
 
 .tasks {
   .tasks-create {
-    height: 226px;
-    width: 277px;
+    max-height: 285px;
+    min-height: 225px;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
     }
+    flex-grow: 0.5;
     border-width: 1px;
     border-style: solid;
     border-radius: 3px;
@@ -59,7 +60,6 @@
       }
 
       &--field {
-        width: 119px;
         height: 29px;
         @include themify($themes) {
           background: themed('inputBackground');
@@ -70,7 +70,6 @@
           }
         }
         &__short {
-          width: 79px;
           height: 29px;
           @include themify($themes) {
             background: themed('inputBackground');

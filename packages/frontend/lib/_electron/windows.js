@@ -6,6 +6,7 @@ const nebulaEnv = require('./env');
 nebulaEnv.setUpEnvironment();
 
 const _defaultWebPreferences = {
+  backgroundThrottling: false,
   nodeIntegration: false,
   contextIsolation: false,
   nodeIntegrationInWorker: false,
@@ -21,9 +22,10 @@ const _createWindow = options => {
   const browserWindowOptions = {
     center: true,
     frame: false,
+    transparent: true,
     fullscreenable: false,
-    movable: true,
     resizable: false,
+    movable: true,
     show: false,
     webPreferences: {
       ..._defaultWebPreferences,
@@ -155,6 +157,8 @@ const createAuthWindow = () =>
   _createWindow({
     width: 600,
     height: 430,
+    transparent: true,
+    frame: false,
     webPreferences: {
       ..._defaultWebPreferences,
       preload: Path.join(__dirname, '../common/bridge/authPreload.js'),
@@ -174,7 +178,6 @@ const createSplashWindow = () =>
     show: true,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
   });
 
 let splashUrl = `file:///${Path.join(__dirname, '../../build/splash.html')}`;
@@ -214,7 +217,7 @@ urls.set('about', aboutUrl);
 const createCaptchaWindow = (options = {}, webPreferences = {}) =>
   _createWindow({
     // assign default background color first, so it can be overwritten by parameter options
-    backgroundColor: '#f4f4f4',
+    // backgroundColor: '#f4f4f4',
     ...options,
     width: 400,
     height: 650,
@@ -226,8 +229,6 @@ const createCaptchaWindow = (options = {}, webPreferences = {}) =>
     webPreferences: {
       ..._defaultWebPreferences,
       ...webPreferences,
-      webSecurity: false,
-      allowRunningInsecureContent: true,
       webgl: true,
       webaudio: true,
       plugins: true,
@@ -279,8 +280,11 @@ const createMainWindow = () =>
   _createWindow({
     width: 1000,
     height: 715,
+    resizable: true,
     transparent: true,
     frame: false,
+    minWidth: 1000,
+    minHeight: 715,
     webPreferences: {
       ..._defaultWebPreferences,
       preload: Path.join(__dirname, '../common/bridge/mainPreload.js'),

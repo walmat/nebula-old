@@ -12,6 +12,18 @@
   user-select: none;
   text-rendering: optimizeLegibility;
 
+  @media screen and (min-width: 1250px) {
+    @extend %font-base;
+    font-size: 11px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    text-rendering: optimizeLegibility;
+  }
+
   :focus {
     outline: 0px solid transparent;
   }
@@ -55,9 +67,19 @@ body {
   overflow: hidden;
 }
 
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
 td {
   @extend %font-base;
   font-size: 12px;
+  @media screen and (min-width: 1250px) {
+    @extend %font-base;
+    font-size: 14px;
+  }
 }
 
 select {
@@ -215,9 +237,8 @@ select:disabled {
   margin-left: 140px; /*width of navbar*/
   margin-top: 25px; /*height of transparent titlebar for dragging*/
   margin-bottom: 30px;
-  margin-right: 0;
-  width: calc(100% - 140px);
-  height: 665px;
+  margin-right: 15px;
+  height: calc(100% - 55px);
 }
 
 input:focus::-webkit-input-placeholder {
@@ -244,6 +265,11 @@ input:focus {
   }
   @extend %font-base;
   font-size: 12px;
+
+  @media screen and (min-width: 1250px) {
+    @extend %font-base;
+    font-size: 14px;
+  }
 }
 
 .flex-container {
