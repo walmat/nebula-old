@@ -148,14 +148,14 @@ export class LocationFieldsPrimitive extends PureComponent {
         <div className="row row--start">
           <p className="body-text section-header profiles-location__section-header">{header}</p>
         </div>
-        <div className="row">
-          <div className="col col--no-gutter col--start profiles-shipping-container">
+        <div className="row row--start">
+          <div className="col col--expand col--no-gutter-left col--start profiles-shipping-container">
             <div className="profiles-location col col--start col--no-gutter">
               <div className="row row--start row--no-gutter-left row--gutter-right">
-                <div className="col profiles-location__input-group">
-                  <div className="row row--gutter">
+                <div className="col col--expand profiles-location__input-group">
+                  <div className="row row--start row--expand row--gutter">
                     <input
-                      className={`${id}-profiles-location__input-group--first-name`}
+                      className={`row row--expand row--start ${id}-profiles-location__input-group--first-name`}
                       required
                       placeholder="First Name"
                       onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)}
@@ -166,9 +166,9 @@ export class LocationFieldsPrimitive extends PureComponent {
                       data-private
                     />
                   </div>
-                  <div className="row row--gutter">
+                  <div className="row row--start row--expand row--gutter">
                     <input
-                      className={`${id}-profiles-location__input-group--last-name`}
+                      className={`row row--expand row--start ${id}-profiles-location__input-group--last-name`}
                       required
                       placeholder="Last Name"
                       onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)}
@@ -179,9 +179,9 @@ export class LocationFieldsPrimitive extends PureComponent {
                       data-private
                     />
                   </div>
-                  <div className="row row--gutter">
+                  <div className="row row--start row--expand row--gutter">
                     <input
-                      className={`${id}-profiles-location__input-group--address-one`}
+                      className={`row row--expand row--start ${id}-profiles-location__input-group--address-one`}
                       required
                       placeholder="Address Line 1"
                       onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)}
@@ -192,9 +192,9 @@ export class LocationFieldsPrimitive extends PureComponent {
                       data-private
                     />
                   </div>
-                  <div className="row row--gutter">
+                  <div className="row row--start row--expand row--gutter">
                     <input
-                      className={`${id}-profiles-location__input-group--address-two`}
+                      className={`row row--expand row--start ${id}-profiles-location__input-group--address-two`}
                       placeholder="Address Line 2"
                       onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)}
                       value={value.apt}
@@ -204,10 +204,10 @@ export class LocationFieldsPrimitive extends PureComponent {
                       data-private
                     />
                   </div>
-                  <div className="row row--start row--gutter">
+                  <div className="row row--start row--expand row--gutter">
                     <div className="col col--no-gutter">
                       <input
-                        className={`${id}-profiles-location__input-group--city`}
+                        className={`row row--expand row--start ${id}-profiles-location__input-group--city`}
                         required
                         placeholder="City"
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)}
@@ -218,7 +218,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         data-private
                       />
                     </div>
-                    <div className="col col--no-gutter">
+                    <div className="col col--expand col--no-gutter">
                       <Select
                         required
                         placeholder="Province"
@@ -230,7 +230,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                           Menu,
                           MenuList,
                         }}
-                        className={`${id}-profiles-location__input-group--province`}
+                        className={`col col--expand ${id}-profiles-location__input-group--province`}
                         classNamePrefix="select"
                         options={
                           LocationFieldsPrimitive.buildProvinceOptions(value.country) || undefined
@@ -247,10 +247,10 @@ export class LocationFieldsPrimitive extends PureComponent {
                       />
                     </div>
                   </div>
-                  <div className="row row--start row--gutter">
-                    <div className="col col--no-gutter">
+                  <div className="row row--start row--expand row--gutter">
+                    <div className="col col--start col--expand col--no-gutter">
                       <input
-                        className={`${id}-profiles-location__input-group--zip-code`}
+                        className={`row row--expand row--start ${id}-profiles-location__input-group--zip-code`}
                         required
                         placeholder="Zip Code"
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)}
@@ -261,7 +261,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         data-private
                       />
                     </div>
-                    <div className="col col--no-gutter">
+                    <div className="col col--expand col--no-gutter">
                       <Select
                         required
                         placeholder="Country"
@@ -273,7 +273,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                           Menu,
                           MenuList,
                         }}
-                        className={`${id}-profiles-location__input-group--country`}
+                        className={`col col--expand ${id}-profiles-location__input-group--country`}
                         classNamePrefix="select"
                         options={LocationFieldsPrimitive.buildCountryOptions()}
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
@@ -288,10 +288,10 @@ export class LocationFieldsPrimitive extends PureComponent {
                       />
                     </div>
                   </div>
-                  <div className="row row--start row--gutter">
-                    <div className="col col--no-gutter">
+                  <div className="row row--start row--expand row--gutter">
+                    <div className="col col--start col--expand col--no-gutter">
                       <input
-                        className={`${id}-profiles-location__input-group--phone`}
+                        className={`row row--expand row--start ${id}-profiles-location__input-group--phone`}
                         required
                         placeholder="Phone"
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}

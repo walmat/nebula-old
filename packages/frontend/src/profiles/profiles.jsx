@@ -62,75 +62,73 @@ export class ProfilesPrimitive extends Component {
       <ShippingRateFields profileToEdit={currentProfile} />
     ) : null;
     return (
-      <form>
-        <div className="container profiles">
-          <div className="row row--start row--expand">
-            <div className="col col--start">
-              <div className="row row--start">
-                <div className="col col--no-gutter-left">
-                  <h1 className="text-header profiles__title">Profiles</h1>
-                </div>
+      <div className="container profiles">
+        <div className="row row--start row--expand" style={{ width: '100%' }}>
+          <div className="col col--start">
+            <div className="row row--start">
+              <div className="col col--no-gutter-left">
+                <h1 className="text-header profiles__title">Profiles</h1>
               </div>
-              <LoadProfile />
+            </div>
+            <LoadProfile />
+          </div>
+        </div>
+        <div className="row row--start" style={{ width: '100%' }}>
+          <LocationFields
+            header="Shipping"
+            id="shipping"
+            className="col col--start col--expand profiles__fields--shipping"
+            profileToEdit={currentProfile}
+            fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
+            disabled={false}
+          />
+          <LocationFields
+            header="Billing"
+            id="billing"
+            className="col col--start col--expand profiles__fields--billing"
+            profileToEdit={currentProfile}
+            fieldToEdit={
+              currentProfile.billingMatchesShipping
+                ? PROFILE_FIELDS.EDIT_SHIPPING
+                : PROFILE_FIELDS.EDIT_BILLING
+            }
+            disabled={currentProfile.billingMatchesShipping}
+          />
+          <div className="col col--start col--expand">
+            <div className="row row--start">
+              <PaymentFields className="profiles__fields--payment" profileToEdit={currentProfile} />
+            </div>
+            <div className="row row--start">{shippingRateFields}</div>
+          </div>
+        </div>
+        <div
+          className="row row--expand row--end row--gutter profiles--save-row"
+          style={{ width: '100%' }}
+        >
+          <div className="col col--end col--no-gutter-left">
+            <div className="row row--extend row--end row--gutter">
+              <input
+                className="profiles__fields--name"
+                required
+                onChange={onProfileNameChange}
+                value={currentProfile.profileName}
+                style={validationStatus(
+                  currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
+                )}
+                placeholder="Profile Name"
+                data-private
+              />
             </div>
           </div>
-          <div className="row row--start profiles--input-fields">
-            <LocationFields
-              header="Shipping"
-              id="shipping"
-              className="col col--start profiles__fields--shipping"
-              profileToEdit={currentProfile}
-              fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
-              disabled={false}
-            />
-            <LocationFields
-              header="Billing"
-              id="billing"
-              className="col profiles__fields--billing"
-              profileToEdit={currentProfile}
-              fieldToEdit={
-                currentProfile.billingMatchesShipping
-                  ? PROFILE_FIELDS.EDIT_SHIPPING
-                  : PROFILE_FIELDS.EDIT_BILLING
-              }
-              disabled={currentProfile.billingMatchesShipping}
-            />
-            <div className="col col--start">
-              <div className="row row--start">
-                <PaymentFields
-                  className="profiles__fields--payment"
-                  profileToEdit={currentProfile}
-                />
-              </div>
-              <div className="row row--start">{shippingRateFields}</div>
-            </div>
-          </div>
-          <div className="row row--expand row--end row--gutter profiles--save-row">
-            <div className="col col--no-gutter-left">
-              <div className="row row--extend row--end row--gutter">
-                <input
-                  className="profiles__fields--name"
-                  required
-                  onChange={onProfileNameChange}
-                  value={currentProfile.profileName}
-                  style={validationStatus(
-                    currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
-                  )}
-                  placeholder="Profile Name"
-                  data-private
-                />
-              </div>
-            </div>
-            <div className="col col--end col--gutter">
-              <div className="row row--extend row--end row--no-gutter">
-                <button type="button" className="profiles__fields--save" onClick={this.saveProfile}>
-                  Save
-                </button>
-              </div>
+          <div className="col col--end col--gutter">
+            <div className="row row--extend row--end row--no-gutter">
+              <button type="button" className="profiles__fields--save" onClick={this.saveProfile}>
+                Save
+              </button>
             </div>
           </div>
         </div>
-      </form>
+      </div>
     );
   }
 }

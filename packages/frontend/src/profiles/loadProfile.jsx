@@ -76,7 +76,7 @@ export class LoadProfilePrimitive extends PureComponent {
     }
     return (
       <div className="row row--expand row--no-gutter-left">
-        <div className="col">
+        <div className="col col--expand col--start">
           <div className="row row--start">
             <div className="col col--no-gutter-left">
               <p className="body-text section-header profiles-load__section-header">Load Profile</p>

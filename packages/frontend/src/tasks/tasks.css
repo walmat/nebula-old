@@ -557,7 +557,7 @@
 }
 
 .tasks .tasks-table-container {
-  flex-grow: 3;
+  flex-grow: 5;
   border-style: solid;
   border-width: 1px;
   border-radius: 3px;

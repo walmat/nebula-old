@@ -24,7 +24,7 @@
 
 .tasks {
   .tasks-table-container {
-    flex-grow: 3;
+    flex-grow: 5;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
     }

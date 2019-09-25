@@ -536,7 +536,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
     return (
       <div className="tasks-create col col--start col--expand col--no-gutter">
-        <div className="col col--start col--expand tasks-create__input-group--first">
+        <div className="col col--expand tasks-create__input-group--first">
           <div className="row row--gutter">
             <div className="col col--expand col--no-gutter">
               <p className="tasks-create__label">Product</p>

@@ -189,32 +189,11 @@
 .profiles .billing-profiles-location__input-group {
   border-radius: 3px;
 }
-.profiles .billing-profiles-location__input-group--first-name {
-  width: 249px;
-}
-.profiles .billing-profiles-location__input-group--last-name {
-  width: 249px;
-}
-.profiles .billing-profiles-location__input-group--address-one {
-  width: 249px;
-}
-.profiles .billing-profiles-location__input-group--address-two {
-  width: 249px;
-}
-.profiles .billing-profiles-location__input-group--city {
-  width: 140px;
-}
 .profiles .billing-profiles-location__input-group--province {
-  width: 94px;
-}
-.profiles .billing-profiles-location__input-group--zip-code {
-  width: 78px;
+  min-width: 94px;
 }
 .profiles .billing-profiles-location__input-group--country {
-  width: 155px;
-}
-.profiles .billing-profiles-location__input-group--phone {
-  width: 147px;
+  min-width: 155px;
 }
 .profiles .shipping-profiles-location__section-header {
   margin: 0;
@@ -223,34 +202,12 @@
 .profiles .shipping-profiles-location__input-group {
   border-radius: 3px;
 }
-.profiles .shipping-profiles-location__input-group--first-name {
-  width: 249px;
-}
-.profiles .shipping-profiles-location__input-group--last-name {
-  width: 249px;
-}
-.profiles .shipping-profiles-location__input-group--address-one {
-  width: 249px;
-}
-.profiles .shipping-profiles-location__input-group--address-two {
-  width: 249px;
-}
-.profiles .shipping-profiles-location__input-group--city {
-  width: 140px;
-}
 .profiles .shipping-profiles-location__input-group--province {
-  width: 94px;
-}
-.profiles .shipping-profiles-location__input-group--zip-code {
-  width: 78px;
+  min-width: 94px;
 }
 .profiles .shipping-profiles-location__input-group--country {
-  width: 155px;
+  min-width: 155px;
 }
-.profiles .shipping-profiles-location__input-group--phone {
-  width: 147px;
-}
-
 .profiles .profiles__fields--save, .profiles-rates__input-group--price, .profiles-rates__input-group--rate, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .billing-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--first-name, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--phone {
   border: 1px solid;
   margin: 9px 0;
@@ -411,6 +368,7 @@
   border: none;
   width: 98px;
   height: 29px;
+  margin: 0;
   cursor: pointer;
 }
 
