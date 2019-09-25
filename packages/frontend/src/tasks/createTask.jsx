@@ -384,7 +384,7 @@ export class CreateTaskPrimitive extends PureComponent {
         const { type } = task;
         return (
           <>
-            <div className="col col--expand tasks-create__input-group" style={{ flexGrow: 2 }}>
+            <div className="col col--expand tasks-create__input-group--middle">
               <div className="row row--gutter">
                 <div className="col col--expand col--no-gutter">
                   <p className="tasks-create__label">Account</p>
@@ -414,7 +414,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 <div className="col col--expand col--no-gutter" />
               </div>
             </div>
-            <div className="col col--expand tasks-create__input-group" style={{ flexGrow: 14 }}>
+            <div className="col col--expand tasks-create__input-group--last">
               <div className="row row--gutter">
                 <div className="col col--expand col--no-gutter">
                   <p
@@ -536,10 +536,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
     return (
       <div className="tasks-create col col--start col--expand col--no-gutter">
-        <div
-          className="col col--start col--expand tasks-create__input-group"
-          style={{ flexGrow: 7 }}
-        >
+        <div className="col col--start col--expand tasks-create__input-group--first">
           <div className="row row--gutter">
             <div className="col col--expand col--no-gutter">
               <p className="tasks-create__label">Product</p>
@@ -586,7 +583,7 @@ export class CreateTaskPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-        <div className="col col--expand tasks-create__input-group" style={{ flexGrow: 2 }}>
+        <div className="col col--expand tasks-create__input-group">
           <div className="row row--gutter">
             <div className="col col--expand col--no-gutter" style={{ flexGrow: 5 }}>
               <p className="tasks-create__label">Billing Profile</p>

@@ -116,8 +116,20 @@
   margin: 0 11.5px !important;
   padding-bottom: 2px;
 }
+.tasks .tasks-create__input-group--first {
+  margin: 0 11.5px !important;
+  padding-bottom: 2px;
+  margin-top: 1.5px !important;
+}
+.tasks .tasks-create__input-group--middle {
+  margin: 0 11.5px !important;
+  padding-bottom: 2px;
+  margin-bottom: 11px !important;
+}
 .tasks .tasks-create__input-group--last {
-  padding-top: 1px;
+  margin: 0 11.5px !important;
+  padding-bottom: 2px;
+  margin-bottom: 10.5px !important;
 }
 .tasks .tasks-create__input-group--filter {
   padding-left: 14px;

@@ -217,7 +217,7 @@ urls.set('about', aboutUrl);
 const createCaptchaWindow = (options = {}, webPreferences = {}) =>
   _createWindow({
     // assign default background color first, so it can be overwritten by parameter options
-    // backgroundColor: '#f4f4f4',
+    backgroundColor: '#f4f4f4',
     ...options,
     width: 400,
     height: 650,
@@ -229,6 +229,8 @@ const createCaptchaWindow = (options = {}, webPreferences = {}) =>
     webPreferences: {
       ..._defaultWebPreferences,
       ...webPreferences,
+      webSecurity: false,
+      allowRunningInsecureContent: true,
       webgl: true,
       webaudio: true,
       plugins: true,
