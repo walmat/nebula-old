@@ -49,11 +49,15 @@
       .tasks-table__header__edit {
         @extend %tasks-table__header__field;
         width: 5px;
+        flex-grow: 0;
+        margin-left: 6px;
       }
 
       .tasks-table__header__id {
         @extend %tasks-table__header__field;
         width: 26px;
+        flex-grow: 0;
+        margin-left: 14px;
 
         & > p {
           text-align: center;
@@ -62,32 +66,45 @@
 
       .tasks-table__header__product {
         @extend %tasks-table__header__field;
+        flex-grow: 5;
+        margin-left: 11px;
         width: 200px;
       }
 
       .tasks-table__header__sites {
         @extend %tasks-table__header__field;
         width: 125px;
+        flex-grow: 2;
+        margin-left: 8px;
       }
 
       .tasks-table__header__profile {
         @extend %tasks-table__header__field;
         width: 125px;
+        flex-grow: 1;
       }
 
       .tasks-table__header__sizes {
         @extend %tasks-table__header__field;
         width: 65px;
+        flex-grow: 1;
+        margin-left: 5px;
       }
 
-      .tasks-table__header__pairs {
+      .tasks-table__header__account {
         @extend %tasks-table__header__field;
         width: 65px;
+        flex-grow: 1;
       }
 
       .tasks-table__header__actions {
         @extend %tasks-table__header__field;
         width: 50px;
+        flex-grow: 2;
+        margin-right: 6px;
+        & > p {
+          text-align: center;
+        }
       }
     }
   }
@@ -117,7 +134,7 @@
     }
 
     .tasks-row-container {
-      width: calc(100% - 30px) !important;
+      // width: calc(100% - 30px) !important;
       @include themify($themes) {
         border-bottom-color: themed('tableRowBottomBorderColow');
       }
@@ -197,22 +214,32 @@
         }
 
         &__edit {
-          margin-top: 4.5px;
-          width: 6px;
+          width: 5px;
+          flex-grow: 0;
+          margin-left: 6px !important;
         }
 
         &__id {
           width: 26px;
           text-align: center;
+          width: 26px;
+          flex-grow: 0;
+          margin-left: 14px !important;
 
           &--FAST {
             width: 26px;
+            width: 26px;
+            flex-grow: 0;
+            margin-left: 14px !important;
             text-align: center;
             color: #858dbb;
           }
 
           &--SAFE {
             width: 26px;
+            width: 26px;
+            flex-grow: 0;
+            margin-left: 14px !important;
             text-align: center;
             color: #8aa27d;
           }
@@ -220,31 +247,34 @@
 
         &__product {
           @extend %tasks-table__text-field;
-          width: 200px;
+          width: 188px;
           white-space: nowrap;
           text-overflow: ellipsis;
           vertical-align: middle;
-          max-width: 200px;
+          flex-grow: 5;
+          margin-left: 11px !important;
           overflow: hidden;
 
           &--checkout-ready-light {
             @extend %tasks-table__text-field;
-            width: 200px;
+            flex-grow: 5;
+            margin-left: 11px !important;
+            width: 188px;
             white-space: nowrap;
             text-overflow: ellipsis;
             vertical-align: middle;
-            max-width: 200px;
             overflow: hidden;
             color: #f68e5f;
           }
 
           &--checkout-ready-dark {
             @extend %tasks-table__text-field;
-            width: 200px;
+            flex-grow: 5;
+            margin-left: 11px !important;
+            width: 188px;
             white-space: nowrap;
             text-overflow: ellipsis;
             vertical-align: middle;
-            max-width: 200px;
             overflow: hidden;
             color: #f5dd90;
           }
@@ -253,33 +283,40 @@
         &__sites {
           text-overflow: ellipsis;
           width: 125px;
+          margin-left: 11px !important;
+          flex-grow: 2;
 
           &--checkout-ready-light {
             text-overflow: ellipsis;
             width: 125px;
+            flex-grow: 2;
             color: #f68e5f;
           }
 
           &--checkout-ready-dark {
             text-overflow: ellipsis;
             width: 125px;
+            flex-grow: 2;
             color: #f5dd90;
           }
         }
 
         &__profile {
           @extend %tasks-table__text-field;
-          width: 125px;
+          width: 127px;
+          flex-grow: 1;
 
           &--checkout-ready-light {
             @extend %tasks-table__text-field;
-            width: 125px;
+            width: 127px;
+            flex-grow: 1;
             color: #f68e5f;
           }
 
           &--checkout-ready-dark {
             @extend %tasks-table__text-field;
-            width: 125px;
+            width: 127px;
+            flex-grow: 1;
             color: #f5dd90;
           }
 
@@ -291,36 +328,43 @@
         &__sizes {
           @extend %tasks-table__text-field;
           width: 65px;
+          flex-grow: 1;
 
           &--checkout-ready-light {
             @extend %tasks-table__text-field;
             width: 65px;
+            flex-grow: 1;
             color: #f68e5f;
           }
 
           &--checkout-ready-dark {
             @extend %tasks-table__text-field;
             width: 65px;
+            flex-grow: 1;
             color: #f5dd90;
           }
         }
 
         &__account {
-          width: 65px;
+          width: 67px;
+          flex-grow: 1;
 
           &--checkout-ready-light {
-            width: 65px;
+            width: 67px;
+            flex-grow: 1;
             color: #f68e5f;
           }
 
           &--checkout-ready-dark {
-            width: 65px;
+            width: 67px;
+            flex-grow: 1;
             color: #f5dd90;
           }
         }
 
         &__actions {
           width: 50px;
+          flex-grow: 2;
 
           &__button:first-child {
             margin-left: -10px;

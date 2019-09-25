@@ -278,7 +278,7 @@ class Monitor {
           this._context.proxy = proxy;
           this._context.rawProxy = 'localhost';
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-          this._emitTaskEvent({
+          this._emitMonitorEvent({
             message: `Swapped proxy to: localhost`,
             proxy,
           });
@@ -288,7 +288,7 @@ class Monitor {
           this._context.rawProxy = proxy.raw;
           this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-          this._emitTaskEvent({
+          this._emitMonitorEvent({
             message: `Swapped proxy to: ${proxy.raw}`,
             proxy: proxy.raw,
           });

@@ -222,7 +222,7 @@ export class TaskRowPrimitive extends PureComponent {
       };
     }
     return (
-      <div key={`${task.id}-edit`} className="row row--expand tasks-row tasks-row--edit">
+      <div key={`${task.id}-edit`} className="row row--start row--expand tasks-row tasks-row--edit">
         <div className="col">
           <div className="row row--start">
             <div className="col edit-field">
@@ -402,7 +402,7 @@ export class TaskRowPrimitive extends PureComponent {
     }
 
     return (
-      <div key={task.id} className="tasks-row row">
+      <div key={task.id} className="tasks-row row row--expand row--gutter">
         <div className="col col--no-gutter tasks-row__edit">{this.renderTableRowEditButton()}</div>
         <div
           className={
@@ -457,7 +457,7 @@ export class TaskRowPrimitive extends PureComponent {
               : 'col col--no-gutter tasks-row__account'
           }
         >
-          {task.account ? 'Yes' : 'None'}
+          {task.account ? task.account.name : 'None'}
         </div>
         <div className="col col--no-gutter tasks-row__actions">
           <div className="row row--gutter">
@@ -474,7 +474,7 @@ export class TaskRowPrimitive extends PureComponent {
   render() {
     const { style } = this.props;
     return (
-      <div style={style} className="col tasks-row-container">
+      <div style={style} className="col col--expand col--no-gutter tasks-row-container">
         {this.renderTableRow()}
         {this.renderEditMenu()}
       </div>

@@ -75,8 +75,6 @@
  * Implementation of themes
  */
 .profiles .profiles-load {
-  height: 112px;
-  width: 277px;
   border-width: 1px;
   border-style: solid;
   border-radius: 3px;
@@ -96,8 +94,8 @@
   font-size: 9.5px;
   letter-spacing: 0;
   height: 12px;
+  margin-top: 0;
   margin-bottom: 3px;
-  margin-top: 9px;
   padding-left: 0.5px;
 }
 .theme-light .profiles .profiles-load__label {
@@ -113,7 +111,7 @@
   color: #dcdcdc;
 }
 .profiles .profiles-load__input-group {
-  margin: 0 11.5px !important;
+  margin: 11.5px !important;
   padding-bottom: 2px;
 }
 .profiles .profiles-load__input-group--select {
@@ -177,7 +175,7 @@
  */
 .profiles .profiles__fields--save, .profiles-rates__input-group--price, .profiles-rates__input-group--rate, .profiles .profiles-payment__input-group--cvv, .profiles .profiles-payment__input-group--expiration, .profiles .profiles-payment__input-group--card-number, .profiles .profiles-payment__input-group--email, .profiles .shipping-profiles-location__input-group--phone, .profiles .shipping-profiles-location__input-group--zip-code, .profiles .shipping-profiles-location__input-group--city, .profiles .shipping-profiles-location__input-group--address-two, .profiles .shipping-profiles-location__input-group--address-one, .profiles .shipping-profiles-location__input-group--last-name, .profiles .shipping-profiles-location__input-group--first-name, .profiles .billing-profiles-location__input-group--phone, .profiles .billing-profiles-location__input-group--zip-code, .profiles .billing-profiles-location__input-group--city, .profiles .billing-profiles-location__input-group--address-two, .profiles .billing-profiles-location__input-group--address-one, .profiles .billing-profiles-location__input-group--last-name, .profiles .billing-profiles-location__input-group--first-name {
   border: 1px solid;
-  margin: 9px 0;
+  margin: 0;
   margin-right: 15px;
   height: 29px;
 }

@@ -75,6 +75,10 @@
 
       &--field {
         height: 29px;
+        @media screen and (min-width: 1250px) and (min-height: 745px) {
+          height: 35px !important;
+        }
+
         @include themify($themes) {
           background: themed('inputBackground');
         }
@@ -85,6 +89,11 @@
         }
         &__short {
           height: 29px;
+
+          @media screen and (min-width: 1250px) and (min-height: 745px) {
+            height: 35px;
+          }
+
           @include themify($themes) {
             background: themed('inputBackground');
           }

@@ -73,11 +73,11 @@ export class ProfilesPrimitive extends Component {
             <LoadProfile />
           </div>
         </div>
-        <div className="row row--start" style={{ width: '100%' }}>
+        <div className="row row--start row--expand" style={{ width: '100%' }}>
           <LocationFields
             header="Shipping"
             id="shipping"
-            className="col col--start col--expand profiles__fields--shipping"
+            className="col col--start col--expand"
             profileToEdit={currentProfile}
             fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
             disabled={false}
@@ -85,7 +85,7 @@ export class ProfilesPrimitive extends Component {
           <LocationFields
             header="Billing"
             id="billing"
-            className="col col--start col--expand profiles__fields--billing"
+            className="col col--start col--expand"
             profileToEdit={currentProfile}
             fieldToEdit={
               currentProfile.billingMatchesShipping

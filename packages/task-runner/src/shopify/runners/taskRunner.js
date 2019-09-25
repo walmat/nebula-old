@@ -481,37 +481,6 @@ class TaskRunner {
     return nextState;
   }
 
-  async _handleSubmitCheckpoint() {
-    const {
-      aborted,
-      rawProxy,
-      task: { monitorDelay },
-    } = this._context;
-
-    if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    const { message, delay, shouldBan, nextState } = await this._checkout.submitCheckpoint();
-
-    this._emitTaskEvent({ message, proxy: rawProxy });
-
-    if (nextState === States.SWAP) {
-      this._emitTaskEvent({ message: `Proxy banned!` });
-      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
-      return nextState;
-    }
-
-    if (delay) {
-      this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-      await this._delayer;
-      this._emitTaskEvent({ message: 'Submitting checkpoint' });
-    }
-
-    return nextState;
-  }
-
   async _handleCreateCheckout() {
     const {
       aborted,
@@ -1312,6 +1281,39 @@ class TaskRunner {
     return nextState;
   }
 
+  async _handleBackupProcessPayment() {
+    const { aborted, rawProxy } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const {
+      message,
+      delay,
+      shouldBan,
+      order,
+      nextState,
+    } = await this._checkout.backupPaymentProcessing();
+
+    this._emitTaskEvent({ message, order, proxy: rawProxy });
+
+    if (nextState === States.SWAP) {
+      this._emitTaskEvent({ message: `Proxy banned!` });
+      this.shouldBanProxy = shouldBan; // Set a flag to ban the proxy if necessary
+      return nextState;
+    }
+
+    if (delay) {
+      this._delayer = waitForDelay(1000, this._aborter.signal);
+      await this._delayer;
+    }
+
+    return nextState;
+  }
+
   async _handleSwapProxies() {
     const {
       task: { errorDelay },
@@ -1427,6 +1429,7 @@ class TaskRunner {
       [States.GO_TO_REVIEW]: this._handleGoToReview,
       [States.COMPLETE_PAYMENT]: this._handleCompletePayment,
       [States.PROCESS_PAYMENT]: this._handlePaymentProcess,
+      [States.BACKUP_PROCESS_PAYMENT]: this._handleBackupProcessPayment,
       [States.SWAP]: this._handleSwapProxies,
       [States.DONE]: this._generateEndStateHandler(States.DONE),
       [States.ERROR]: this._generateEndStateHandler(States.ERROR),

@@ -82,8 +82,8 @@ export class LoadProfilePrimitive extends PureComponent {
               <p className="body-text section-header profiles-load__section-header">Load Profile</p>
             </div>
           </div>
-          <div className="row">
-            <div className="col col--no-gutter-left">
+          <div className="row row--start">
+            <div className="col col--no-gutter">
               <div className="profiles-load col col--start col--no-gutter">
                 <div className="row row--start row--gutter">
                   <div className="col profiles-load__input-group">

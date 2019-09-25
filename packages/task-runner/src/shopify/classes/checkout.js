@@ -935,21 +935,18 @@ class Checkout {
     } = this._context;
 
     try {
-      const res = await this._request(
-        `${url}/${this.storeId}/checkouts/${this.checkoutToken}/processing`,
-        {
-          method: 'GET',
-          agent: proxy ? new HttpsProxyAgent(proxy) : null,
-          redirect: 'manual',
-          follow: 0,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            'Content-Type': 'application/json',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          },
+      const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
+        method: 'GET',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          'Content-Type': 'application/json',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
-      );
+      });
 
       const { status, headers } = res;
 
@@ -978,24 +975,24 @@ class Checkout {
 
       const body = await res.text();
 
-      if (/card declined/i.test(body)) {
+      if (/Card was decline/i.test(body)) {
         return {
           message: 'Card declined!',
-          nextState: States.PAYMENT_TOKEN,
+          nextState: States.SUBMIT_PAYMENT,
         };
       }
 
       if (/no match/i.test(body)) {
         return {
           message: 'Payment failed - No match',
-          nextState: States.PAYMENT_TOKEN,
+          nextState: States.SUBMIT_PAYMENT,
         };
       }
 
       if (/Your payment can’t be processed/i.test(body)) {
         return {
           message: 'Payment failed - Processing error',
-          nextState: States.PAYMENT_TOKEN,
+          nextState: States.SUBMIT_PAYMENT,
         };
       }
 

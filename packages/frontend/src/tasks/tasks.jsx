@@ -124,7 +124,7 @@ export class TasksPrimitive extends PureComponent {
             </div>
             <div className="row row--start row--expand">
               <div className="col col--expand col--start tasks-table-container">
-                <div className="row tasks-table__header">
+                <div className="row row--start row--no-gutter tasks-table__header">
                   <div className="col tasks-table__header__edit" />
                   <div className="col tasks-table__header__id">
                     <p>#</p>
@@ -141,7 +141,7 @@ export class TasksPrimitive extends PureComponent {
                   <div className="col tasks-table__header__sizes">
                     <p>Size</p>
                   </div>
-                  <div className="col tasks-table__header__pairs">
+                  <div className="col tasks-table__header__account">
                     <p>Account</p>
                   </div>
                   <div className="col tasks-table__header__actions">
@@ -153,8 +153,8 @@ export class TasksPrimitive extends PureComponent {
                     <hr className="view-line" />
                   </div>
                 </div>
-                <div className="row row--expand row--start">
-                  <div className="col tasks-table__wrapper">
+                <div className="row row--gutter row--expand row--start">
+                  <div className="col col--no-gutter tasks-table__wrapper">
                     <ViewTask />
                   </div>
                 </div>

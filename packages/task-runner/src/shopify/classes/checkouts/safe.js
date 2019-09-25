@@ -740,13 +740,17 @@ class SafeCheckout extends Checkout {
         xmlMode: false,
       });
 
-      $('form[action="/cart"] input, select, textarea').each((_, el) => {
+      $('form[action="/cart"], input, select, textarea, button').each((_, el) => {
         const name = $(el).attr('name');
         const value = $(el).attr('value') || '';
 
         this._logger.info('Cart form value detected: { name: %j, value: %j }', name, value);
         // Blacklisted values/names
-        if (!/update cart|Update|{{itemQty}}/i.test(value)) {
+        if (
+          name &&
+          !/q|g|gender|\$fields|email|subscribe|updates\[.*:.*]/i.test(name) &&
+          !/update cart|Update|{{itemQty}}/i.test(value)
+        ) {
           this.cartForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
         }
       });
@@ -786,6 +790,10 @@ class SafeCheckout extends Checkout {
 
     if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
       return this.backupCreateCheckout();
+    }
+
+    if (!this.cartForm.includes('checkout')) {
+      this.cartForm += `checkout=Check+out`;
     }
 
     try {
@@ -1300,7 +1308,7 @@ class SafeCheckout extends Checkout {
     }
   }
 
-  async getCheckout(state, message, step, prevStep) {
+  async getCheckout(state, message, step) {
     const {
       task: {
         site: { url, apiKey },
@@ -1311,45 +1319,26 @@ class SafeCheckout extends Checkout {
       proxy,
     } = this._context;
 
-    let fetchUrl = `/${this.storeId}/checkouts/${this.checkoutToken}`;
-
-    switch (state) {
-      case States.GO_TO_SHIPPING:
-      case States.GO_TO_PAYMENT:
-      case States.GO_TO_REVIEW: {
-        fetchUrl = prevStep
-          ? `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}?previous_step=${prevStep}`
-          : `/${this.storeId}/checkouts/${this.checkoutToken}?step=${step}`;
-        break;
-      }
-      default:
-        break;
-    }
-
-    if (this.outOfStock) {
-      fetchUrl += '/stock_problems';
-    }
-
     monitor.stop();
     monitor.reset();
     try {
-      const res = await this._request(fetchUrl, {
+      const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
         agent: proxy ? new HttpsProxyAgent(proxy) : null,
-        redirect: 'follow',
-        follow: 5,
+        redirect: 'manual',
+        follow: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'X-Shopify-Storefront-Access-Token': apiKey,
           'sec-fetch-mode': 'navigate',
           'sec-fetch-site': 'same-origin',
           'sec-fetch-user': '?1',
         },
       });
 
-      const { status, url: redirectUrl } = res;
+      const { status, headers } = res;
       this.outOfStock = false;
       const checkStatus = stateForError(
         { status },
@@ -1378,6 +1367,7 @@ class SafeCheckout extends Checkout {
         }
       }
 
+      const redirectUrl = headers.get('location');
       this._logger.silly(`CHECKOUT: ${state} redirect url: %s`, redirectUrl);
 
       // check if redirected
@@ -1420,11 +1410,31 @@ class SafeCheckout extends Checkout {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this.outOfStock = true;
+          let nextState = state;
+          switch (state) {
+            case States.GO_TO_CHECKOUT:
+            case States.SUBMIT_CUSTOMER: {
+              nextState = States.GO_TO_CHECKOUT;
+              break;
+            }
+            case States.GO_TO_SHIPPING:
+            case States.SUBMIT_SHIPPING: {
+              nextState = States.GO_TO_SHIPPING;
+              break;
+            }
+            case States.GO_TO_PAYMENT:
+            case States.SUBMIT_PAYMENT: {
+              nextState = States.GO_TO_PAYMENT;
+              break;
+            }
+            default:
+              break;
+          }
+
           return {
             message: `Out of stock! Delaying ${monitorDelay}ms`,
             delay: true,
-            nextState: state,
+            nextState,
           };
         }
 
@@ -1434,10 +1444,31 @@ class SafeCheckout extends Checkout {
       }
 
       if (/stock_problems/i.test(body)) {
-        this.outOfStock = true;
+        let nextState = state;
+        switch (state) {
+          case States.GO_TO_CHECKOUT:
+          case States.SUBMIT_CUSTOMER: {
+            nextState = States.GO_TO_CHECKOUT;
+            break;
+          }
+          case States.GO_TO_SHIPPING:
+          case States.SUBMIT_SHIPPING: {
+            nextState = States.GO_TO_SHIPPING;
+            break;
+          }
+          case States.GO_TO_PAYMENT:
+          case States.SUBMIT_PAYMENT: {
+            nextState = States.GO_TO_PAYMENT;
+            break;
+          }
+          default:
+            break;
+        }
+
         return {
           message: `Out of stock! Delaying ${monitorDelay}ms`,
-          nextState: States.GO_TO_CHECKOUT,
+          delay: true,
+          nextState,
         };
       }
 

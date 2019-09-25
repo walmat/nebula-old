@@ -106,7 +106,7 @@
   user-select: none;
   text-rendering: optimizeLegibility;
 }
-@media screen and (min-width: 1250px) {
+@media (min-width: 1250px) and (min-height: 745px) {
   * {
     font-size: 11px;
     -webkit-touch-callout: none;
@@ -166,6 +166,15 @@ body .theme-dark {
   background: #313236;
 }
 
+input, .select__control, .select__control--menu-is-open {
+  height: 29px !important;
+}
+
+@media (min-width: 1250px) and (min-height: 5px) {
+  input, .select__control, .select__control--menu-is-open {
+    height: 35px !important;
+  }
+}
 #root {
   height: 100%;
   width: 100%;
@@ -175,7 +184,7 @@ body .theme-dark {
 td {
   font-size: 12px;
 }
-@media screen and (min-width: 1250px) {
+@media (min-width: 1250px) and (min-height: 745px) {
   td {
     font-size: 14px;
   }
@@ -381,7 +390,7 @@ input:focus {
 .theme-dark .body-text {
   color: #f0405e;
 }
-@media screen and (min-width: 1250px) {
+@media screen and (min-width: 1250px) and (min-height: 745px) {
   .body-text {
     font-size: 14px;
   }

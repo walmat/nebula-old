@@ -12,7 +12,7 @@
   user-select: none;
   text-rendering: optimizeLegibility;
 
-  @media screen and (min-width: 1250px) {
+  @media (min-width: 1250px) and (min-height: 745px) {
     @extend %font-base;
     font-size: 11px;
     -webkit-touch-callout: none;
@@ -67,6 +67,20 @@ body {
   overflow: hidden;
 }
 
+input,
+.select__control,
+.select__control--menu-is-open {
+  height: 29px !important;
+}
+
+@media (min-width: 1250px) and (min-height: 5px) {
+  input,
+  .select__control,
+  .select__control--menu-is-open {
+    height: 35px !important;
+  }
+}
+
 #root {
   height: 100%;
   width: 100%;
@@ -76,7 +90,7 @@ body {
 td {
   @extend %font-base;
   font-size: 12px;
-  @media screen and (min-width: 1250px) {
+  @media (min-width: 1250px) and (min-height: 745px) {
     @extend %font-base;
     font-size: 14px;
   }
@@ -266,7 +280,7 @@ input:focus {
   @extend %font-base;
   font-size: 12px;
 
-  @media screen and (min-width: 1250px) {
+  @media screen and (min-width: 1250px) and (min-height: 745px) {
     @extend %font-base;
     font-size: 14px;
   }
