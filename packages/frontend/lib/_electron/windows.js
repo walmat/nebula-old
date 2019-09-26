@@ -280,12 +280,12 @@ urls.set('gmail', youtubeUrl);
  */
 const createMainWindow = () =>
   _createWindow({
-    width: 1000,
+    width: 1020,
     height: 715,
     resizable: true,
     transparent: true,
     frame: false,
-    minWidth: 1000,
+    minWidth: 1020,
     minHeight: 715,
     webPreferences: {
       ..._defaultWebPreferences,

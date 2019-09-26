@@ -6,6 +6,7 @@
   .tasks-create {
     max-height: 285px;
     min-height: 225px;
+    min-width: 280px;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
     }
@@ -77,6 +78,7 @@
         height: 29px;
         @media screen and (min-width: 1250px) and (min-height: 745px) {
           height: 35px !important;
+          transition: ease all 0.5s;
         }
 
         @include themify($themes) {
@@ -91,6 +93,7 @@
           height: 29px;
 
           @media screen and (min-width: 1250px) and (min-height: 745px) {
+            transition: ease all 0.5s;
             height: 35px;
           }
 

@@ -223,9 +223,9 @@ export class TaskRowPrimitive extends PureComponent {
     }
     return (
       <div key={`${task.id}-edit`} className="row row--start row--expand tasks-row tasks-row--edit">
-        <div className="col">
-          <div className="row row--start">
-            <div className="col edit-field">
+        <div className="col col--start col--expand">
+          <div className="row row--start row--expand">
+            <div className="col col--start col--expand edit-field" style={{ flexGrow: 2 }}>
               <p className="edit-field__label">Product</p>
               <input
                 className="edit-field__input"
@@ -239,7 +239,7 @@ export class TaskRowPrimitive extends PureComponent {
                 data-testid={addTestId(`${testIdBase}.productInput`)}
               />
             </div>
-            <div className="col edit-field">
+            <div className="col col--start col--expand edit-field" style={{ flexGrow: 1 }}>
               <p className="edit-field__label">Site</p>
               <CreatableSelect
                 isClearable={false}
@@ -261,7 +261,7 @@ export class TaskRowPrimitive extends PureComponent {
                 data-testid={addTestId(`${testIdBase}.siteSelect`)}
               />
             </div>
-            <div className="col edit-field">
+            <div className="col col--start col--expand edit-field" style={{ flexGrow: 1 }}>
               <p className="edit-field__label">Billing Profile</p>
               <Select
                 required
@@ -280,7 +280,7 @@ export class TaskRowPrimitive extends PureComponent {
                 data-private
               />
             </div>
-            <div className="col edit-field">
+            <div className="col col--start col--expand edit-field" style={{ flexGrow: 1 }}>
               <p className="edit-field__label">Size</p>
               <CreatableSelect
                 required
@@ -302,9 +302,7 @@ export class TaskRowPrimitive extends PureComponent {
                 data-testid={addTestId(`${testIdBase}.sizesSelect`)}
               />
             </div>
-          </div>
-          <div className="row row--end">
-            <div className="col action">
+            <div className="col col--start col--expand action" style={{ flexGrow: 0 }}>
               <button
                 type="button"
                 className="action__button action__button--save"
@@ -318,7 +316,7 @@ export class TaskRowPrimitive extends PureComponent {
                 Save
               </button>
             </div>
-            <div className="col action">
+            <div className="col col--start col--expand action" style={{ flexGrow: 0 }}>
               <button
                 type="button"
                 className="action__button action__button--cancel"

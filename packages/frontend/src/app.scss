@@ -71,12 +71,15 @@ input,
 .select__control,
 .select__control--menu-is-open {
   height: 29px !important;
+  transition: ease all 0.5s;
 }
 
 @media (min-width: 1250px) and (min-height: 5px) {
   input,
+  button,
   .select__control,
   .select__control--menu-is-open {
+    transition: ease all 0.5s;
     height: 35px !important;
   }
 }
@@ -92,6 +95,7 @@ td {
   font-size: 12px;
   @media (min-width: 1250px) and (min-height: 745px) {
     @extend %font-base;
+    transition: ease all 0.5s;
     font-size: 14px;
   }
 }
@@ -117,6 +121,7 @@ select {
   left: 0;
   right: 0;
   height: 25px;
+  z-index: 9999;
   cursor: move !important;
   background: transparent;
   -webkit-user-select: none;
@@ -203,6 +208,7 @@ select {
 
 .active > svg {
   opacity: 0.5;
+  transition: ease all 0.25s;
 }
 
 .close-area-1:hover,
@@ -210,6 +216,7 @@ select {
 .theme-toggle:hover {
   opacity: 0.8333;
   cursor: pointer;
+  transition: ease all 0.25s;
 }
 
 input:focus,
@@ -251,7 +258,7 @@ select:disabled {
   margin-left: 140px; /*width of navbar*/
   margin-top: 25px; /*height of transparent titlebar for dragging*/
   margin-bottom: 30px;
-  margin-right: 15px;
+  margin-right: 25px;
   height: calc(100% - 55px);
 }
 

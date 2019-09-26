@@ -1,7 +1,7 @@
 %input_field {
   border: 1px solid;
   margin: 9px 0;
-  margin-right: 15px;
+  // margin-right: 15px;
   height: 29px;
 }
 
@@ -18,22 +18,22 @@
 
       &--email {
         @extend %input_field;
-        width: 249px;
+        margin: 9px 0 !important;
       }
 
       &--card-number {
         @extend %input_field;
-        width: 249px;
+        margin: 9px 0 !important;
       }
 
       &--expiration {
         @extend %input_field;
-        width: 155px;
+        margin: 15px 0;
       }
 
       &--cvv {
         @extend %input_field;
-        width: 78px;
+        margin: 15px 0;
       }
     }
   }

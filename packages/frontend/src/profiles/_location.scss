@@ -2,7 +2,7 @@
 
 %input_field {
   border: 1px solid;
-  margin: 0;
+  margin: 9px 0;
   margin-right: 15px;
   height: 29px;
 }
@@ -43,17 +43,16 @@
       }
 
       &--province {
-        min-width: 94px;
+        // width: 94px;
       }
 
       &--zip-code {
         @extend %input_field;
-        // max-width: 78px;
         // width: 78px;
       }
 
       &--country {
-        min-width: 155px;
+        // width: 155px;
       }
 
       &--phone {
@@ -94,19 +93,20 @@
 
       &--city {
         @extend %input_field;
+        // width: 140px;
       }
 
       &--province {
-        min-width: 94px;
+        // width: 94px;
       }
 
       &--zip-code {
         @extend %input_field;
-        // max-width: 78px;
+        // width: 78px;
       }
 
       &--country {
-        min-width: 155px;
+        // width: 155px;
       }
 
       &--phone {

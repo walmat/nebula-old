@@ -116,14 +116,17 @@
 
       &--success {
         color: #46adb4;
+        transition: ease all 0.25s;
       }
 
       &--failed {
         color: #ef415e;
+        transition: ease all 0.25s;
       }
 
       &--warning {
         color: #d8973c;
+        transition: ease all 0.25s;
       }
     }
   }
@@ -336,6 +339,7 @@
             width: 20px;
             margin-left: 31px !important;
             flex-grow: 10;
+            transition: ease all 0.35s;
           }
         }
       }

@@ -4,8 +4,6 @@
 .server {
   .server-credentials {
     margin-top: 1px;
-    height: 249px;
-    width: 277px;
     border: 1px solid #f0405e;
     border-radius: 3px;
 
@@ -21,6 +19,12 @@
       margin: 0 11.5px !important;
       padding-top: -1px;
       padding-bottom: 2px;
+
+      &--middle {
+        margin: 0 11.5px !important;
+        padding-top: 5px;
+        padding-bottom: 2px;
+      }
     }
 
     &__input {
@@ -54,7 +58,7 @@
 
     &__submit {
       margin-top: 12px;
-      margin-right: 3.5px;
+      margin-right: 2px;
       width: 83px;
       height: 29px;
       cursor: pointer;

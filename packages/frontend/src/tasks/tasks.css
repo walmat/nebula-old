@@ -77,6 +77,7 @@
 .tasks .tasks-create {
   max-height: 285px;
   min-height: 225px;
+  min-width: 280px;
   flex-grow: 0.5;
   border-width: 1px;
   border-style: solid;
@@ -151,6 +152,7 @@
 @media screen and (min-width: 1250px) and (min-height: 745px) {
   .tasks .tasks-create__input--field {
     height: 35px !important;
+    transition: ease all 0.5s;
   }
 }
 .theme-light .tasks .tasks-create__input--field {
@@ -170,6 +172,7 @@
 }
 @media screen and (min-width: 1250px) and (min-height: 745px) {
   .tasks .tasks-create__input--field__short {
+    transition: ease all 0.5s;
     height: 35px;
   }
 }
@@ -354,12 +357,15 @@
 }
 .tasks .tasks-live-log__output-row-message--success {
   color: #46adb4;
+  transition: ease all 0.25s;
 }
 .tasks .tasks-live-log__output-row-message--failed {
   color: #ef415e;
+  transition: ease all 0.25s;
 }
 .tasks .tasks-live-log__output-row-message--warning {
   color: #d8973c;
+  transition: ease all 0.25s;
 }
 .tasks .tasks-log {
   border-collapse: collapse;
@@ -534,6 +540,7 @@
   width: 20px;
   margin-left: 31px !important;
   flex-grow: 10;
+  transition: ease all 0.35s;
 }
 
 /*
@@ -673,7 +680,7 @@
   align-items: flex-start;
   border-width: 1px;
   border-style: solid;
-  margin: 0 -5px 5px -5px;
+  margin: 0 15px 5px 15px !important;
   border-radius: 3px;
 }
 .theme-light .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
@@ -718,7 +725,7 @@
   border-radius: 3px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action {
-  margin: 12px 7px 0 7px;
+  margin: 13px 7px 0 7px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button {
   width: 83px;

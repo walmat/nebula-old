@@ -25,19 +25,18 @@ export class PaymentFieldsPrimitive extends PureComponent {
   render() {
     const { errors, value } = this.props;
     return (
-      <div className="col">
+      <div className="col col--gutter col--start col--expand">
         <div className="row row--start">
-          <p className="body-text section-header profiles-payment__section-header">Payment</p>
+          <p className="row row--start row--expand body-text section-header profiles-payment__section-header">Payment</p>
         </div>
         <div className="row row--start row--expand">
-          <div className="col col--no-gutter col--start profiles-payment-container" />
-          <div className="profiles-payment col col--start col--no-gutter">
-            <div className="row row--start row--no-gutter-left row--gutter-right">
-              <div className="col profiles-payment__input-group">
-                <div className="row row--gutter">
+          <div className="profiles-payment col col--start col--expand col--no-gutter">
+            <div className="row row--start row--expand row--no-gutter">
+              <div className="col col--start col--expand profiles-payment__input-group">
+                <div className="col col--start col--expand col--no-gutter-left">
                   <input
                     required
-                    className="profiles-payment__input-group--email"
+                    className="row row--start row--expand profiles-payment__input-group--email"
                     placeholder="Email Address"
                     onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EMAIL)}
                     value={value.email}
@@ -46,11 +45,11 @@ export class PaymentFieldsPrimitive extends PureComponent {
                     data-private
                   />
                 </div>
-                <div className="row row--gutter">
+                <div className="col col--start col--expand col--no-gutter-left">
                   <NumberFormat
                     format="#### #### #### #### ##"
                     placeholder="XXXX XXXX XXXX XXXX"
-                    className="profiles-payment__input-group--card-number"
+                    className="row row--start row--expand profiles-payment__input-group--card-number"
                     onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)}
                     value={value.cardNumber}
                     style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])}
@@ -58,34 +57,28 @@ export class PaymentFieldsPrimitive extends PureComponent {
                     data-private
                   />
                 </div>
-                <div className="row row--start row--gutter">
-                  <div className="col col--no-gutter-left">
-                    <NumberFormat
-                      format="##/##"
-                      className="profiles-payment__input-group--expiration"
-                      placeholder="MM/YY"
-                      onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)}
-                      value={value.exp}
-                      style={validationStatus(errors[PAYMENT_FIELDS.EXP])}
-                      mask={['M', 'M', 'Y', 'Y']}
-                      data-testid={addTestId(`PaymentFieldsPrimitive.expiration`)}
-                      data-private
-                    />
-                  </div>
-                  <div className="row row--start row--no-gutter-left">
-                    <div className="col col--no-gutter">
-                      <input
-                        required
-                        className="profiles-payment__input-group--cvv"
-                        placeholder="CVV"
-                        onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)}
-                        value={value.cvv}
-                        style={validationStatus(errors[PAYMENT_FIELDS.CVV])}
-                        data-testid={addTestId(`PaymentFieldsPrimitive.cvv`)}
-                        data-private
-                      />
-                    </div>
-                  </div>
+                <div className="row row--start row--expand row--gutter">
+                  <NumberFormat
+                    format="##/##"
+                    className="col col--start col--expand profiles-payment__input-group--expiration"
+                    placeholder="MM/YY"
+                    onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)}
+                    value={value.exp}
+                    style={validationStatus(errors[PAYMENT_FIELDS.EXP])}
+                    mask={['M', 'M', 'Y', 'Y']}
+                    data-testid={addTestId(`PaymentFieldsPrimitive.expiration`)}
+                    data-private
+                  />
+                  <input
+                    required
+                    className="col col--start col--expand profiles-payment__input-group--cvv"
+                    placeholder="CVV"
+                    onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)}
+                    value={value.cvv}
+                    style={validationStatus(errors[PAYMENT_FIELDS.CVV])}
+                    data-testid={addTestId(`PaymentFieldsPrimitive.cvv`)}
+                    data-private
+                  />
                 </div>
               </div>
             </div>

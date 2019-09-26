@@ -189,24 +189,24 @@ export class CreateProxiesPrimitive extends PureComponent {
     }
 
     return (
-      <div className="proxy-options col col--start col--no-gutter">
-        <div className="row row--start row--gutter">
-          <div className="col proxy-options__input-group">
-            <div className="row row--gutter">
-              <div className="col col--no-gutter">
+      <div className="proxy-options col col--start col--expand col--no-gutter">
+        <div className="row row--start row--expand row--gutter">
+          <div className="col col--start col--expand proxy-options__input-group">
+            <div className="row row--start row--expand row--gutter">
+              <div className="col col--start col--expand col--no-gutter">
                 <p className="proxy-options__label">Number</p>
                 <NumberFormat
                   value={number}
                   placeholder="1-10"
                   style={buildStyle(false, null)}
-                  className="proxy-options__input proxy-options__input--bordered proxy-options__input--number"
+                  className="col col--start col--expand col--no-gutter proxy-options__input proxy-options__input--bordered proxy-options__input--number"
                   onChange={this.onChangeHandler(SERVER_FIELDS.EDIT_PROXY_NUMBER)}
                   required
                   data-testid={addTestId('CreateProxies.number')}
                 />
               </div>
-              <div className="col">
-                <p className="proxy-options__label">Credentials</p>
+              <div className="col col--start col--expand col--no-gutter">
+                <p className="col col--no-gutter-right proxy-options__label">Credentials</p>
                 <Select
                   required
                   data-private
@@ -220,7 +220,7 @@ export class CreateProxiesPrimitive extends PureComponent {
                     MenuList,
                   }}
                   classNamePrefix="select"
-                  className="proxy-options__input--credentials"
+                  className="col col--start col--expand col--no-gutter-right proxy-options__input--credentials"
                   styles={colourStyles(theme, buildStyle(false, null))}
                   value={credentials}
                   options={this.buildCredentialsOptions()}
@@ -231,10 +231,10 @@ export class CreateProxiesPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-        <div className="row row--start row--gutter">
-          <div className="col proxy-options__input-group">
-            <div className="row row--gutter">
-              <div className="col col--no-gutter">
+        <div className="row row--start row--expand row--gutter">
+          <div className="col col--start col--expand proxy-options__input-group">
+            <div className="row row--start row--expand row--gutter">
+              <div className="col col--start col--expand col--no-gutter">
                 <p className="proxy-options__label">Location</p>
                 <Select
                   required
@@ -252,10 +252,10 @@ export class CreateProxiesPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-        <div className="row row--start row--gutter">
-          <div className="col proxy-options__input-group">
-            <div className="row row--gutter">
-              <div className="col col--no-gutter-left">
+        <div className="row row--start row--expand row--gutter">
+          <div className="col col--start col--expand proxy-options__input-group">
+            <div className="row row--start row--expand row--gutter">
+              <div className="col col--start col--expand col--no-gutter-left">
                 <p className="proxy-options__label">Username</p>
                 <input
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--field"
@@ -273,7 +273,7 @@ export class CreateProxiesPrimitive extends PureComponent {
                   data-private
                 />
               </div>
-              <div className="col col--no-gutter-left">
+              <div className="col col--start col--expand col--no-gutter">
                 <p className="proxy-options__label">Password</p>
                 <input
                   className="proxy-options__input proxy-options__input--bordered proxy-options__input--field"
@@ -294,14 +294,16 @@ export class CreateProxiesPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-        <div className="row row--start row--gutter">
-          <div className="col proxy-options__input-group">
-            <div className="row row--gutter">
-              <div className="col col--no-gutter-left">{status}</div>
+        <div className="row row--start row--expand row--gutter" style={{ margin: '9px 0' }}>
+          <div className="col col--start col--expand proxy-options__input-group">
+            <div className="row row--start row--gutter">
+              <div className="col col--between col--expand col--no-gutter">
+                <p style={{ textAlign: 'center' }}>{status}</p>
+              </div>
             </div>
           </div>
         </div>
-        <div className="row row--end row--expand row--gutter">
+        <div className="row row--end row--expand row--gutter" style={{ marginBottom: '15px' }}>
           <div className="col">
             <button
               type="button"

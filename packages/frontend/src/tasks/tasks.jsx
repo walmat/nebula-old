@@ -92,7 +92,7 @@ export class TasksPrimitive extends PureComponent {
     return (
       <div className="container tasks">
         <div className="row row--expand" style={{ width: '100%' }}>
-          <div className="col col--expand col--start" style={{ flexGrow: 1 }}>
+          <div className="col col--expand col--start" style={{ flexGrow: 0.5 }}>
             <div className="row row--start">
               <div className="col col--no-gutter-left">
                 <h1 className="text-header tasks__title">Tasks</h1>

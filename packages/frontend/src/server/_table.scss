@@ -36,8 +36,6 @@
 
 .server {
   .server-table-container {
-    width: 523px;
-    height: 531px;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
     }
@@ -80,27 +78,29 @@
 
       &--account {
         @extend %server-table__header__field;
-        width: 95px;
+        margin-left: 20px;
+        flex-grow: 1;
       }
 
       &--region {
         @extend %server-table__header__field;
-        width: 55px;
+        flex-grow: 1;
       }
 
       &--ip {
         @extend %server-table__header__field;
-        width: 35px;
+        flex-grow: 2;
       }
 
       &--speed {
         @extend %server-table__header__field;
-        width: 55px;
+        flex-grow: 1;
       }
 
       &--actions {
         @extend %server-table__header__field;
-        width: 55px;
+        margin-right: 15px;
+        flex-grow: 0;
       }
     }
 
@@ -133,8 +133,8 @@
           padding-bottom: 2px;
           &--status {
             @extend %proxy-log__field;
-            margin-left: 14.5px !important;
-            margin-right: 6.5px !important;
+            flex-grow: 0;
+            margin-right: 5px !important;
             & > svg,
             * {
               width: 9px;
@@ -143,31 +143,34 @@
 
           &--account {
             @extend %proxy-log__field;
-            width: 145px;
+            flex-grow: 1;
+            width: 50px;
+            margin-right: 27px !important;
           }
 
           &--region {
             @extend %proxy-log__field;
-            width: 80px;
+            flex-grow: 1;
+            margin-right: 22px !important;
           }
 
           &--ip {
             @extend %proxy-log__field;
-            width: 105px;
+            flex-grow: 2;
           }
 
           &--speed {
             @extend %proxy-log__field;
-            width: 72px;
+            flex-grow: 1;
+            margin-right: 25px !important;
           }
 
           &--actions {
             @extend %proxy-log__field;
-            margin-right: 15px !important;
-            width: 105px;
+            flex-grow: 0;
 
             &__margin {
-              margin: 0 25px 0 25px !important;
+              margin: 0 15px 0 15px !important;
             }
 
             &__button {

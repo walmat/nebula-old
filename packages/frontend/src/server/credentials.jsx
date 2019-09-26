@@ -258,11 +258,11 @@ export class AWSCredentialsPrimitive extends PureComponent {
     }
 
     return (
-      <div className="server-credentials col col--start col--no-gutter">
-        <div className="row row--start row--gutter">
-          <div className="col server-credentials__input-group">
-            <div className="row row--gutter">
-              <div className="col col--no-gutter">
+      <div className="server-credentials col col--start col--expand col--no-gutter">
+        <div className="row row--start row--expand row--gutter">
+          <div className="col col--start col--expand server-credentials__input-group">
+            <div className="row row--start row--expand row--gutter">
+              <div className="col col--start col--expand col--no-gutter">
                 <p className="server-credentials__label">AWS IAM Profile</p>
                 <Select
                   required
@@ -289,8 +289,8 @@ export class AWSCredentialsPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-        <div className="row row--start row--gutter">
-          <div className="col server-credentials__input-group">
+        <div className="row row--start row--expand row--gutter">
+          <div className="col server-credentials__input-group--middle">
             <div className="row row--gutter">
               <div className="col col--no-gutter">
                 <p className="server-credentials__label">AWS Access Key</p>
@@ -321,7 +321,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-        <div className="row row--start row--gutter">
+        <div className="row row--start row--expand row--gutter">
           <div className="col server-credentials__input-group">
             <div className="row row--gutter">
               <div className="col col--no-gutter">
@@ -353,7 +353,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-        <div className="row row--end row--gutter">
+        <div className="row row--end row--gutter" style={{ marginBottom: '15px' }}>
           <div className="col server-credentials__input-group">
             <div className="row row--gutter">
               <div className="col col--no-gutter-left">{this.renderNameInput()}</div>

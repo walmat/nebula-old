@@ -73,8 +73,6 @@
  */
 .server .server-credentials {
   margin-top: 1px;
-  height: 249px;
-  width: 277px;
   border: 1px solid #f0405e;
   border-radius: 3px;
 }
@@ -96,6 +94,11 @@
 .server .server-credentials__input-group {
   margin: 0 11.5px !important;
   padding-top: -1px;
+  padding-bottom: 2px;
+}
+.server .server-credentials__input-group--middle {
+  margin: 0 11.5px !important;
+  padding-top: 5px;
   padding-bottom: 2px;
 }
 .server .server-credentials__input {
@@ -132,7 +135,7 @@
 }
 .server .server-credentials__submit {
   margin-top: 12px;
-  margin-right: 3.5px;
+  margin-right: 2px;
   width: 83px;
   height: 29px;
   cursor: pointer;
@@ -152,8 +155,6 @@
  * Implementation of themes
  */
 .server .server-options {
-  height: 219px;
-  width: 258px;
   border: 1px solid #f0405e;
   border-radius: 3px;
 }
@@ -266,8 +267,6 @@
  */
 .server .proxy-options {
   margin-left: -10px;
-  height: 219px;
-  width: 277px;
   border: 1px solid #f0405e;
   border-radius: 3px;
 }
@@ -352,6 +351,7 @@
   font-size: 12px;
   color: #efefef;
   letter-spacing: 0;
+  margin-right: -3px;
 }
 .server .proxy-options__generate:hover {
   opacity: 0.8333;
@@ -408,8 +408,6 @@
 }
 
 .server .server-table-container {
-  width: 523px;
-  height: 531px;
   border-style: solid;
   border-width: 1px;
   border-radius: 3px;
@@ -450,19 +448,21 @@
   min-height: 26px;
 }
 .server .server-table__header--account {
-  width: 95px;
+  margin-left: 20px;
+  flex-grow: 1;
 }
 .server .server-table__header--region {
-  width: 55px;
+  flex-grow: 1;
 }
 .server .server-table__header--ip {
-  width: 35px;
+  flex-grow: 2;
 }
 .server .server-table__header--speed {
-  width: 55px;
+  flex-grow: 1;
 }
 .server .server-table__header--actions {
-  width: 55px;
+  margin-right: 15px;
+  flex-grow: 0;
 }
 .server .server-table .blank {
   padding-left: 10px;
@@ -493,31 +493,34 @@
   padding-bottom: 2px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--status {
-  margin-left: 14.5px !important;
-  margin-right: 6.5px !important;
+  flex-grow: 0;
+  margin-right: 5px !important;
 }
 .server .server-table .proxy-row-container .proxy-log__row--status > svg,
 .server .server-table .proxy-row-container .proxy-log__row--status * {
   width: 9px;
 }
 .server .server-table .proxy-row-container .proxy-log__row--account {
-  width: 145px;
+  flex-grow: 1;
+  width: 50px;
+  margin-right: 27px !important;
 }
 .server .server-table .proxy-row-container .proxy-log__row--region {
-  width: 80px;
+  flex-grow: 1;
+  margin-right: 22px !important;
 }
 .server .server-table .proxy-row-container .proxy-log__row--ip {
-  width: 105px;
+  flex-grow: 2;
 }
 .server .server-table .proxy-row-container .proxy-log__row--speed {
-  width: 72px;
+  flex-grow: 1;
+  margin-right: 25px !important;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions {
-  margin-right: 15px !important;
-  width: 105px;
+  flex-grow: 0;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions__margin {
-  margin: 0 25px 0 25px !important;
+  margin: 0 15px 0 15px !important;
 }
 .server .server-table .proxy-row-container .proxy-log__row--actions__button {
   padding-bottom: 2px;
