@@ -135,7 +135,9 @@ export class ProxyListPrimitive extends Component {
     return proxies
       .map(
         (proxy, idx) =>
-          `<div${errors.includes(idx) ? ' class="invalidProxy"' : ''}>${ProxyListPrimitive.sanitize(
+          `<div${
+            errors.includes(idx) ? ' class="invalidProxy"' : ''
+          } style="overflow-x: scroll; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ProxyListPrimitive.sanitize(
             proxy,
           )}</div>`,
       )
@@ -148,7 +150,7 @@ export class ProxyListPrimitive extends Component {
       'data-testid': addTestId('ProxyListPrimitive.proxyInputDiv'),
       'data-private': true,
       ref: this.domNode,
-      className,
+      className: `col col--start col--expand col--no-gutter ${className}`,
       onInput: this.handleUpdate,
       onFocus: this.focus,
       onBlur: this.blur,
@@ -160,26 +162,30 @@ export class ProxyListPrimitive extends Component {
 
   render() {
     return (
-      <div>
-        <div className="row row--start">
-          <div className="col col--no-gutter-left">
-            <p className="body-text section-header proxy-list__section-header">Proxy List</p>
+      <>
+        <div className="row row--start row--gutter">
+          <div className="col col--start col--expand col--no-gutter-left">
+            <p className="row row--start row--expand body-text section-header proxy-list__section-header">
+              Proxy List
+            </p>
           </div>
         </div>
-        <div className="row">
-          <div className="col col--no-gutter-left col--expand">
-            <div className="proxy-list col col--start col--no-gutter">
-              <div className="row row--start row--gutter">
-                <div className="col proxy-list__input-group">
-                  <div className="row row--gutter">
-                    <div className="col col--no-gutter">{this.renderProxyInputDiv()}</div>
+        <div className="row row--start row--expand row--gutter">
+          <div className="col col--start col--no-gutter-left col--expand">
+            <div className="proxy-list col col--start col--expand col--no-gutter">
+              <div className="row row--start row--expand row--gutter">
+                <div className="col col--start col--expand proxy-list__input-group">
+                  <div className="row row--start row--expand row--gutter">
+                    <div className="col col--start col--no-gutter">
+                      {this.renderProxyInputDiv()}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 }

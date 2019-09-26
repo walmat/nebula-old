@@ -9,7 +9,7 @@ import './server.css';
 
 const Server = () => (
   <div className="container server">
-    <div className="row" style={{ width: '100%' }}>
+    <div className="row row--start row--expand row--no-gutter" style={{ width: '100%' }}>
       <div className="col col--start col--expand" style={{ flexGrow: 0 }}>
         <div className="row row--start">
           <div className="col col--start col--expand col--no-gutter-left">
