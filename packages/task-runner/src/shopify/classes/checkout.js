@@ -5,6 +5,7 @@ import { isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
 const { Events } = require('../../constants').Runner;
+const { Events: TaskManagerEvents } = require('../../constants').Manager;
 const { userAgent, currencyWithSymbol } = require('../../common');
 const { notification } = require('./hooks');
 const { getHeaders, stateForError } = require('./utils');
@@ -64,7 +65,7 @@ class Checkout {
     this.checkoutToken = null;
     this.checkoutKey = null;
     this.storeId = null;
-    this.needsCaptcha = false;
+    this.needsCaptcha = this._context.task.forceCaptcha || false;
 
     this.prices = {
       item: 0,
@@ -76,6 +77,7 @@ class Checkout {
     this.captchaToken = '';
     this.needsLogin = this._context.task.account || false;
     this.needsPatched = true;
+    this.webhookSent = false;
     this.captchaTokenRequest = null;
   }
 
@@ -210,6 +212,7 @@ class Checkout {
       task: {
         site: { url },
         account: { username, password },
+        type,
       },
       proxy,
     } = this._context;
@@ -270,7 +273,15 @@ class Checkout {
           return { message: 'Password page', delay: true, nextState: States.LOGIN };
         }
 
+        // DON'T SET `this.needsLogin` to false
         if (/challenge/i.test(redirectUrl)) {
+          if (type === Modes.SAFE) {
+            if (this._context.task.product.variants && this._context.task.product.variants.length) {
+              return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
+            }
+            return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
+          }
+
           return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
         }
 
@@ -281,10 +292,18 @@ class Checkout {
         if (/account/i.test(redirectUrl)) {
           this.needsLogin = false; // update global check for login
 
-          // reset captcha token
-          if (this.captchaToken) {
-            this.captchaToken = '';
+          if (type === Modes.SAFE && !this.captchaToken) {
+            if (this._context.task.product.variants && this._context.task.product.variants.length) {
+              return { message: 'Adding to cart', nextState: States.ADD_TO_CART };
+            }
+            return { message: 'Waiting for product', nextState: States.WAIT_FOR_PRODUCT };
           }
+
+          // reset captcha token (do we need to do this? or can we use it twice...)
+          // if (this.captchaToken) {
+          //   this.captchaToken = '';
+          // }
+
           return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
         }
       }
@@ -788,28 +807,26 @@ class Checkout {
             order: { name: orderName, status_url: statusUrl },
           } = payment.checkout;
 
-          try {
-            await notification(slack, discord, {
-              success: true,
-              type,
-              checkoutUrl: webUrl,
-              product: {
-                name: productName,
-                url: productUrl,
-              },
-              price: currencyWithSymbol(paymentDue, currency),
-              site: { name, url },
-              order: {
-                number: orderName || 'None',
-                url: statusUrl,
-              },
-              profile: profileName,
-              size,
-              image: imageUrl,
-            });
-          } catch (err) {
-            // fail silently...
-          }
+          const hooks = await notification(slack, discord, {
+            success: true,
+            type,
+            checkoutUrl: webUrl,
+            product: {
+              name: productName,
+              url: productUrl,
+            },
+            price: currencyWithSymbol(paymentDue, currency),
+            site: { name, url },
+            order: {
+              number: orderName || 'None',
+              url: statusUrl,
+            },
+            profile: profileName,
+            size,
+            image: imageUrl,
+          });
+
+          this._events.emit(TaskManagerEvents.Webhook, hooks);
 
           return {
             message: `Payment successful! Order ${orderName}`,
@@ -819,8 +836,10 @@ class Checkout {
         }
 
         if (/your card was declined/i.test(bodyString)) {
-          try {
-            await notification(slack, discord, {
+          if (!this.webhookSent) {
+            this.webhookSent = true;
+
+            const hooks = await notification(slack, discord, {
               success: false,
               type,
               checkoutUrl: webUrl,
@@ -835,9 +854,10 @@ class Checkout {
               size,
               image: imageUrl,
             });
-          } catch (err) {
-            // fail silently...
+
+            this._events.emit(TaskManagerEvents.Webhook, hooks);
           }
+
           const nextState = type === Modes.FAST ? States.COMPLETE_PAYMENT : States.GO_TO_PAYMENT;
           return { message: 'Card declined', nextState };
         }
@@ -846,8 +866,10 @@ class Checkout {
 
         if (paymentProcessingErrorMessage !== null) {
           if (/no longer available/i.test(paymentProcessingErrorMessage)) {
-            try {
-              await notification(slack, discord, {
+            if (!this.webhookSent) {
+              this.webhookSent = true;
+
+              const hooks = await notification(slack, discord, {
                 success: false,
                 type,
                 checkoutUrl: webUrl,
@@ -862,9 +884,10 @@ class Checkout {
                 size,
                 image: imageUrl,
               });
-            } catch (err) {
-              // fail silently...
+
+              this._events.emit(TaskManagerEvents.Webhook, hooks);
             }
+
             const nextState = type === Modes.FAST ? States.COMPLETE_PAYMENT : States.GO_TO_PAYMENT;
             return {
               message: `Out of stock! Delaying ${monitorDelay}ms`,
@@ -872,8 +895,10 @@ class Checkout {
             };
           }
 
-          try {
-            await notification(slack, discord, {
+          if (!this.webhookSent) {
+            this.webhookSent = true;
+
+            const hooks = await notification(slack, discord, {
               success: false,
               type,
               checkoutUrl: webUrl,
@@ -888,9 +913,10 @@ class Checkout {
               size,
               image: imageUrl,
             });
-          } catch (err) {
-            // fail silently...
+
+            this._events.emit(TaskManagerEvents.Webhook, hooks);
           }
+
           const nextState = type === Modes.FAST ? States.COMPLETE_PAYMENT : States.GO_TO_PAYMENT;
           return { message: 'Payment failed!', nextState };
         }

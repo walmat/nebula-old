@@ -154,6 +154,23 @@ class TaskManager {
     }, 1000);
   }
 
+  async handleWebhook(hooks = {}) {
+    if (hooks instanceof Array) {
+      await hooks.map(async ({ embed, client }) => {
+        if (client) {
+          this._webhookManager.insert({ embed, client });
+          await this._webhookManager.send();
+        }
+      });
+    }
+    const { embed, client } = hooks;
+    if (client) {
+      this._webhookManager.insert({ embed, client });
+      return this._webhookManager.send();
+    }
+    return null;
+  }
+
   /**
    * Start Harvesting Captcha
    *
@@ -260,9 +277,11 @@ class TaskManager {
       'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
     ];
     if (type === HookTypes.discord) {
-      await new Discord(hook).build(...payload);
+      const webhook = new Discord(hook).build(...payload);
+      this.handleWebhook(webhook);
     } else if (type === HookTypes.slack) {
-      await new Slack(hook).build(...payload);
+      const webhook = new Slack(hook).build(...payload);
+      this.handleWebhook(webhook);
     }
   }
 
@@ -485,6 +504,8 @@ class TaskManager {
       monitor._events.on(RunnerEvents.SwapMonitorProxy, this.handleSwapProxy, this);
     }
     runner.registerForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
+    runner._events.on(Events.ProductFound, this.handleProduct, this);
+    runner._events.on(Events.Webhook, this.handleWebhook, this);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest, this);
     runner._events.on(RunnerEvents.SwapTaskProxy, this.handleSwapProxy, this);

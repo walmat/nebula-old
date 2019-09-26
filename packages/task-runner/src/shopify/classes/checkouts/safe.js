@@ -760,6 +760,11 @@ class SafeCheckout extends Checkout {
       }
 
       this._logger.info('Cart form parsed: %j', this.cartForm);
+
+      if (this.needsLogin) {
+        // we can assume that if we're here and need a login, it's due to us hitting `/challenge`
+        return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
+      }
       return { message: 'Creating checkout', nextState: States.CREATE_CHECKOUT };
     } catch (err) {
       this._logger.error(
@@ -1313,7 +1318,6 @@ class SafeCheckout extends Checkout {
       task: {
         site: { url, apiKey },
         monitorDelay,
-        forceCaptcha,
       },
       timers: { monitor },
       proxy,
@@ -1483,7 +1487,6 @@ class SafeCheckout extends Checkout {
       this.formValues = await parseForm(
         $,
         state,
-        this.captchaToken,
         this.checkoutToken,
         this.paymentToken,
         this._context.task.profile,
@@ -1491,9 +1494,7 @@ class SafeCheckout extends Checkout {
         'input, select, textarea, button',
       );
 
-      if ((/captcha/i.test(body) || forceCaptcha) && !this.captchaToken) {
-        this._emitTaskEvent({ message: 'Captcha found!' });
-        this.needsCaptcha = true;
+      if ((/captcha/i.test(body) || this.needsCaptcha) && !this.captchaToken) {
         return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
       }
 

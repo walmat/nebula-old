@@ -11,7 +11,7 @@
 %button-base {
   @include settings-font();
   font-size: 12px;
-  width: 65px;
+  width: 83px;
   height: 29px;
   cursor: pointer;
   border: none;
@@ -96,8 +96,8 @@
       background: themed('buttonColorPrimary');
       color: themed('buttonPrimaryText');
     }
+    width: 100%;
     margin-top: 19px;
-    width: 205px;
   }
 
   &--import {
@@ -106,8 +106,8 @@
       background: themed('buttonColorSecondary');
       color: themed('buttonPrimaryText');
     }
+    width: 100%;
     margin-top: 19px;
-    width: 205px;
   }
 
   &__button {
@@ -157,7 +157,7 @@
     }
 
     &--button {
-      &-slack {
+      &__slack {
         @extend %button-base;
         @include themify($themes) {
           background: themed('buttonColorPrimary');
@@ -165,7 +165,7 @@
         }
       }
 
-      &-discord {
+      &__discord {
         @extend %button-base;
         @include themify($themes) {
           background: themed('buttonColorPrimary');

@@ -19,10 +19,10 @@ export default () => (
           </div>
         </div>
         <div className="row row--start row--expand" style={{ width: '100%' }}>
-          <div className="col col--start col--expand col--no-gutter">
+          <div className="col col--start col--expand col--no-gutter" style={{ flexGrow: 5 }}>
             <ProxyList />
           </div>
-          <div className="col col--start settings__extras">
+          <div className="col col--start settings__extras" style={{ flexGrow: 0 }}>
             <Webhooks />
             {/* <Defaults /> */}
             <ShippingManager />

@@ -687,6 +687,11 @@ class TaskRunner {
           return States.SUBMIT_SHIPPING;
         }
 
+        // only happens in safe mode
+        if (this._prevState === States.GO_TO_CART) {
+          return States.LOGIN;
+        }
+
         if (this._prevState === States.GO_TO_CHECKPOINT) {
           return States.SUBMIT_CHECKPOINT;
         }

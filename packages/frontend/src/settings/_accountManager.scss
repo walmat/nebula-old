@@ -1,7 +1,7 @@
 %button-base {
   @include settings-font();
   font-size: 12px;
-  width: 65px;
+  width: 83px;
   height: 29px;
   cursor: pointer;
   border: none;
@@ -19,8 +19,6 @@
     }
 
     &__input-group {
-      width: 422px;
-      height: 122px;
       @include themify($themes) {
         border-color: themed('tableBorderColor');
       }
@@ -33,9 +31,8 @@
         @include settings-font();
         border-width: 1px;
         border-style: solid;
+        flex-grow: 1;
         height: 29px;
-        border-radius: 3px;
-        width: 114px;
         border-radius: 3px;
       }
 
@@ -43,15 +40,13 @@
         @include settings-font();
         border-width: 1px;
         border-style: solid;
+        flex-grow: 1;
         height: 29px;
-        border-radius: 3px;
-        width: 114px;
         border-radius: 3px;
       }
 
       &--account {
         @include settings-font();
-        width: 170px;
         border-radius: 3px;
       }
 
@@ -84,7 +79,6 @@
           color: themed('buttonPrimaryText') !important;
         }
         width: 83px !important;
-        margin-right: 7.5px;
       }
     }
   }

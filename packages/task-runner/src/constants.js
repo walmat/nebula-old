@@ -7,6 +7,7 @@ const TaskManagerEvents = {
   ChangeDelay: 'CHANGE_DELAY',
   UpdateHook: 'UPDATE_HOOK',
   ProductFound: 'PRODUCT_FOUND',
+  Webhook: 'WEBHOOK',
 };
 
 const TaskRunnerEvents = {

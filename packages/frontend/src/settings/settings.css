@@ -13,9 +13,6 @@
   border: 1px solid #f0405e;
   border-radius: 3px;
 }
-.settings .proxy-list__section-header {
-  padding-bottom: 1px;
-}
 .settings .proxy-list__input-group--text {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
@@ -43,7 +40,7 @@
   background: #313236;
 }
 
-.settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--account-manager__input-group--delete, .settings--account-manager__input-group--save, .settings--shipping-manager__input-group--clear, .settings--shipping-manager__input-group--fetch {
+.settings__input-group--button__discord, .settings__input-group--button__slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--account-manager__input-group--delete, .settings--account-manager__input-group--save, .settings--shipping-manager__input-group--clear, .settings--shipping-manager__input-group--fetch {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
@@ -54,10 +51,10 @@
   border: none;
   border-radius: 3px;
 }
-.theme-light .settings__input-group--button-discord, .theme-light .settings__input-group--button-slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--account-manager__input-group--delete, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--shipping-manager__input-group--clear, .theme-light .settings--shipping-manager__input-group--fetch {
+.theme-light .settings__input-group--button__discord, .theme-light .settings__input-group--button__slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--account-manager__input-group--delete, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--shipping-manager__input-group--clear, .theme-light .settings--shipping-manager__input-group--fetch {
   color: #161318;
 }
-.theme-dark .settings__input-group--button-discord, .theme-dark .settings__input-group--button-slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--account-manager__input-group--delete, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--shipping-manager__input-group--clear, .theme-dark .settings--shipping-manager__input-group--fetch {
+.theme-dark .settings__input-group--button__discord, .theme-dark .settings__input-group--button__slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--account-manager__input-group--delete, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--shipping-manager__input-group--clear, .theme-dark .settings--shipping-manager__input-group--fetch {
   color: #efefef;
 }
 
@@ -68,8 +65,6 @@
   margin: 0 23px;
 }
 .settings--shipping-manager__input-group {
-  width: 422px;
-  height: 122px;
   border-width: 1px;
   border-style: solid;
   padding-bottom: 3px;
@@ -86,10 +81,9 @@
   font-size: 9.5px;
   letter-spacing: 0;
   border-width: 1px;
+  flex-grow: 2;
   border-style: solid;
   height: 29px;
-  border-radius: 3px;
-  width: 170px;
   border-radius: 3px;
 }
 .theme-light .settings--shipping-manager__input-group--product {
@@ -98,28 +92,10 @@
 .theme-dark .settings--shipping-manager__input-group--product {
   color: #efefef;
 }
-.settings--shipping-manager__input-group--name {
-  font-family: AvenirNext-Medium;
-  font-size: 9.5px;
-  letter-spacing: 0;
-  border-width: 1px;
-  border-style: solid;
-  height: 29px;
-  border-radius: 3px;
-  width: 170px;
-  border-radius: 3px;
-}
-.theme-light .settings--shipping-manager__input-group--name {
-  color: #161318;
-}
-.theme-dark .settings--shipping-manager__input-group--name {
-  color: #efefef;
-}
 .settings--shipping-manager__input-group--profile {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
-  width: 170px;
   border-radius: 3px;
 }
 .theme-light .settings--shipping-manager__input-group--profile {
@@ -132,47 +108,13 @@
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
-  width: 170px;
+  flex-grow: 2;
   border-radius: 3px;
 }
 .theme-light .settings--shipping-manager__input-group--site {
   color: #161318;
 }
 .theme-dark .settings--shipping-manager__input-group--site {
-  color: #efefef;
-}
-.settings--shipping-manager__input-group--username {
-  font-family: AvenirNext-Medium;
-  font-size: 9.5px;
-  letter-spacing: 0;
-  border-width: 1px;
-  border-style: solid;
-  height: 29px;
-  border-radius: 3px;
-  width: 170px;
-  border-radius: 3px;
-}
-.theme-light .settings--shipping-manager__input-group--username {
-  color: #161318;
-}
-.theme-dark .settings--shipping-manager__input-group--username {
-  color: #efefef;
-}
-.settings--shipping-manager__input-group--password {
-  font-family: AvenirNext-Medium;
-  font-size: 9.5px;
-  letter-spacing: 0;
-  border-width: 1px;
-  border-style: solid;
-  height: 29px;
-  border-radius: 3px;
-  width: 170px;
-  border-radius: 3px;
-}
-.theme-light .settings--shipping-manager__input-group--password {
-  color: #161318;
-}
-.theme-dark .settings--shipping-manager__input-group--password {
   color: #efefef;
 }
 .settings--shipping-manager__input-group--label {
@@ -195,6 +137,7 @@
   color: #dcdcdc;
 }
 .settings--shipping-manager__input-group--fetch {
+  flex-grow: 0.5;
   width: 83px !important;
 }
 .theme-light .settings--shipping-manager__input-group--fetch {
@@ -210,8 +153,8 @@
   cursor: not-allowed !important;
 }
 .settings--shipping-manager__input-group--clear {
+  flex-grow: 0.5;
   width: 83px !important;
-  margin-right: 7.5px;
 }
 .theme-light .settings--shipping-manager__input-group--clear {
   background: #46adb4 !important;
@@ -222,21 +165,21 @@
   color: #f4f4f4 !important;
 }
 
-.settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--account-manager__input-group--delete, .settings--account-manager__input-group--save, .settings--shipping-manager__input-group--fetch, .settings--shipping-manager__input-group--clear {
+.settings__input-group--button__discord, .settings__input-group--button__slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--account-manager__input-group--delete, .settings--account-manager__input-group--save, .settings--shipping-manager__input-group--fetch, .settings--shipping-manager__input-group--clear {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
   font-size: 12px;
-  width: 65px;
+  width: 83px;
   height: 29px;
   cursor: pointer;
   border: none;
   border-radius: 3px;
 }
-.theme-light .settings__input-group--button-discord, .theme-light .settings__input-group--button-slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--account-manager__input-group--delete, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--shipping-manager__input-group--fetch, .theme-light .settings--shipping-manager__input-group--clear {
+.theme-light .settings__input-group--button__discord, .theme-light .settings__input-group--button__slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--account-manager__input-group--delete, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--shipping-manager__input-group--fetch, .theme-light .settings--shipping-manager__input-group--clear {
   color: #161318;
 }
-.theme-dark .settings__input-group--button-discord, .theme-dark .settings__input-group--button-slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--account-manager__input-group--delete, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--shipping-manager__input-group--fetch, .theme-dark .settings--shipping-manager__input-group--clear {
+.theme-dark .settings__input-group--button__discord, .theme-dark .settings__input-group--button__slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--account-manager__input-group--delete, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--shipping-manager__input-group--fetch, .theme-dark .settings--shipping-manager__input-group--clear {
   color: #efefef;
 }
 
@@ -247,8 +190,6 @@
   margin: 0 23px;
 }
 .settings--account-manager__input-group {
-  width: 422px;
-  height: 122px;
   border-width: 1px;
   border-style: solid;
   padding-bottom: 3px;
@@ -266,9 +207,8 @@
   letter-spacing: 0;
   border-width: 1px;
   border-style: solid;
+  flex-grow: 1;
   height: 29px;
-  border-radius: 3px;
-  width: 114px;
   border-radius: 3px;
 }
 .theme-light .settings--account-manager__input-group--username {
@@ -283,9 +223,8 @@
   letter-spacing: 0;
   border-width: 1px;
   border-style: solid;
+  flex-grow: 1;
   height: 29px;
-  border-radius: 3px;
-  width: 114px;
   border-radius: 3px;
 }
 .theme-light .settings--account-manager__input-group--password {
@@ -298,7 +237,6 @@
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
-  width: 170px;
   border-radius: 3px;
 }
 .theme-light .settings--account-manager__input-group--account {
@@ -343,7 +281,6 @@
 }
 .settings--account-manager__input-group--delete {
   width: 83px !important;
-  margin-right: 7.5px;
 }
 .theme-light .settings--account-manager__input-group--delete {
   background: #46adb4 !important;
@@ -367,21 +304,21 @@
   border-radius: 3px;
 }
 
-.settings__input-group--button-discord, .settings__input-group--button-slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--shipping-manager__input-group--fetch, .settings--shipping-manager__input-group--clear, .settings--account-manager__input-group--save, .settings--account-manager__input-group--delete {
+.settings__input-group--button__discord, .settings__input-group--button__slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--shipping-manager__input-group--fetch, .settings--shipping-manager__input-group--clear, .settings--account-manager__input-group--save, .settings--account-manager__input-group--delete {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;
   letter-spacing: 0;
   font-size: 12px;
-  width: 65px;
+  width: 83px;
   height: 29px;
   cursor: pointer;
   border: none;
   border-radius: 3px;
 }
-.theme-light .settings__input-group--button-discord, .theme-light .settings__input-group--button-slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--shipping-manager__input-group--fetch, .theme-light .settings--shipping-manager__input-group--clear, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--account-manager__input-group--delete {
+.theme-light .settings__input-group--button__discord, .theme-light .settings__input-group--button__slack, .theme-light .settings__button--close-captcha, .theme-light .settings__button--open-captcha, .theme-light .settings--import, .theme-light .settings--export, .theme-light .settings-defaults__input-group--clear, .theme-light .settings-defaults__input-group--save, .theme-light .settings--shipping-manager__input-group--fetch, .theme-light .settings--shipping-manager__input-group--clear, .theme-light .settings--account-manager__input-group--save, .theme-light .settings--account-manager__input-group--delete {
   color: #161318;
 }
-.theme-dark .settings__input-group--button-discord, .theme-dark .settings__input-group--button-slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--shipping-manager__input-group--fetch, .theme-dark .settings--shipping-manager__input-group--clear, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--account-manager__input-group--delete {
+.theme-dark .settings__input-group--button__discord, .theme-dark .settings__input-group--button__slack, .theme-dark .settings__button--close-captcha, .theme-dark .settings__button--open-captcha, .theme-dark .settings--import, .theme-dark .settings--export, .theme-dark .settings-defaults__input-group--clear, .theme-dark .settings-defaults__input-group--save, .theme-dark .settings--shipping-manager__input-group--fetch, .theme-dark .settings--shipping-manager__input-group--clear, .theme-dark .settings--account-manager__input-group--save, .theme-dark .settings--account-manager__input-group--delete {
   color: #efefef;
 }
 
@@ -496,8 +433,8 @@
   color: #dcdcdc;
 }
 .settings--export {
+  width: 100%;
   margin-top: 19px;
-  width: 205px;
 }
 .theme-light .settings--export {
   background: #f0405e;
@@ -508,8 +445,8 @@
   color: #f4f4f4;
 }
 .settings--import {
+  width: 100%;
   margin-top: 19px;
-  width: 205px;
 }
 .theme-light .settings--import {
   background: #46adb4;
@@ -566,19 +503,19 @@
 .settings__input-group--error-delay {
   width: 205px;
 }
-.theme-light .settings__input-group--button-slack {
+.theme-light .settings__input-group--button__slack {
   background: #f0405e;
   color: #f4f4f4;
 }
-.theme-dark .settings__input-group--button-slack {
+.theme-dark .settings__input-group--button__slack {
   background: #f0405e;
   color: #f4f4f4;
 }
-.theme-light .settings__input-group--button-discord {
+.theme-light .settings__input-group--button__discord {
   background: #f0405e;
   color: #f4f4f4;
 }
-.theme-dark .settings__input-group--button-discord {
+.theme-dark .settings__input-group--button__discord {
   background: #f0405e;
   color: #f4f4f4;
 }

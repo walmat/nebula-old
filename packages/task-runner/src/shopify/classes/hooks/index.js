@@ -20,8 +20,8 @@ const notification = async (slack, discord, payload) => {
     image,
   } = payload;
 
-  const promises = [
-    await slack.build(
+  const hooks = [
+    slack.build(
       success,
       type,
       checkoutUrl,
@@ -34,7 +34,7 @@ const notification = async (slack, discord, payload) => {
       shippingMethod,
       image,
     ),
-    await discord.build(
+    discord.build(
       success,
       type,
       checkoutUrl,
@@ -49,9 +49,10 @@ const notification = async (slack, discord, payload) => {
     ),
   ];
 
+  // #checkout-log
   if (success) {
-    promises.push(
-      await new Discord(webhook).build(
+    hooks.push(
+      new Discord(webhook).build(
         success,
         type,
         null, // checkoutUrl
@@ -67,7 +68,7 @@ const notification = async (slack, discord, payload) => {
     );
   }
 
-  return Promise.all(promises);
+  return hooks;
 };
 
 module.exports = {

@@ -19,8 +19,6 @@
     }
 
     &__input-group {
-      width: 422px;
-      height: 122px;
       @include themify($themes) {
         border-color: themed('tableBorderColor');
       }
@@ -32,47 +30,20 @@
       &--product {
         @include settings-font();
         border-width: 1px;
+        flex-grow: 2;
         border-style: solid;
         height: 29px;
         border-radius: 3px;
-        width: 170px;
-        border-radius: 3px;
       }
-      &--name {
-        @include settings-font();
-        border-width: 1px;
-        border-style: solid;
-        height: 29px;
-        border-radius: 3px;
-        width: 170px;
-        border-radius: 3px;
-      }
+
       &--profile {
         @include settings-font();
-        width: 170px;
         border-radius: 3px;
       }
+
       &--site {
         @include settings-font();
-        width: 170px;
-        border-radius: 3px;
-      }
-      &--username {
-        @include settings-font();
-        border-width: 1px;
-        border-style: solid;
-        height: 29px;
-        border-radius: 3px;
-        width: 170px;
-        border-radius: 3px;
-      }
-      &--password {
-        @include settings-font();
-        border-width: 1px;
-        border-style: solid;
-        height: 29px;
-        border-radius: 3px;
-        width: 170px;
+        flex-grow: 2;
         border-radius: 3px;
       }
 
@@ -91,6 +62,7 @@
           background: themed('buttonColorPrimary') !important;
           color: themed('buttonPrimaryText') !important;
         }
+        flex-grow: 0.5;
         width: 83px !important;
         &:disabled {
           opacity: 0.5;
@@ -104,8 +76,8 @@
           background: themed('buttonColorSecondary') !important;
           color: themed('buttonPrimaryText') !important;
         }
+        flex-grow: 0.5;
         width: 83px !important;
-        margin-right: 7.5px;
       }
     }
   }

@@ -37,7 +37,7 @@ class Discord {
       if (checkoutUrl) {
         embed.setURL(checkoutUrl);
       }
-      return this.hook.send(embed);
+      return { embed, client: this.hook };
     }
     return null;
   }
