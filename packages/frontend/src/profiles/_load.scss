@@ -4,8 +4,6 @@
 
 .profiles {
   .profiles-load {
-    height: 112px;
-    width: 277px;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
     }
@@ -24,13 +22,13 @@
         color: themed('tableHeaderColor');
       }
       height: 12px;
+      margin-top: 0;
       margin-bottom: 3px;
-      margin-top: 9px;
       padding-left: 0.5px;
     }
 
     &__input-group {
-      margin: 0 11.5px !important;
+      margin: 11.5px !important;
       padding-bottom: 2px;
 
       &--select {

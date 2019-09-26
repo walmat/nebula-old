@@ -7,20 +7,7 @@ class Slack {
     }
   }
 
-  async build(
-    success = false,
-    type,
-    checkoutUrl,
-    product,
-    price,
-    site,
-    order,
-    profile,
-    size,
-    checkoutSpeed,
-    shippingMethod,
-    image,
-  ) {
+  build(success = false, type, checkoutUrl, product, price, site, order, profile, size, image) {
     if (this.hook) {
       let fallback;
       let title;
@@ -46,7 +33,7 @@ class Slack {
         }
       }
 
-      const payload = {
+      const embed = {
         attachments: [
           {
             fallback,
@@ -83,16 +70,6 @@ class Slack {
                 value: size,
                 short: true,
               },
-              {
-                title: 'Checkout Time (ms)',
-                value: checkoutSpeed,
-                short: true,
-              },
-              {
-                title: 'Shipping Method',
-                value: shippingMethod,
-                short: true,
-              },
             ],
             thumb_url: image,
             footer: 'Nebula Orion @ 2019',
@@ -103,7 +80,9 @@ class Slack {
         ],
       };
 
-      return this.hook.send(payload);
+      console.log(embed);
+
+      return { embed, client: this.hook };
     }
     return null;
   }

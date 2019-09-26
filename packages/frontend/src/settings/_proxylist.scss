@@ -14,11 +14,6 @@
     border: 1px solid #f0405e;
     border-radius: 3px;
 
-    &__section-header {
-      margin-top: 7px;
-      padding-bottom: 1px;
-    }
-
     &__input-group {
       &--text {
         @include settings-font();

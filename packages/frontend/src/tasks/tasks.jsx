@@ -91,40 +91,40 @@ export class TasksPrimitive extends PureComponent {
     const { errorDelay, monitorDelay, onKeyPress } = this.props;
     return (
       <div className="container tasks">
-        <div className="row">
-          <div className="col col--start">
+        <div className="row row--expand" style={{ width: '100%' }}>
+          <div className="col col--expand col--start" style={{ flexGrow: 0.5 }}>
             <div className="row row--start">
               <div className="col col--no-gutter-left">
                 <h1 className="text-header tasks__title">Tasks</h1>
               </div>
             </div>
-            <div className="row">
-              <div className="col">
+            <div className="row row--expand">
+              <div className="col col--expand">
                 <div className="row row--start">
                   <div className="col col--no-gutter-left">
                     <p className="body-text section-header tasks-create__section-header">Create</p>
                   </div>
                 </div>
-                <div className="row">
-                  <div className="col col--no-gutter-left">
+                <div className="row row--expand">
+                  <div className="col col--start col--expand col--no-gutter-left">
                     <CreateTask />
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="col col--start">
+          <div className="col col--expand col--start" style={{ flexGrow: 5 }}>
             <LogTask />
           </div>
         </div>
-        <div className="row row--start">
-          <div className="col col--start">
+        <div className="row row--expand row--start" style={{ width: '100%' }}>
+          <div className="col col--expand col--start">
             <div className="row row--start">
               <p className="body-text section-header tasks-table__section-header">View</p>
             </div>
-            <div className="row row--expand">
-              <div className="col col--start tasks-table-container">
-                <div className="row tasks-table__header">
+            <div className="row row--start row--expand">
+              <div className="col col--expand col--start tasks-table-container">
+                <div className="row row--start row--no-gutter tasks-table__header">
                   <div className="col tasks-table__header__edit" />
                   <div className="col tasks-table__header__id">
                     <p>#</p>
@@ -141,7 +141,7 @@ export class TasksPrimitive extends PureComponent {
                   <div className="col tasks-table__header__sizes">
                     <p>Size</p>
                   </div>
-                  <div className="col tasks-table__header__pairs">
+                  <div className="col tasks-table__header__account">
                     <p>Account</p>
                   </div>
                   <div className="col tasks-table__header__actions">
@@ -153,8 +153,8 @@ export class TasksPrimitive extends PureComponent {
                     <hr className="view-line" />
                   </div>
                 </div>
-                <div className="row row--expand row--start">
-                  <div className="col tasks-table__wrapper">
+                <div className="row row--gutter row--expand row--start">
+                  <div className="col col--no-gutter tasks-table__wrapper">
                     <ViewTask />
                   </div>
                 </div>

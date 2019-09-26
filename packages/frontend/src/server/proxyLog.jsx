@@ -29,28 +29,28 @@ export class ProxyLogPrimitive extends PureComponent {
 
   render() {
     return (
-      <div className="col col--gutter col--expand server-log">
-        <div className="row row--gutter row--start">
-          <div className="col col--expand col--start">
+      <div className="col col--start col--expand col--gutter server-log">
+        <div className="row row--start row--expand row--gutter">
+          <div className="col col--start col--expand">
             <div className="row row--start">
-              <p className="body-text section-header server-table__section-header">Log</p>
+              <p className="row row--start row--expand body-text section-header server-table__section-header">Log</p>
             </div>
-            <div className="row row--expand">
-              <div className="col col--start server-table-container">
-                <div className="row server-table__header">
-                  <div className="col col--no-gutter server-table__header--account">
+            <div className="row row--start row--expand">
+              <div className="col col--start col--expand server-table-container">
+                <div className="row row--start server-table__header">
+                  <div className="col col--start col--expand col--no-gutter-right server-table__header--account">
                     <p>Account</p>
                   </div>
-                  <div className="col server-table__header--region">
+                  <div className="col col--start col--expand server-table__header--region">
                     <p>Region</p>
                   </div>
-                  <div className="col server-table__header--ip">
+                  <div className="col col--start col--expand server-table__header--ip">
                     <p>IP</p>
                   </div>
-                  <div className="col server-table__header--speed">
+                  <div className="col col--start col--expand server-table__header--speed">
                     <p>Speed</p>
                   </div>
-                  <div className="col server-table__header--actions">
+                  <div className="col col--start col--expand server-table__header--actions">
                     <p>Actions</p>
                   </div>
                 </div>

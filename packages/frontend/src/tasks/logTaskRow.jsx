@@ -60,7 +60,7 @@ const LogTaskRow = ({
   fullscreen,
 }) => {
   const classMap = {
-    id: ['col', 'tasks-row__log--id'],
+    id: ['col', 'col--no-gutter', 'tasks-row__log--id'],
     store: ['col', 'col--no-gutter', 'tasks-row__log--store'],
     product: ['col', 'col--no-gutter', 'tasks-row__log--product'],
     size: ['col', 'col--no-gutter', 'tasks-row__log--size'],
@@ -68,7 +68,7 @@ const LogTaskRow = ({
     output: ['col', 'col--no-gutter', 'tasks-row__log--output'],
   };
 
-  const tasksRow = `row ${selected ? 'tasks-row--selected' : 'tasks-row'}`;
+  const tasksRow = `row row--gutter ${selected ? 'tasks-row--selected' : 'tasks-row'}`;
 
   if (fullscreen) {
     Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
@@ -82,7 +82,7 @@ const LogTaskRow = ({
     <div
       key={index}
       style={style}
-      className="tasks-row-container col"
+      className="tasks-row-container col col--no-gutter"
       data-testid={addTestId('LogTaskRow.container')}
       role="button"
       tabIndex={0}

@@ -54,6 +54,7 @@ export const colourStyles = (theme, provided) => ({
   control: (styles, { isDisabled }) => {
     const key = `${theme}${isDisabled ? '--disabled' : ''}`;
     const backgroundColor = mapThemeToColor[key];
+
     return {
       ...styles,
       borderColor: (provided && provided.borderColor) || '#46ADB4',

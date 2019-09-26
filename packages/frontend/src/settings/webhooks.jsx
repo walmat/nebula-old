@@ -8,10 +8,10 @@ import sDefns from '../utils/definitions/settingsDefinitions';
 export class WebhooksPrimitive extends PureComponent {
   static renderWebhookButton(type, onClick, onKeyPress) {
     return (
-      <div className="col col--end col--no-gutter-right">
+      <div className="col col--end col--expand col--no-gutter-right">
         <button
           type="button"
-          className={`settings__input-group--button-${type}`}
+          className={`settings__input-group--button__${type}`}
           onKeyPress={onKeyPress}
           tabIndex={0}
           onClick={onClick}
@@ -54,9 +54,9 @@ export class WebhooksPrimitive extends PureComponent {
     const onClick = () =>
       field === SETTINGS_FIELDS.EDIT_DISCORD ? onTestDiscord(value) : onTestSlack(value);
     return (
-      <div className="col">
+      <div className="col col--expand col--no-gutter-right">
         <div className="row row--gutter">
-          <div className="col col--no-gutter">
+          <div className="col col--start col--expand col--no-gutter">
             <p className="settings__label">{label}</p>
             <input
               className={`settings__input-group--webhook__${type}`}
@@ -76,14 +76,14 @@ export class WebhooksPrimitive extends PureComponent {
   render() {
     const { discord, slack } = this.props;
     return (
-      <div>
-        <div className="row row--start row-gutter">
+      <>
+        <div className="row row--no-gutter-right">
           {this.renderWebhookInput(SETTINGS_FIELDS.EDIT_DISCORD, discord)}
         </div>
-        <div className="row row--start row-gutter">
+        <div className="row row--no-gutter-right">
           {this.renderWebhookInput(SETTINGS_FIELDS.EDIT_SLACK, slack)}
         </div>
-      </div>
+      </>
     );
   }
 }

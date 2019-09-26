@@ -132,16 +132,7 @@ const patchToCart = variant => ({
   },
 });
 
-const parseForm = async (
-  $,
-  state,
-  captchaToken,
-  checkoutToken,
-  paymentToken,
-  profile,
-  formName,
-  wanted,
-) => {
+const parseForm = async ($, state, checkoutToken, paymentToken, profile, formName, wanted) => {
   let count = 0;
   const data = [];
   await $(formName).each((i, form) => {
@@ -188,9 +179,6 @@ const parseForm = async (
 
           if (data.some(({ name: existing }) => /button/i.test(existing))) {
             return;
-          }
-          if (captchaToken && state === States.GO_TO_CHECKOUT) {
-            data.push({ name: 'g-recaptcha-response', value: captchaToken });
           }
         }
 

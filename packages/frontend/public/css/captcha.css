@@ -162,14 +162,13 @@
   font-style: normal;
 }
 
-* {
-  font-family: AvenirNext-Medium;
+* > {
   letter-spacing: 0;
+  border-radius: 4px !important;
+  border: transparent;
 }
 
 html, body {
-    border-radius: 4px !important;
-    border: transparent;
     height: 100%;
     width: 100%;
 }
@@ -225,8 +224,6 @@ button:focus {
 
 #launch-youtube {
     background: #F0405E;
-    font-family: AvenirNext-Medium;
-    font-size: 12px;
     color: #EFEFEF;
     letter-spacing: 0;
     border: none;
@@ -242,8 +239,6 @@ button:focus {
 
 #end-session {
   background: #46ADB4;
-  font-family: AvenirNext-Medium;
-  font-size: 12px;
   color: #dddddd;
   letter-spacing: 0;
   border: none;

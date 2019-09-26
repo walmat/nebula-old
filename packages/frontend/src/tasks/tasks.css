@@ -75,8 +75,10 @@
  * Implementation of themes
  */
 .tasks .tasks-create {
-  height: 226px;
-  width: 277px;
+  max-height: 285px;
+  min-height: 225px;
+  min-width: 280px;
+  flex-grow: 0.5;
   border-width: 1px;
   border-style: solid;
   border-radius: 3px;
@@ -115,8 +117,20 @@
   margin: 0 11.5px !important;
   padding-bottom: 2px;
 }
+.tasks .tasks-create__input-group--first {
+  margin: 0 11.5px !important;
+  padding-bottom: 2px;
+  margin-top: 1.5px !important;
+}
+.tasks .tasks-create__input-group--middle {
+  margin: 0 11.5px !important;
+  padding-bottom: 2px;
+  margin-bottom: 11px !important;
+}
 .tasks .tasks-create__input-group--last {
-  padding-top: 1px;
+  margin: 0 11.5px !important;
+  padding-bottom: 2px;
+  margin-bottom: 10.5px !important;
 }
 .tasks .tasks-create__input-group--filter {
   padding-left: 14px;
@@ -133,8 +147,13 @@
   border-style: solid;
 }
 .tasks .tasks-create__input--field {
-  width: 119px;
   height: 29px;
+}
+@media screen and (min-width: 1250px) and (min-height: 745px) {
+  .tasks .tasks-create__input--field {
+    height: 35px !important;
+    transition: ease all 0.5s;
+  }
 }
 .theme-light .tasks .tasks-create__input--field {
   background: #f4f4f4;
@@ -149,8 +168,13 @@
   background: #262626;
 }
 .tasks .tasks-create__input--field__short {
-  width: 79px;
   height: 29px;
+}
+@media screen and (min-width: 1250px) and (min-height: 745px) {
+  .tasks .tasks-create__input--field__short {
+    transition: ease all 0.5s;
+    height: 35px;
+  }
 }
 .theme-light .tasks .tasks-create__input--field__short {
   background: #f4f4f4;
@@ -248,8 +272,7 @@
 }
 
 .tasks .tasks-log-container {
-  width: 504px;
-  height: 300px;
+  flex-grow: 5;
   border-width: 1px;
   border-style: solid;
   border-radius: 3px;
@@ -266,7 +289,7 @@
   top: 30px;
   left: 125px;
   height: calc(100% - 60px);
-  width: calc(100% - 259px);
+  width: calc(100% - 235px);
 }
 .theme-light .tasks .tasks-log-container--fullscreen {
   background-color: #f4f4f4;
@@ -334,12 +357,15 @@
 }
 .tasks .tasks-live-log__output-row-message--success {
   color: #46adb4;
+  transition: ease all 0.25s;
 }
 .tasks .tasks-live-log__output-row-message--failed {
   color: #ef415e;
+  transition: ease all 0.25s;
 }
 .tasks .tasks-live-log__output-row-message--warning {
   color: #d8973c;
+  transition: ease all 0.25s;
 }
 .tasks .tasks-log {
   border-collapse: collapse;
@@ -387,10 +413,12 @@
 .tasks .tasks-log__header--id {
   width: 7px;
   padding-left: 14px;
+  flex-grow: 0;
 }
 .tasks .tasks-log__header--store {
   width: 110px;
   padding-left: 15px;
+  flex-grow: 1;
 }
 .tasks .tasks-log__header--product {
   display: none;
@@ -403,6 +431,7 @@
 .tasks .tasks-log__header--size {
   width: 65px;
   padding-left: 18px;
+  flex-grow: 1;
 }
 .tasks .tasks-log__header--proxy {
   display: none;
@@ -414,6 +443,7 @@
 .tasks .tasks-log__header--output {
   width: 20px;
   padding-left: 30px;
+  flex-grow: 10;
 }
 .tasks .tasks-log__header--output--fullscreen {
   width: 20px;
@@ -474,19 +504,14 @@
   color: #d8973c;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--id {
-  margin-left: 8.5px;
-  margin-right: 6.5px;
-}
-.tasks .tasks-log .tasks-row-container .tasks-row__log--id--fullscreen {
-  margin-left: 12.5px;
-  margin-right: 9.5px;
+  width: 15px;
+  margin-left: 12px !important;
+  flex-grow: 0;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store {
-  width: 106px;
-  margin-right: 10px !important;
-}
-.tasks .tasks-log .tasks-row-container .tasks-row__log--store--fullscreen {
-  width: 112px;
+  width: 110px;
+  margin-left: 9px !important;
+  flex-grow: 1;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product {
   visibility: hidden;
@@ -498,11 +523,9 @@
   margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size {
-  width: 74px;
-  margin-right: 10px !important;
-}
-.tasks .tasks-log .tasks-row-container .tasks-row__log--size--fullscreen {
-  width: 54px;
+  width: 65px;
+  margin-left: 17px !important;
+  flex-grow: 1;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy {
   visibility: hidden;
@@ -514,8 +537,10 @@
   margin-right: 10px !important;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
-  width: 231px;
-  margin-right: 10px !important;
+  width: 20px;
+  margin-left: 31px !important;
+  flex-grow: 10;
+  transition: ease all 0.35s;
 }
 
 /*
@@ -530,25 +555,24 @@
   overflow-x: hidden;
 }
 
-.tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit {
+.tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__account, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit {
   margin: 0;
 }
-.tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p {
+.tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__account > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p {
   font-family: AvenirNext-Medium;
   font-size: 12px;
   letter-spacing: 0;
   margin: 5px 0;
 }
-.theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__actions > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__pairs > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__sizes > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__profile > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__sites > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__product > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__id > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__edit > p {
+.theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__actions > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__account > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__account > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__sizes > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__profile > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__sites > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__product > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__id > p, .theme-light .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p, .tasks .tasks-table-container .tasks-table__header .theme-light .tasks-table__header__edit > p {
   color: #161318;
 }
-.theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__actions > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__pairs > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__sizes > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__profile > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__sites > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__product > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__id > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__edit > p {
+.theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__actions > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__account > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__account > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__sizes > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__profile > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__sites > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__product > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__id > p, .theme-dark .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit > p, .tasks .tasks-table-container .tasks-table__header .theme-dark .tasks-table__header__edit > p {
   color: #dcdcdc;
 }
 
 .tasks .tasks-table-container {
-  width: 741px;
-  height: 300px;
+  flex-grow: 5;
   border-style: solid;
   border-width: 1px;
   border-radius: 3px;
@@ -574,30 +598,47 @@
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__edit {
   width: 5px;
+  flex-grow: 0;
+  margin-left: 6px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id {
   width: 26px;
+  flex-grow: 0;
+  margin-left: 14px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__id > p {
   text-align: center;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__product {
+  flex-grow: 5;
+  margin-left: 11px;
   width: 200px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sites {
   width: 125px;
+  flex-grow: 2;
+  margin-left: 8px;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__profile {
   width: 125px;
+  flex-grow: 1;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__sizes {
   width: 65px;
+  flex-grow: 1;
+  margin-left: 5px;
 }
-.tasks .tasks-table-container .tasks-table__header .tasks-table__header__pairs {
+.tasks .tasks-table-container .tasks-table__header .tasks-table__header__account {
   width: 65px;
+  flex-grow: 1;
 }
 .tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions {
   width: 50px;
+  flex-grow: 2;
+  margin-right: 6px;
+}
+.tasks .tasks-table-container .tasks-table__header .tasks-table__header__actions > p {
+  text-align: center;
 }
 .tasks .tasks-table {
   border-collapse: collapse;
@@ -620,7 +661,6 @@
   padding-bottom: 0;
 }
 .tasks .tasks-table .tasks-row-container {
-  width: calc(100% - 30px) !important;
   border-bottom-style: solid;
   border-bottom-width: 1px;
 }
@@ -640,7 +680,7 @@
   align-items: flex-start;
   border-width: 1px;
   border-style: solid;
-  margin: 0 -5px 5px -5px;
+  margin: 0 15px 5px 15px !important;
   border-radius: 3px;
 }
 .theme-light .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit {
@@ -685,7 +725,7 @@
   border-radius: 3px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action {
-  margin: 12px 7px 0 7px;
+  margin: 13px 7px 0 7px;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row.tasks-row--edit .action__button {
   width: 83px;
@@ -715,72 +755,92 @@
   vertical-align: middle;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__edit {
-  margin-top: 4.5px;
-  width: 6px;
+  width: 5px;
+  flex-grow: 0;
+  margin-left: 6px !important;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__id {
   width: 26px;
   text-align: center;
+  width: 26px;
+  flex-grow: 0;
+  margin-left: 14px !important;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__id--FAST {
   width: 26px;
+  width: 26px;
+  flex-grow: 0;
+  margin-left: 14px !important;
   text-align: center;
   color: #858dbb;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__id--SAFE {
   width: 26px;
+  width: 26px;
+  flex-grow: 0;
+  margin-left: 14px !important;
   text-align: center;
   color: #8aa27d;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__product {
-  width: 200px;
+  width: 188px;
   white-space: nowrap;
   text-overflow: ellipsis;
   vertical-align: middle;
-  max-width: 200px;
+  flex-grow: 5;
+  margin-left: 11px !important;
   overflow: hidden;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__product--checkout-ready-light {
-  width: 200px;
+  flex-grow: 5;
+  margin-left: 11px !important;
+  width: 188px;
   white-space: nowrap;
   text-overflow: ellipsis;
   vertical-align: middle;
-  max-width: 200px;
   overflow: hidden;
   color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__product--checkout-ready-dark {
-  width: 200px;
+  flex-grow: 5;
+  margin-left: 11px !important;
+  width: 188px;
   white-space: nowrap;
   text-overflow: ellipsis;
   vertical-align: middle;
-  max-width: 200px;
   overflow: hidden;
   color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sites {
   text-overflow: ellipsis;
   width: 125px;
+  margin-left: 11px !important;
+  flex-grow: 2;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sites--checkout-ready-light {
   text-overflow: ellipsis;
   width: 125px;
+  flex-grow: 2;
   color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sites--checkout-ready-dark {
   text-overflow: ellipsis;
   width: 125px;
+  flex-grow: 2;
   color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile {
-  width: 125px;
+  width: 127px;
+  flex-grow: 1;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-light {
-  width: 125px;
+  width: 127px;
+  flex-grow: 1;
   color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile--checkout-ready-dark {
-  width: 125px;
+  width: 127px;
+  flex-grow: 1;
   color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__profile > p {
@@ -788,28 +848,35 @@
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes {
   width: 65px;
+  flex-grow: 1;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-light {
   width: 65px;
+  flex-grow: 1;
   color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__sizes--checkout-ready-dark {
   width: 65px;
+  flex-grow: 1;
   color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__account {
-  width: 65px;
+  width: 67px;
+  flex-grow: 1;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__account--checkout-ready-light {
-  width: 65px;
+  width: 67px;
+  flex-grow: 1;
   color: #f68e5f;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__account--checkout-ready-dark {
-  width: 65px;
+  width: 67px;
+  flex-grow: 1;
   color: #f5dd90;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions {
   width: 50px;
+  flex-grow: 2;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__actions__button:first-child {
   margin-left: -10px;

@@ -156,10 +156,12 @@ class App {
 
     const session = await this._authManager.getSession();
 
-    if (session) {
+    // create splash page if not in dev mode
+    if (session && !nebulaEnv.isDevelopment()) {
       await this._windowManager.createNewWindow('splash');
     }
 
+    // security check for http loggers
     if (!nebulaEnv.isDevelopment()) {
       // attach an interval to check for any logging applications
       setInterval(async () => {
@@ -170,19 +172,34 @@ class App {
       }, 1500);
     }
 
+    // discord Rich Presence API
     this._rpc.rpc.on('ready', async () => {
-      await this._rpc.setActivity();
-      // eslint-disable-next-line no-return-await
-      this._rpcInterval = setInterval(async () => await this._rpc.setActivity(), 15e3);
+      await this._rpc.setActivity().catch(console.error);
+
+      this._rpcInterval = setInterval(
+        // eslint-disable-next-line no-return-await
+        async () => await this._rpc.setActivity().catch(console.error),
+        15e3,
+      );
     });
 
+    // if we're in dev mode, don't wait for splash page buffer
+    if (nebulaEnv.isDevelopment()) {
+      // create the main window
+      await this._windowManager.createNewWindow('main');
+      // set the menu
+      const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
+      Electron.Menu.setApplicationMenu(menu);
+      return;
+    }
+
+    // wait 3 seconds to start the main window (for splash page buffering)
     setTimeout(async () => {
       // create the window
       await this._windowManager.createNewWindow('main');
       // set the menu
       const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
       Electron.Menu.setApplicationMenu(menu);
-      // add discord RPC
     }, 3000);
   }
 

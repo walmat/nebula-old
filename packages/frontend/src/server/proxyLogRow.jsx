@@ -89,7 +89,7 @@ export class ProxyLogRowPrimitive extends PureComponent {
         className="proxy-row-container col col--no-gutter"
         data-testid={addTestId('ProxyLowRow.container')}
       >
-        <div className="row proxy-log">
+        <div className="row row--start row--gutter proxy-log">
           <div
             className="col col--no-gutter proxy-log__row--status"
             data-testid={addTestId('ProxyLogRow.status')}

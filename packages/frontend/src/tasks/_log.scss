@@ -35,8 +35,7 @@
 
 .tasks {
   .tasks-log-container {
-    width: 504px;
-    height: 300px;
+    flex-grow: 5;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
     }
@@ -53,7 +52,7 @@
       top: 30px;
       left: 125px;
       height: calc(100% - 60px);
-      width: calc(100% - 259px);
+      width: calc(100% - 235px);
     }
   }
 
@@ -117,14 +116,17 @@
 
       &--success {
         color: #46adb4;
+        transition: ease all 0.25s;
       }
 
       &--failed {
         color: #ef415e;
+        transition: ease all 0.25s;
       }
 
       &--warning {
         color: #d8973c;
+        transition: ease all 0.25s;
       }
     }
   }
@@ -175,12 +177,14 @@
         @extend %tasks-log__header__field;
         width: 7px;
         padding-left: 14px;
+        flex-grow: 0;
       }
 
       &--store {
         @extend %tasks-log__header__field;
         width: 110px;
         padding-left: 15px;
+        flex-grow: 1;
       }
 
       &--product {
@@ -197,6 +201,7 @@
         @extend %tasks-log__header__field;
         width: 65px;
         padding-left: 18px;
+        flex-grow: 1;
       }
 
       &--proxy {
@@ -217,6 +222,8 @@
           width: 20px;
           padding-left: 80px;
         }
+
+        flex-grow: 10;
       }
     }
 
@@ -280,21 +287,20 @@
 
           &--id {
             @extend %tasks-table__text-field;
-            margin-left: 8.5px;
-            margin-right: 6.5px;
-            &--fullscreen {
-              margin-left: 12.5px;
-              margin-right: 9.5px;
-            }
+            width: 15px;
+            margin-left: 12px !important;
+            flex-grow: 0;
+            // &--fullscreen {
+            // }
           }
 
           &--store {
             @extend %tasks-table__text-field;
-            width: 106px;
-            margin-right: 10px !important;
-            &--fullscreen {
-              width: 112px;
-            }
+            width: 110px;
+            margin-left: 9px !important;
+            flex-grow: 1;
+            // &--fullscreen {
+            // }
           }
 
           &--product {
@@ -310,11 +316,11 @@
 
           &--size {
             @extend %tasks-table__text-field;
-            width: 74px;
-            margin-right: 10px !important;
-            &--fullscreen {
-              width: 54px;
-            }
+            width: 65px;
+            margin-left: 17px !important;
+            flex-grow: 1;
+            // &--fullscreen {
+            // }
           }
 
           &--proxy {
@@ -330,8 +336,10 @@
 
           &--output {
             @extend %tasks-table__text-field;
-            width: 231px;
-            margin-right: 10px !important;
+            width: 20px;
+            margin-left: 31px !important;
+            flex-grow: 10;
+            transition: ease all 0.35s;
           }
         }
       }

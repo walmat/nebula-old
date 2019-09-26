@@ -31,12 +31,12 @@ export class ShippingRatesPrimitive extends PureComponent {
       [RATES_FIELDS.SITE]: {
         placeholder: 'Choose Site',
         type: 'site',
-        className: 'col col--no-gutter-left',
+        className: 'col col--start col--expand col--no-gutter',
       },
       [RATES_FIELDS.RATE]: {
         placeholder: 'Choose Rate',
         type: 'name',
-        className: 'col col--no-gutter',
+        className: 'col col--start col--expand',
       },
     };
 
@@ -75,23 +75,21 @@ export class ShippingRatesPrimitive extends PureComponent {
     const { theme } = this.props;
     const { placeholder, type, className } = this.selects[field];
     return (
-      <div className={className}>
-        <Select
-          required
-          placeholder={placeholder}
-          components={{ DropdownIndicator, IndicatorSeparator }}
-          isMulti={false}
-          isClearable={false}
-          className={`profiles-rates__input-group--${type}`}
-          classNamePrefix="select"
-          styles={colourStyles(theme)}
-          onChange={this.createOnChangeHandler(field)}
-          value={value}
-          options={options}
-          data-testid={addTestId(`ShippingRates.input.${type}`)}
-          data-private
-        />
-      </div>
+      <Select
+        required
+        placeholder={placeholder}
+        components={{ DropdownIndicator, IndicatorSeparator }}
+        isMulti={false}
+        isClearable={false}
+        className={`${className} profiles-rates__input-group--${type}`}
+        classNamePrefix="select"
+        styles={colourStyles(theme)}
+        onChange={this.createOnChangeHandler(field)}
+        value={value}
+        options={options}
+        data-testid={addTestId(`ShippingRates.input.${type}`)}
+        data-private
+      />
     );
   }
 
@@ -121,36 +119,32 @@ export class ShippingRatesPrimitive extends PureComponent {
       siteObject.selectedRate = null;
     }
     return (
-      <div className="col profiles-rates__input-group">
-        <div className="row row--gutter row--start">
+      <div className="col col--start col--expand profiles-rates__input-group">
+        <div className="row row--start row--expand row--gutter">
           {this.renderSelect(RATES_FIELDS.SITE, value.selectedSite, siteOptions)}
           {this.renderSelect(RATES_FIELDS.RATE, rateValue, nameOptions)}
         </div>
-        <div className="row row--gutter">
-          <div className="col col--no-gutter">
-            <input
-              className="profiles-rates__input-group--rate"
-              required
-              disabled
-              value={rateValue ? rateValue.value : ''}
-              style={validationStatus(false)}
-              placeholder=""
-              data-testid={addTestId('ShippingRates.input.rate')}
-              data-private
-            />
-          </div>
-          <div className="col col--no-gutter">
-            <input
-              className="profiles-rates__input-group--price"
-              required
-              disabled
-              value={rateValue ? rateValue.price : ''}
-              style={validationStatus(false)}
-              placeholder=""
-              data-testid={addTestId('ShippingRates.input.price')}
-              data-private
-            />
-          </div>
+        <div className="row row--start row--expand row--gutter">
+          <input
+            className="col col--start col--expand col--no-gutter-left profiles-rates__input-group--rate"
+            required
+            disabled
+            value={rateValue ? rateValue.value : ''}
+            style={validationStatus(false)}
+            placeholder=""
+            data-testid={addTestId('ShippingRates.input.rate')}
+            data-private
+          />
+          <input
+            className="col col--start col--expand col--no-gutter-left profiles-rates__input-group--price"
+            required
+            disabled
+            value={rateValue ? rateValue.price : ''}
+            style={validationStatus(false)}
+            placeholder=""
+            data-testid={addTestId('ShippingRates.input.price')}
+            data-private
+          />
         </div>
         <div className="row row--gutter row--end">
           <div className="col col--end col--no-gutter-left">
@@ -175,13 +169,11 @@ export class ShippingRatesPrimitive extends PureComponent {
     return (
       <div className="col col--expand">
         <div className="row row--start">
-          <p className="body-text section-header profiles-rates__section-header">Shipping Rates</p>
+          <p className="row row--start row--expand body-text section-header profiles-rates__section-header">Shipping Rates</p>
         </div>
         <div className="row row--start row--expand">
-          <div className="profiles-rates col col--start col--no-gutter">
-            <div className="row row--start row--no-gutter-left row--gutter-right">
-              {rateFieldsComponent}
-            </div>
+          <div className="profiles-rates col col--start col--expand col--no-gutter">
+            <div className="row row--start row--expand row--no-gutter">{rateFieldsComponent}</div>
           </div>
         </div>
       </div>

@@ -103,7 +103,7 @@ export class LogTaskPrimitive extends PureComponent {
         'section-header--no-top',
         'tasks-log__section-header',
       ],
-      container: ['col', 'col--start', 'tasks-log-container'],
+      container: ['col', 'col--start', 'col--expand', 'tasks-log-container'],
       tableHeader: [
         'row',
         'row--start',
@@ -120,9 +120,9 @@ export class LogTaskPrimitive extends PureComponent {
     }
 
     return (
-      <div>
+      <div className="col col--start col--expand">
         <div className="row row--start">
-          <div className="col">
+          <div className="col col--expand">
             <p
               className={classMap.sectionHeader.join(' ')}
               data-testid={addTestId('LogTaskPrimitive.sectionHeader')}
@@ -131,7 +131,7 @@ export class LogTaskPrimitive extends PureComponent {
             </p>
           </div>
         </div>
-        <div className="row">
+        <div className="row row--expand row--start">
           <div
             data-testid={addTestId('LogTaskPrimitive.container')}
             className={classMap.container.join(' ')}

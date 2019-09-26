@@ -38,13 +38,13 @@ export class ShippingManagerPrimitive extends PureComponent {
         label: 'Profile',
         placeholder: 'Choose Profile',
         type: 'profile',
-        className: 'col',
+        className: 'col col--start col--expand col--gutter',
       },
       [SETTINGS_FIELDS.EDIT_SHIPPING_SITE]: {
         label: 'Site',
         placeholder: 'Choose Site',
         type: 'site',
-        className: 'col col--no-gutter-right settings--shipping-manager__adjust-margin',
+        className: 'col col--start col--expand col--gutter',
       },
     };
     this.buttons = {
@@ -223,22 +223,25 @@ export class ShippingManagerPrimitive extends PureComponent {
       };
     }
     return (
-      <div>
-        <div className="row row--gutter">
-          <div className="col">
-            <div className="row row--start">
+      <>
+        <div className="row row--start row--expand row--gutter" style={{ flexGrow: 0 }}>
+          <div className="col col--start col--expand col--no-gutter">
+            <div className="row row--start row--gutter">
               <div className="col col--no-gutter-left">
                 <p className="body-text section-header settings--shipping-manager__section-header">
                   Shipping Manager
                 </p>
               </div>
             </div>
-            <div className="row">
-              <div className="col col--no-gutter-left">
-                <div className="row row--start row-gutter">
-                  <div className="col settings--shipping-manager__input-group">
-                    <div className="row row--gutter">
-                      <div className="col col--no-gutter-right">
+            <div className="row row--start row--gutter-left">
+              <div className="col col--start col--expand col--no-gutter">
+                <div className="row row--start row--expand row--no-gutter-left">
+                  <div className="col col--start col--expand settings--shipping-manager__input-group">
+                    <div
+                      className="row row--start row--expand row--gutter"
+                      style={{ marginTop: '15px' }}
+                    >
+                      <div className="col col--start col--expand col--no-gutter-right">
                         <p className="settings--shipping-manager__input-group--label">Product</p>
                         <input
                           className="settings--shipping-manager__input-group--product"
@@ -261,16 +264,19 @@ export class ShippingManagerPrimitive extends PureComponent {
                         this.buildProfileOptions(),
                       )}
                     </div>
-                    <div className="row row--gutter">
+                    <div
+                      className="row row--start row--expand row--gutter"
+                      style={{ margin: '15px 0' }}
+                    >
                       {this.renderSelect(
                         SETTINGS_FIELDS.EDIT_SHIPPING_SITE,
                         shippingSiteValue,
                         getAllSupportedSitesSorted(),
                       )}
-                      <div className="col col--end col--no-gutter-right">
+                      <div className="col col--end" style={{ margin: '15px 0' }}>
                         {this.renderButton(SETTINGS_FIELDS.FETCH_SHIPPING_METHODS, shipping)}
                       </div>
-                      <div className="col col--end col--gutter-left">
+                      <div className="col col--end col--gutter-left" style={{ margin: '15px' }}>
                         {this.renderButton(SETTINGS_FIELDS.CLEAR_SHIPPING_FIELDS)}
                       </div>
                     </div>
@@ -280,7 +286,7 @@ export class ShippingManagerPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 }

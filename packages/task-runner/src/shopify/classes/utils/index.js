@@ -64,7 +64,7 @@ const stateForError = ({ status, name, errno }, { message, nextState }) => {
 
 const getHeaders = ({ url, apiKey }) => ({
   'X-Shopify-Checkout-Version': '2019-10-06',
-  'X-Shopify-Access-Token': `${apiKey}`,
+  'X-Shopify-Access-Token': apiKey,
   'x-barba': 'yes',
   'User-Agent': userAgent,
   host: `${url.split('/')[2]}`,

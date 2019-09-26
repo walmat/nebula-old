@@ -106,6 +106,18 @@
   user-select: none;
   text-rendering: optimizeLegibility;
 }
+@media (min-width: 1250px) and (min-height: 745px) {
+  * {
+    font-size: 11px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    text-rendering: optimizeLegibility;
+  }
+}
 * :focus {
   outline: 0px solid transparent;
 }
@@ -154,8 +166,36 @@ body .theme-dark {
   background: #313236;
 }
 
+input,
+.select__control,
+.select__control--menu-is-open {
+  height: 29px !important;
+  transition: ease all 0.5s;
+}
+
+@media (min-width: 1250px) and (min-height: 5px) {
+  input,
+button,
+.select__control,
+.select__control--menu-is-open {
+    transition: ease all 0.5s;
+    height: 35px !important;
+  }
+}
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
 td {
   font-size: 12px;
+}
+@media (min-width: 1250px) and (min-height: 745px) {
+  td {
+    transition: ease all 0.5s;
+    font-size: 14px;
+  }
 }
 
 select {
@@ -180,6 +220,7 @@ select {
   left: 0;
   right: 0;
   height: 25px;
+  z-index: 9999;
   cursor: move !important;
   background: transparent;
   -webkit-user-select: none;
@@ -267,6 +308,7 @@ select {
 
 .active > svg {
   opacity: 0.5;
+  transition: ease all 0.25s;
 }
 
 .close-area-1:hover,
@@ -274,6 +316,7 @@ select {
 .theme-toggle:hover {
   opacity: 0.8333;
   cursor: pointer;
+  transition: ease all 0.25s;
 }
 
 input:focus,
@@ -324,9 +367,8 @@ select:disabled {
   margin-top: 25px;
   /*height of transparent titlebar for dragging*/
   margin-bottom: 30px;
-  margin-right: 0;
-  width: calc(100% - 140px);
-  height: 665px;
+  margin-right: 25px;
+  height: calc(100% - 55px);
 }
 
 input:focus::-webkit-input-placeholder {
@@ -358,6 +400,11 @@ input:focus {
 }
 .theme-dark .body-text {
   color: #f0405e;
+}
+@media screen and (min-width: 1250px) and (min-height: 745px) {
+  .body-text {
+    font-size: 14px;
+  }
 }
 
 .flex-container {

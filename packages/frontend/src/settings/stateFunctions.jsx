@@ -38,11 +38,11 @@ export class StateFunctionsPrimitive extends PureComponent {
   render() {
     const { onKeyPress } = this.props;
     return (
-      <div className="row row--gutter">
-        <div className="col col--no-gutter-left">
+      <div className="row row--expand row--no-gutter-left" style={{ flexGrow: 0 }}>
+        <div className="col col--start col--expand col--no-gutter-right">
           <button
             type="button"
-            className="settings--export"
+            className="col col--expand col--no-gutter-left settings--export"
             tabIndex={0}
             onKeyPress={onKeyPress}
             onClick={this.onExport}
@@ -50,10 +50,10 @@ export class StateFunctionsPrimitive extends PureComponent {
             Export Application State
           </button>
         </div>
-        <div className="col col--no-gutter-left">
+        <div className="col col--start col--expand col--no-gutter-right">
           <button
             type="button"
-            className="settings--import"
+            className="col col--expand col--no-gutter settings--import"
             tabIndex={0}
             onKeyPress={onKeyPress}
             onClick={this.onImport}

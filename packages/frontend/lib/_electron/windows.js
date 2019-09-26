@@ -6,6 +6,7 @@ const nebulaEnv = require('./env');
 nebulaEnv.setUpEnvironment();
 
 const _defaultWebPreferences = {
+  backgroundThrottling: false,
   nodeIntegration: false,
   contextIsolation: false,
   nodeIntegrationInWorker: false,
@@ -21,9 +22,10 @@ const _createWindow = options => {
   const browserWindowOptions = {
     center: true,
     frame: false,
+    transparent: true,
     fullscreenable: false,
-    movable: true,
     resizable: false,
+    movable: true,
     show: false,
     webPreferences: {
       ..._defaultWebPreferences,
@@ -155,6 +157,8 @@ const createAuthWindow = () =>
   _createWindow({
     width: 600,
     height: 430,
+    transparent: true,
+    frame: false,
     webPreferences: {
       ..._defaultWebPreferences,
       preload: Path.join(__dirname, '../common/bridge/authPreload.js'),
@@ -174,7 +178,6 @@ const createSplashWindow = () =>
     show: true,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
   });
 
 let splashUrl = `file:///${Path.join(__dirname, '../../build/splash.html')}`;
@@ -277,10 +280,13 @@ urls.set('gmail', youtubeUrl);
  */
 const createMainWindow = () =>
   _createWindow({
-    width: 1000,
+    width: 1020,
     height: 715,
+    resizable: true,
     transparent: true,
     frame: false,
+    minWidth: 1020,
+    minHeight: 715,
     webPreferences: {
       ..._defaultWebPreferences,
       preload: Path.join(__dirname, '../common/bridge/mainPreload.js'),

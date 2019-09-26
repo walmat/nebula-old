@@ -117,22 +117,25 @@ export class AccountManagerPrimitive extends PureComponent {
     }
 
     return (
-      <div>
-        <div className="row row--gutter">
-          <div className="col">
-            <div className="row row--start">
+      <>
+        <div className="row row--gutter" style={{ flexGrow: 0 }}>
+          <div className="col col--start col--expand col--no-gutter">
+            <div className="row row--start row--gutter">
               <div className="col col--no-gutter-left">
                 <p className="body-text section-header settings--account-manager__section-header">
                   Account Manager
                 </p>
               </div>
             </div>
-            <div className="row">
-              <div className="col col--no-gutter-left">
-                <div className="row row--start row-gutter">
-                  <div className="col settings--account-manager__input-group">
-                    <div className="row row--gutter">
-                      <div className="col col--no-gutter-right">
+            <div className="row row--start row--gutter-left">
+              <div className="col col--start col--expand col--no-gutter">
+                <div className="row row--start row--expand row--no-gutter-left">
+                  <div className="col col--start col--expand settings--account-manager__input-group">
+                    <div
+                      className="row row--start row--expand row--gutter"
+                      style={{ margin: '15px 0' }}
+                    >
+                      <div className="col col--start col--expand col--no-gutter-right">
                         <p className="settings--account-manager__input-group--label">
                           Email Address
                         </p>
@@ -186,8 +189,8 @@ export class AccountManagerPrimitive extends PureComponent {
                         />
                       </div>
                     </div>
-                    <div className="row row--gutter">
-                      <div className="col col--end col--no-gutter-right settings--account-manager__adjust-margin">
+                    <div className="row row--gutter" style={{ marginBottom: '15px' }}>
+                      <div className="col col--end col--expand col--no-gutter-right">
                         <p className="settings--shipping-manager__input-group--label">
                           Choose Account
                         </p>
@@ -226,7 +229,7 @@ export class AccountManagerPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 }
