@@ -22,13 +22,7 @@ export const TASK_ACTIONS = {
 // Private API Requests
 const _addTaskRequest = async (task, amount) => {
   const copy = JSON.parse(JSON.stringify(task));
-  const parsedProduct = parseProductType(copy.product);
-
-  if (parsedProduct) {
-    copy.product = parsedProduct;
-    return { task: copy, amount };
-  }
-  throw new Error('Invalid Task');
+  return { task: copy, amount };
 };
 
 const _updateTaskRequest = async (id, task) => {

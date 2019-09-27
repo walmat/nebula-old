@@ -3,7 +3,11 @@ import { parseURL } from 'whatwg-url';
 import regexes from '../validation';
 import { TASK_FIELDS } from '../../state/actions';
 
-function validateProduct(product) {
+function validateProduct(product, isFormValidator) {
+  if (!isFormValidator && product === '') {
+    return true;
+  }
+
   if (!product) {
     return false;
   }
@@ -36,7 +40,11 @@ function validateProduct(product) {
   return false; // default to not valid
 }
 
-function validateSite(site) {
+function validateSite(site, isFormValidator) {
+  if (!isFormValidator && site === '') {
+    return true;
+  }
+
   if (!site || !site.url) {
     return false;
   }
@@ -48,7 +56,10 @@ function validateProfile(profile) {
   return profile && profile.id;
 }
 
-function validateNonEmpty(input) {
+function validateNonEmpty(input, isFormValidator) {
+  if (!isFormValidator && input === '') {
+    return true;
+  }
   return input;
 }
 

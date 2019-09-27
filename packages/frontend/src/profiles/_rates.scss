@@ -50,12 +50,14 @@
       @extend %input_field;
       margin-top: 17px !important;
       width: 155px;
+      cursor: default !important;
     }
 
     &--price {
       @extend %input_field;
       margin-top: 17px !important;
       width: 79px;
+      cursor: default !important;
     }
 
     &--site {

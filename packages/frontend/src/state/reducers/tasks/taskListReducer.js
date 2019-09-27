@@ -2,6 +2,7 @@
 import shortId from 'shortid';
 
 import PLATFORMS from '../../../constants/platforms';
+import parseProductType from '../../../utils/parseProductType';
 import {
   TASK_ACTIONS,
   SERVER_ACTIONS,
@@ -171,6 +172,13 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       // perform a deep copy of given task
       const newTask = JSON.parse(JSON.stringify(action.response.task));
 
+      const parsedProduct = parseProductType(newTask.product);
+      if (!parsedProduct) {
+        break;
+      }
+
+      newTask.product = parsedProduct;
+
       // copy over edits
       newTask.edits = {
         ...newTask.edits,
@@ -262,6 +270,13 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         updateTask.site = updateTask.edits.site || updateTask.site;
         updateTask.size = updateTask.edits.size || updateTask.size;
       }
+
+      const parsedProduct = parseProductType(updateTask.product);
+      if (!parsedProduct) {
+        break;
+      }
+
+      updateTask.product = parsedProduct;
 
       // copy over to edits
       updateTask.edits = {

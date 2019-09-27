@@ -2,17 +2,29 @@
 import { LOCATION_FIELDS } from '../../state/actions';
 import getAllCountries, { getProvinces } from '../../constants/getAllCountries';
 
-function validateAddress(address) {
-  // TODO: Create regex for addresses (or use google location api)
+function validateAddress(address, isFormValidator) {
+  if (!isFormValidator && address === '') {
+    return true;
+  }
+
   return address && address !== '';
 }
 
-function validateApt() {
-  // no validation needed
+function validateApt(input, isFormValidator) {
+  if (!isFormValidator && input === '') {
+    return true;
+  }
+
+  if (input && isFormValidator) {
+    return input !== '';
+  }
   return true;
 }
 
-function validateCity(city) {
+function validateCity(city, isFormValidator) {
+  if (!isFormValidator && city === '') {
+    return true;
+  }
   // TOOD: create regex for cities (or use google location api)
   return city && city !== '';
 }
@@ -22,17 +34,26 @@ function validateCountry(country) {
   return country && countries.some(c => c.code === country.value);
 }
 
-function validateFirstName(firstName) {
+function validateFirstName(firstName, isFormValidator) {
   // Make sure first name is not empty
+  if (!isFormValidator && firstName === '') {
+    return true;
+  }
   return firstName && firstName !== '';
 }
 
-function validateLastName(lastName) {
+function validateLastName(lastName, isFormValidator) {
+  if (!isFormValidator && lastName === '') {
+    return true;
+  }
   // Make sure last name is not empty
   return lastName && lastName !== '';
 }
 
-function validatePhoneNumber(phoneNumber) {
+function validatePhoneNumber(phoneNumber, isFormValidator) {
+  if (!isFormValidator && phoneNumber === '') {
+    return true;
+  }
   // trust that the phone number they gave us is right
   return phoneNumber && phoneNumber !== '';
 }
@@ -45,7 +66,10 @@ function validateProvince({ country = {}, province = {} }) {
   return provinces && provinces.some(s => s.code === province.value);
 }
 
-function validateZipCode(zipCode) {
+function validateZipCode(zipCode, isFormValidator) {
+  if (!isFormValidator && zipCode === '') {
+    return true;
+  }
   // TODO: create regex for zip codes (or use google location api)
   return zipCode && zipCode !== '';
 }

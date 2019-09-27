@@ -91,7 +91,9 @@ export class LogTaskPrimitive extends PureComponent {
     const task = tasks[index];
     const { fullscreen } = this.state;
 
-    return <LogTaskRow key={key} style={style} task={task} fullscreen={fullscreen} />;
+    return (
+      <LogTaskRow key={key} style={style} task={task} fullscreen={fullscreen} selected={false} />
+    );
   }
 
   render() {

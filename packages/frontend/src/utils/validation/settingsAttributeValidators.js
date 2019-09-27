@@ -1,19 +1,31 @@
 import { SETTINGS_FIELDS } from '../../state/actions';
 import regexes from '../validation';
 
-function validateDiscordWebhook(input) {
+function validateDiscordWebhook(input, isFormValidator) {
+  if (!isFormValidator && input === '') {
+    return true;
+  }
   return input && regexes.discordWebhook.test(input);
 }
 
-function validateSlackWebhook(input) {
+function validateSlackWebhook(input, isFormValidator) {
+  if (!isFormValidator && input === '') {
+    return true;
+  }
   return input && regexes.slackWebhook.test(input);
 }
 
-function validateEmail(input) {
+function validateEmail(input, isFormValidator) {
+  if (!isFormValidator && input === '') {
+    return true;
+  }
   return input && regexes.email.test(input);
 }
 
-function validateNonEmpty(input) {
+function validateNonEmpty(input, isFormValidator) {
+  if (!isFormValidator && input === '') {
+    return true;
+  }
   return input;
 }
 

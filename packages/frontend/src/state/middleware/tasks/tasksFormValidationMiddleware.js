@@ -33,11 +33,14 @@ const tasksFormValidationMiddleware = store => next => action => {
         ) {
           errors[mapTaskFieldsToKey[field]] = false;
         } else if (action.type === TASK_ACTIONS.ADD) {
-          errors[mapTaskFieldsToKey[field]] = !validator(response[mapTaskFieldsToKey[field]]);
+          errors[mapTaskFieldsToKey[field]] = !validator(response[mapTaskFieldsToKey[field]], true);
         } else if (field === TASK_FIELDS.EDIT_AMOUNT) {
           errors[mapTaskFieldsToKey[field]] = false;
         } else {
-          errors[mapTaskFieldsToKey[field]] = !validator(response.edits[mapTaskFieldsToKey[field]]);
+          errors[mapTaskFieldsToKey[field]] = !validator(
+            response.edits[mapTaskFieldsToKey[field]],
+            true,
+          );
         }
 
         combinedErrors = combinedErrors || errors[mapTaskFieldsToKey[field]];
@@ -52,13 +55,17 @@ const tasksFormValidationMiddleware = store => next => action => {
         if (field === TASK_FIELDS.EDIT_PRODUCT_VARIATION) {
           errors[mapTaskFieldsToKey[field]] = !validator(
             response.product[mapTaskFieldsToKey[field]],
+            true,
           );
         } else if (field === TASK_FIELDS.EDIT_TASK_ACCOUNT) {
           errors[mapTaskFieldsToKey[field]] = false;
         } else if (action.type === TASK_ACTIONS.ADD) {
-          errors[mapTaskFieldsToKey[field]] = !validator(response[mapTaskFieldsToKey[field]]);
+          errors[mapTaskFieldsToKey[field]] = !validator(response[mapTaskFieldsToKey[field]], true);
         } else {
-          errors[mapTaskFieldsToKey[field]] = !validator(response.edits[mapTaskFieldsToKey[field]]);
+          errors[mapTaskFieldsToKey[field]] = !validator(
+            response.edits[mapTaskFieldsToKey[field]],
+            true,
+          );
         }
 
         combinedErrors = combinedErrors || errors[mapTaskFieldsToKey[field]];

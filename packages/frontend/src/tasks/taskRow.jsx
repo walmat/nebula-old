@@ -4,7 +4,7 @@ import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
-import getAllSizes from '../constants/getAllSizes';
+import { getAllSizesStripped } from '../constants/getAllSizes';
 import getAllSites from '../constants/getAllSites';
 import {
   DropdownIndicator,
@@ -258,6 +258,7 @@ export class TaskRowPrimitive extends PureComponent {
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                 )}
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
+                isOptionDisabled={option => !option.supported && option.supported !== undefined}
                 onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
                 options={getAllSites()}
@@ -299,7 +300,7 @@ export class TaskRowPrimitive extends PureComponent {
                 onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SIZES)}
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES, e)}
                 value={editSizes}
-                options={getAllSizes()}
+                options={getAllSizesStripped()}
                 className="edit-field__select"
                 classNamePrefix="select"
                 data-testid={addTestId(`${testIdBase}.sizesSelect`)}

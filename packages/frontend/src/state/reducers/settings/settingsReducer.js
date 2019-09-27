@@ -249,6 +249,17 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
       errors: Object.assign({}, state.errors, action.errors),
     };
   } else if (action.type === SETTINGS_ACTIONS.TEST) {
+    if (
+      !action ||
+      !action.hook ||
+      (action.hook &&
+        !/https:\/\/discordapp.com\/api\/webhooks\/[0-9]+\/[a-zA-Z-0-9]*|https:\/\/hooks\.slack\.com\/services\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[a-zA-Z-0-9]*/.test(
+          action.hook,
+        ))
+    ) {
+      return Object.assign({}, state, change);
+    }
+
     if (window.Bridge) {
       window.Bridge.sendWebhookTestMessage(action.hook, action.test_hook_type);
     }

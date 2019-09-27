@@ -118,9 +118,13 @@ const LogTaskRow = ({
 LogTaskRow.propTypes = {
   task: tDefns.taskLog.isRequired,
   style: PropTypes.objectOf(PropTypes.any).isRequired,
-  onClick: PropTypes.func.isRequired,
+  onClick: PropTypes.func,
   selected: PropTypes.bool.isRequired,
   fullscreen: PropTypes.bool.isRequired,
+};
+
+LogTaskRow.defaultProps = {
+  onClick: () => {},
 };
 
 OutputCol.openDefaultBrowser = url => {

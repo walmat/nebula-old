@@ -143,6 +143,7 @@ export class LocationFieldsPrimitive extends PureComponent {
 
   render() {
     const { id, header, className, value, errors, disabled, theme } = this.props;
+
     return (
       <div className={className}>
         <div className="row row--start">

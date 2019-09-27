@@ -52,15 +52,19 @@ const profileFormValidationMiddleware = store => next => action => {
               const [subField, validator] = subPair;
               if (subField === LOCATION_FIELDS.PROVINCE) {
                 // if falsey value, set the value to `undefined` so the default parameters will be used in the validator
-                profileField.errors[subField] = !validator({
-                  province: profile[mapProfileFieldToKey[sourceField]][subField] || undefined,
-                  country:
-                    profile[mapProfileFieldToKey[sourceField]][LOCATION_FIELDS.COUNTRY] ||
-                    undefined,
-                });
+                profileField.errors[subField] = !validator(
+                  {
+                    province: profile[mapProfileFieldToKey[sourceField]][subField] || undefined,
+                    country:
+                      profile[mapProfileFieldToKey[sourceField]][LOCATION_FIELDS.COUNTRY] ||
+                      undefined,
+                  },
+                  true,
+                );
               } else {
                 profileField.errors[subField] = !validator(
                   profile[mapProfileFieldToKey[sourceField]][subField],
+                  true,
                 );
               }
               errors[mapProfileFieldToKey[field]][subField] = profileField.errors[subField];
@@ -73,9 +77,15 @@ const profileFormValidationMiddleware = store => next => action => {
             const validator = pair[1];
             profile.errors[mapProfileFieldToKey[field]] = !validator(
               profile[mapProfileFieldToKey[field]],
+              true,
             );
             errors[mapProfileFieldToKey[field]] = profile.errors[mapProfileFieldToKey[field]];
             combinedErrors = combinedErrors || profile.errors[mapProfileFieldToKey[field]];
+
+            // if (combinedErrors) {
+            //   newAction.profile[mapProfileFieldToKey[field]].errors =
+            //     errors[mapProfileFieldToKey[field]];
+            // }
             break;
           default:
             break;
@@ -85,6 +95,18 @@ const profileFormValidationMiddleware = store => next => action => {
       // Clear out errors if none exist
       if (combinedErrors === false) {
         delete newAction.errors;
+      } else {
+        // transfer over the upper-level errors object to it's subfield objects
+        Object.entries(newAction.errors).forEach(([k, v]) => {
+          if (/billingMatchesShipping|profileName/i.test(k)) {
+            newAction.profile.errors = {
+              ...newAction.profile.errors,
+              [k]: v,
+            };
+          } else {
+            newAction.profile[k].errors = v;
+          }
+        });
       }
 
       return next(newAction);

@@ -5,6 +5,7 @@ import taskErrors from './taskErrors';
 import taskProduct from './taskProduct';
 import taskSite from './taskSite';
 import pDefns from '../profileDefinitions';
+import sDefns from '../settingsDefinitions';
 
 const task = PropTypes.shape({
   id: PropTypes.string,
@@ -12,14 +13,13 @@ const task = PropTypes.shape({
   product: taskProduct,
   site: taskSite,
   profile: pDefns.profile,
-  username: PropTypes.string,
-  password: PropTypes.string,
+  account: sDefns.account,
   status: PropTypes.string,
   errorDelay: PropTypes.number,
   monitorDelay: PropTypes.number,
   discord: PropTypes.string,
   slack: PropTypes.string,
-  sizes: PropTypes.arrayOf(PropTypes.string),
+  size: PropTypes.string,
   edits: taskEdit,
   errors: taskErrors,
 });

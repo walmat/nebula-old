@@ -22,7 +22,7 @@ const settingsAttributeValidationMiddleware = store => next => action => {
   // Copy over the settings errors map
   newAction.errors = Object.assign({}, state.settings.errors);
   // Validate the field in question
-  const error = settingsAttributeValidatorMap[newAction.field](newAction.value);
+  const error = settingsAttributeValidatorMap[newAction.field](newAction.value, false);
   newAction.errors[mapSettingsFieldToKey[newAction.field]] = !error;
 
   // Continue on to next middleware/reducer with errors map filled in

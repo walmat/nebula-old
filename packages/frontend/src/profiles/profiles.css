@@ -206,7 +206,6 @@
 }
 .profiles .profiles-payment__input-group {
   border-radius: 3px;
-  margin-bottom: 12px;
 }
 .profiles .profiles-payment__input-group--email {
   margin: 9px 0 !important;
@@ -295,10 +294,12 @@
 .profiles-rates__input-group--rate {
   margin-top: 17px !important;
   width: 155px;
+  cursor: default !important;
 }
 .profiles-rates__input-group--price {
   margin-top: 17px !important;
   width: 79px;
+  cursor: default !important;
 }
 .profiles-rates__input-group--site {
   width: 117px;

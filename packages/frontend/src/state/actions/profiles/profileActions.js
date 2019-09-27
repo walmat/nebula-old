@@ -13,96 +13,16 @@ export const PROFILE_ACTIONS = {
   TRANSFER: 'TRANSFER_SHIPPING',
 };
 
-// Private API Requests
-
-// TODO this is only temporary until we get registration key stuff implemented
-// profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY
-
-// TEMPORARILY DISABLED FOR TESTING
-/* Store the profile in the db */
-// try {
-//     let response = await fetch('http://localhost:8080/profiles',
-//     {
-//         method: "POST",
-//         headers: {
-//             'Accept': 'application/json',
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify(profile)
-//     });
-
-//     let result = await response.json();
-//     if (!result.ok) {
-//         // TODO: Deal with this
-//     }
-// } catch (err) {
-//     console.log(err);
-// }
 const _addProfileRequest = async profile =>
-  // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     if (profile) {
       const copy = JSON.parse(JSON.stringify(profile));
       resolve(copy);
     }
     reject(new Error('Invalid profile!'));
-    // console.log('trying for request');
-    // try {
-    //   const response = await fetch(
-    //     'http://localhost:8080/profiles',
-    //     {
-    //       method: 'POST',
-    //       headers: {
-    //         Accept: 'application/json',
-    //         'Content-Type': 'application/json',
-    //       },
-    //       withCredentials: true,
-    //       body: JSON.stringify(profile),
-    //     },
-    //   );
-
-    //   console.log('awaited response');
-
-    //   const result = await response.json();
-
-    //   resolve(result);
-    //   console.log(result);
-    //   if (!result.ok) {
-    //     // TODO: Deal with this
-    //   }
-    // } catch (err) {
-    //   console.log(err);
-    // }
   });
 
-// TODO this is only temporary until we get registration key stuff implemented
-// profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY
-
-// TEMPORARILY DISABLED FOR TESTING
-/* Update the profile in the db */
-// try {
-//     let response = await fetch('http://localhost:8080/profiles',
-//     {
-//         method: "PATCH",
-//         headers: {
-//             'Accept': 'application/json',
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({
-//             profile: profile,
-//             id: id,
-//         }),
-//     });
-
-//     let result = await response.json();
-//     if (!result.ok) {
-//         // TODO: Deal with this
-//     }
-// } catch (err) {
-//     console.log(err);
-// }
 const _updateProfileRequest = async (id, profile) =>
-  // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     if (profile) {
       const copy = JSON.parse(JSON.stringify(profile));
@@ -112,32 +32,7 @@ const _updateProfileRequest = async (id, profile) =>
     reject(new Error('Invalid profile!'));
   });
 
-// TODO this is only temporary until we get registration key stuff implemented
-// profile.registrationKey = process.env.REACT_APP_REGISTRATION_KEY
-// TEMPORARILY DISABLED FOR TESTING
-/* Store the profile in the db */
-// try {
-//     let response = await fetch('http://localhost:8080/profiles',
-//     {
-//         method: "DELETE",
-//         headers: {
-//             'Accept': 'application/json',
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({
-//             id: id,
-//         }),
-//     });
-
-//     let result = await response.json();
-//     if (!result.ok) {
-//         // TODO: Deal with this
-//     }
-// } catch (err) {
-//     console.log(err);
-// }
 const _removeProfileRequest = async id =>
-  // TODO: Replace this with an actual API call
   new Promise((resolve, reject) => {
     if (id) {
       resolve(id);

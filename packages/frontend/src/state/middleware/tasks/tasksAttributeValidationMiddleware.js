@@ -28,6 +28,7 @@ const tasksAttributeValidationMiddleware = store => next => action => {
 
   errors[mapTaskFieldsToKey[newAction.field]] = !taskAttributeValidatorMap[newAction.field](
     newAction.value,
+    false,
   );
   return next(newAction);
 };

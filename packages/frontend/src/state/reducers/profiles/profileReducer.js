@@ -86,10 +86,9 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       if (!action.profile) {
         break;
       }
+      console.log(action, action.profile);
       if (action.errors) {
-        return Object.assign({}, state, {
-          errors: Object.assign({}, state.errors, action.errors),
-        });
+        return Object.assign({}, state, action.profile);
       }
 
       // If adding a new profile, we should reset the current profile to default values

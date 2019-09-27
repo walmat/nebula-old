@@ -14,7 +14,7 @@ import getAllSites from '../constants/getAllSites';
 import { THEMES } from '../constants/themes';
 import PLATFORMS from '../constants/platforms';
 
-// import sDefns from '../utils/definitions/settingsDefinitions';
+import sDefns from '../utils/definitions/settingsDefinitions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import tDefns from '../utils/definitions/taskDefinitions';
 
@@ -87,10 +87,8 @@ export class CreateTaskPrimitive extends PureComponent {
   }
 
   buildAccountOptions() {
-    // eslint-disable-next-line react/prop-types
     const { accounts } = this.props;
 
-    // eslint-disable-next-line react/prop-types
     return accounts.map(({ id, name, username, password }) => ({
       label: name,
       value: {
@@ -706,7 +704,7 @@ export class CreateTaskPrimitive extends PureComponent {
 CreateTaskPrimitive.propTypes = {
   onFieldChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
-  // accounts: sDefns.settings.accounts.isRequired,
+  accounts: sDefns.accountList.isRequired,
   task: tDefns.task.isRequired,
   theme: PropTypes.string.isRequired,
   errors: tDefns.taskErrors.isRequired,
