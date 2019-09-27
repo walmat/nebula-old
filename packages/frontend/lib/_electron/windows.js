@@ -58,7 +58,7 @@ const _createWindow = options => {
     });
   });
 
-  win.webContents.session.webRequest.onBeforeSendHeaders({}, (details, callback) => {
+  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
     const url = new URL(details.url);
     const { host, origin } = url;
 
@@ -230,6 +230,9 @@ const createCaptchaWindow = (options = {}, webPreferences = {}) =>
       ..._defaultWebPreferences,
       ...webPreferences,
       webSecurity: false,
+      nodeIntegration: true,
+      nodeIntegrationInWorker: true,
+      nodeIntegrationInSubFrames: true,
       allowRunningInsecureContent: true,
       webgl: true,
       webaudio: true,

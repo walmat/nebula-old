@@ -27,8 +27,6 @@ class App {
      */
     this._ipc = Electron.ipcMain;
 
-    this._rpc = new RPC(this);
-
     /**
      * The shell module provides functions related to desktop integration.
      * @type {shell}
@@ -48,6 +46,8 @@ class App {
     this._windowManager = new WindowManager(this);
 
     this._securityManager = new SecurityManager(this);
+
+    this._rpc = new RPC(this);
 
     /**
      * Manage the native dialog.
@@ -84,6 +84,7 @@ class App {
     }
 
     this._rpcInterval = null;
+    this._loggerInterval = null;
   }
 
   /**
@@ -164,7 +165,7 @@ class App {
     // security check for http loggers
     if (!nebulaEnv.isDevelopment()) {
       // attach an interval to check for any logging applications
-      setInterval(async () => {
+      this._loggerInterval = setInterval(async () => {
         const isRunning = await this._securityManager.isHTTPLoggerRunning();
         if (isRunning) {
           this.onWindowAllClosed();
@@ -172,15 +173,15 @@ class App {
       }, 1500);
     }
 
-    // discord Rich Presence API
-    this._rpc.rpc.on('ready', async () => {
-      await this._rpc.setActivity().catch(console.error);
+    this._rpc.client.login({ clientId: this._rpc.clientId, clientSecret: this._rpc.clientSecret }).catch(console.error);
 
-      this._rpcInterval = setInterval(
-        // eslint-disable-next-line no-return-await
-        async () => await this._rpc.setActivity().catch(console.error),
-        15e3,
-      );
+    this._rpc.client.on('ready', () => {
+      this._rpc.setActivity();
+    
+      // activity can only be set every 15 seconds
+      this._rpcInterval = setInterval(() => {
+        this._rpc.setActivity();
+      }, 15e3);
     });
 
     // if we're in dev mode, don't wait for splash page buffer
@@ -210,7 +211,10 @@ class App {
   async onBeforeQuit() {
     // Perform any cleanup that needs to get done
     if (nebulaEnv.isDevelopment()) {
+      clearInterval(this._rpcInterval);
+      clearInterval(this._loggerInterval);
       this._rpcInterval = null;
+      this._loggerInterval = null;
       console.log('cleaning up tasks...');
     }
   }
