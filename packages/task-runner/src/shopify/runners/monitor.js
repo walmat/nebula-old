@@ -351,6 +351,7 @@ class Monitor {
     this._logger.debug('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.debug('MONITOR: Mapping variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
+    this._context.task.product.image = parsed.featured_image;
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._context.task.product.variants = parsed.variants.map(v =>
@@ -406,6 +407,8 @@ class Monitor {
         'MONITOR: Retrieve Full Product %s, Mapping Variants List...',
         fullProductInfo.title,
       );
+      this._context.task.product.image = fullProductInfo.featured_image;
+      this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
       this._context.task.product.variants = fullProductInfo.variants.map(v =>
         pick(
           v,
@@ -420,7 +423,6 @@ class Monitor {
           'option4',
         ),
       );
-      this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
       this._logger.silly('MONITOR: Variants mapped! Updating context...');
 
       // Everything is setup -- kick it off to checkout
@@ -469,6 +471,7 @@ class Monitor {
     this._logger.silly('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.silly('MONITOR: Mapping variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
+    this._context.task.product.image = parsed.featured_image;
     this._context.task.product.variants = parsed.variants.map(v =>
       pick(
         v,

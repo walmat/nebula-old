@@ -138,6 +138,20 @@ export function taskReducer(state = initialTaskStates.task, action) {
           };
           break;
         }
+        case TASK_FIELDS.TOGGLE_ONE_CHECKOUT: {
+          change = {
+            oneCheckout: !state.oneCheckout,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+          break;
+        }
+        case TASK_FIELDS.TOGGLE_RESTOCK_MODE: {
+          change = {
+            restockMode: !state.restockMode,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+          break;
+        }
         case TASK_FIELDS.EDIT_TASK_ACCOUNT: {
           change = {
             account: action.value,
@@ -249,6 +263,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
           break;
         }
         case TASK_FIELDS.EDIT_SITE: {
+          console.log(action);
           if (action.value) {
             if (state.edits.site && action.value.name === state.edits.site.name) {
               break;

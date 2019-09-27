@@ -156,15 +156,17 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
     }
     case TASK_ACTIONS.ADD: {
       // Check for valid payload structure
-      if (action.errors || !action.response || (action.response && !action.response.task)) {
+      if (
+        action.errors ||
+        !action.response ||
+        (action.response && !action.response.task) ||
+        (action.response && !action.response.amount) ||
+        (action.response && action.response.amount && Number.isNaN(action.response.amount))
+      ) {
         break;
       }
 
       const { amount } = action.response;
-
-      if (amount && Number.isNaN(amount)) {
-        break;
-      }
 
       // perform a deep copy of given task
       const newTask = JSON.parse(JSON.stringify(action.response.task));
@@ -177,6 +179,9 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         size: newTask.size,
         site: newTask.site,
       };
+
+      // delete unnecessary fields
+      delete newTask.amount;
 
       switch (newTask.platform) {
         case PLATFORMS.Supreme: {
@@ -257,6 +262,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         updateTask.site = updateTask.edits.site || updateTask.site;
         updateTask.size = updateTask.edits.size || updateTask.size;
       }
+
       // copy over to edits
       updateTask.edits = {
         ...updateTask.edits,

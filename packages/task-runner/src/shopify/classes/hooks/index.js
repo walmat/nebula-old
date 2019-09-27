@@ -6,47 +6,11 @@ const notification = async (slack, discord, payload) => {
     ? 'https://discordapp.com/api/webhooks/492205269942796298/H0giZl0oansmwORuW4ifx-fwKWbcVPXR23FMoWkgrBfIqQErIKBiNQznQIHQuj-EPXic'
     : 'https://discordapp.com/api/webhooks/542618948634542101/U2W9S028eFVJxm40doq4DxMZo1EaLMRZMgrp2nOQoryzG_ysif8fltjhbsPbZSCfzx2J';
 
-  const {
-    success,
-    type,
-    checkoutUrl,
-    product,
-    price,
-    site,
-    order,
-    profile,
-    size,
-    shippingMethod,
-    image,
-  } = payload;
+  const { success, type, checkoutUrl, product, price, site, order, profile, size, image } = payload;
 
   const hooks = [
-    slack.build(
-      success,
-      type,
-      checkoutUrl,
-      product,
-      price,
-      site,
-      order,
-      profile,
-      size,
-      shippingMethod,
-      image,
-    ),
-    discord.build(
-      success,
-      type,
-      checkoutUrl,
-      product,
-      price,
-      site,
-      order,
-      profile,
-      size,
-      shippingMethod,
-      image,
-    ),
+    slack.build(success, type, checkoutUrl, product, price, site, order, profile, size, image),
+    discord.build(success, type, checkoutUrl, product, price, site, order, profile, size, image),
   ];
 
   // #checkout-log
@@ -62,7 +26,6 @@ const notification = async (slack, discord, payload) => {
         null, // order
         null, // profile
         size,
-        null,
         image,
       ),
     );

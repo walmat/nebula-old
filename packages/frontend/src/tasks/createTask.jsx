@@ -20,6 +20,10 @@ import tDefns from '../utils/definitions/taskDefinitions';
 
 import { ReactComponent as NotInStock } from '../_assets/Check_icons-02.svg';
 import { ReactComponent as InStock } from '../_assets/Check_icons-01.svg';
+import { ReactComponent as NotRestocks } from '../_assets/not-restocks.svg';
+import { ReactComponent as Restocks } from '../_assets/restocks.svg';
+import { ReactComponent as NotOneCheckout } from '../_assets/not-one-checkout.svg';
+import { ReactComponent as OneCheckout } from '../_assets/one-checkout.svg';
 
 import { DropdownIndicator, IndicatorSeparator, colourStyles } from '../utils/styles/select';
 import { addTestId, renderSvgIcon } from '../utils';
@@ -64,6 +68,7 @@ export class CreateTaskPrimitive extends PureComponent {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
+    this.buildAccountOptions = this.buildAccountOptions.bind(this);
     this.handleCreate = this.handleCreate.bind(this);
     this.saveTask = this.saveTask.bind(this);
 
@@ -162,63 +167,54 @@ export class CreateTaskPrimitive extends PureComponent {
     }
   }
 
-  createOnChangeHandler(field) {
+  createOnChangeHandler(field, event) {
     const { onFieldChange, profiles } = this.props;
     switch (field) {
       case TASK_FIELDS.EDIT_SITE: {
-        return event => {
-          const site = {
-            name: event.label,
-            url: event.value,
-            apiKey: event.apiKey,
-            localCheckout: event.localCheckout || false,
-            special: event.special || false,
-            auth: event.auth,
-          };
-          onFieldChange({ field, value: site });
+        const site = {
+          name: event.label,
+          url: event.value,
+          apiKey: event.apiKey,
+          localCheckout: event.localCheckout || false,
+          special: event.special || false,
+          auth: event.auth,
         };
+        return onFieldChange({ field, value: site });
       }
       case TASK_FIELDS.EDIT_TASK_CATEGORY:
       case TASK_FIELDS.EDIT_TASK_ACCOUNT: {
-        return event => {
-          if (!event) {
-            return onFieldChange({ field, value: event });
-          }
-          return onFieldChange({ field, value: event.value });
-        };
+        if (!event) {
+          return onFieldChange({ field, value: event });
+        }
+        return onFieldChange({ field, value: event.value });
       }
       case TASK_FIELDS.EDIT_TASK_TYPE: {
         const {
           task: { type },
         } = this.props;
-        return () => {
-          onFieldChange({ field, value: type });
-        };
+        return onFieldChange({ field, value: type });
       }
-      case TASK_FIELDS.EDIT_PROFILE:
-        return event => {
-          const change = profiles.find(p => p.id === event.value);
-          if (change) {
-            onFieldChange({ field, value: change });
-          }
-        };
+      case TASK_FIELDS.EDIT_PROFILE: {
+        const change = profiles.find(p => p.id === event.value);
+        if (change) {
+          return onFieldChange({ field, value: change });
+        }
+        return null;
+      }
       case TASK_FIELDS.EDIT_SIZES:
-        return event => {
-          onFieldChange({ field, value: event.value });
-        };
+        return onFieldChange({ field, value: event.value });
       case TASK_FIELDS.EDIT_PRODUCT:
       case TASK_FIELDS.EDIT_PAIRS:
-        return event => {
-          onFieldChange({ field, value: event.target.value });
-        };
+        return onFieldChange({ field, value: event.target.value });
       case TASK_FIELDS.TOGGLE_CAPTCHA:
       case TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK:
-        return () => onFieldChange({ field });
+      case TASK_FIELDS.TOGGLE_ONE_CHECKOUT:
+      case TASK_FIELDS.TOGGLE_RESTOCK_MODE: {
+        return onFieldChange({ field });
+      }
       default:
         // catch all for text inputs
-        return event => {
-          onFieldChange({ field, value: event.target.value });
-        };
+        return onFieldChange({ field, value: event.target.value });
     }
   }
 
@@ -381,7 +377,7 @@ export class CreateTaskPrimitive extends PureComponent {
         );
       }
       default: {
-        const { type } = task;
+        const { type, oneCheckout, restockMode, amount } = task;
         return (
           <>
             <div className="col col--expand tasks-create__input-group--middle">
@@ -402,7 +398,7 @@ export class CreateTaskPrimitive extends PureComponent {
                         }),
                     }}
                     styles={colourStyles(theme, buildStyle(false, null))}
-                    onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_TASK_ACCOUNT)}
+                    onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_TASK_ACCOUNT, e)}
                     value={account}
                     options={this.buildAccountOptions()}
                     className="tasks-create__input tasks-create__input--field"
@@ -410,8 +406,42 @@ export class CreateTaskPrimitive extends PureComponent {
                     data-testid={addTestId('CreateTask.accountSelect')}
                   />
                 </div>
-                <div className="col col--expand col--no-gutter" />
-                <div className="col col--expand col--no-gutter" />
+                <div
+                  className="col col--end col--gutter"
+                  style={{ marginBottom: '4px' }}
+                  onClick={() => this.createOnChangeHandler(TASK_FIELDS.TOGGLE_ONE_CHECKOUT)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyPress={onKeyPress}
+                >
+                  {oneCheckout
+                    ? renderSvgIcon(OneCheckout, {
+                        alt: 'One Checkout',
+                        title: 'One Checkout',
+                      })
+                    : renderSvgIcon(NotOneCheckout, {
+                        alt: 'One Checkout',
+                        title: 'One Checkout',
+                      })}
+                </div>
+                <div
+                  className="col col--end col--no-gutter-left"
+                  style={{ marginBottom: '4.5px' }}
+                  onClick={() => this.createOnChangeHandler(TASK_FIELDS.TOGGLE_RESTOCK_MODE)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyPress={onKeyPress}
+                >
+                  {restockMode
+                    ? renderSvgIcon(Restocks, {
+                        alt: 'Restock Mode',
+                        title: 'Restock Mode',
+                      })
+                    : renderSvgIcon(NotRestocks, {
+                        alt: 'Restock Mode',
+                        title: 'Restock Mode',
+                      })}
+                </div>
               </div>
             </div>
             <div className="col col--expand tasks-create__input-group--last">
@@ -420,7 +450,7 @@ export class CreateTaskPrimitive extends PureComponent {
                   <p
                     className={`tasks-create__input--type-${type}`}
                     onKeyPress={onKeyPress}
-                    onClick={this.createOnChangeHandler(TASK_FIELDS.EDIT_TASK_TYPE)}
+                    onClick={() => this.createOnChangeHandler(TASK_FIELDS.EDIT_TASK_TYPE)}
                   >
                     {type}
                   </p>
@@ -461,7 +491,7 @@ export class CreateTaskPrimitive extends PureComponent {
                         </g>
                       </svg>
                     }
-                    onChange={this.createOnChangeHandler(TASK_FIELDS.TOGGLE_CAPTCHA)}
+                    onChange={() => this.createOnChangeHandler(TASK_FIELDS.TOGGLE_CAPTCHA)}
                     onColor={theme === THEMES.LIGHT ? '#F8AC8A' : '#F7E6AE'}
                     onHandleColor={theme === THEMES.LIGHT ? '#F68E5F' : '#F5DD90'}
                     handleDiameter={14}
@@ -477,8 +507,8 @@ export class CreateTaskPrimitive extends PureComponent {
                   <input
                     type="number"
                     className="tasks-create__amount"
-                    onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_AMOUNT)}
-                    value={task.amount}
+                    onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_AMOUNT, e)}
+                    value={amount}
                     style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_AMOUNT]])}
                     tabIndex={0}
                     onKeyPress={onKeyPress}
@@ -544,7 +574,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
                 type="text"
                 placeholder="Variant, Keywords, Link"
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT, e)}
                 value={task.product.raw}
                 style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
                 required
@@ -574,7 +604,7 @@ export class CreateTaskPrimitive extends PureComponent {
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                 )}
                 isOptionDisabled={option => !option.supported && option.supported !== undefined}
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
                 onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SITE, v)}
                 value={newTaskSiteValue}
                 options={getAllSites()}
@@ -604,7 +634,7 @@ export class CreateTaskPrimitive extends PureComponent {
                   theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
                 )}
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE, e)}
                 value={newTaskProfileValue}
                 options={this.buildProfileOptions()}
                 data-testid={addTestId('CreateTask.profileSelect')}
@@ -634,7 +664,7 @@ export class CreateTaskPrimitive extends PureComponent {
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
                 )}
                 onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SIZES, v)}
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES, e)}
                 value={newSizeValue}
                 options={getAllSizes.default()}
                 className="tasks-create__input tasks-create__input--field__short"
@@ -650,7 +680,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 role="button"
                 tabIndex={0}
                 onKeyPress={onKeyPress}
-                onClick={this.createOnChangeHandler(TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK)}
+                onClick={() => this.createOnChangeHandler(TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK)}
               >
                 {task.product.randomInStock
                   ? renderSvgIcon(InStock, {

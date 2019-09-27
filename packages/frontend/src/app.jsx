@@ -85,7 +85,7 @@ export class App extends PureComponent {
     const { store } = this.props;
     if (!isEmpty(statusMessageBuffer)) {
       store.dispatch(taskActions.status(statusMessageBuffer));
-    } 
+    }
   }
 
   _cleanup() {

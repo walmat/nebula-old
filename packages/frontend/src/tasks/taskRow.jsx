@@ -58,51 +58,54 @@ export class TaskRowPrimitive extends PureComponent {
     super(props);
 
     this.handleCreate = this.handleCreate.bind(this);
+    this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
+    this.buildProfileOptions = this.buildProfileOptions.bind(this);
+    this.saveTask = this.saveTask.bind(this);
+    this.cancelEdits = this.cancelEdits.bind(this);
+    this.selectTask = this.selectTask.bind(this);
+    this.renderTableRowButton = this.renderTableRowButton.bind(this);
+    this.renderTableRowActionButton = this.renderTableRowActionButton.bind(this);
+    this.renderEditMenu = this.renderEditMenu.bind(this);
+    this.renderTableRowCopyActionButton = this.renderTableRowCopyActionButton.bind(this);
+    this.renderTableRowStartActionButton = this.renderTableRowStartActionButton.bind(this);
+    this.renderTableRowStopActionButton = this.renderTableRowStopActionButton.bind(this);
+    this.renderTableRowDestroyActionButton = this.renderTableRowDestroyActionButton.bind(this);
+    this.renderTableRowEditButton = this.renderTableRowEditButton.bind(this);
+    this.renderTableRow = this.renderTableRow.bind(this);
+
     this.state = {
       isLoadingSite: false,
       isLoadingSize: false,
     };
   }
 
-  createOnChangeHandler(field) {
+  createOnChangeHandler(field, event) {
     const { onEditTask, task } = this.props;
     switch (field) {
       case TASK_FIELDS.EDIT_SITE: {
-        return event => {
-          const site = getAllSites().find(s => s.value === event.value);
-          if (site) {
-            onEditTask(task, {
-              field,
-              value: {
-                url: site.value,
-                name: site.label,
-                apiKey: site.apiKey,
-                localCheckout: event.localCheckout || false,
-                special: site.special || false,
-                auth: site.auth,
-              },
-            });
-          }
+        const site = {
+          name: event.label,
+          url: event.value,
+          apiKey: event.apiKey,
+          localCheckout: event.localCheckout || false,
+          special: event.special || false,
+          auth: event.auth,
         };
+        return onEditTask(task, { field, value: site });
       }
       case TASK_FIELDS.EDIT_PROFILE: {
-        return event => {
-          const { profiles } = this.props;
-          const value = profiles.find(p => p.id === event.value);
-          if (value) {
-            onEditTask(task, { field, value });
-          }
-        };
+        const { profiles } = this.props;
+        const value = profiles.find(p => p.id === event.value);
+        if (value) {
+          return onEditTask(task, { field, value });
+        }
+        return null;
       }
       case TASK_FIELDS.EDIT_SIZES: {
-        return event => {
-          onEditTask(task, { field, value: event.value });
-        };
+        return onEditTask(task, { field, value: event.value });
       }
       default: {
-        return event => {
-          onEditTask(task, { field, value: event.target.value });
-        };
+        return onEditTask(task, { field, value: event.target.value });
       }
     }
   }
@@ -231,7 +234,7 @@ export class TaskRowPrimitive extends PureComponent {
                 className="edit-field__input"
                 type="text"
                 placeholder="Variant, Keywords, Link"
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT, e)}
                 value={editProduct}
                 title={editProduct}
                 style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
@@ -254,7 +257,7 @@ export class TaskRowPrimitive extends PureComponent {
                   theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                 )}
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
                 onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
                 options={getAllSites()}
@@ -274,7 +277,7 @@ export class TaskRowPrimitive extends PureComponent {
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
                 )}
                 value={editProfile}
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE, e)}
                 options={this.buildProfileOptions()}
                 data-testid={addTestId(`${testIdBase}.profileSelect`)}
                 data-private
@@ -294,7 +297,7 @@ export class TaskRowPrimitive extends PureComponent {
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
                 )}
                 onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SIZES)}
-                onChange={this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES, e)}
                 value={editSizes}
                 options={getAllSizes()}
                 className="edit-field__select"
@@ -308,9 +311,7 @@ export class TaskRowPrimitive extends PureComponent {
                 className="action__button action__button--save"
                 tabIndex={0}
                 onKeyPress={onKeyPress}
-                onClick={() => {
-                  this.saveTask();
-                }}
+                onClick={() => this.saveTask()}
                 data-testid={addTestId(`${testIdBase}.button.save`)}
               >
                 Save
@@ -322,9 +323,7 @@ export class TaskRowPrimitive extends PureComponent {
                 className="action__button action__button--cancel"
                 tabIndex={0}
                 onKeyPress={onKeyPress}
-                onClick={() => {
-                  this.cancelEdits();
-                }}
+                onClick={() => this.cancelEdits()}
                 data-testid={addTestId(`${testIdBase}.button.cancel`)}
               >
                 Cancel
@@ -523,7 +522,6 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.clearEdits(task.id, task));
   },
   onCommitEdits: task => {
-    console.log(task);
     dispatch(taskActions.update(task.id, task));
   },
   onSelectTask: task => {

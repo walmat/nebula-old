@@ -21,7 +21,7 @@ export class ViewTaskPrimitive extends PureComponent {
 
     this.cache = new CellMeasurerCache({
       fixedWidth: true,
-      defaultHeight: 31,
+      defaultHeight: 30,
     });
   }
 

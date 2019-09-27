@@ -745,8 +745,9 @@ class Checkout {
     const {
       task: {
         site: { url, apiKey, name },
-        product: { size, name: productName, url: productUrl },
+        product: { size, name: productName, url: productUrl, image },
         profile: { profileName },
+        oneCheckout,
         type,
         monitorDelay,
       },
@@ -790,16 +791,7 @@ class Checkout {
         const bodyString = JSON.stringify(payments[0]);
         const [payment] = payments;
 
-        const {
-          currency,
-          payment_due: paymentDue,
-          line_items: lineItems,
-          web_url: webUrl,
-        } = payment.checkout;
-
-        const imageUrl = lineItems[0].image_url.startsWith('http')
-          ? lineItems[0].image_url
-          : `https:${lineItems[0].image_url}`;
+        const { currency, payment_due: paymentDue, web_url: webUrl } = payment.checkout;
 
         this._logger.silly('CHECKOUT: Payment object: %j', payment);
         if (/thank_you/i.test(bodyString)) {
@@ -823,10 +815,13 @@ class Checkout {
             },
             profile: profileName,
             size,
-            image: imageUrl,
+            image: `${image}`.startsWith('http') ? image : `https:${image}`,
           });
 
           this._events.emit(TaskManagerEvents.Webhook, hooks);
+          if (oneCheckout) {
+            this._events.emit(TaskManagerEvents.Success, this._context.task);
+          }
 
           return {
             message: `Payment successful! Order ${orderName}`,
@@ -852,7 +847,7 @@ class Checkout {
               order: null,
               profile: profileName,
               size,
-              image: imageUrl,
+              image: `${image}`.startsWith('http') ? image : `https:${image}`,
             });
 
             this._events.emit(TaskManagerEvents.Webhook, hooks);
@@ -882,7 +877,7 @@ class Checkout {
                 order: null,
                 profile: profileName,
                 size,
-                image: imageUrl,
+                image: `${image}`.startsWith('http') ? image : `https:${image}`,
               });
 
               this._events.emit(TaskManagerEvents.Webhook, hooks);
@@ -911,7 +906,7 @@ class Checkout {
               order: null,
               profile: profileName,
               size,
-              image: imageUrl,
+              image: `${image}`.startsWith('http') ? image : `https:${image}`,
             });
 
             this._events.emit(TaskManagerEvents.Webhook, hooks);

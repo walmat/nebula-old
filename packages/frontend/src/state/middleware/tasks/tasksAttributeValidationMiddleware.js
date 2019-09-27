@@ -9,6 +9,8 @@ const tasksAttributeValidationMiddleware = store => next => action => {
   if (
     action.field === TASK_FIELDS.TOGGLE_CAPTCHA ||
     action.field === TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK ||
+    action.field === TASK_FIELDS.TOGGLE_ONE_CHECKOUT ||
+    action.field === TASK_FIELDS.TOGGLE_RESTOCK_MODE ||
     action.field === TASK_FIELDS.EDIT_TASK_TYPE
   ) {
     return next(action);

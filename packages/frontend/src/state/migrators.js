@@ -22,6 +22,7 @@ import v0_7_4_migrator from './migrators/v0.7.4';
 import v0_7_5_migrator from './migrators/v0.7.5';
 import v0_7_6_migrator from './migrators/v0.7.6';
 import v0_7_7_migrator from './migrators/v0.7.7';
+import v0_8_0_migrator from './migrators/v0.8.0';
 
 /* eslint-enable camelcase */
 
@@ -45,6 +46,7 @@ const trackedMigrators = {
   '0.7.5': v0_7_5_migrator,
   '0.7.6': v0_7_6_migrator,
   '0.7.7': v0_7_7_migrator,
+  '0.8.0': v0_8_0_migrator,
 };
 
 const getInitialState = () => {

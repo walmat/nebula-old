@@ -156,9 +156,9 @@ class TaskManager {
 
   async handleWebhook(hooks = {}) {
     if (hooks instanceof Array) {
-      await hooks.map(async ({ embed, client }) => {
-        if (client) {
-          this._webhookManager.insert({ embed, client });
+      await hooks.map(async hook => {
+        if (hook) {
+          this._webhookManager.insert(hook);
           await this._webhookManager.send();
         }
       });
@@ -169,6 +169,17 @@ class TaskManager {
       return this._webhookManager.send();
     }
     return null;
+  }
+
+  // only called when oneCheckout is enabled for that task that checks out
+  async handleSuccess(task) {
+    Object.values(this._runners).forEach(r => {
+      // if we are using the same profile, emit the abort event
+      if (r.task.profile.id === task.profile.id) {
+        console.log(r);
+        this.stop(r.task);
+      }
+    });
   }
 
   /**
@@ -506,6 +517,7 @@ class TaskManager {
     runner.registerForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.ProductFound, this.handleProduct, this);
     runner._events.on(Events.Webhook, this.handleWebhook, this);
+    runner._events.on(Events.Success, this.handleSuccess, this);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
     runner._events.on(Events.StopHarvest, this.handleStopHarvest, this);
     runner._events.on(RunnerEvents.SwapTaskProxy, this.handleSwapProxy, this);
@@ -610,6 +622,7 @@ class TaskManager {
     }
 
     runner.site = task.site.url;
+    runner.task = task;
     runner.platform = platform;
     runner.type = type;
     this._monitors[runnerId] = monitor;

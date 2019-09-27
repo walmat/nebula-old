@@ -37,16 +37,20 @@ export class TasksPrimitive extends PureComponent {
         delayType: 'error',
       },
     };
+
+    this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
+    this.startAllTasks = this.startAllTasks.bind(this);
+    this.stopAllTasks = this.stopAllTasks.bind(this);
+    this.destroyAllTasks = this.destroyAllTasks.bind(this);
+    this.renderDelay = this.renderDelay.bind(this);
   }
 
-  createOnChangeHandler(field) {
+  createOnChangeHandler(field, event) {
     const { onSettingsChange } = this.props;
-    return event => {
-      onSettingsChange({
-        field,
-        value: event.target.value,
-      });
-    };
+    return onSettingsChange({
+      field,
+      value: event.target.value,
+    });
   }
 
   startAllTasks() {
@@ -80,7 +84,7 @@ export class TasksPrimitive extends PureComponent {
           placeholder={placeholder}
           className={`bulk-action-sidebar__${delayType}-delay`}
           style={buildStyle(false)}
-          onChange={this.createOnChangeHandler(field)}
+          onChange={e => this.createOnChangeHandler(field, e)}
           required
         />
       </div>
@@ -166,9 +170,7 @@ export class TasksPrimitive extends PureComponent {
                     role="button"
                     tabIndex={0}
                     onKeyPress={onKeyPress}
-                    onClick={() => {
-                      this.startAllTasks();
-                    }}
+                    onClick={() => this.startAllTasks()}
                     data-testid={addTestId('Tasks.bulkActionButton.start')}
                   >
                     {renderSvgIcon(StartAllIcon, { alt: 'start all' })}
@@ -180,9 +182,7 @@ export class TasksPrimitive extends PureComponent {
                     role="button"
                     tabIndex={0}
                     onKeyPress={onKeyPress}
-                    onClick={() => {
-                      this.stopAllTasks();
-                    }}
+                    onClick={() => this.stopAllTasks()}
                     data-testid={addTestId('Tasks.bulkActionButton.stop')}
                   >
                     {renderSvgIcon(StopAllIcon, { alt: 'stop all' })}
@@ -194,9 +194,7 @@ export class TasksPrimitive extends PureComponent {
                     role="button"
                     tabIndex={0}
                     onKeyPress={onKeyPress}
-                    onClick={() => {
-                      this.destroyAllTasks();
-                    }}
+                    onClick={() => this.destroyAllTasks()}
                     data-testid={addTestId('Tasks.bulkActionButton.destroy')}
                   >
                     {renderSvgIcon(DestroyAllIcon, { alt: 'destroy all' })}

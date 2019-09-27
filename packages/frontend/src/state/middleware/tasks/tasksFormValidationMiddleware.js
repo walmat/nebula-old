@@ -34,6 +34,8 @@ const tasksFormValidationMiddleware = store => next => action => {
           errors[mapTaskFieldsToKey[field]] = false;
         } else if (action.type === TASK_ACTIONS.ADD) {
           errors[mapTaskFieldsToKey[field]] = !validator(response[mapTaskFieldsToKey[field]]);
+        } else if (field === TASK_FIELDS.EDIT_AMOUNT) {
+          errors[mapTaskFieldsToKey[field]] = false;
         } else {
           errors[mapTaskFieldsToKey[field]] = !validator(response.edits[mapTaskFieldsToKey[field]]);
         }

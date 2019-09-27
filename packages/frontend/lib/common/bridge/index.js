@@ -131,15 +131,17 @@ const _showSave = async state =>
           },
         ],
       },
-      response => {
+      async response => {
         if (!response) {
           reject({ error: new Error('Canceled') });
         }
 
-        jsonfile
-          .writeFile(response, state)
-          .then(() => resolve({ success: true }))
-          .catch(error => reject({ error }));
+        try {
+          await jsonfile.writeFile(response, state);
+          resolve({ success: true });
+        } catch (error) {
+          reject({ error });
+        }
       },
     );
   });
@@ -159,7 +161,7 @@ const _showOpen = async () =>
         ],
         properties: ['openFile'],
       },
-      response => {
+      async response => {
         if (!response || (response && !response.length)) {
           return reject({ error: new Error('Canceled') });
         }
@@ -170,16 +172,18 @@ const _showOpen = async () =>
           return reject({ error: new Error('Unable to open file') });
         }
 
-        return jsonfile
-          .readFile(path)
-          .then(data => {
-            if (!data) {
-              return reject({ error: new Error('Malformed state') });
-            }
+        let data;
 
-            return resolve({ success: true, data });
-          })
-          .catch(error => reject({ error }));
+        try {
+          data = await jsonfile.readFile(path);
+
+          if (!data) {
+            return reject({ error: new Error('Malformed state') });
+          }
+          return resolve({ success: true, data });
+        } catch (error) {
+          return reject({ error });
+        }
       },
     );
   });
