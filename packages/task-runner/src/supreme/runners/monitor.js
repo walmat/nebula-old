@@ -243,15 +243,14 @@ class Monitor {
   }
 
   async _handleParse() {
-    const { aborted, productFound, proxy } = this._context;
+    const { aborted, productFound, task, proxy, logger } = this._context;
+    const { product } = task;
 
     if (aborted || productFound) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    const { task, proxy, logger } = this._context;
-    const { product } = task;
 
     let res;
     try {
@@ -280,8 +279,6 @@ class Monitor {
       if (!productsAndCategories || !productsAndCategories.length) {
         return { message: 'Parsing products', nextState: States.PARSE };
       }
-
-
 
     } catch (error) {
       console.log(error);
