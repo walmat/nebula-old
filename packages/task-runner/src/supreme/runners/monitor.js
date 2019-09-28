@@ -250,6 +250,9 @@ class Monitor {
       return States.ABORT;
     }
 
+    const { task, proxy, logger } = this._context;
+    const { product } = task;
+
     let res;
     try {
       res = await this._request('/mobile_stock.json', {
@@ -270,9 +273,19 @@ class Monitor {
         },
       });
 
-      console.log(await res.text());
-    } catch (err) {
-      console.log(err);
+      const body = await res.json();
+
+      const { products_and_categories: productsAndCategories } = body;
+
+      if (!productsAndCategories || !productsAndCategories.length) {
+        return { message: 'Parsing products', nextState: States.PARSE };
+      }
+
+
+
+    } catch (error) {
+      console.log(error);
+      return this._handleParsingErrors([error]);
     }
 
     return States.DONE;
@@ -288,7 +301,6 @@ class Monitor {
     const stepMap = {
       [States.PARSE]: this._handleParse,
       [States.MATCH]: this._handleMatch,
-      [States.RESTOCK]: this._handleRestock,
       [States.SWAP]: this._handleSwapProxies,
       [States.ERROR]: () => States.STOP,
       [States.DONE]: () => States.STOP,

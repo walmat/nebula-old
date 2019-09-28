@@ -4878,10 +4878,10 @@ electron-updater@^4.0.6:
     pako "^1.0.10"
     semver "^6.2.0"
 
-electron@^4.2.8:
-  version "4.2.10"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-4.2.10.tgz#7096450bb14875ec2e6797316c0c1034e7fe2b76"
-  integrity sha512-dFhsJOW7OZX8JxjoBdugUZh6VWbs5PjlQIH6/w1KsZO7otgBy44j9vPI31KnIid3bdMtNbmTEF+6PA32z88kRw==
+electron@^6.0.0:
+  version "6.0.10"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-6.0.10.tgz#3468547640c98ed46060711ca70f43d0b2e40818"
+  integrity sha512-eTFm6uTn7NKZE1OtSZSOxNuOrCXXeUR0U3vdF3R00byB7mrNe5AOaXEDDMwtzRGGY1jMuUX9Z7RvgXaCXRYSmw==
   dependencies:
     "@types/node" "^10.12.18"
     electron-download "^4.1.0"
