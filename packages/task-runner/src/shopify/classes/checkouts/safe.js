@@ -1,13 +1,9 @@
-/* eslint-disable no-nested-ternary */
 /* eslint-disable array-callback-return */
-/* eslint-disable consistent-return */
-/* eslint-disable no-return-assign */
-/* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
 import { min } from 'lodash';
 import { parse } from 'query-string';
-import Checkout from '../checkout';
+import CheckoutPrimitive from '../checkout';
 
 const { States, Modes } = require('../utils/constants').TaskRunner;
 const { ParseType } = require('../utils/constants').Monitor;
@@ -16,7 +12,7 @@ const { stateForError, getHeaders } = require('../utils');
 const { addToCart, patchCheckoutForm, parseForm } = require('../utils/forms');
 const pickVariant = require('../utils/pickVariant');
 
-class SafeCheckout extends Checkout {
+class SafeCheckout extends CheckoutPrimitive {
   constructor(context, type = Modes.SAFE) {
     super(context, type);
     this.formValues = '';

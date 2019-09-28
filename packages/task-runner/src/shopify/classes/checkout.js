@@ -1,4 +1,3 @@
-/* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
 import { isEmpty } from 'lodash';
@@ -100,10 +99,12 @@ class Checkout {
     this._emitEvent(Events.TaskStatus, { ...payload, type: Types.Normal });
   }
 
+  // eslint-disable-next-line class-methods-use-this
   async addToCart() {
     throw new Error('Should be defined in subclasses');
   }
 
+  // eslint-disable-next-line class-methods-use-this
   async shippingRates() {
     throw new Error('Should be defined in subclasses');
   }
@@ -853,7 +854,10 @@ class Checkout {
             this._events.emit(TaskManagerEvents.Webhook, hooks);
           }
 
-          const nextState = type === Modes.FAST ? States.COMPLETE_PAYMENT : States.GO_TO_PAYMENT;
+          const nextState =
+            type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
+              ? States.COMPLETE_PAYMENT
+              : States.GO_TO_PAYMENT;
           return { message: 'Card declined', nextState };
         }
 
@@ -883,7 +887,10 @@ class Checkout {
               this._events.emit(TaskManagerEvents.Webhook, hooks);
             }
 
-            const nextState = type === Modes.FAST ? States.COMPLETE_PAYMENT : States.GO_TO_PAYMENT;
+            const nextState =
+              type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
+                ? States.COMPLETE_PAYMENT
+                : States.GO_TO_PAYMENT;
             return {
               message: `Out of stock! Delaying ${monitorDelay}ms`,
               nextState,
@@ -912,7 +919,10 @@ class Checkout {
             this._events.emit(TaskManagerEvents.Webhook, hooks);
           }
 
-          const nextState = type === Modes.FAST ? States.COMPLETE_PAYMENT : States.GO_TO_PAYMENT;
+          const nextState =
+            type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
+              ? States.COMPLETE_PAYMENT
+              : States.GO_TO_PAYMENT;
           return { message: 'Payment failed!', nextState };
         }
       }

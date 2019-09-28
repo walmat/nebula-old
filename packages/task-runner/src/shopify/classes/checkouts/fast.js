@@ -1,6 +1,4 @@
 /* eslint-disable no-nested-ternary */
-/* eslint-disable no-return-assign */
-/* eslint-disable class-methods-use-this */
 import HttpsProxyAgent from 'https-proxy-agent';
 import { min } from 'lodash';
 import { parse } from 'query-string';

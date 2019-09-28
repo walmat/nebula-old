@@ -58,7 +58,7 @@ const _createWindow = options => {
     });
   });
 
-  win.webContents.session.webRequest.onBeforeSendHeaders({}, (details, callback) => {
+  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
     const url = new URL(details.url);
     const { host, origin } = url;
 

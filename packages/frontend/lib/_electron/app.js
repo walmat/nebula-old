@@ -173,14 +173,9 @@ class App {
     }
 
     // discord Rich Presence API
-    this._rpc.rpc.on('ready', async () => {
-      await this._rpc.setActivity().catch(console.error);
-
-      this._rpcInterval = setInterval(
-        // eslint-disable-next-line no-return-await
-        async () => await this._rpc.setActivity().catch(console.error),
-        15e3,
-      );
+    this._rpc.rpc.on('ready', () => {
+      this._rpc.setActivity().catch(console.error);
+      this._rpcInterval = setInterval(() => this._rpc.setActivity().catch(console.error), 15e3);
     });
 
     // if we're in dev mode, don't wait for splash page buffer

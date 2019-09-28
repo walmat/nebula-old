@@ -86,7 +86,7 @@ export function currentProfileReducer(state = initialProfileStates.profile, acti
       if (!action.profile) {
         break;
       }
-      console.log(action, action.profile);
+
       if (action.errors) {
         return Object.assign({}, state, action.profile);
       }
