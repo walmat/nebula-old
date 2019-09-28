@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
-const Discord = require('../../common/discord');
+// const Discord = require('../../common/discord');
 // const Slack = require('../../common/slack');
 const AsyncQueue = require('../../common/asyncQueue');
 const { waitForDelay } = require('../../common');
@@ -34,7 +34,7 @@ class TaskRunner {
     this._captchaQueue = null;
     this._state = States.WAIT_FOR_PRODUCT;
 
-    this._discord = new Discord(this._task.discord);
+    // this._discord = new Discord(this._task.discord);
     // this._slack = new Slack(this._task.slack);
     this._logger = context.logger;
 
@@ -47,7 +47,7 @@ class TaskRunner {
       signal: this._aborter.signal,
       request: this._request,
       jar: context.jar,
-      discord: this._discord,
+      // discord: this._discord,
       // slack: this._slack,
       logger: this._logger,
       aborted: this._aborted,
