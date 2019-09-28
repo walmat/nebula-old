@@ -174,7 +174,7 @@ class App {
     }
 
     // discord Rich Presence API
-    this._rpc.rpc.on('ready', () => {
+    this._rpc.client.on('ready', () => {
       this._rpc.setActivity().catch(console.error);
       this._rpcInterval = setInterval(() => this._rpc.setActivity().catch(console.error), 15e3);
     });
