@@ -29,7 +29,6 @@ class TaskRunner {
     this.taskId = context.taskId;
     this.proxy = proxy;
     this._events = context.events;
-    this._aborted = context.aborted;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
     // eslint-disable-next-line global-require
@@ -71,7 +70,6 @@ class TaskRunner {
       discord: this._discord,
       slack: this._slack,
       logger: this._logger,
-      aborted: this._aborted,
       harvestState: HarvestStates.idle,
     };
 

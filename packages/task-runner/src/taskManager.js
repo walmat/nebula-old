@@ -1,5 +1,6 @@
 import EventEmitter from 'eventemitter3';
 import shortid from 'shortid';
+import { isEqual } from 'lodash';
 import { CookieJar } from 'tough-cookie';
 
 // global includes
@@ -17,6 +18,7 @@ const ShopifyRunner = require('./shopify/runners/taskRunner');
 const ShopifyMonitor = require('./shopify/runners/monitor');
 const RateFetcher = require('./shopify/runners/rateFetcher');
 const { getParseType } = require('./shopify/classes/utils/parse');
+const { ParseType } = require('./shopify/classes/utils/constants').Monitor;
 const { HookTypes, Types: RunnerTypes } = require('./shopify/classes/utils/constants').TaskRunner;
 const Discord = require('./shopify/classes/hooks/discord');
 const Slack = require('./shopify/classes/hooks/slack');
@@ -171,12 +173,40 @@ class TaskManager {
     return null;
   }
 
+  static async _compareProductInput(product1, product2, parseType) {
+    // we only care about keywords/url matching here...
+    switch (parseType) {
+      case ParseType.Keywords: {
+        const { pos_keywords: posKeywords, neg_keywords: negKeywords } = product1;
+        const samePositiveKeywords = isEqual(product2.pos_keywords.sort(), posKeywords.sort());
+        const sameNegativeKeywords = isEqual(product2.neg_keywords.sort(), negKeywords.sort());
+        return samePositiveKeywords && sameNegativeKeywords;
+      }
+      case ParseType.Url: {
+        const { url } = product1;
+        return product2.url.toUpperCase() === url.toUpperCase();
+      }
+      default:
+        return false;
+    }
+  }
+
   // only called when oneCheckout is enabled for that task that checks out
   async handleSuccess(task) {
     Object.values(this._runners).forEach(r => {
       // if we are using the same profile, emit the abort event
-      if (r.task.profile.id === task.profile.id) {
-        console.log(r);
+      this._logger.debug(
+        'ONE CHECKOUT: Same profile?: %j, Same site?: %j, Same product?: %j',
+        r.task.profile.id === task.profile.id,
+        r.task.site === task.site.url,
+        TaskManager._compareProductInput(task.product, r.task.product),
+      );
+
+      if (
+        r.task.profile.id === task.profile.id &&
+        r.task.site === task.site.url &&
+        TaskManager._compareProductInput(task.product, r.task.product)
+      ) {
         this.stop(r.task);
       }
     });
@@ -585,7 +615,7 @@ class TaskManager {
           runner.parseType = parseType;
           monitor = new ShopifyMonitor(context, openProxy, parseType);
           monitor.site = task.site.url;
-          monitor.type = type;
+          monitor.type = parseType;
         } else if (type === RunnerTypes.ShippingRates) {
           runner = new RateFetcher(runnerId, task, openProxy, this._loggerPath);
         }
@@ -595,6 +625,7 @@ class TaskManager {
         const context = {
           id: runnerId,
           taskId: task.id,
+          type: ParseType.Keywords,
           task,
           productFound: false,
           status: null,
@@ -608,8 +639,11 @@ class TaskManager {
           aborted: false,
         };
 
-        runner = new SupremeRunner(context, openProxy);
+        runner = new SupremeRunner(context, openProxy, ParseType.Keywords);
+        runner.parseType = ParseType.Keywords;
         monitor = new SupremeMonitor(context, openProxy);
+        monitor.site = task.site.url;
+        monitor.type = ParseType.Keywords;
         break;
       }
       default:

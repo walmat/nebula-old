@@ -15,6 +15,7 @@ const {
 } = require('../classes/utils/constants');
 const { ErrorCodes } = require('../classes/utils/constants');
 
+// SHOPIFY
 class Monitor {
   constructor(context, proxy, type = ParseType.Unknown) {
     this.id = context.id;
@@ -24,7 +25,6 @@ class Monitor {
     this._jar = context.jar;
     this._events = context.events;
     this._logger = context.logger;
-    this._aborted = context.aborted;
     this._parseType = type;
 
     this._aborter = new AbortController();
@@ -52,7 +52,6 @@ class Monitor {
       request: this._request,
       jar: this._jar,
       logger: this._logger,
-      aborted: this._aborted,
     };
 
     this._history = [];
@@ -549,6 +548,12 @@ class Monitor {
     }
   }
 
+  async _handleError() {
+    this._emitMonitorEvent({ message: 'Monitor errored out!' });
+    this._events.emit(TaskManagerEvents.Abort, this.id);
+    return States.DONE;
+  }
+
   async _handleStepLogic(currentState) {
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');
@@ -561,9 +566,9 @@ class Monitor {
       [States.MATCH]: this._handleMatch,
       [States.RESTOCK]: this._handleRestock,
       [States.SWAP]: this._handleSwapProxies,
-      [States.ERROR]: () => States.STOP,
-      [States.DONE]: () => States.STOP,
-      [States.ABORT]: () => States.STOP,
+      [States.ERROR]: this._handleError,
+      [States.DONE]: () => States.DONE,
+      [States.ABORT]: () => States.DONE,
     };
 
     const handler = stepMap[currentState] || defaultHandler;
@@ -585,7 +590,6 @@ class Monitor {
       if (!/aborterror/i.test(e.name)) {
         this._logger.verbose('Monitor loop errored out! %s', e);
         nextState = States.ERROR;
-        return true;
       }
     }
     this._logger.debug('Monitor Loop finished, state transitioned to: %s', nextState);
@@ -607,11 +611,11 @@ class Monitor {
     let shouldStop = false;
 
     if (this._context.productFound) {
-      this._state = States.STOP;
+      this._state = States.DONE;
       shouldStop = true;
     }
 
-    while (this._state !== States.STOP && !shouldStop) {
+    while (this._state !== States.DONE && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.run();
     }

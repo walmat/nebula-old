@@ -1,6 +1,9 @@
 const MonitorStates = {
   PARSE: 'PARSE',
   DONE: 'DONE',
+  ERROR: 'ERROR',
+  SWAP: 'SWAP',
+  ABORT: 'ABORT',
 };
 
 const CheckoutStates = {
@@ -42,6 +45,12 @@ const ParseType = {
   Keywords: 'KEYWORDS',
 };
 
+const ErrorCodes = {
+  NoStylesFound: 'NO_STYLES_FOUND',
+  VariantNotFound: 'VARIANT_NOT_FOUND',
+  ProductNotFound: 'PRODUCT_NOT_FOUND',
+};
+
 module.exports = {
   TaskRunner: {
     States: CheckoutStates,
@@ -54,5 +63,6 @@ module.exports = {
     States: MonitorStates,
     DelayTypes: TaskRunnerDelayTypes,
     ParseType,
+    ErrorCodes,
   },
 };

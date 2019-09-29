@@ -47,7 +47,7 @@ const stateForError = ({ status, name, errno }, { message, nextState }) => {
     }
     case 303: {
       return {
-        message: 'Waiting in queue - (303)',
+        message: 'Polling queue - (303)',
         nextState: States.QUEUE,
       };
     }

@@ -66,7 +66,7 @@ class Slack {
                 short: true,
               },
               {
-                title: 'Size(s)',
+                title: 'Size',
                 value: size,
                 short: true,
               },
@@ -79,8 +79,6 @@ class Slack {
           },
         ],
       };
-
-      console.log(embed);
 
       return { embed, client: this.hook };
     }
