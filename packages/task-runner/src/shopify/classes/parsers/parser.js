@@ -20,6 +20,7 @@ class Parser {
    * @param {String} productUrl
    */
   static getFullProductInfo(productUrl, proxy, request, logger) {
+    console.log(proxy);
     const _logger = logger || { log: () => {} };
     _logger.log('silly', 'Parser: Getting Full Product Info...');
     _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', productUrl);
@@ -49,6 +50,7 @@ class Parser {
             return res.json();
           },
           async error => {
+            console.log(error);
             if (error && error.type && /system/i.test(error.type)) {
               const rethrow = new Error(error.errno);
               rethrow.status = error.code;
@@ -87,6 +89,7 @@ class Parser {
             };
           },
           async error => {
+            console.log(error);
             if (error && error.type && /system/i.test(error.type)) {
               const rethrow = new Error(error.errno);
               rethrow.status = error.code;

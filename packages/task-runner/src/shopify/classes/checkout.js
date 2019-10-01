@@ -1,4 +1,3 @@
-import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
 import { isEmpty } from 'lodash';
 import { parse } from 'query-string';
@@ -126,7 +125,7 @@ class Checkout {
       let res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
         method: 'OPTIONS',
         compress: true,
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
@@ -147,7 +146,7 @@ class Checkout {
       res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
         method: 'POST',
         compress: true,
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
@@ -245,7 +244,7 @@ class Checkout {
       const res = await this._request(`${url}/account/login`, {
         method: 'POST',
         compress: true,
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: heads,
@@ -347,7 +346,7 @@ class Checkout {
       const res = await this._request(url, {
         method: 'GET',
         compress: true,
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         redirect: 'follow',
         headers: {
           'User-Agent': userAgent,
@@ -432,7 +431,7 @@ class Checkout {
       const res = await this._request(`${url}/checkout`, {
         method: 'POST',
         compress: true,
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: getHeaders({ url, apiKey }),
@@ -481,7 +480,7 @@ class Checkout {
             await this._request(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -587,7 +586,7 @@ class Checkout {
       const res = await this._request(`${url}/checkout/poll?js_poll=1`, {
         method: 'GET',
         compress: true,
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         redirect: 'follow',
         follow: 5,
         headers: {
@@ -638,7 +637,7 @@ class Checkout {
             const response = await this._request(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              agent: proxy,
               redirect: 'manual',
               headers: {
                 'Upgrade-Insecure-Requests': 1,
@@ -679,7 +678,7 @@ class Checkout {
             const response = await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
               compress: true,
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -770,7 +769,7 @@ class Checkout {
       const res = await this._request(`${url}/wallets/checkouts/${this.checkoutToken}/payments`, {
         method: 'GET',
         compress: true,
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
@@ -980,7 +979,7 @@ class Checkout {
       const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
         compress: true,
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: {

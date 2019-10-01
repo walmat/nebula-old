@@ -59,7 +59,7 @@ class TaskRunner {
      */
     this._context = {
       ...context,
-      proxy: proxy ? proxy.proxy : null,
+      proxy: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
       rawProxy: proxy ? proxy.raw : null,
       parseType: this._parseType,
       aborter: this._aborter,

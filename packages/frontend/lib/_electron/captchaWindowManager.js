@@ -132,7 +132,7 @@ class CaptchaWindowManager {
     return null;
   }
 
-  static setProxy(win, { proxyRules, proxyBypassRules = '' }) {
+  static setProxy(win, { proxyRules, proxyBypassRules = '.google.com,.gstatic.com,.youtube.com' }) {
     if (win) {
       win.webContents.session.setProxy(
         {

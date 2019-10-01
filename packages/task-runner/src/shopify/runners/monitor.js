@@ -45,7 +45,7 @@ class Monitor {
 
     this._context = {
       ...context,
-      proxy: proxy ? proxy.proxy : null,
+      proxy: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
