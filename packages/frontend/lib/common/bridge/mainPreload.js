@@ -16,16 +16,6 @@ const SRR_ID = 1000;
 
 const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
-const _checkForUpdates = async handler => {
-  util.sendEvent(IPCKeys.RequestCheckForUpdate);
-  ipcRenderer.on(IPCKeys.RequestCheckForUpdate, (_, { error = false, done = false, opts = {} }) => {
-    util.handleEvent(IPCKeys.RequestCheckForUpdate, handler(error, done, opts));
-    if (error || done) {
-      util.removeEvent(IPCKeys.RequestCheckForUpdate, handler(error, done, opts));
-    }
-  });
-};
-
 /**
  * Sends the deactivate trigger to authManager.js
  */
@@ -62,6 +52,17 @@ const _registerForTaskEvents = handler => {
       }
     });
   }
+};
+
+/**
+ * Sends a listener for task events to launcher.js
+ */
+const _registerForUpdateEvents = handler => {
+  console.log('registering for update events', handler);
+  util.sendEvent(IPCKeys.RequestCheckForUpdate);
+  ipcRenderer.on(IPCKeys.RequestCheckForUpdate, (event, ...args) => {
+    handler(event, ...args);
+  });
 };
 
 /**
@@ -230,7 +231,6 @@ process.once('loaded', () => {
   window.Bridge = window.Bridge || {
     ...base,
     /* PRIVATE EVENTS */
-    checkForUpdates: _checkForUpdates,
     launchCaptchaHarvester: _launchCaptchaHarvester,
     setTheme: _setTheme,
     startShippingRatesRunner: _startShippingRatesRunner,
@@ -238,6 +238,7 @@ process.once('loaded', () => {
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,
+    registerForUpdateEvents: _registerForUpdateEvents,
     deregisterForTaskEvents: _deregisterForTaskEvents,
     startTasks: _startTasks,
     stopTasks: _stopTasks,

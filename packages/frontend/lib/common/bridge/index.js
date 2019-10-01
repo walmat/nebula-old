@@ -104,6 +104,10 @@ const _close = () => {
   _sendEvent(IPCKeys.RequestCloseWindow, id);
 };
 
+const _minimize = () => {
+  _sendEvent(IPCKeys.RequestMinimizeWindow);
+};
+
 const _showDialog = async (message, type, buttons, title) =>
   new Promise(resolve => {
     dialog.showMessageBox(
@@ -209,6 +213,7 @@ module.exports = {
     showSave: _showSave,
     showOpen: _showOpen,
     close: _close,
+    minimize: _minimize,
     getAppData: _getAppData,
     ..._debug,
   },
