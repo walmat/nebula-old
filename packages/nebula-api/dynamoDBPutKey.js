@@ -1,5 +1,4 @@
 const AWS = require('aws-sdk');
-const fs = require('fs');
 const nebulaEnv = require('./src/utils/env');
 
 nebulaEnv.setUpEnvironment();
