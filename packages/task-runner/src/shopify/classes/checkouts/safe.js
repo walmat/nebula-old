@@ -17,6 +17,8 @@ class SafeCheckout extends CheckoutPrimitive {
     super(context, type);
     this.formValues = '';
     this.checkpointForm = '';
+
+    this.isFreeCheckout = false;
   }
 
   async addToCart() {
@@ -1355,6 +1357,8 @@ class SafeCheckout extends CheckoutPrimitive {
       const body = await res.text();
       const $ = cheerio.load(body);
 
+      const priceRecap = $('.total-recap__final-price').attr('data-checkout-payment-due-target');
+
       // grab the checkoutKey if it's exists and we don't have it yet..
       if (!this.checkoutKey) {
         const match = body.match(
@@ -1484,7 +1488,6 @@ class SafeCheckout extends CheckoutPrimitive {
         $,
         state,
         this.checkoutToken,
-        this.paymentToken,
         this._context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
@@ -1502,9 +1505,15 @@ class SafeCheckout extends CheckoutPrimitive {
           return { message: 'Submitting shipping', nextState: States.SUBMIT_SHIPPING };
         }
         case States.GO_TO_PAYMENT: {
-          if (!this.paymentToken) {
+          if (!this.paymentToken && priceRecap !== '0') {
             return { message: 'Submitting payment', nextState: States.PAYMENT_TOKEN };
           }
+
+          if (priceRecap === '0') {
+            this.isFreeCheckout = true;
+            this.needsPaymentToken = false;
+          }
+
           return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
         }
         default: {
@@ -1974,6 +1983,19 @@ class SafeCheckout extends CheckoutPrimitive {
       return this.backupSubmitPayment();
     }
 
+    if (this.isFreeCheckout) {
+      const parts = this.formValues.split('&');
+
+      if (parts && parts.length) {
+        this.formValues = '';
+        parts.map(part => {
+          if (/authenticity_token/i.test(part)) {
+            this.formValues += `_method=patch&${part}&previous_step=payment_method&step=&s=&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bpayment_gateway%5D=free&checkout%5Btotal_price%5D=0&complete=1&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1721&checkout%5Bclient_details%5D%5Bbrowser_height%5D=927&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
+          }
+        });
+      }
+    }
+
     if (this.needsPaymentToken) {
       const parts = this.formValues.split('s=');
       if (parts && parts.length) {
@@ -2031,6 +2053,7 @@ class SafeCheckout extends CheckoutPrimitive {
       this.paymentToken = '';
 
       const body = await res.text();
+
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
       if (/stock_problems/i.test(body)) {

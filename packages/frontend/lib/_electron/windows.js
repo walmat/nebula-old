@@ -22,7 +22,7 @@ const _createWindow = options => {
   const browserWindowOptions = {
     center: true,
     frame: false,
-    transparent: true,
+    transparent: false,
     fullscreenable: false,
     resizable: false,
     movable: true,

@@ -74,6 +74,76 @@
         border-style: solid;
       }
 
+      &--variation {
+        height: 29px;
+        max-width: 60px;
+        @media screen and (min-width: 1250px) and (min-height: 745px) {
+          height: 35px !important;
+          transition: ease all 0.5s;
+        }
+
+        @include themify($themes) {
+          background: themed('inputBackground');
+        }
+        &:disabled {
+          @include themify($themes) {
+            background: themed('inputBackgroundDisabled');
+          }
+        }
+        &__short {
+          height: 29px;
+
+          @media screen and (min-width: 1250px) and (min-height: 745px) {
+            transition: ease all 0.5s;
+            height: 35px;
+          }
+
+          @include themify($themes) {
+            background: themed('inputBackground');
+          }
+          &:disabled {
+            @include themify($themes) {
+              background: themed('inputBackgroundDisabled');
+            }
+          }
+        }
+      }
+
+      &--checkout-delay {
+        height: 29px;
+        max-width: 50px;
+        @media screen and (min-width: 1250px) and (min-height: 745px) {
+          height: 35px !important;
+          transition: ease all 0.5s;
+        }
+
+        @include themify($themes) {
+          background: themed('inputBackground');
+        }
+        &:disabled {
+          @include themify($themes) {
+            background: themed('inputBackgroundDisabled');
+          }
+        }
+        &__short {
+          height: 29px;
+
+          @media screen and (min-width: 1250px) and (min-height: 745px) {
+            transition: ease all 0.5s;
+            height: 35px;
+          }
+
+          @include themify($themes) {
+            background: themed('inputBackground');
+          }
+          &:disabled {
+            @include themify($themes) {
+              background: themed('inputBackgroundDisabled');
+            }
+          }
+        }
+      }
+
       &--field {
         height: 29px;
         @media screen and (min-width: 1250px) and (min-height: 745px) {

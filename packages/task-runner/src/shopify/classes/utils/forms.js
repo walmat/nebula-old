@@ -132,12 +132,13 @@ const patchToCart = variant => ({
   },
 });
 
-const parseForm = async ($, state, checkoutToken, paymentToken, profile, formName, wanted) => {
+const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => {
   let count = 0;
   const data = [];
   await $(formName).each((i, form) => {
     if ($(form).children().length > 4) {
       const fields = $(form).find(wanted);
+
       $(fields).each((_, el) => {
         const name = $(el).attr('name');
         let value = $(el).attr('value') || '';
@@ -147,8 +148,8 @@ const parseForm = async ($, state, checkoutToken, paymentToken, profile, formNam
           count += 1;
         }
 
-        if (name === 's' && paymentToken) {
-          data.push({ name, value: paymentToken });
+        if (name === 's') {
+          data.push({ name, value: '' });
           return;
         }
 
@@ -163,6 +164,7 @@ const parseForm = async ($, state, checkoutToken, paymentToken, profile, formNam
 
         if (
           (profile.billingMatchesShipping &&
+            data.some(({ name: existing }) => /shipping_address/i.test(existing)) &&
             /billing_address/i.test(name) &&
             !/different_billing_address/i.test(name)) ||
           (/different_billing_address/i.test(name) &&
@@ -189,7 +191,6 @@ const parseForm = async ($, state, checkoutToken, paymentToken, profile, formNam
           value = encodeURIComponent(value);
         }
 
-        // blacklist some values...
         if (
           /hosted_fields_redirect|field_start|field_end/i.test(name) ||
           ((/payment_gateway/i.test(name) && /free|3700574/i.test(value)) ||
@@ -213,13 +214,15 @@ const parseForm = async ($, state, checkoutToken, paymentToken, profile, formNam
     }
   });
 
-  // push things that aren't found, but might be needed...
-  data.push({ name: 'checkout[client_details][browser_width]', value: 1238 });
-  data.push({ name: 'checkout[client_details][browser_height]', value: 453 });
-  data.push({ name: 'checkout[client_details][javascript_enabled]', value: 1 });
-  data.push({ name: 'checkout[client_details][color_depth]', value: 24 });
-  data.push({ name: 'checkout[client_details][java_enabled]', value: false });
-  data.push({ name: 'checkout[client_details][browser_tz]', value: 240 });
+  if (!data.some(({ name: existing }) => /client_details/i.test(existing))) {
+    // push things that aren't found, but might be needed...
+    data.push({ name: 'checkout[client_details][browser_width]', value: 1238 });
+    data.push({ name: 'checkout[client_details][browser_height]', value: 453 });
+    data.push({ name: 'checkout[client_details][javascript_enabled]', value: 1 });
+    data.push({ name: 'checkout[client_details][color_depth]', value: 24 });
+    data.push({ name: 'checkout[client_details][java_enabled]', value: false });
+    data.push({ name: 'checkout[client_details][browser_tz]', value: 240 });
+  }
 
   const formValuesObj = {
     'checkout[email]': encodeURIComponent(profile.payment.email),
@@ -264,6 +267,7 @@ const parseForm = async ($, state, checkoutToken, paymentToken, profile, formNam
     return `${encodeURI(name)}=${val}&`;
   });
 
+  console.log(formValues);
   return formValues.join('').slice(0, -1);
 };
 

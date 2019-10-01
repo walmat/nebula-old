@@ -811,7 +811,7 @@ class Checkout {
             price: currencyWithSymbol(paymentDue, currency),
             site: { name, url },
             order: {
-              number: orderName || 'None',
+              number: orderName,
               url: statusUrl,
             },
             profile: profileName,

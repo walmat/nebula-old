@@ -176,6 +176,16 @@ export function taskReducer(state = initialTaskStates.task, action) {
           };
           break;
         }
+        case TASK_FIELDS.EDIT_CHECKOUT_DELAY: {
+          const strValue = action.value || ''; // If action.value is empty, we'll use 0
+          const amount = parseInt(strValue, 10);
+
+          change = {
+            checkoutDelay: amount,
+            errors: Object.assign({}, state.errors, action.errors),
+          };
+          break;
+        }
         case TASK_FIELDS.EDIT_AMOUNT: {
           const strValue = action.value || ''; // If action.value is empty, we'll use 0
           const amount = parseInt(strValue, 10);
@@ -263,7 +273,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
           break;
         }
         case TASK_FIELDS.EDIT_SITE: {
-          console.log(action);
           if (action.value) {
             if (state.edits.site && action.value.name === state.edits.site.name) {
               break;

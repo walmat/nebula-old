@@ -1,4 +1,4 @@
-const { sortBy, map, find, flatten, filter, every, some } = require('underscore');
+const { sortBy, map, find, flatten, filter, every, some } = require('lodash');
 const { parseString } = require('xml2js');
 const { isSpecialSite } = require('./siteOptions');
 const { ParseType } = require('./constants').Monitor;

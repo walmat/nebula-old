@@ -146,6 +146,92 @@
   border-width: 1px;
   border-style: solid;
 }
+.tasks .tasks-create__input--variation {
+  height: 29px;
+  max-width: 60px;
+}
+@media screen and (min-width: 1250px) and (min-height: 745px) {
+  .tasks .tasks-create__input--variation {
+    height: 35px !important;
+    transition: ease all 0.5s;
+  }
+}
+.theme-light .tasks .tasks-create__input--variation {
+  background: #f4f4f4;
+}
+.theme-dark .tasks .tasks-create__input--variation {
+  background: #393c3f;
+}
+.theme-light .tasks .tasks-create__input--variation:disabled {
+  background: #dcdcdc;
+}
+.theme-dark .tasks .tasks-create__input--variation:disabled {
+  background: #262626;
+}
+.tasks .tasks-create__input--variation__short {
+  height: 29px;
+}
+@media screen and (min-width: 1250px) and (min-height: 745px) {
+  .tasks .tasks-create__input--variation__short {
+    transition: ease all 0.5s;
+    height: 35px;
+  }
+}
+.theme-light .tasks .tasks-create__input--variation__short {
+  background: #f4f4f4;
+}
+.theme-dark .tasks .tasks-create__input--variation__short {
+  background: #393c3f;
+}
+.theme-light .tasks .tasks-create__input--variation__short:disabled {
+  background: #dcdcdc;
+}
+.theme-dark .tasks .tasks-create__input--variation__short:disabled {
+  background: #262626;
+}
+.tasks .tasks-create__input--checkout-delay {
+  height: 29px;
+  max-width: 50px;
+}
+@media screen and (min-width: 1250px) and (min-height: 745px) {
+  .tasks .tasks-create__input--checkout-delay {
+    height: 35px !important;
+    transition: ease all 0.5s;
+  }
+}
+.theme-light .tasks .tasks-create__input--checkout-delay {
+  background: #f4f4f4;
+}
+.theme-dark .tasks .tasks-create__input--checkout-delay {
+  background: #393c3f;
+}
+.theme-light .tasks .tasks-create__input--checkout-delay:disabled {
+  background: #dcdcdc;
+}
+.theme-dark .tasks .tasks-create__input--checkout-delay:disabled {
+  background: #262626;
+}
+.tasks .tasks-create__input--checkout-delay__short {
+  height: 29px;
+}
+@media screen and (min-width: 1250px) and (min-height: 745px) {
+  .tasks .tasks-create__input--checkout-delay__short {
+    transition: ease all 0.5s;
+    height: 35px;
+  }
+}
+.theme-light .tasks .tasks-create__input--checkout-delay__short {
+  background: #f4f4f4;
+}
+.theme-dark .tasks .tasks-create__input--checkout-delay__short {
+  background: #393c3f;
+}
+.theme-light .tasks .tasks-create__input--checkout-delay__short:disabled {
+  background: #dcdcdc;
+}
+.theme-dark .tasks .tasks-create__input--checkout-delay__short:disabled {
+  background: #262626;
+}
 .tasks .tasks-create__input--field {
   height: 29px;
 }

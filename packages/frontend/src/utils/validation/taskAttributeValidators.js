@@ -70,6 +70,7 @@ const taskAttributeValidators = {
   [TASK_FIELDS.EDIT_SIZES]: validateNonEmpty,
   [TASK_FIELDS.EDIT_TASK_CATEGORY]: validateNonEmpty,
   [TASK_FIELDS.EDIT_PRODUCT_VARIATION]: validateNonEmpty,
+  [TASK_FIELDS.EDIT_CHECKOUT_DELAY]: validateNonEmpty,
   [TASK_FIELDS.EDIT_TASK_TYPE]: () => true,
   [TASK_FIELDS.EDIT_TASK_ACCOUNT]: () => true,
   [TASK_FIELDS.EDIT_AMOUNT]: input => parseInt(input, 10) > 0,

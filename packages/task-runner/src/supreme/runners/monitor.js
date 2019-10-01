@@ -1,17 +1,20 @@
+/* eslint-disable array-callback-return */
+/* eslint-disable consistent-return */
 import AbortController from 'abort-controller';
 import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
-import { pick, isEqual } from 'lodash';
+import { filter, isEqual, every, some, sortBy } from 'lodash';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
 const { Events } = require('../../constants').Runner;
 const {
-  Monitor: { States, DelayTypes, ParseType },
+  Monitor: { States, DelayTypes, ParseType, ErrorCodes },
   TaskRunner: { Types },
 } = require('../utils/constants');
-const { rfrl, capitalizeFirstLetter, waitForDelay } = require('../../common');
+const { capitalizeFirstLetter, waitForDelay, getRandomIntInclusive } = require('../../common');
 
+// SUPREME
 class Monitor {
   constructor(context, proxy, type = ParseType.Keywords) {
     this.id = context.id;
@@ -21,7 +24,6 @@ class Monitor {
     this._jar = context.jar;
     this._events = context.events;
     this._logger = context.logger;
-    this._aborted = context.aborted;
     this._parseType = type;
 
     this._aborter = new AbortController();
@@ -49,7 +51,6 @@ class Monitor {
       request: this._request,
       jar: this._jar,
       logger: this._logger,
-      aborted: this._aborted,
     };
 
     this._history = [];
@@ -90,6 +91,42 @@ class Monitor {
       default:
         return false;
     }
+  }
+
+  async _handleParsingErrors(errors) {
+    if (this._context.aborted || this._context.productFound) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { monitorDelay } = this._context.task;
+    let delayStatus;
+    let ban = true; // assume we have a softban
+    errors.forEach(({ status }) => {
+      if (!status) {
+        return;
+      }
+
+      if (!/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(status)) {
+        // status is neither 429, 430, so set ban to false
+        ban = false;
+      }
+
+      if (!delayStatus && (status === ErrorCodes.ProductNotFound || status >= 400)) {
+        delayStatus = status; // find the first error that is either a product not found or 4xx response
+      }
+    });
+
+    if (ban) {
+      this._logger.silly('Proxy was banned, swapping proxies...');
+      this._emitMonitorEvent({ message: 'Proxy banned!' });
+      return States.SWAP;
+    }
+
+    this._emitMonitorEvent({ message: `No product found. Delaying ${monitorDelay}ms` });
+    this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+    await this._delayer;
+    return States.PARSE;
   }
 
   async _handleProduct(id, product, parseType) {
@@ -198,6 +235,162 @@ class Monitor {
     }
   }
 
+  static filterAndLimit(list, sorter, limit, logger) {
+    const _logger = logger || { log: () => {} };
+    _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
+    if (!list) {
+      _logger.log('silly', 'No list given! returning empty list');
+      return [];
+    }
+    _logger.log(
+      'silly',
+      'List Detected with %d elements. Proceeding to sorting now...',
+      list.length,
+    );
+    let sorted = list;
+    if (sorter) {
+      _logger.log('silly', 'Sorter detected, sorting...');
+      sorted = sortBy(list, sorter);
+    }
+
+    const _limit = limit || 0;
+    if (_limit === 0) {
+      _logger.log('silly', 'No limit given! returning...');
+      return sorted;
+    }
+    if (_limit > 0) {
+      _logger.log('silly', 'Ascending Limit detected, limiting...');
+      return sorted.slice(_limit);
+    }
+    _logger.log('silly', 'Descending Limit detected, limiting...');
+    // slice, then reverse elements to get the proper order
+    return sorted.slice(0, _limit).reverse();
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async matchKeywords(products, keywords, _filter, logger, returnAll = false) {
+    const _logger = logger || { log: () => {} };
+    _logger.log(
+      'silly',
+      'Starting keyword matching for keywords: %s',
+      JSON.stringify(keywords, null, 2),
+      keywords,
+    );
+    if (!products) {
+      _logger.log('silly', 'No product list given! Returning null');
+      return null;
+    }
+    if (!keywords) {
+      _logger.log('silly', 'No keywords object given! Returning null');
+      return null;
+    }
+    if (!keywords.pos || !keywords.neg) {
+      _logger.log('silly', 'Malformed keywords object! Returning null');
+      return null;
+    }
+
+    const matches = filter(products, product => {
+      const name = product.name.toUpperCase();
+
+      // defaults
+      let pos = true;
+      let neg = false;
+
+      if (keywords.pos.length) {
+        pos = every(
+          keywords.pos.map(k => k.toUpperCase()),
+          keyword => name.indexOf(keyword.toUpperCase()) > -1,
+        );
+      }
+
+      if (keywords.neg.length) {
+        neg = some(keywords.neg.map(k => k.toUpperCase()), keyword => name.indexOf(keyword) > -1);
+      }
+
+      return pos && !neg;
+    });
+
+    if (!matches || (matches && !matches.length)) {
+      _logger.log(
+        'silly',
+        'Searched %d products. No matches found! Returning null',
+        products.length,
+      );
+      return null;
+    }
+
+    if (matches.length > 1) {
+      let filtered;
+      _logger.log(
+        'silly',
+        'Searched %d products. %d Products Found',
+        products.length,
+        matches.length,
+        JSON.stringify(matches.map(({ name }) => name), null, 2),
+      );
+      if (_filter && _filter.sorter && _filter.limit) {
+        _logger.log('silly', 'Using given filtering heuristic on the products...');
+        let { limit } = _filter;
+        if (returnAll) {
+          _logger.log('silly', "Overriding filter's limit and returning all products...");
+          limit = 0;
+        }
+        filtered = Monitor.filterAndLimit(matches, _filter.sorter, limit, this._logger);
+        if (!returnAll) {
+          _logger.log('silly', 'Returning Matched Product: %s', filtered[0].name);
+          return filtered[0];
+        }
+        _logger.log('silly', 'Returning %d Matched Products', filtered.length);
+        return filtered;
+      }
+      _logger.log(
+        'silly',
+        'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...',
+      );
+      if (returnAll) {
+        _logger.log('silly', 'Returning all products...');
+        filtered = Monitor.filterAndLimit(matches, 'updated_at', 0, this._logger);
+        _logger.log('silly', 'Returning %d Matched Products', filtered);
+        return filtered;
+      }
+      filtered = Monitor.filterAndLimit(matches, 'updated_at', -1, this._logger);
+      _logger.log('silly', 'Returning Matched Product: %s', filtered[0].name);
+      return filtered[0];
+    }
+    _logger.log(
+      'silly',
+      'Searched %d products. Matching Product Found: %s',
+      products.length,
+      matches[0].name,
+    );
+    return returnAll ? matches : matches[0];
+  }
+
+  static async matchVariation(variations, variation, logger = { log: () => {} }) {
+    if (/random/i.test(variation)) {
+      const rand = getRandomIntInclusive(0, variations.length - 1);
+      const variant = variations[rand];
+      return variant;
+    }
+
+    return variations.find(v => {
+      const { name } = v;
+      let variationMatcher;
+      if (/[0-9]+/.test(name)) {
+        // We are matching a shoe size
+        variationMatcher = s => new RegExp(`${name}`, 'i').test(s);
+      } else {
+        // We are matching a garment size
+        variationMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${name}`, 'i').test(s.trim());
+      }
+
+      if (variationMatcher(variation)) {
+        logger.log('debug', 'Choosing variant: %j', v);
+        return v;
+      }
+    });
+  }
+
   async _handleSwapProxies() {
     const {
       task: { errorDelay },
@@ -244,15 +437,16 @@ class Monitor {
 
   async _handleParse() {
     const { aborted, productFound, task, proxy, logger } = this._context;
-    const { product } = task;
+    const { product, category } = task;
+    const { variation } = product;
 
     if (aborted || productFound) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-
     let res;
+    let body;
     try {
       res = await this._request('/mobile_stock.json', {
         method: 'GET',
@@ -268,23 +462,125 @@ class Monitor {
           'sec-fetch-user': '?1',
           'upgrade-insecure-requests': 1,
           'user-agent':
-            'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Mobile Safari/537.36',
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
         },
       });
 
-      const body = await res.json();
+      if (!res.ok) {
+        const error = new Error('Error parsing products');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      body = await res.json();
 
       const { products_and_categories: productsAndCategories } = body;
 
-      if (!productsAndCategories || !productsAndCategories.length) {
-        return { message: 'Parsing products', nextState: States.PARSE };
+      if (!productsAndCategories) {
+        return States.PARSE;
       }
 
+      const productsInCategory = productsAndCategories[category];
+
+      this._logger.silly(
+        'Supreme Monitor: Parsed %d products in category: %s',
+        productsInCategory ? productsInCategory.length : 0,
+        category,
+      );
+
+      if (!productsInCategory || (productsInCategory && !productsInCategory.length)) {
+        return States.PARSE;
+      }
+
+      const keywords = {
+        pos: product.pos_keywords,
+        neg: product.neg_keywords,
+      };
+
+      const matchedProduct = await this.matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter at this point...
+      if (!matchedProduct) {
+        this._logger.silly('Supreme Monitor: Unable to find matching product!');
+        // TODO: Maybe replace with a custom error object?
+        const error = new Error('Product Not Found');
+        error.status = ErrorCodes.ProductNotFound;
+        throw error;
+      }
+
+      this._context.task.product.name = capitalizeFirstLetter(matchedProduct.name);
+      this._context.task.product.price = matchedProduct.price;
+
+      this._logger.silly('Supreme Monitor: Product found: %j', matchedProduct.name);
+      const { id } = matchedProduct;
+      try {
+        res = await this._request(`/shop/${id}.json`, {
+          method: 'GET',
+          gent: proxy ? new HttpsProxyAgent(proxy) : null,
+          headers: {
+            authority: 'www.supremenewyork.com',
+            accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'en-US,en;q=0.9',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'none',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': 1,
+            'user-agent':
+              'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
+          },
+        });
+
+        if (!res.ok) {
+          const error = new Error('Error fetching stock');
+          error.status = res.status || res.errno;
+          throw error;
+        }
+
+        body = await res.json();
+        const { styles } = body;
+        if (!styles || (styles && !styles.length)) {
+          const error = new Error('No Product Styles');
+          error.status = 404;
+          throw error;
+        }
+
+        const matchedVariation = await Monitor.matchVariation(styles, variation, logger);
+
+        if (!matchedVariation) {
+          this._emitMonitorEvent({ message: 'No variation found! Task Stopped' });
+          return States.ERROR;
+        }
+
+        this._context.task.product.id = matchedVariation.id;
+        this._context.task.product.currency = matchedVariation.currency;
+        this._context.task.product.name += ` / ${matchedVariation.name}`;
+        this._context.task.product.variants = matchedVariation.sizes;
+        this._context.task.product.image = matchedVariation.image_url;
+
+        this._events.emit(
+          TaskManagerEvents.ProductFound,
+          this.id,
+          this._context.task.product,
+          this._parseType,
+        );
+
+        const { name } = this._context.task.product;
+        this._emitMonitorEvent({
+          message: `Product found: ${name}`,
+          found: name || undefined,
+        });
+        return States.DONE;
+      } catch (error) {
+        // bubble this up!
+        throw error;
+      }
     } catch (error) {
-      console.log(error);
       return this._handleParsingErrors([error]);
     }
+  }
 
+  async _handleError() {
+    this._events.emit(TaskManagerEvents.Abort, this.id);
     return States.DONE;
   }
 
@@ -297,11 +593,10 @@ class Monitor {
 
     const stepMap = {
       [States.PARSE]: this._handleParse,
-      [States.MATCH]: this._handleMatch,
       [States.SWAP]: this._handleSwapProxies,
-      [States.ERROR]: () => States.STOP,
-      [States.DONE]: () => States.STOP,
-      [States.ABORT]: () => States.STOP,
+      [States.ERROR]: this._handleError,
+      [States.DONE]: () => States.DONE,
+      [States.ABORT]: () => States.DONE,
     };
 
     const handler = stepMap[currentState] || defaultHandler;
@@ -323,7 +618,6 @@ class Monitor {
       if (!/aborterror/i.test(e.name)) {
         this._logger.verbose('Monitor loop errored out! %s', e);
         nextState = States.ERROR;
-        return true;
       }
     }
     this._logger.debug('Monitor Loop finished, state transitioned to: %s', nextState);
@@ -345,11 +639,11 @@ class Monitor {
     let shouldStop = false;
 
     if (this._context.productFound) {
-      this._state = States.STOP;
+      this._state = States.DONE;
       shouldStop = true;
     }
 
-    while (this._state !== States.STOP && !shouldStop) {
+    while (this._state !== States.DONE && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.run();
     }

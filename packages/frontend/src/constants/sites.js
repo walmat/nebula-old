@@ -662,12 +662,12 @@ const sites = [
     options: [
       {
         label: 'Supreme US',
-        value: 'https://supremenewyork.com',
+        value: 'https://www.supremenewyork.com',
         supported: false,
       },
       {
         label: 'Supreme EU',
-        value: 'https://supremenewyork.com',
+        value: 'https://www.supremenewyork.com',
         supported: false,
       },
     ],

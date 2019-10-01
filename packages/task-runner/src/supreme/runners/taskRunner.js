@@ -1,32 +1,39 @@
+/* eslint-disable consistent-return */
+/* eslint-disable array-callback-return */
 import AbortController from 'abort-controller';
+import HttpsProxyAgent from 'https-proxy-agent';
+import { isEqual } from 'lodash';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
-// const Discord = require('../../common/discord');
-// const Slack = require('../../common/slack');
+const Discord = require('../classes/hooks/discord');
+const Slack = require('../classes/hooks/slack');
+const { notification } = require('../classes/hooks');
 const AsyncQueue = require('../../common/asyncQueue');
-const { waitForDelay } = require('../../common');
+const { waitForDelay, getRandomIntInclusive } = require('../../common');
 const { Events } = require('../../constants').Runner;
 const {
   TaskRunner: { States, Types, DelayTypes, HookTypes, HarvestStates },
+  Monitor: { ParseType },
 } = require('../utils/constants');
 
+// SUPREME
 class TaskRunner {
-  constructor(context, proxy) {
+  constructor(context, proxy, type) {
     this.id = context.id;
     this._task = context.task;
     this.taskId = context.taskId;
     this._events = context.events;
-    this._aborted = context.aborted;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
     this.proxy = proxy;
+    this._parseType = type;
 
     // eslint-disable-next-line global-require
     const _request = require('fetch-cookie')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
-      timeout: 120000, // to be overridden as necessary
+      timeout: 10000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
 
@@ -34,8 +41,8 @@ class TaskRunner {
     this._captchaQueue = null;
     this._state = States.WAIT_FOR_PRODUCT;
 
-    // this._discord = new Discord(this._task.discord);
-    // this._slack = new Slack(this._task.slack);
+    this._discord = new Discord(this._task.discord);
+    this._slack = new Slack(this._task.slack);
     this._logger = context.logger;
 
     this._context = {
@@ -47,22 +54,23 @@ class TaskRunner {
       signal: this._aborter.signal,
       request: this._request,
       jar: context.jar,
-      // discord: this._discord,
-      // slack: this._slack,
+      discord: this._discord,
+      slack: this._slack,
       logger: this._logger,
-      aborted: this._aborted,
       harvestState: HarvestStates.idle,
     };
 
     this._history = [];
+    this._slug = null;
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
-    // this._handleProduct = this._handleProduct.bind(this);
+    this._handleProduct = this._handleProduct.bind(this);
 
+    this._events.on(TaskManagerEvents.Abort, this._handleAbort, this);
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
     this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
-    // this._events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
+    this._events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
   }
 
   _handleAbort(id) {
@@ -78,6 +86,42 @@ class TaskRunner {
   _handleHarvest(id, token) {
     if (id === this._context.id && this._captchaQueue) {
       this._captchaQueue.insert(token);
+    }
+  }
+
+  async _compareProductInput(product, parseType) {
+    // we only care about keywords/url matching here...
+    switch (parseType) {
+      case ParseType.Keywords: {
+        const { pos_keywords: posKeywords, neg_keywords: negKeywords } = this._context.task.product;
+        const samePositiveKeywords = isEqual(product.pos_keywords.sort(), posKeywords.sort());
+        const sameNegativeKeywords = isEqual(product.neg_keywords.sort(), negKeywords.sort());
+        return samePositiveKeywords && sameNegativeKeywords;
+      }
+      case ParseType.Url: {
+        const { url } = this._context.task.product;
+        return product.url.toUpperCase() === url.toUpperCase();
+      }
+      default:
+        return false;
+    }
+  }
+
+  async _handleProduct(id, product, parseType) {
+    if (parseType === this._parseType) {
+      const isSameProductData = await this._compareProductInput(product, parseType);
+
+      if (
+        (isSameProductData && !this._context.productFound) ||
+        (id === this.id && !this._context.productFound)
+      ) {
+        this._context.task.product = {
+          ...this._context.task.product,
+          ...product,
+        };
+        // patch checkout context
+        this._context.productFound = true;
+      }
     }
   }
 
@@ -147,6 +191,44 @@ class TaskRunner {
       this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
       this._context.harvestState = HarvestStates.stop;
     }
+  }
+
+  async _handleFetchErrors(errors, state) {
+    if (this._context.aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    errors.forEach(({ status }) => {
+      if (!status) {
+        return;
+      }
+
+      if (/aborterror/i.test(status)) {
+        return States.ABORT;
+      }
+
+      const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED)/.exec(status);
+
+      if (match) {
+        // Check capturing group
+        switch (match[1]) {
+          // connection reset
+          case 'ENOTFOUND':
+          case 'ECONNREFUSED':
+          case 'ECONNRESET': {
+            return {
+              message: 'Swapping proxy',
+              nextState: States.SWAP,
+            };
+          }
+          default:
+            return state;
+        }
+      }
+    });
+
+    return state;
   }
 
   async swapProxies() {
@@ -270,15 +352,78 @@ class TaskRunner {
     return this._prevState;
   }
 
-  async _handleWaitForProduct() {
-    const { aborted } = this._context;
+  async _pickSize() {
+    const {
+      product: { variants },
+      size,
+      randomInStock,
+    } = this._context.task;
 
-    if (aborted) {
+    let grouping = variants;
+
+    if (randomInStock) {
+      grouping = grouping.filter(v => v.stock_level);
+
+      // if we filtered all the products out, rewind it...
+      if (!grouping || !grouping.length) {
+        grouping = variants;
+      }
+    }
+
+    if (/random/i.test(size)) {
+      return grouping[getRandomIntInclusive(0, grouping.length - 1)];
+    }
+
+    const variant = grouping.find(v => {
+      // Determine if we are checking for shoe sizes or not
+      let sizeMatcher;
+      if (/[0-9]+/.test(size)) {
+        // We are matching a shoe size
+        sizeMatcher = s => new RegExp(`${size}`, 'i').test(s);
+      } else {
+        // We are matching a garment size
+        sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
+      }
+
+      if (sizeMatcher(v.name)) {
+        this._logger.debug('Choosing variant: %j', v);
+        return v;
+      }
+    });
+
+    if (randomInStock) {
+      if (variant) {
+        const { stock_level: stockLevel } = variant;
+        // should we do a `do...while` here?
+        if (!stockLevel) {
+          return grouping[getRandomIntInclusive(0, grouping.length - 1)];
+        }
+      } else {
+        return grouping[getRandomIntInclusive(0, grouping.length - 1)];
+      }
+    }
+
+    if (!variant) {
+      return null;
+    }
+
+    return variant;
+  }
+
+  async _handleWaitForProduct() {
+    if (this._context.aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
     if (this._context.productFound) {
+      const variant = await this._pickSize();
+      // loop back around?
+      if (!variant) {
+        this._emitTaskEvent({ message: 'Size not found' });
+        return States.ERROR;
+      }
+      this._context.task.product.variant = variant;
       return States.ADD_TO_CART;
     }
 
@@ -289,43 +434,347 @@ class TaskRunner {
   }
 
   async _handleAddToCart() {
-    const { aborted } = this._context;
+    const { aborted, proxy } = this._context;
 
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    // TODO: Add to cart request and check for failure
-    return States.SUBMIT_CHECKOUT;
+    const {
+      id: st,
+      variant: { id: s },
+    } = this._context.task.product;
+
+    this._emitTaskEvent({ message: 'Adding to cart' });
+
+    try {
+      const res = await this._request(`/shop/${s}/add.json`, {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        headers: {
+          authority: 'www.supremenewyork.com',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'en-US,en;q=0.9',
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'none',
+          'sec-fetch-user': '?1',
+          'upgrade-insecure-requests': 1,
+          'content-type': 'application/x-www-form-urlencoded',
+          origin: 'https://www.supremenewyork.com',
+          referer: 'https://www.supremenewyork.com/mobile',
+          'user-agent':
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
+        },
+        body: `s=${s}&st=${st}&qty=1`,
+      });
+
+      if (!res.ok) {
+        const error = new Error('Failed add to cart');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      return States.SUBMIT_CHECKOUT;
+    } catch (error) {
+      return this._handleFetchErrors([error], States.ADD_TO_CART);
+    }
+  }
+
+  async _handleCaptcha() {
+    const { aborted } = this._context;
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      if (this._checkout.captchaTokenRequest) {
+        // cancel the request if it was previously started
+        this._checkout.captchaTokenRequest.cancel('aborted');
+      }
+      return States.ABORT;
+    }
+
+    // start request if it hasn't started already
+    if (!this._checkout.captchaTokenRequest) {
+      this._emitTaskEvent({ message: 'Waiting for captcha' });
+      this._checkout.captchaTokenRequest = await this.getCaptcha();
+    }
+
+    // Check the status of the request
+    switch (this._checkout.captchaTokenRequest.status) {
+      case 'pending': {
+        // waiting for token, sleep for delay and then return same state to check again
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return States.CAPTCHA;
+      }
+      case 'fulfilled': {
+        // token was returned, store it and remove the request
+        ({ value: this._checkout.captchaToken } = this._checkout.captchaTokenRequest);
+        this._checkout.captchaTokenRequest = null;
+        // We have the token, so suspend harvesting for now
+        this.suspendHarvestCaptcha();
+
+        // proceed to submit checkout
+        return States.SUBMIT_CHECKOUT;
+      }
+      case 'cancelled':
+      case 'destroyed': {
+        this._logger.silly(
+          'Harvest Captcha status: %s, stopping...',
+          this._checkout.captchaTokenRequest.status,
+        );
+        // clear out the status so we get a generic "errored out task event"
+        this._context.status = null;
+        return States.ERROR;
+      }
+      default: {
+        this._logger.silly(
+          'Unknown Harvest Captcha status! %s, stopping...',
+          this._checkout.captchaTokenRequest.status,
+        );
+        // clear out the status so we get a generic "errored out task event"
+        this._context.status = null;
+        return States.ERROR;
+      }
+    }
   }
 
   async _handleSubmitCheckout() {
-    const { aborted } = this._context;
+    const {
+      task: {
+        profile: { payment, billing },
+        site: { name },
+        checkoutDelay,
+      },
+      aborted,
+      proxy,
+    } = this._context;
 
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    // TODO: Submit checkout request and handle failures
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
 
-    // if queued...
-    return States.CHECK_STATUS;
+    const {
+      variant: { id: s },
+    } = this._context.task.product;
+
+    const fullName = `${billing.firstName.replace(/\s/g, '+')}+${billing.lastName.replace(
+      /\s/g,
+      '+',
+    )}`;
+    const card = payment.cardNumber.match(/.{1,4}/g).join('+');
+    const month = payment.exp.slice(0, 2);
+    const year = `20${payment.exp.slice(3, 5)}`;
+    const country = /US/i.test(name) ? 'USA' : '';
+    // TOOD: format phone?, figure out EU country
+    const cookieSub = JSON.stringify({ [s]: 1 });
+
+    const form = `store_credit_id=&from_mobile=1&cookie-sub=${encodeURIComponent(
+      cookieSub,
+    )}&same_as_billing_address=1&order%5Bbilling_name%5D=${fullName}&order%5Bemail%5D=${encodeURIComponent(
+      payment.email,
+    )}&order%5Btel%5D=${billing.phone}&order%5Bbilling_address%5D=${billing.address.replace(
+      /\s/g,
+      '+',
+    )}&order%5Bbilling_address_2%5D=${
+      billing.apt ? billing.apt.replace(/\s/g, '+') : ''
+    }&order%5Bbilling_zip%5D=${billing.zipCode}&order%5Bbilling_city%5D=${billing.city.replace(
+      /\s/g,
+      '+',
+    )}&order%5Bbilling_state%5D=${
+      billing.province ? billing.province.value.replace(/\s/g, '+') : ''
+    }&order%5Bbilling_country%5D=${country}&carn=${card}&credit_card%5Bmonth%5D=${month}&credit_card%5Byear%5D=${year}&credit_card%5Bvvv%5D=${
+      payment.cvv
+    }&order%5Bterms%5D=0&order%5Bterms%5D=1`;
+
+    if (checkoutDelay) {
+      this._emitTaskEvent({ message: `Waiting ${checkoutDelay}ms` });
+      this._delayer = waitForDelay(checkoutDelay, this._aborter.signal);
+      await this._delayer;
+    }
+
+    console.log(form);
+
+    this._emitTaskEvent({ messge: 'Submitting checkout' });
+
+    try {
+      const res = await this._request('/checkout.json', {
+        method: 'POST',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        headers: {
+          authority: 'www.supremenewyork.com',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'en-US,en;q=0.9',
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'none',
+          'sec-fetch-user': '?1',
+          'upgrade-insecure-requests': 1,
+          'content-type': 'application/x-www-form-urlencoded',
+          origin: 'https://www.supremenewyork.com',
+          referer: 'https://www.supremenewyork.com/mobile',
+          'user-agent':
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
+        },
+        body: form,
+      });
+
+      if (!res.ok) {
+        const error = new Error('Failed submitting checkout');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      const body = await res.json();
+      console.log(body);
+
+      if (body && body.status && /queue/i.test(body.status)) {
+        const { slug } = body;
+        if (!slug) {
+          this._emitTaskEvent({ message: 'Invalid checkout slug' });
+          return States.SUBMIT_CHECKOUT;
+        }
+        this._slug = slug;
+        return States.CHECK_STATUS;
+      }
+
+      if (body && body.status && /dup/i.test(body.status)) {
+        this._emitTaskEvent({ message: 'Duplicate order!' });
+        return States.DONE;
+      }
+
+      return States.SUBMIT_CHECKOUT;
+    } catch (error) {
+      return this._handleFetchErrors([error], States.SUBMIT_CHECKOUT);
+    }
   }
 
   async _handleCheckStatus() {
-    const { aborted } = this._context;
+    const { aborted, proxy } = this._context;
 
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    // TODO: Call check status request and handle failures
+    this._emitTaskEvent({ message: 'Checking order status' });
 
-    // if successfully checked out..
-    return States.DONE;
+    try {
+      const res = await this._request(`/checkout/${this._slug}/status.json`, {
+        method: 'GET',
+        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        headers: {
+          authority: 'www.supremenewyork.com',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'en-US,en;q=0.9',
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'none',
+          'sec-fetch-user': '?1',
+          'upgrade-insecure-requests': 1,
+          'content-type': 'application/x-www-form-urlencoded',
+          origin: 'https://www.supremenewyork.com',
+          referer: 'https://www.supremenewyork.com/mobile',
+          'user-agent':
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
+        },
+      });
+
+      if (!res.ok) {
+        const error = new Error('Failed checking order status');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      const body = await res.json();
+
+      if (body && body.status && /failed/i.test(body.status)) {
+        this._emitTaskEvent({ message: 'Checkout failed!' });
+
+        const {
+          task: {
+            product: {
+              name: productName,
+              image,
+              price,
+              currency,
+              variant: { name: size },
+            },
+            site: { name: siteName, url: siteUrl },
+            profile: { profileName },
+          },
+          slack,
+          discord,
+        } = this._context;
+
+        const hooks = await notification(slack, discord, {
+          success: false,
+          product: productName,
+          price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
+            price.toString().slice(0, -2),
+          ),
+          site: { name: siteName, url: siteUrl },
+          profile: profileName,
+          size,
+          image: `${image}`.startsWith('http') ? image : `https:${image}`,
+        });
+
+        this._events.emit(TaskManagerEvents.Webhook, hooks);
+        return States.DONE;
+      }
+
+      if (body && body.status && /paid/i.test(body.status)) {
+        this._emitTaskEvent({ message: 'Payment successful!' });
+
+        const {
+          task: {
+            product: {
+              name: productName,
+              image,
+              price,
+              currency,
+              variant: { name: size },
+            },
+            site: { name: siteName, url: siteUrl },
+            profile: { profileName },
+          },
+          slack,
+          discord,
+        } = this._context;
+
+        const hooks = await notification(slack, discord, {
+          success: true,
+          product: productName,
+          price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
+            price.toString().slice(0, -2),
+          ),
+          site: { name: siteName, url: siteUrl },
+          profile: profileName,
+          size,
+          image: `${image}`.startsWith('http') ? image : `https:${image}`,
+        });
+
+        this._events.emit(TaskManagerEvents.Webhook, hooks);
+        return States.DONE;
+      }
+
+      this._delayer = waitForDelay(1000, this._aborter.signal);
+      await this._delayer;
+
+      return States.CHECK_STATUS;
+    } catch (error) {
+      console.log(error);
+      return this._handleFetchErrors([error], States.CHECK_STATUS);
+    }
   }
 
   _generateEndStateHandler(state) {
@@ -352,7 +801,7 @@ class TaskRunner {
         message: this._context.status || `Task has ${status}`,
         done: true,
       });
-      return States.STOP;
+      return States.DONE;
     };
   }
 
@@ -366,6 +815,7 @@ class TaskRunner {
     const stepMap = {
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
+      [States.CAPTCHA]: this._handleCaptcha,
       [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
       [States.CHECK_STATUS]: this._handleCheckStatus,
       [States.SWAP]: this._handleSwapProxies,
@@ -384,7 +834,7 @@ class TaskRunner {
     let nextState = this._state;
 
     if (this._context.aborted) {
-      nextState = States.ABORT;
+      return true;
     }
 
     try {
@@ -415,7 +865,7 @@ class TaskRunner {
     this._prevState = States.STARTED;
 
     let shouldStop = false;
-    while (this._state !== States.STOP && !shouldStop) {
+    while (this._state !== States.DONE && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.run();
     }
