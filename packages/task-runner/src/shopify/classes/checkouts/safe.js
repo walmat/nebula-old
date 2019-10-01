@@ -1,5 +1,4 @@
 /* eslint-disable array-callback-return */
-import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
 import { min } from 'lodash';
 import { parse } from 'query-string';
@@ -67,8 +66,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request('/cart/add.js', {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
         compress: true,
+        agent: proxy,
         headers: {
           origin: url,
           host: `${url.split('/')[2]}`,
@@ -131,7 +130,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -246,7 +246,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/wallets/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         headers: {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/json',
@@ -300,7 +301,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -405,7 +407,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -470,7 +473,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -554,7 +558,8 @@ class SafeCheckout extends CheckoutPrimitive {
         `/wallets/checkouts/${this.checkoutToken}/shipping_rates.json`,
         {
           method: 'GET',
-          agent: proxy ? new HttpsProxyAgent(proxy) : null,
+          compress: true,
+          agent: proxy,
           headers: getHeaders({ url, apiKey }),
         },
       );
@@ -656,7 +661,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`${url}/cart`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -708,7 +714,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -802,7 +809,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`${url}/cart`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -855,7 +863,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -925,7 +934,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/checkpoint`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: getHeaders({ url, apiKey }),
@@ -970,7 +980,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1078,7 +1089,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/checkpoint`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -1127,7 +1139,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1197,7 +1210,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`${url}/wallets/checkouts`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: getHeaders({ url, apiKey }),
@@ -1253,7 +1267,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1326,7 +1341,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -1397,7 +1413,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1572,7 +1589,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'follow',
         follow: 1,
         headers: {
@@ -1661,7 +1679,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1712,7 +1731,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/wallets/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'follow',
         follow: 1,
         headers: {
@@ -1756,7 +1776,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1824,7 +1845,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'follow',
         follow: 1,
         headers: {
@@ -1930,7 +1952,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -2016,7 +2039,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -2111,7 +2135,8 @@ class SafeCheckout extends CheckoutPrimitive {
         try {
           await this._request(redirectUrl, {
             method: 'GET',
-            agent: proxy ? new HttpsProxyAgent(proxy) : null,
+            compress: true,
+            agent: proxy,
             redirect: 'manual',
             follow: 0,
             headers: {
@@ -2213,7 +2238,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(checkoutUrl, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         follow: 0,
         redirect: 'manual',
         headers: {
@@ -2286,7 +2312,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -2374,7 +2401,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'follow',
         follow: 5,
         headers: {
@@ -2436,7 +2464,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -2503,7 +2532,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -2578,7 +2608,8 @@ class SafeCheckout extends CheckoutPrimitive {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         follow: 5,
         redirect: 'follow',
         headers: {
@@ -2652,7 +2683,8 @@ class SafeCheckout extends CheckoutPrimitive {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {

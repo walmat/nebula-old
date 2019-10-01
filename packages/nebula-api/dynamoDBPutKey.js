@@ -130,6 +130,10 @@ const keys = [
   '084661df-c47c-40c7-aa22-69a48dc8467d',
   'ad5a6fb1-28c3-4392-8ac7-2ef38853ec5d',
   'e732ca4f-49ff-435d-99ac-5dbd16299e63',
+  '1255cfae-4693-42b7-8e66-bb30d6310274',
+  '80bd7f7b-1783-4062-8299-ce39bdb663fe',
+  '66fca2ae-a53d-4555-ba65-3d78101cfcd9',
+  '44086a58-184a-4da1-b185-567b30abe471',
 ];
 
 function storeKey(key) {

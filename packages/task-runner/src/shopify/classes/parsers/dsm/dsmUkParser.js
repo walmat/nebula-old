@@ -1,4 +1,3 @@
-import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
 
 const DsmParser = require('./dsmParser');
@@ -51,7 +50,7 @@ class DsmUkParser extends DsmParser {
 
     return this._request(uri, {
       method: 'GET',
-      agent: this._proxy ? new HttpsProxyAgent(this._proxy) : undefined,
+      agent: this._proxy,
       headers: {
         'User-Agent': userAgent,
       },

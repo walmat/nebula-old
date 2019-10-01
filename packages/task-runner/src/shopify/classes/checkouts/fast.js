@@ -1,5 +1,4 @@
 /* eslint-disable no-nested-ternary */
-import HttpsProxyAgent from 'https-proxy-agent';
 import { min } from 'lodash';
 import { parse } from 'query-string';
 import Checkout from '../checkout';
@@ -95,7 +94,8 @@ class FastCheckout extends Checkout {
     try {
       const res = await this._request(`/wallets/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         headers: {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/json',
@@ -145,7 +145,8 @@ class FastCheckout extends Checkout {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -243,7 +244,8 @@ class FastCheckout extends Checkout {
     try {
       const res = await this._request(`/wallets/checkouts/${this.checkoutToken}.json`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
@@ -327,7 +329,8 @@ class FastCheckout extends Checkout {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -388,7 +391,8 @@ class FastCheckout extends Checkout {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -473,7 +477,8 @@ class FastCheckout extends Checkout {
         `/wallets/checkouts/${this.checkoutToken}/shipping_rates.json`,
         {
           method: 'GET',
-          agent: proxy ? new HttpsProxyAgent(proxy) : null,
+          compress: true,
+          agent: proxy,
           headers: getHeaders({ url, apiKey }),
         },
       );
@@ -607,7 +612,8 @@ class FastCheckout extends Checkout {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         follow: 0,
         redirect: 'manual',
         headers: {
@@ -676,7 +682,8 @@ class FastCheckout extends Checkout {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -776,7 +783,8 @@ class FastCheckout extends Checkout {
     try {
       const res = await this._request(`/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'PATCH',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
@@ -847,7 +855,8 @@ class FastCheckout extends Checkout {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {

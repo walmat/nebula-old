@@ -1,5 +1,3 @@
-import HttpsProxyAgent from 'https-proxy-agent';
-
 const Parser = require('./parser');
 const { convertToJson } = require('../utils/parse');
 const { ParseType } = require('../utils/constants').Monitor;
@@ -31,10 +29,11 @@ class AtomParser extends Parser {
       );
       const res = await this._request('/collections/all.atom', {
         method: 'GET',
+        compress: true,
         headers: {
           'User-Agent': userAgent,
         },
-        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+        agent: this._proxy,
       });
 
       if (!/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(res.status)) {

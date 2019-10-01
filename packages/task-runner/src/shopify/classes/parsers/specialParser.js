@@ -1,5 +1,4 @@
 /* eslint-disable class-methods-use-this */
-import HttpsProxyAgent from 'https-proxy-agent';
 
 const cheerio = require('cheerio');
 const Parser = require('./parser');
@@ -40,7 +39,8 @@ class SpecialParser extends Parser {
         method: 'GET',
         redirect: 'follow',
         follow: 5,
-        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+        compress: true,
+        agent: this._proxy,
         headers: {
           'User-Agent': userAgent,
         },

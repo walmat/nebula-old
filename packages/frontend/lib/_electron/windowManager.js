@@ -338,8 +338,8 @@ class WindowManager {
     autoUpdater.checkForUpdatesAndNotify();
 
     // attach event listeners
-    autoUpdater.on('checking-for-update', e => {
-      log.info('CHECKING FOR UPDATE', e);
+    autoUpdater.on('checking-for-update', () => {
+      log.info('CHECKING FOR UPDATE');
       if (this._main) {
         this._main.webContents.send(IPCKeys.RequestCheckForUpdate);
       }

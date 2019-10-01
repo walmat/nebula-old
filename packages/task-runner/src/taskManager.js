@@ -1,4 +1,5 @@
 import EventEmitter from 'eventemitter3';
+import { globalAgent } from 'http';
 import shortid from 'shortid';
 import { isEqual } from 'lodash';
 import { CookieJar } from 'tough-cookie';
@@ -30,6 +31,9 @@ const SupremeRunner = require('./supreme/runners/taskRunner');
 const SupremeMonitor = require('./supreme/runners/monitor');
 
 // TODO: mesh includes
+
+// OVERRIDES
+globalAgent.maxSockets = Infinity;
 
 class TaskManager {
   get loggerPath() {
@@ -207,6 +211,12 @@ class TaskManager {
         r.task.site === task.site.url &&
         TaskManager._compareProductInput(task.product, r.task.product)
       ) {
+        this._events.emit(
+          'status',
+          task.id,
+          { message: 'Profile already used!', status: 'used' },
+          RunnerEvents.TaskStatus,
+        );
         this.stop(r.task);
       }
     });

@@ -1,5 +1,3 @@
-import HttpsProxyAgent from 'https-proxy-agent';
-
 const { userAgent, getRandomIntInclusive } = require('../../../common');
 const Parser = require('./parser');
 
@@ -25,11 +23,12 @@ class JsonParser extends Parser {
         `/products.json?page=-${getRandomIntInclusive(500000000000, 900000000000)}`,
         {
           method: 'GET',
+          compress: true,
           headers: {
             'X-Shopify-Api-Features': getRandomIntInclusive(30000, 90000),
             'User-Agent': userAgent,
           },
-          agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+          agent: this._proxy,
         },
       );
 

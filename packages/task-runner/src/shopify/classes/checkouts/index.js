@@ -21,28 +21,6 @@ function getCheckoutMethod(site, type, logger) {
       return (...context) => new SafeCheckout(...context);
     }
   }
-  // if (site.special) {
-  //   _logger.log('silly', 'Checkout method determined as special');
-  //   switch (type) {
-  //     case Modes.SAFE: {
-  //     }
-  //     case Modes.FAST: {
-  //     }
-
-  //   }
-  // }
-
-  // switch (type) {
-  //   case Modes.SAFE: {
-  //     return (...context) => [CheckoutTypes.api, new SafeAPICheckout(...context)];
-  //   }
-  //   case Modes.FAST: {
-  //     return (...context) => [CheckoutTypes.api, new APICheckout(...context)];
-  //   }
-  //   default: {
-  //     return (...context) => [CheckoutTypes.api, new SafeAPICheckout(...context)];
-  //   }
-  // }
 }
 
 module.exports = {
