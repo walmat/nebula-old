@@ -173,6 +173,8 @@ class App {
       }, 1500);
     }
 
+    this._rpc.client.login({ clientId: this._rpc.clientId });
+
     // discord Rich Presence API
     this._rpc.client.on('ready', () => {
       this._rpc.setActivity().catch(console.error);
