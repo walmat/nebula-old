@@ -9,7 +9,6 @@ class Discord {
   }
 
   build(success = false, type, checkoutUrl, product, price, site, order, profile, size, image) {
-    console.log(image);
     if (this.hook) {
       const embed = new RichEmbed()
         .setTitle(success ? `Successful checkout (${type})` : `Payment failed! (${type})`)
@@ -24,7 +23,7 @@ class Discord {
           'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
         );
 
-      if (order) {
+      if (order && order.number && order.url) {
         embed.addField('Order #', `[${order.number}](${order.url})`, true);
         embed.setURL(order.url);
       }

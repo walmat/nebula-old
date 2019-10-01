@@ -420,7 +420,8 @@ class TaskRunner {
       const variant = await this._pickSize();
       // loop back around?
       if (!variant) {
-        return States.WAIT_FOR_PRODUCT;
+        this._emitTaskEvent({ message: 'Size not found' });
+        return States.ERROR;
       }
       this._context.task.product.variant = variant;
       return States.ADD_TO_CART;
@@ -568,9 +569,9 @@ class TaskRunner {
       /\s/g,
       '+',
     )}`;
-    const card = payment.cardNumber.match(/.{1,3}/g).join('+');
-    const month = parseInt(payment.exp.slice(0, 2), 10);
-    const year = `20${parseInt(payment.exp.slice(3, 5), 10)}`;
+    const card = payment.cardNumber.match(/.{1,4}/g).join('+');
+    const month = payment.exp.slice(0, 2);
+    const year = `20${payment.exp.slice(3, 5)}`;
     const country = /US/i.test(name) ? 'USA' : '';
     // TOOD: format phone?, figure out EU country
     const cookieSub = JSON.stringify({ [s]: 1 });
@@ -598,6 +599,8 @@ class TaskRunner {
       this._delayer = waitForDelay(checkoutDelay, this._aborter.signal);
       await this._delayer;
     }
+
+    console.log(form);
 
     this._emitTaskEvent({ messge: 'Submitting checkout' });
 
@@ -631,6 +634,7 @@ class TaskRunner {
       }
 
       const body = await res.json();
+      console.log(body);
 
       if (body && body.status && /queue/i.test(body.status)) {
         const { slug } = body;
@@ -797,7 +801,7 @@ class TaskRunner {
         message: this._context.status || `Task has ${status}`,
         done: true,
       });
-      return States.STOP;
+      return States.DONE;
     };
   }
 

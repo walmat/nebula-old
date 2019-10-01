@@ -273,7 +273,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 <div className="col col--end col--no-gutter-right">
                   <p className="tasks-create__label">Variation</p>
                   <input
-                    className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
+                    className="tasks-create__input tasks-create__input--bordered tasks-create__input--variation"
                     type="text"
                     placeholder="Color/Style"
                     onChange={e =>
@@ -289,9 +289,9 @@ export class CreateTaskPrimitive extends PureComponent {
                   />
                 </div>
                 <div className="col col--end col--no-gutter-right">
-                  <p className="tasks-create__label">Checkout Delay</p>
+                  <p className="tasks-create__label">Delay</p>
                   <input
-                    className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
+                    className="tasks-create__input tasks-create__input--bordered tasks-create__input--checkout-delay"
                     type="text"
                     placeholder="0"
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_CHECKOUT_DELAY, e)}
