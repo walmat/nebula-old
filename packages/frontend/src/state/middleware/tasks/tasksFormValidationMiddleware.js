@@ -29,6 +29,7 @@ const tasksFormValidationMiddleware = store => next => action => {
         if (
           field === TASK_FIELDS.EDIT_PRODUCT_VARIATION ||
           field === TASK_FIELDS.EDIT_TASK_CATEGORY ||
+          field === TASK_FIELDS.EDIT_CHECKOUT_DELAY ||
           field === TASK_FIELDS.EDIT_TASK_ACCOUNT
         ) {
           errors[mapTaskFieldsToKey[field]] = false;

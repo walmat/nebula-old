@@ -1,15 +1,10 @@
-Version 1.2.2:
+Version 1.2.3:
 
-- Responsive UI
-- Profile/Task Validation
-- Added Splash Page
-- Added Monitor Pool
-- Added "One Checkout" (beta)
-- Added "Restock Mode" (beta)
-- SAFE mode speed improvements
-- Fixed webhook manager
-- Fixed RPC bug
-- Fixed Slack webhook
-- Fixed captcha html font
-- Supreme restock improvements (nearly ready!!)
-- DSM UK/SG/JP release/restock improvements
+- fixed half size bug (caused by choosing size 5)
+- fixed SAFE mode "free checkout" webhooks
+- fixed transparency bug (everyone tell James I'm sorry)
+- Fixed "one checkout" bugs (beta)
+- Changed monitor/error delays to propagate onBlur() instead of onChange()
+- Improved error handling on Shopify monitor pool
+- Added Supreme API Security
+- UI Tweaks / improvements
