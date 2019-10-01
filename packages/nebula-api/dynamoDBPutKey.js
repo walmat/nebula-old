@@ -121,8 +121,15 @@ const keys = [
   '240b3346-9d0e-4282-ad5a-c4cdad3a8ce8',
   '0f7387dd-f5b2-4f49-9a47-0179462b04c6',
   'c7ea6690-cd9d-42ac-a0f2-d6d775851db0',
-  'd-d429c244-e370-4474-bacc-8e25cc117098',
-  'nebulabots',
+  'd2ffa09a-67ac-4912-951e-c47b85043323',
+  'd2ffa09a-67ac-4912-951e-c47b85043323',
+  '74499be4-bdf1-4640-85fe-580b5b48457b',
+  '35f153e3-43b9-4632-9a49-ac49bf803b78',
+  'cbf92704-0c7b-4819-8c5a-cbc5c4ba6e06',
+  'b1b726ed-8c8d-403f-a51a-26ad761aad56',
+  '61c36ea3-426b-47e9-bd12-13141d23c8c3',
+  '084661df-c47c-40c7-aa22-69a48dc8467d',
+  'ad5a6fb1-28c3-4392-8ac7-2ef38853ec5d',
 ];
 
 function storeKey(key) {
