@@ -13,6 +13,7 @@ class RPC {
     this.clientId = '571372290994864146';
     DiscordRPC.register(this.clientId);
     this.client = new DiscordRPC.Client({ transport: 'ipc' });
+    this.client.login({ clientId: this.clientId });
 
     this.startTimestamp = new Date();
     this.version = nebulaEnv.isDevelopment() ? 'FnF / Dev' : `v${getVersion()}`;
@@ -24,7 +25,7 @@ class RPC {
     }
 
     this.client.setActivity({
-      details: nebulaEnv.isDevelopment() ? '😍😎😘🤐' : '',
+      details: '🎃👻💀⚰️',
       state: `${this.version}`,
       startTimestamp: this.startTimestamp,
       largeImageKey: 'logo',

@@ -132,7 +132,13 @@ class CaptchaWindowManager {
     return null;
   }
 
-  static setProxy(win, { proxyRules, proxyBypassRules = '.google.com,.gstatic.com,.youtube.com' }) {
+  static setProxy(
+    win,
+    {
+      proxyRules,
+      proxyBypassRules = '*.google.com,*.gstatic.com,.youtube.com,*.youtube.com,*.ytimg.com,*.doubleclick.net,*.googlevideo.com,https://www.youtube.com,*.ggpht.com,*.com',
+    },
+  ) {
     if (win) {
       win.webContents.session.setProxy(
         {
@@ -388,6 +394,8 @@ class CaptchaWindowManager {
       }
       win.show();
     });
+
+    win.webContents.toggleDevTools();
 
     const handleClose = () => {
       if (nebulaEnv.isDevelopment()) {

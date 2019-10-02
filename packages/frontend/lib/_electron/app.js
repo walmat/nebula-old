@@ -173,8 +173,6 @@ class App {
       }, 1500);
     }
 
-    this._rpc.client.login({ clientId: this._rpc.clientId });
-
     // discord Rich Presence API
     this._rpc.client.on('ready', () => {
       this._rpc.setActivity().catch(console.error);
@@ -204,7 +202,6 @@ class App {
   /**
    * Occurs right before application quit
    */
-  // eslint-disable-next-line class-methods-use-this
   async onBeforeQuit() {
     // Perform any cleanup that needs to get done
     if (nebulaEnv.isDevelopment()) {

@@ -32,7 +32,6 @@ export class App extends PureComponent {
   }
 
   static minimize(e) {
-    console.log('minimizing!');
     e.preventDefault();
     if (window.Bridge) {
       window.Bridge.minimize();
@@ -70,7 +69,6 @@ export class App extends PureComponent {
       const backgroundColor = mapBackgroundThemeToColor[theme];
       window.Bridge.setTheme({ backgroundColor });
       window.Bridge.registerForTaskEvents(this.taskHandler);
-      window.Bridge.registerForUpdateEvents(this.updateHandler);
     }
     window.addEventListener('beforeunload', this._cleanup);
   }
@@ -96,11 +94,6 @@ export class App extends PureComponent {
     if (!isEmpty(statusMessageBuffer)) {
       store.dispatch(taskActions.status(statusMessageBuffer));
     }
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  updateHandler(_, args) {
-    console.log(args);
   }
 
   _cleanup() {

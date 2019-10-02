@@ -54,16 +54,16 @@ const _registerForTaskEvents = handler => {
   }
 };
 
-/**
- * Sends a listener for task events to launcher.js
- */
-const _registerForUpdateEvents = handler => {
-  console.log('registering for update events', handler);
-  util.sendEvent(IPCKeys.RequestCheckForUpdate);
-  ipcRenderer.on(IPCKeys.RequestCheckForUpdate, (event, ...args) => {
-    handler(event, ...args);
-  });
-};
+// /**
+//  * Sends a listener for task events to launcher.js
+//  */
+// const _registerForUpdateEvents = handler => {
+//   console.log('registering for update events', handler);
+//   util.sendEvent(IPCKeys.RequestCheckForUpdate);
+//   ipcRenderer.on(IPCKeys.RequestCheckForUpdate, (event, ...args) => {
+//     handler(event, ...args);
+//   });
+// };
 
 /**
  * Removes a listener for task events to launcher.js
@@ -238,7 +238,7 @@ process.once('loaded', () => {
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,
-    registerForUpdateEvents: _registerForUpdateEvents,
+    // registerForUpdateEvents: _registerForUpdateEvents,
     deregisterForTaskEvents: _deregisterForTaskEvents,
     startTasks: _startTasks,
     stopTasks: _stopTasks,

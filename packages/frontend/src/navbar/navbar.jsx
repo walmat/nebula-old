@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+// import { Line } from 'rc-progress';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
@@ -79,6 +80,12 @@ export class NavbarPrimitive extends PureComponent {
   constructor(props) {
     super(props);
 
+    // this.state = {
+    //   isUpdating: false,
+    //   percent: 0,
+    //   color: '#edbcc6',
+    // };
+
     const classNameCalc = (...supportedRoutes) => route =>
       supportedRoutes.includes(route) ? 'active' : null;
     this.defaultIconProps = {
@@ -104,6 +111,34 @@ export class NavbarPrimitive extends PureComponent {
       },
     };
   }
+
+  // componentDidMount() {
+  //   if (window.Bridge) {
+  //     window.Bridge.registerForUpdateEvents(this.updateHandler);
+  //   }
+  // }
+
+  // eslint-disable-next-line class-methods-use-this
+  // updateHandler(_, args = {}) {
+  //   console.log(args);
+  //   const { done, error, progressObj } = args;
+  //   if (done !== undefined) {
+  //     this.setState({ isUpdating: !done });
+
+  //     if (done) {
+  //       this.setState({ color: '#46adb4' });
+  //     }
+  //   }
+
+  //   if (error) {
+  //     this.setState({ isUpdating: false, color: '#f0405e' });
+  //   }
+
+  //   if (progressObj) {
+  //     const { percent } = progressObj;
+  //     this.setState({ isUpdating: true, percent });
+  //   }
+  // }
 
   renderNavbarIconRow(route, { Icon, iconName, classNameGenerator }) {
     const { onKeyPress, onRoute, navbar, history } = this.props;
