@@ -180,11 +180,12 @@ class CaptchaWindowManager {
    *
    * If no captcha windows are present, one is created
    */
-  async startHarvesting(runnerId, siteKey) {
+  async startHarvesting(runnerId, siteKey, host) {
     this._harvestStatus = {
       state: HARVEST_STATES.ACTIVE,
       runnerId,
       siteKey,
+      host,
     };
     if (this._captchaWindows.length === 0) {
       this.spawnCaptchaWindow();
@@ -192,7 +193,7 @@ class CaptchaWindowManager {
       await Promise.all(
         this._captchaWindows.map(async (win, idx) => {
           await new Promise(resolve => setTimeout(resolve, idx * 250));
-          win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+          win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
         }),
       );
     }
@@ -204,14 +205,15 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
-  suspendHarvesting(runnerId, siteKey) {
+  suspendHarvesting(runnerId, siteKey, host) {
     this._harvestStatus = {
       state: HARVEST_STATES.SUSPEND,
       runnerId,
       siteKey,
+      host,
     };
     this._captchaWindows.forEach(win => {
-      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey);
+      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey, host);
     });
   }
 
@@ -221,14 +223,15 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
-  stopHarvesting(runnerId, siteKey) {
+  stopHarvesting(runnerId, siteKey, host) {
     this._harvestStatus = {
       state: HARVEST_STATES.IDLE,
       runnerId: null,
       siteKey: null,
+      host: null,
     };
     this._captchaWindows.forEach(win => {
-      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey);
+      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey, host);
     });
   }
 
@@ -245,6 +248,7 @@ class CaptchaWindowManager {
    * Create a captcha window and show it
    */
   spawnCaptchaWindow(options = {}) {
+    const { state, runnerId, siteKey, host } = this._harvestStatus;
     // Prevent more than 5 windows from spawning
     if (this._captchaWindows.length >= 5) {
       return null;
@@ -285,7 +289,7 @@ class CaptchaWindowManager {
       proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
       proxyBypassRules: '.google.com,.gstatic.com,.youtube.com',
     });
-    win.loadURL('http://checkout.shopify.com');
+    win.loadURL(host || urls.get('captcha'));
     win.on('ready-to-show', () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`[DEBUG]: Window was opened, id = ${winId}`);
@@ -311,10 +315,10 @@ class CaptchaWindowManager {
 
     win.webContents.once('did-finish-load', () => {
       CaptchaWindowManager.setProxy(win, {});
+
       // If we are actively harvesting, start harvesting on the new window as well
-      const { state, runnerId, siteKey } = this._harvestStatus;
       if (state === HARVEST_STATES.ACTIVE) {
-        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey);
+        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
         if (Notification.isSupported()) {
           const sound = nebulaEnv.isDevelopment()
             ? Path.join(__dirname, '../../public/assets/sounds/notification.mp3')
@@ -466,10 +470,10 @@ class CaptchaWindowManager {
    * _and_ the number of tokens in the backlog is 0.
    */
   _handleTokenExpirationUpdate() {
-    const { state, runnerId, siteKey } = this._harvestStatus;
+    const { state, runnerId, siteKey, host } = this._harvestStatus;
     if (this._tokenQueue.backlogLength === 0 && state === HARVEST_STATES.SUSPEND) {
       console.log('[DEBUG]: Resuming harvesters...');
-      this.startHarvesting(runnerId, siteKey);
+      this.startHarvesting(runnerId, siteKey, host);
     }
   }
 

@@ -231,7 +231,7 @@ class TaskManager {
    *
    * @param {String} runnerId the runner for which to register captcha events
    */
-  handleStartHarvest(runnerId, sitekey) {
+  handleStartHarvest(runnerId, sitekey, host) {
     let container = this._captchaQueues.get(runnerId);
     if (!container) {
       // We haven't started harvesting for this runner yet, create a queue and start harvesting
@@ -243,7 +243,7 @@ class TaskManager {
       this._tokenReserveQueue.unshift(runnerId);
 
       // Emit an event to start harvesting
-      this._events.emit(Events.StartHarvest, runnerId, sitekey);
+      this._events.emit(Events.StartHarvest, runnerId, sitekey, host);
     }
   }
 

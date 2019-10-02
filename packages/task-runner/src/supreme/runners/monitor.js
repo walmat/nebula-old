@@ -43,7 +43,7 @@ class Monitor {
 
     this._context = {
       ...context,
-      proxy: proxy ? proxy.proxy : null,
+      proxy: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
@@ -457,6 +457,8 @@ class Monitor {
       return States.ABORT;
     }
 
+    this._emitMonitorEvent({ message: 'Parsing products' });
+
     let res;
     let body;
     try {
@@ -526,7 +528,7 @@ class Monitor {
       try {
         res = await this._request(`/shop/${id}.json`, {
           method: 'GET',
-          gent: proxy,
+          agent: proxy,
           headers: {
             authority: 'www.supremenewyork.com',
             accept:

@@ -14,6 +14,7 @@ const {
   Monitor: { ParseType },
 } = require('../classes/utils/constants');
 const TaskManagerEvents = require('../../constants').Manager.Events;
+const { SiteKeyForPlatform, Platforms } = require('../../constants');
 const { waitForDelay } = require('../../common');
 const { getCheckoutMethod } = require('../classes/checkouts');
 const { Modes } = require('../classes/utils/constants').TaskRunner;
@@ -23,7 +24,7 @@ class TaskRunner {
     return this._state;
   }
 
-  constructor(context, proxy, type) {
+  constructor(context, proxy, type, platform = Platforms.Shopify) {
     // Add Ids to object
     this.id = context.id;
     this._task = context.task;
@@ -39,6 +40,7 @@ class TaskRunner {
       signal: this._aborter.signal, // generic abort signal
     });
     this._parseType = type;
+    this._platform = platform;
 
     this._delayer = null;
     this._captchaQueue = null;
@@ -214,7 +216,12 @@ class TaskRunner {
 
     if (this._context.harvestState === HarvestStates.start) {
       this._logger.silly('[DEBUG]: Starting harvest...');
-      this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
+      this._events.emit(
+        TaskManagerEvents.StartHarvest,
+        this._context.id,
+        SiteKeyForPlatform[this._platform](this._context.task.site.url),
+        'http://checkout.shopify.com'
+      );
     }
 
     // return the captcha request

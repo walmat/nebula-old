@@ -52,8 +52,8 @@ const _endCaptchaSession = () => {
 /**
  * Sends the harvest captcha trigger to windowManager.js
  */
-const _harvestCaptchaToken = (runnerId, token, siteKey) => {
-  util.sendEvent(IPCKeys.HarvestCaptcha, runnerId, token, siteKey);
+const _harvestCaptchaToken = (runnerId, token, siteKey, host) => {
+  util.sendEvent(IPCKeys.HarvestCaptcha, runnerId, token, siteKey, host);
 };
 
 const _registerForStartHarvestCaptcha = callback => {

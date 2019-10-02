@@ -30,7 +30,7 @@ const Platforms = {
 const SiteKeyForPlatform = {
   [Platforms.Shopify]: url => {
     if (/kith/.test(url)) {
-      return '';
+      return '6LeXJ7oUAAAAAHIpfRvgjs3lcJiO_zMC1LAZWlSz';
     }
     return '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
   },

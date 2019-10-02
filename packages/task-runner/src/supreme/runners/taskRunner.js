@@ -12,11 +12,16 @@ const Slack = require('../classes/hooks/slack');
 const { notification } = require('../classes/hooks');
 const AsyncQueue = require('../../common/asyncQueue');
 const { waitForDelay, getRandomIntInclusive } = require('../../common');
-const { Runner: { Events }, Platforms, SiteKeyForPlatform } = require('../../constants');
+const {
+  Runner: { Events },
+  Platforms,
+  SiteKeyForPlatform,
+} = require('../../constants');
 const {
   TaskRunner: { States, Types, DelayTypes, HookTypes, HarvestStates },
   Monitor: { ParseType },
 } = require('../utils/constants');
+const { ATC } = require('../utils/forms');
 
 // SUPREME
 class TaskRunner {
@@ -48,7 +53,7 @@ class TaskRunner {
 
     this._context = {
       ...context,
-      proxy: proxy ? proxy.proxy : null,
+      proxy: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
@@ -62,6 +67,7 @@ class TaskRunner {
     };
 
     this._history = [];
+    this.webhookSent = false;
     this._slug = null;
     this._pooky = false;
     this.captchaToken = '';
@@ -130,7 +136,6 @@ class TaskRunner {
   }
 
   _handleDelay(id, delay, type) {
-    console.log(id, this._context.id, delay, type);
     if (id === this._context.id) {
       if (type === DelayTypes.error) {
         this._context.task.errorDelay = delay;
@@ -171,7 +176,12 @@ class TaskRunner {
 
     if (this._context.harvestState === HarvestStates.start) {
       this._logger.silly('[DEBUG]: Starting harvest...');
-      this._events.emit(TaskManagerEvents.StartHarvest, this._context.id, SiteKeyForPlatform[this._platform]);
+      this._events.emit(
+        TaskManagerEvents.StartHarvest,
+        this._context.id,
+        SiteKeyForPlatform[this._platform],
+        'http://www.supremenewyork.com',
+      );
     }
 
     // return the captcha request
@@ -213,13 +223,16 @@ class TaskRunner {
         return States.ABORT;
       }
 
-      const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED)/.exec(status);
+      const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED|EPROTO)/.exec(
+        status,
+      );
 
       if (match) {
         // Check capturing group
         switch (match[1]) {
           // connection reset
           case 'ENOTFOUND':
+          case 'EPROTO':
           case 'ECONNREFUSED':
           case 'ECONNRESET': {
             return {
@@ -228,11 +241,13 @@ class TaskRunner {
             };
           }
           default:
-            return state;
+            break;
         }
       }
     });
 
+    this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
+    await this._delayer;
     return state;
   }
 
@@ -327,7 +342,6 @@ class TaskRunner {
       if (proxy) {
         this.proxy = proxy;
         this._context.proxy = new HttpsProxyAgent(proxy.proxy);
-        this._checkout._context.proxy = new HttpsProxyAgent(proxy.proxy);
         this._context.rawProxy = proxy.raw;
         this.shouldBanProxy = 0; // reset ban flag
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
@@ -442,6 +456,8 @@ class TaskRunner {
     return new Promise(async (resolve, reject) => {
       const lastid = Date.now();
 
+      console.log(region);
+
       const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
       const res = await this._request(
         `${NEBULA_API_BASE}/${region}?auth=nebula-${NEBULA_API_UUID}`,
@@ -454,9 +470,10 @@ class TaskRunner {
       }
 
       const body = await res.json();
+      console.log(body);
 
       if (!body || (body && !body.cookies)) {
-        const error = new Error('Unable to fetch cookies');
+        const error = new Error('Unable to parse cookies');
         error.status = res.status || res.errno;
         reject(error);
       }
@@ -494,14 +511,19 @@ class TaskRunner {
     this._emitTaskEvent({ message: 'Adding to cart' });
 
     if (!this._pooky) {
-      if (/US/i.test(name)) {
-        this._pooky = await this.generatePooky('US');
-      }
-      if (/EU/i.test(name)) {
-        this._pooky = await this.generatePooky('EU');
-      }
-      if (/JP/i.test(name)) {
-        this._pooky = await this.generatePooky('JP');
+      try {
+        if (/US/i.test(name)) {
+          this._pooky = await this.generatePooky('US');
+        }
+        if (/EU/i.test(name)) {
+          this._pooky = await this.generatePooky('EU');
+        }
+        if (/JP/i.test(name)) {
+          this._pooky = await this.generatePooky('JP');
+        }
+      } catch (error) {
+        this._pooky = false; // extra padding here..
+        throw error;
       }
     }
 
@@ -525,7 +547,7 @@ class TaskRunner {
           'user-agent':
             'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
         },
-        body: `s=${s}&st=${st}&qty=1`,
+        body: ATC(s, st, name),
       });
 
       if (!res.ok) {
@@ -535,6 +557,7 @@ class TaskRunner {
       }
 
       const body = await res.json();
+      console.log(body);
 
       if (body && !body.length) {
         this._pooky = false;
@@ -559,21 +582,21 @@ class TaskRunner {
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
-      if (this._checkout.captchaTokenRequest) {
+      if (this._captchaTokenRequest) {
         // cancel the request if it was previously started
-        this._checkout.captchaTokenRequest.cancel('aborted');
+        this._captchaTokenRequest.cancel('aborted');
       }
       return States.ABORT;
     }
 
     // start request if it hasn't started already
-    if (!this._checkout.captchaTokenRequest) {
+    if (!this._captchaTokenRequest) {
       this._emitTaskEvent({ message: 'Waiting for captcha' });
-      this._checkout.captchaTokenRequest = await this.getCaptcha();
+      this._captchaTokenRequest = await this.getCaptcha();
     }
 
     // Check the status of the request
-    switch (this._checkout.captchaTokenRequest.status) {
+    switch (this._captchaTokenRequest.status) {
       case 'pending': {
         // waiting for token, sleep for delay and then return same state to check again
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -581,8 +604,8 @@ class TaskRunner {
       }
       case 'fulfilled': {
         // token was returned, store it and remove the request
-        ({ value: this._checkout.captchaToken } = this._checkout.captchaTokenRequest);
-        this._checkout.captchaTokenRequest = null;
+        ({ value: this.captchaToken } = this._captchaTokenRequest);
+        this._captchaTokenRequest = null;
         // We have the token, so suspend harvesting for now
         this.suspendHarvestCaptcha();
 
@@ -593,7 +616,7 @@ class TaskRunner {
       case 'destroyed': {
         this._logger.silly(
           'Harvest Captcha status: %s, stopping...',
-          this._checkout.captchaTokenRequest.status,
+          this._captchaTokenRequest.status,
         );
         // clear out the status so we get a generic "errored out task event"
         this._context.status = null;
@@ -602,7 +625,7 @@ class TaskRunner {
       default: {
         this._logger.silly(
           'Unknown Harvest Captcha status! %s, stopping...',
-          this._checkout.captchaTokenRequest.status,
+          this._captchaTokenRequest.status,
         );
         // clear out the status so we get a generic "errored out task event"
         this._context.status = null;
@@ -661,7 +684,24 @@ class TaskRunner {
     }&order%5Bterms%5D=0&order%5Bterms%5D=1`;
 
     if (this.captchaToken) {
-      form += `g-recaptcha-response=${this.captchaToken}`;
+      form += `&g-recaptcha-response=${this.captchaToken}`;
+    }
+
+    if (!this._pooky) {
+      try {
+        if (/US/i.test(name)) {
+          this._pooky = await this.generatePooky('US');
+        }
+        if (/EU/i.test(name)) {
+          this._pooky = await this.generatePooky('EU');
+        }
+        if (/JP/i.test(name)) {
+          this._pooky = await this.generatePooky('JP');
+        }
+      } catch (error) {
+        this._pooky = false; // extra padding here..
+        throw error;
+      }
     }
 
     if (checkoutDelay) {
@@ -675,7 +715,7 @@ class TaskRunner {
     try {
       const res = await this._request('/checkout.json', {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         headers: {
           authority: 'www.supremenewyork.com',
           accept:
@@ -707,7 +747,7 @@ class TaskRunner {
 
       const body = await res.json();
 
-      if (body && body.status && /queue/i.test(body.status)) {
+      if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
           this._emitTaskEvent({ message: 'Invalid checkout slug' });
@@ -720,6 +760,11 @@ class TaskRunner {
       if (body && body.status && /dup/i.test(body.status)) {
         this._emitTaskEvent({ message: 'Duplicate order!' });
         return States.DONE;
+      }
+
+      if (body && body.status && /failed/i.test(body.status)) {
+        this._emitTaskEvent({ message: 'Checkout failed!' });
+        return States.ADD_TO_CART;
       }
 
       return States.SUBMIT_CHECKOUT;
@@ -741,7 +786,7 @@ class TaskRunner {
     try {
       const res = await this._request(`/checkout/${this._slug}/status.json`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         headers: {
           authority: 'www.supremenewyork.com',
           accept:
@@ -787,20 +832,28 @@ class TaskRunner {
           discord,
         } = this._context;
 
-        const hooks = await notification(slack, discord, {
-          success: false,
-          product: productName,
-          price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
-            price.toString().slice(0, -2),
-          ),
-          site: { name: siteName, url: siteUrl },
-          profile: profileName,
-          size,
-          image: `${image}`.startsWith('http') ? image : `https:${image}`,
-        });
+        if (!this.webhookSent) {
+          this.webhookSent = true;
+          const hooks = await notification(slack, discord, {
+            success: false,
+            product: productName,
+            price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
+              price.toString().slice(0, -2),
+            ),
+            site: { name: siteName, url: siteUrl },
+            profile: profileName,
+            size,
+            image: `${image}`.startsWith('http') ? image : `https:${image}`,
+          });
+          this._events.emit(TaskManagerEvents.Webhook, hooks);
+        }
 
-        this._events.emit(TaskManagerEvents.Webhook, hooks);
-        return States.DONE;
+        // reset pooky and captcha token, and also set the checkoutDelay to 0
+        this._pooky = false;
+        this._cookies = '';
+        this.captchaToken = '';
+        this._context.task.checkoutDelay = 0;
+        return States.SUBMIT_CHECKOUT;
       }
 
       if (body && body.status && /paid/i.test(body.status)) {

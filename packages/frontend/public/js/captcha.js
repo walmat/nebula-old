@@ -1,4 +1,8 @@
+/* eslint-disable global-require */
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable no-restricted-globals */
 let _siteKey = '';
+let _host = null;
 let _runnerId = '';
 let _started = false;
 let _resetting = false;
@@ -58,18 +62,30 @@ async function waitForLoad() {
   }
   _waitingForLoad = true; // Set waiting flag so we don't unnecessary poll multiple times
   await waitFor(150); // Wait a base amount of time before polling for iframe
-  let iframe = document.querySelector('iframe[role=presentation]');
-  while (!iframe) {
-    // eslint-disable-next-line no-await-in-loop
-    await waitFor(25); // Poll every 25 ms for iframe
+
+  let iframe;
+  if (/supreme/i.test(_host)) {
+    iframe = document.querySelector('iframe[title="recaptcha challenge"]');
+    while (!iframe) {
+      // eslint-disable-next-line no-await-in-loop
+      await waitFor(25); // Poll every 25 ms for iframe
+      iframe = document.querySelector('iframe[title="recaptcha challenge"]');
+    }
+  } else {
     iframe = document.querySelector('iframe[role=presentation]');
+    while (!iframe) {
+      // eslint-disable-next-line no-await-in-loop
+      await waitFor(25); // Poll every 25 ms for iframe
+      iframe = document.querySelector('iframe[role=presentation]');
+    }
+    let content = iframe.contentDocument || iframe.contentWindow.document;
+    while (!content.getElementsByClassName('recaptcha-checkbox-checkmark').length) {
+      // eslint-disable-next-line no-await-in-loop
+      await waitFor(25);
+      content = iframe.contentDocument || iframe.contentWindow.document;
+    }
   }
-  let content = iframe.contentDocument || iframe.contentWindow.document;
-  while (!content.getElementsByClassName('recaptcha-checkbox-checkmark').length) {
-    // eslint-disable-next-line no-await-in-loop
-    await waitFor(25);
-    content = iframe.contentDocument || iframe.contentWindow.document;
-  }
+
   _waitingForLoad = false;
   _iframe = iframe;
 }
@@ -134,13 +150,19 @@ async function autoClick() {
   // Wait for iframe load
   await waitForLoad();
 
-  // Get position and simulate click
-  const [x, y] = window.Bridge.Captcha.getPosition();
-  const sourcePt = {
-    x: x + rand(100, 300),
-    y: y + rand(100, 550),
-  };
-  await simulateClick(sourcePt);
+  console.log('HOST IN AUTOCLICK FN:', _host);
+
+  if (/supreme/i.test(_host)) {
+    window.grecaptcha.execute();
+  } else {
+    // Get position and simulate click
+    const [x, y] = window.Bridge.Captcha.getPosition();
+    const sourcePt = {
+      x: x + rand(100, 300),
+      y: y + rand(100, 550),
+    };
+    await simulateClick(sourcePt);
+  }
 }
 
 function resetChallenge() {
@@ -168,31 +190,54 @@ function resetChallenge() {
 // eslint-disable-next-line no-unused-vars
 async function submitCaptcha() {
   _submitting = true;
-  const captchaResponse = document.getElementById('g-recaptcha-response');
-  // Only capture/send token if we can get it
-  if (captchaResponse) {
-    const token = captchaResponse.value;
-    window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey);
-    await waitFor(rand(500, 1000)); // wait a little bit before resetting
+
+  if (/supreme/i.test(_host)) {
+    const token = window.grecaptcha.getResponse();
+    window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey, _host);
+  } else {
+    const captchaResponse = document.getElementById('g-recaptcha-response');
+    // Only capture/send token if we can get it
+    if (captchaResponse) {
+      const token = captchaResponse.value;
+      window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey, _host);
+      await waitFor(rand(200, 500)); // wait a little bit before resetting
+    }
   }
   resetChallenge();
   _submitting = false;
 }
 
-async function _registerStartHandler(_, runnerId, siteKey) {
+async function _registerStartHandler(_, runnerId, siteKey, host) {
   if (_started) {
     return;
   }
 
   _runnerId = runnerId;
   _siteKey = siteKey;
+  _host = host;
   _started = true;
+
+  // TODO: WE SHOULD DO A CHECK HERE TO SEE IF WE'RE SOLVING ALREADY FOR THE PROPER HOST
+  // // check to see if we're on the proper host
+  // const currentWindow = remote.getCurrentWindow();
+  // const currentLocation = currentWindow.webContents.getURL();
+  // console.log(currentLocation, _host);
+  // if (currentLocation !== _host) {
+  //   console.log('not the same');
+  //   _started = false;
+  //   currentWindow.webContents.loadURL(_host);
+  //   currentWindow.webContents.reload();
+  //   return;
+  // }
+
+  // console.log(host, _host);
 
   // Show the form if it was previous hidden
   const form = document.getElementById('captchaForm');
   form.setAttribute('style', 'visibility:visible;');
 
   if (!_initialized) {
+    const dataSize = /supreme/i.test(_host) ? 'invisible' : 'normal';
     const script = document.createElement('script');
     script.src = 'https://www.google.com/recaptcha/api.js';
     script.async = true;
@@ -202,7 +247,7 @@ async function _registerStartHandler(_, runnerId, siteKey) {
     container.setAttribute('class', 'g-recaptcha');
     container.setAttribute('data-sitekey', `${siteKey}`);
     container.setAttribute('data-theme', 'dark');
-    container.setAttribute('data-size', 'normal');
+    container.setAttribute('data-size', dataSize);
     container.setAttribute('data-callback', 'submitCaptcha');
     while (form.lastChild) {
       form.removeChild(form.lastChild);
