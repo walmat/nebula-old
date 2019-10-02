@@ -27,6 +27,18 @@ const Platforms = {
   Mesh: 'Mesh',
 };
 
+const SiteKeyForPlatform = {
+  [Platforms.Shopify]: url => {
+    if (/kith/.test(url)) {
+      return '';
+    }
+    return '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF';
+  },
+  [Platforms.Supreme]: '6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz',
+  [Platforms.Footsites]: '',
+  [Platforms.Mesh]: '',
+}
+
 module.exports = {
   Manager: {
     Events: TaskManagerEvents,
@@ -35,4 +47,5 @@ module.exports = {
     Events: TaskRunnerEvents,
   },
   Platforms,
+  SiteKeyForPlatform,
 };

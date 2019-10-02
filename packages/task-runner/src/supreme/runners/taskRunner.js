@@ -12,7 +12,7 @@ const Slack = require('../classes/hooks/slack');
 const { notification } = require('../classes/hooks');
 const AsyncQueue = require('../../common/asyncQueue');
 const { waitForDelay, getRandomIntInclusive } = require('../../common');
-const { Events } = require('../../constants').Runner;
+const { Runner: { Events }, Platforms, SiteKeyForPlatform } = require('../../constants');
 const {
   TaskRunner: { States, Types, DelayTypes, HookTypes, HarvestStates },
   Monitor: { ParseType },
@@ -20,7 +20,7 @@ const {
 
 // SUPREME
 class TaskRunner {
-  constructor(context, proxy, type) {
+  constructor(context, proxy, type, platform = Platforms.Supreme) {
     this.id = context.id;
     this._task = context.task;
     this.taskId = context.taskId;
@@ -29,6 +29,7 @@ class TaskRunner {
     this._signal = this._aborter.signal;
     this.proxy = proxy;
     this._parseType = type;
+    this._platform = platform;
 
     // eslint-disable-next-line global-require
     const _request = require('fetch-cookie')(fetch, context.jar);
@@ -166,7 +167,7 @@ class TaskRunner {
 
     if (this._context.harvestState === HarvestStates.start) {
       this._logger.silly('[DEBUG]: Starting harvest...');
-      this._events.emit(TaskManagerEvents.StartHarvest, this._context.id);
+      this._events.emit(TaskManagerEvents.StartHarvest, this._context.id, SiteKeyForPlatform[this._platform]);
     }
 
     // return the captcha request
