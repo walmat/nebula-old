@@ -132,7 +132,13 @@ class CaptchaWindowManager {
     return null;
   }
 
-  static setProxy(win, { proxyRules, proxyBypassRules = '' }) {
+  static setProxy(
+    win,
+    {
+      proxyRules,
+      proxyBypassRules = '*.google.com,*.gstatic.com,.youtube.com,*.youtube.com,*.ytimg.com,*.doubleclick.net,*.googlevideo.com,https://www.youtube.com,*.ggpht.com,*.com',
+    },
+  ) {
     if (win) {
       win.webContents.session.setProxy(
         {
@@ -253,7 +259,6 @@ class CaptchaWindowManager {
     for (const s of this._sessions.values()) {
       if (!s.inUse) {
         session = s;
-        this._sessions.delete(s.id);
         session.inUse = true;
         this._sessions.set(session.id, session);
         break;

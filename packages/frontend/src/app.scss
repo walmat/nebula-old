@@ -127,10 +127,10 @@ select {
   -webkit-app-region: drag;
 }
 
-.close-area-1 {
+.deactivate-button {
   position: absolute;
   top: 0;
-  right: 25px;
+  right: 50px;
   width: 25px;
   height: 25px;
   background: #46adb4;
@@ -151,7 +151,29 @@ select {
   }
 }
 
-.close-area-2 {
+.minimize-button {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  width: 25px;
+  height: 25px;
+  background: #edbcc6;
+  /* border-bottom-left-radius: 5px; */
+  -webkit-user-select: none;
+  -webkit-app-region: no-drag;
+  z-index: 1;
+  cursor: pointer !important;
+
+  & > img {
+    position: absolute;
+    cursor: pointer !important;
+    vertical-align: middle;
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.close-button {
   position: absolute;
   top: 0;
   right: 0;
@@ -178,7 +200,7 @@ select {
 .theme-icon {
   position: absolute;
   top: 0;
-  right: 50px;
+  right: 75px;
   width: 25px;
   height: 25px;
   -webkit-user-select: none;

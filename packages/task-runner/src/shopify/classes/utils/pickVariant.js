@@ -18,7 +18,7 @@ async function pickVariant(variants, size, url, logger = { log: () => {} }, rand
   if (/random/i.test(size)) {
     const rand = getRandomIntInclusive(0, variantGroup.length - 1);
     const variant = variantGroup[rand];
-    const option = variant.option1 || variant.option2 || variant.option3;
+    const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
     return { id: variant.id, option };
   }
 
@@ -52,13 +52,13 @@ async function pickVariant(variants, size, url, logger = { log: () => {} }, rand
       if (!available) {
         const rand = getRandomIntInclusive(0, variantGroup.length - 1);
         variant = variantGroup[rand];
-        const option = variant.option1 || variant.option2 || variant.option3;
+        const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
         return { id: variant.id, option };
       }
     } else {
       const rand = getRandomIntInclusive(0, variantGroup.length - 1);
       variant = variantGroup[rand];
-      const option = variant.option1 || variant.option2 || variant.option3;
+      const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
       return { id: variant.id, option };
     }
   }
@@ -67,7 +67,7 @@ async function pickVariant(variants, size, url, logger = { log: () => {} }, rand
     return null;
   }
 
-  const option = variant.option1 || variant.option2 || variant.option3;
+  const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
 
   return { id: variant.id, option };
 }

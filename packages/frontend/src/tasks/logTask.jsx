@@ -207,7 +207,9 @@ LogTaskPrimitive.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  tasks: state.tasks.filter(t => t.status === 'running' || t.status === 'bypassed'),
+  tasks: state.tasks.filter(
+    t => t.status === 'running' || t.status === 'success' || t.status === 'used',
+  ),
 });
 
 export default connect(mapStateToProps)(LogTaskPrimitive);

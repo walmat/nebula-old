@@ -31,6 +31,7 @@ const IPCKeys = {
   RequestCloseAllCaptchaWindows: 'RequestCloseAllCaptchaWindows',
   RequestLaunchYoutube: 'RequestLaunchYoutube',
   RequestCloseWindow: 'RequestCloseWindow',
+  RequestMinimizeWindow: 'RequestMinimizeWindow',
   RequestEndSession: 'RequestEndSession',
   RequestGetAppVersion: 'RequestGetAppVersion',
   RequestStartHarvestCaptcha: 'RequestStartHarvestCaptcha',

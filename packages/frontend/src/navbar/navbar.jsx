@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
+// import { Line } from 'rc-progress';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { Line } from 'rc-progress';
 import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../state/actions';
 
 import { renderSvgIcon } from '../utils';
@@ -34,13 +34,6 @@ export class NavbarPrimitive extends PureComponent {
     return { name: 'Nebula Orion', version: null };
   }
 
-  static _checkForUpdates(handler) {
-    if (window.Bridge) {
-      return window.Bridge.checkForUpdates(handler);
-    }
-    return null;
-  }
-
   static _renderNavbarIconRow({ Icon, iconName, className, onClick, onKeyPress }) {
     return (
       <div key={iconName} className="row row--expand">
@@ -66,30 +59,32 @@ export class NavbarPrimitive extends PureComponent {
 
   static openHarvesterWindow(theme) {
     if (window.Bridge) {
-      return window.Bridge.launchCaptchaHarvester({ backgroundColor: mapBackgroundThemeToColor[theme] });
-    } else {
-      // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
-      console.error('Unable to launch harvester!');
+      return window.Bridge.launchCaptchaHarvester({
+        backgroundColor: mapBackgroundThemeToColor[theme],
+      });
     }
+    // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
+    console.error('Unable to launch harvester!');
+    return null;
   }
 
   static closeAllCaptchaWindows() {
     if (window.Bridge) {
       return window.Bridge.closeAllCaptchaWindows();
-    } else {
-      // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
-      console.error('Unable to close all windows');
     }
+    // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
+    console.error('Unable to close all windows');
+    return null;
   }
 
   constructor(props) {
     super(props);
 
-    this.state = {
-      error: null,
-      isUpdating: false,
-      progress: 0,
-    }
+    // this.state = {
+    //   isUpdating: false,
+    //   percent: 0,
+    //   color: '#edbcc6',
+    // };
 
     const classNameCalc = (...supportedRoutes) => route =>
       supportedRoutes.includes(route) ? 'active' : null;
@@ -117,18 +112,33 @@ export class NavbarPrimitive extends PureComponent {
     };
   }
 
-  updaterHandler(_, opts = {}) {
-    if (opts.done) {
-      this.setState({ isUpdating: false, progress: 0, error: opts.error });
-    }
+  // componentDidMount() {
+  //   if (window.Bridge) {
+  //     window.Bridge.registerForUpdateEvents(this.updateHandler);
+  //   }
+  // }
 
-    if (opts.progressObj) {
-      this.setState({ progress: opts.progressObj.percent });
-      if (opts.progressObj.percent === 100) {
-        this.setState({ isUpdating: false });
-      }
-    }
-  }
+  // eslint-disable-next-line class-methods-use-this
+  // updateHandler(_, args = {}) {
+  //   console.log(args);
+  //   const { done, error, progressObj } = args;
+  //   if (done !== undefined) {
+  //     this.setState({ isUpdating: !done });
+
+  //     if (done) {
+  //       this.setState({ color: '#46adb4' });
+  //     }
+  //   }
+
+  //   if (error) {
+  //     this.setState({ isUpdating: false, color: '#f0405e' });
+  //   }
+
+  //   if (progressObj) {
+  //     const { percent } = progressObj;
+  //     this.setState({ isUpdating: true, percent });
+  //   }
+  // }
 
   renderNavbarIconRow(route, { Icon, iconName, classNameGenerator }) {
     const { onKeyPress, onRoute, navbar, history } = this.props;
@@ -154,8 +164,7 @@ export class NavbarPrimitive extends PureComponent {
 
   render() {
     const { name, version } = NavbarPrimitive._getAppData();
-    const { isUpdating, progress } = this.state;
-    const { theme, onKeyPress } = this.props;
+    const { theme } = this.props;
     return (
       <div className="container navbar">
         <div className="row">
@@ -194,17 +203,8 @@ export class NavbarPrimitive extends PureComponent {
                       </div>
                     </div>
                     <div className="row row--expand row--gutter">
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => {
-                          NavbarPrimitive._checkForUpdates(this.updaterHandler);
-                        }}
-                        onKeyPress={onKeyPress}
-                      >
-                        {isUpdating ? <Line percent={progress} strokeWidth="4" strokeColor="#D3D3D3" /> : (<p className="navbar__text--app-version" title="Check for updates">
-                          {version}
-                        </p>)}
+                      <div>
+                        <p className="navbar__text--app-version">{version}</p>
                       </div>
                     </div>
                   </div>

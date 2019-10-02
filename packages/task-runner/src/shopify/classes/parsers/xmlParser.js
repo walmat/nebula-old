@@ -32,6 +32,7 @@ class XmlParser extends Parser {
 
       const res = await this._request('/sitemap_products_1.xml?from=1&to=299999999999999999', {
         method: 'GET',
+        compress: true,
         headers: {
           'User-Agent': userAgent,
         },

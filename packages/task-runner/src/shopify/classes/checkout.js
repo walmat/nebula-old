@@ -1,4 +1,3 @@
-import HttpsProxyAgent from 'https-proxy-agent';
 import cheerio from 'cheerio';
 import { isEmpty } from 'lodash';
 import { parse } from 'query-string';
@@ -125,7 +124,8 @@ class Checkout {
     try {
       let res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
         method: 'OPTIONS',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
@@ -145,7 +145,8 @@ class Checkout {
 
       res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
@@ -242,7 +243,8 @@ class Checkout {
     try {
       const res = await this._request(`${url}/account/login`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: heads,
@@ -343,7 +345,8 @@ class Checkout {
     try {
       const res = await this._request(url, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'follow',
         headers: {
           'User-Agent': userAgent,
@@ -427,7 +430,8 @@ class Checkout {
     try {
       const res = await this._request(`${url}/checkout`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: getHeaders({ url, apiKey }),
@@ -475,7 +479,8 @@ class Checkout {
           try {
             await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -580,7 +585,8 @@ class Checkout {
     try {
       const res = await this._request(`${url}/checkout/poll?js_poll=1`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'follow',
         follow: 5,
         headers: {
@@ -630,7 +636,8 @@ class Checkout {
           try {
             const response = await this._request(redirectUrl, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               headers: {
                 'Upgrade-Insecure-Requests': 1,
@@ -670,7 +677,8 @@ class Checkout {
           try {
             const response = await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
-              agent: proxy ? new HttpsProxyAgent(proxy) : null,
+              compress: true,
+              agent: proxy,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -760,7 +768,8 @@ class Checkout {
     try {
       const res = await this._request(`${url}/wallets/checkouts/${this.checkoutToken}/payments`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
@@ -827,6 +836,7 @@ class Checkout {
           return {
             message: `Payment successful! Order ${orderName}`,
             order: { number: orderName, url: statusUrl },
+            status: 'success',
             nextState: States.DONE,
           };
         }
@@ -968,7 +978,8 @@ class Checkout {
     try {
       const res = await this._request(`${url}/${this.storeId}/checkouts/${this.checkoutToken}`, {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         redirect: 'manual',
         follow: 0,
         headers: {

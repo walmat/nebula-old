@@ -202,7 +202,6 @@ class App {
   /**
    * Occurs right before application quit
    */
-  // eslint-disable-next-line class-methods-use-this
   async onBeforeQuit() {
     // Perform any cleanup that needs to get done
     if (nebulaEnv.isDevelopment()) {

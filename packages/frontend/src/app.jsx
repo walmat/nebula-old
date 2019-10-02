@@ -16,6 +16,7 @@ import { addTestId, renderSvgIcon } from './utils';
 /* SVGS */
 import { ReactComponent as CloseIcon } from './_assets/close.svg';
 import { ReactComponent as DeactivateIcon } from './_assets/logout.svg';
+import { ReactComponent as MinimizeIcon } from './_assets/minimize.svg';
 import { ReactComponent as NightModeIcon } from './_assets/moon.svg';
 import { ReactComponent as LightModeIcon } from './_assets/sun.svg';
 
@@ -27,6 +28,13 @@ export class App extends PureComponent {
     e.preventDefault();
     if (window.Bridge) {
       window.Bridge.close();
+    }
+  }
+
+  static minimize(e) {
+    e.preventDefault();
+    if (window.Bridge) {
+      window.Bridge.minimize();
     }
   }
 
@@ -126,7 +134,7 @@ export class App extends PureComponent {
           <div id="container-wrapper" className={`theme-${theme}`}>
             <div className="titlebar">
               <div
-                className="close-area-1"
+                className="deactivate-button"
                 role="button"
                 tabIndex={0}
                 title="deactivate"
@@ -136,12 +144,24 @@ export class App extends PureComponent {
                 data-testid={addTestId('App.button.deactivate')}
               >
                 {renderSvgIcon(DeactivateIcon, {
-                  alt: 'deactivate',
+                  alt: '',
                   style: { marginTop: '6px', marginLeft: '6px' },
                 })}
               </div>
               <div
-                className="close-area-2"
+                className="minimize-button"
+                role="button"
+                tabIndex={0}
+                title="minimize"
+                onKeyPress={onKeyPress}
+                onClick={App.minimize}
+                draggable="false"
+                data-testid={addTestId('App.button.minimize')}
+              >
+                {renderSvgIcon(MinimizeIcon)}
+              </div>
+              <div
+                className="close-button"
                 role="button"
                 tabIndex={0}
                 title="close"
@@ -151,7 +171,7 @@ export class App extends PureComponent {
                 data-testid={addTestId('App.button.close')}
               >
                 {renderSvgIcon(CloseIcon, {
-                  alt: 'close',
+                  alt: '',
                   style: { marginTop: '6px', marginLeft: '6px' },
                 })}
               </div>

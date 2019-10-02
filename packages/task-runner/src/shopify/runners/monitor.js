@@ -1,4 +1,5 @@
 import AbortController from 'abort-controller';
+import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { pick, isEqual } from 'lodash';
@@ -44,7 +45,7 @@ class Monitor {
 
     this._context = {
       ...context,
-      proxy: proxy ? proxy.proxy : null,
+      proxy: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
@@ -273,8 +274,8 @@ class Monitor {
       // Proxy is fine, update the references
       if (proxy || proxy === null) {
         if (proxy === null) {
-          this.proxy = proxy;
-          this._context.proxy = proxy;
+          this.proxy = proxy; // null
+          this._context.proxy = proxy; // null
           this._context.rawProxy = 'localhost';
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitMonitorEvent({
@@ -283,7 +284,7 @@ class Monitor {
           });
         } else {
           this.proxy = proxy;
-          this._context.proxy = proxy.proxy;
+          this._context.proxy = new HttpsProxyAgent(proxy.proxy);
           this._context.rawProxy = proxy.raw;
           this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);

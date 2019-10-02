@@ -1,6 +1,4 @@
 /* eslint-disable class-methods-use-this */
-import HttpsProxyAgent from 'https-proxy-agent';
-
 const { rfrl, userAgent } = require('../../../common');
 const { matchVariant, matchKeywords } = require('../utils/parse');
 const {
@@ -30,7 +28,8 @@ class Parser {
         method: 'GET',
         redirect: 'follow',
         follow: 1,
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        compress: true,
+        agent: proxy,
         headers: {
           'User-Agent': userAgent,
         },

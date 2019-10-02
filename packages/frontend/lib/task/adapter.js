@@ -51,11 +51,6 @@ class TaskManagerAdapter {
       ipcRenderer.send(IPCKeys.RequestStopHarvestCaptcha, ...args),
     );
 
-    // TODO: Fix this! We need a tie between frontend and task manager for oneCheckout
-    this._taskManager._events.on(TaskManager.Events.Abort, (...args) =>
-      ipcRenderer.send(IPCKeys.RequestStopTasks, ...args),
-    );
-
     ipcRenderer.on(IPCKeys.RequestAbortAllTasksForClose, async () => {
       await this.abortAllTasks();
       ipcRenderer.send(IPCKeys.RequestAbortAllTasksForClose);

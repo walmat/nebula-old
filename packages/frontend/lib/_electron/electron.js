@@ -13,6 +13,8 @@ const app = new App();
 
 // TODO: Disable this in prod when we find a solution!
 _app.commandLine.appendSwitch('ignore-certificate-errors', 'true');
+// needed for Notification sounds
+_app.setAppUserModelId(process.execPath);
 
 const appLock = _app.requestSingleInstanceLock();
 

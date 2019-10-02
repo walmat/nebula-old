@@ -17,6 +17,8 @@ const CaptchaWindowManager = require('./captchaWindowManager');
 
 nebulaEnv.setUpEnvironment();
 
+// const _UPDATE_EVENT_KEY = 'UpdateEventKey';
+
 /**
  * Manage the window.
  */
@@ -64,6 +66,7 @@ class WindowManager {
     this._splash = null;
 
     this._shouldUpdate = false;
+    this._isUpdating = false;
 
     /**
      * Separate manager to handle captcha windows
@@ -73,29 +76,28 @@ class WindowManager {
     /**
      * IPC Function Definitions
      */
+    // context.ipc.on(IPCKeys.RequestCheckForUpdate, this._onRequestCheckForUpdates.bind(this));
     context.ipc.on(IPCKeys.RequestCreateNewWindow, this._onRequestCreateNewWindow.bind(this));
     context.ipc.on(IPCKeys.RequestSendMessage, this._onRequestSendMessage.bind(this));
     context.ipc.on(IPCKeys.RequestGetWindowIDs, this._onRequestGetWindowIDs.bind(this));
     context.ipc.on(IPCKeys.RequestCloseWindow, this._onRequestWindowClose.bind(this));
     context.ipc.on(
-      IPCKeys.RequestCheckForUpdates,
-      WindowManager._onRequestCheckForUpdates.bind(this),
+      IPCKeys.RequestMinimizeWindow,
+      WindowManager._onRequestWindowMinimize.bind(this),
     );
     context.ipc.on(IPCKeys.ChangeTheme, this.onChangeTheme.bind(this));
-
-    /**
-     * Updater functions
-     */
 
     autoUpdater.logger = log;
     // autoUpdater.logger.transports.file.level = 'debug';
     autoUpdater.autoInstallOnAppQuit = false;
+    autoUpdater.checkForUpdates();
 
-    autoUpdater.on('checking-for-update', e => {
-      log.info('CHECKING FOR UPDATE', e);
-      if (this._main) {
-        this._main.webContents.send(IPCKeys.RequestCheckForUpdate);
-      }
+    // attach event listeners
+    autoUpdater.on('checking-for-update', () => {
+      log.info('CHECKING FOR UPDATE');
+      // if (this._main) {
+      //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate);
+      // }
     });
 
     autoUpdater.on('update-available', info => {
@@ -120,31 +122,31 @@ class WindowManager {
 
     autoUpdater.on('update-not-available', info => {
       log.info('UPDATE NOT AVAILABLE: ', info);
-      if (this._main) {
-        this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { info, done: true });
-      }
+      // if (this._main) {
+      //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
+      // }
     });
 
     autoUpdater.on('error', error => {
       log.info('ERROR: ', error);
-      if (this._main) {
-        this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true, error });
-      }
+      // if (this._main) {
+      //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true, error });
+      // }
     });
 
     autoUpdater.on('download-progress', progressObj => {
       log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
-      if (this._main) {
-        this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { progressObj });
-      }
+      // if (this._main) {
+      //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { progressObj });
+      // }
     });
 
     autoUpdater.on('update-downloaded', async info => {
       log.info('NEW UPDATE DOWNLOADED: ', info);
       if (this._shouldUpdate) {
-        if (this._main) {
-          this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
-        }
+        // if (this._main) {
+        //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
+        // }
         autoUpdater.quitAndInstall();
       }
     });
@@ -247,7 +249,7 @@ class WindowManager {
       // open dev tools if dev env
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`Window was opened, id = ${win.id}`);
-        win.webContents.openDevTools();
+        win.webContents.toggleDevTools();
       }
       // add window & id to windows map, notify other windows, and finally, show the window
       this._windows.set(win.id, win);
@@ -391,11 +393,6 @@ class WindowManager {
     });
   }
 
-  static _onRequestCheckForUpdates() {
-    log.info('Starting update check...');
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-
   /**
    * Occurs when a show new window requested.
    *
@@ -463,6 +460,10 @@ class WindowManager {
         w.close();
       });
     }
+  }
+
+  static _onRequestWindowMinimize() {
+    Electron.BrowserWindow.getFocusedWindow().minimize();
   }
 
   /**

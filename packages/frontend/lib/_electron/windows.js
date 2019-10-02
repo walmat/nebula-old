@@ -268,7 +268,6 @@ const createYouTubeWindow = (options = {}, webPreferences = {}) =>
       webgl: true,
       webaudio: true,
       plugins: true,
-      preload: Path.join(__dirname, '../common/bridge/youtubePreload.js'),
     },
   });
 

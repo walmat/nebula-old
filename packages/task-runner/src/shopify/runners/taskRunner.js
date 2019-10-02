@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash';
+import HttpsProxyAgent from 'https-proxy-agent';
 import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
@@ -58,7 +59,7 @@ class TaskRunner {
      */
     this._context = {
       ...context,
-      proxy: proxy ? proxy.proxy : null,
+      proxy: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
       rawProxy: proxy ? proxy.raw : null,
       parseType: this._parseType,
       aborter: this._aborter,
@@ -1265,10 +1266,11 @@ class TaskRunner {
       delay,
       shouldBan,
       order,
+      status,
       nextState,
     } = await this._checkout.paymentProcessing();
 
-    this._emitTaskEvent({ message, order, proxy: rawProxy });
+    this._emitTaskEvent({ message, order, status, proxy: rawProxy });
 
     if (nextState === States.SWAP) {
       this._emitTaskEvent({ message: `Proxy banned!` });
@@ -1333,9 +1335,9 @@ class TaskRunner {
       // Proxy is fine, update the references
       if (proxy || proxy === null) {
         if (proxy === null) {
-          this.proxy = proxy;
-          this._context.proxy = proxy;
-          this._checkout._context.proxy = proxy;
+          this.proxy = proxy; // null
+          this._context.proxy = proxy; // null
+          this._checkout._context.proxy = proxy; // null
           this._context.rawProxy = 'localhost';
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitTaskEvent({
@@ -1344,8 +1346,8 @@ class TaskRunner {
           });
         } else {
           this.proxy = proxy;
-          this._context.proxy = proxy.proxy;
-          this._checkout._context.proxy = proxy.proxy;
+          this._context.proxy = new HttpsProxyAgent(proxy.proxy);
+          this._checkout._context.proxy = new HttpsProxyAgent(proxy.proxy);
           this._context.rawProxy = proxy.raw;
           this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
