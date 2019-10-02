@@ -395,8 +395,6 @@ class CaptchaWindowManager {
       win.show();
     });
 
-    win.webContents.toggleDevTools();
-
     const handleClose = () => {
       if (nebulaEnv.isDevelopment()) {
         console.log(`[DEBUG]: Window was closed, id = ${winId}`);
