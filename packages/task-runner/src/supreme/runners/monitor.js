@@ -405,16 +405,28 @@ class Monitor {
         this.shouldBanProxy,
       );
       // Proxy is fine, update the references
-      if (proxy) {
-        this.proxy = proxy;
-        this._context.proxy = proxy.proxy;
-        this._context.rawProxy = proxy.raw;
-        this.shouldBanProxy = 0; // reset ban flag
-        this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-        this._emitMonitorEvent({
-          message: `Swapped proxy to: ${proxy.raw}`,
-          proxy: proxy.raw,
-        });
+      if (proxy || proxy === null) {
+        if (proxy === null) {
+          this.proxy = proxy; // null
+          this._context.proxy = proxy; // null
+          this._context.rawProxy = 'localhost';
+          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+          this._emitMonitorEvent({
+            message: `Swapped proxy to: localhost`,
+            proxy,
+          });
+        } else {
+          this.proxy = proxy;
+          this._context.proxy = new HttpsProxyAgent(proxy.proxy);
+          this._context.rawProxy = proxy.raw;
+          this.shouldBanProxy = 0; // reset ban flag
+          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+          this._emitMonitorEvent({
+            message: `Swapped proxy to: ${proxy.raw}`,
+            proxy: proxy.raw,
+          });
+        }
+        this._logger.debug('Rewinding to state: %s', this._prevState);
         return this._prevState;
       }
 
@@ -450,7 +462,7 @@ class Monitor {
     try {
       res = await this._request('/mobile_stock.json', {
         method: 'GET',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         headers: {
           authority: 'www.supremenewyork.com',
           accept:
@@ -514,7 +526,7 @@ class Monitor {
       try {
         res = await this._request(`/shop/${id}.json`, {
           method: 'GET',
-          gent: proxy ? new HttpsProxyAgent(proxy) : null,
+          gent: proxy,
           headers: {
             authority: 'www.supremenewyork.com',
             accept:

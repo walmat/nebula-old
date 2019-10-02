@@ -619,7 +619,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 isOptionDisabled={option =>
                   !option.supported &&
                   option.supported !== undefined &&
-                  !process.env.NODE_ENV === 'development'
+                  process.env.NODE_ENV !== 'development'
                 }
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
                 onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SITE, v)}
