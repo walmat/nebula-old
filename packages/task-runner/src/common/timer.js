@@ -54,8 +54,8 @@ class Timer {
     return (time - this._start).toFixed(2);
   }
 
-  getTotalTime() {
-    return this._total.toFixed(2);
+  getTotalTime(fixed = 2) {
+    return this._total.toFixed(fixed);
   }
 }
 

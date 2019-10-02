@@ -11,6 +11,7 @@ const Discord = require('../classes/hooks/discord');
 const Slack = require('../classes/hooks/slack');
 const { notification } = require('../classes/hooks');
 const AsyncQueue = require('../../common/asyncQueue');
+const Timer = require('../../common/timer');
 const { waitForDelay, getRandomIntInclusive } = require('../../common');
 const {
   Runner: { Events },
@@ -47,6 +48,7 @@ class TaskRunner {
     this._captchaQueue = null;
     this._state = States.WAIT_FOR_PRODUCT;
 
+    this._timer = new Timer();
     this._discord = new Discord(this._task.discord);
     this._slack = new Slack(this._task.slack);
     this._logger = context.logger;
@@ -456,8 +458,6 @@ class TaskRunner {
     return new Promise(async (resolve, reject) => {
       const lastid = Date.now();
 
-      console.log(region);
-
       const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
       const res = await this._request(
         `${NEBULA_API_BASE}/${region}?auth=nebula-${NEBULA_API_UUID}`,
@@ -470,8 +470,6 @@ class TaskRunner {
       }
 
       const body = await res.json();
-      console.log(body);
-
       if (!body || (body && !body.cookies)) {
         const error = new Error('Unable to parse cookies');
         error.status = res.status || res.errno;
@@ -557,7 +555,6 @@ class TaskRunner {
       }
 
       const body = await res.json();
-      console.log(body);
 
       if (body && !body.length) {
         this._pooky = false;
@@ -568,6 +565,7 @@ class TaskRunner {
       }
 
       if (forceCaptcha && !this.captchaToken) {
+        this._timer.start(new Date().getTime());
         return States.CAPTCHA;
       }
 
@@ -609,6 +607,7 @@ class TaskRunner {
         // We have the token, so suspend harvesting for now
         this.suspendHarvestCaptcha();
 
+        this._timer.stop(new Date().getTime());
         // proceed to submit checkout
         return States.SUBMIT_CHECKOUT;
       }
@@ -704,9 +703,10 @@ class TaskRunner {
       }
     }
 
-    if (checkoutDelay) {
+    const totalTimeout = checkoutDelay - this._timer.getTotalTime(0);
+    if (totalTimeout && totalTimeout > 0) {
       this._emitTaskEvent({ message: `Waiting ${checkoutDelay}ms` });
-      this._delayer = waitForDelay(checkoutDelay, this._aborter.signal);
+      this._delayer = waitForDelay(totalTimeout, this._aborter.signal);
       await this._delayer;
     }
 
