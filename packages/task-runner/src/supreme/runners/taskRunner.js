@@ -62,6 +62,9 @@ class TaskRunner {
 
     this._history = [];
     this._slug = null;
+    this._pooky = false;
+    this.captchaToken = '';
+    this._cookies = '';
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
@@ -126,6 +129,7 @@ class TaskRunner {
   }
 
   _handleDelay(id, delay, type) {
+    console.log(id, this._context.id, delay, type);
     if (id === this._context.id) {
       if (type === DelayTypes.error) {
         this._context.task.errorDelay = delay;
@@ -321,9 +325,9 @@ class TaskRunner {
       // Proxy is fine, update the references
       if (proxy) {
         this.proxy = proxy;
-        this._context.proxy = proxy.proxy;
+        this._context.proxy = new HttpsProxyAgent(proxy.proxy);
+        this._checkout._context.proxy = new HttpsProxyAgent(proxy.proxy);
         this._context.rawProxy = proxy.raw;
-        this._checkout._context.proxy = proxy.proxy;
         this.shouldBanProxy = 0; // reset ban flag
         this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
         this._emitTaskEvent({
@@ -433,6 +437,41 @@ class TaskRunner {
     return States.WAIT_FOR_PRODUCT;
   }
 
+  async generatePooky(region = 'US') {
+    return new Promise(async (resolve, reject) => {
+      const lastid = Date.now();
+
+      const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
+      const res = await this._request(
+        `${NEBULA_API_BASE}/${region}?auth=nebula-${NEBULA_API_UUID}`,
+      );
+
+      if (!res.ok) {
+        const error = new Error('Unable to fetch cookies');
+        error.status = res.status || res.errno;
+        reject(error);
+      }
+
+      const body = await res.json();
+
+      if (!body || (body && !body.cookies)) {
+        const error = new Error('Unable to fetch cookies');
+        error.status = res.status || res.errno;
+        reject(error);
+      }
+
+      this._cookies = body.cookies;
+      // this._logger.info(this._cookies);
+
+      this._context.jar.setCookieSync(`lastid=${lastid}`, this._context.task.site.url);
+      body.cookies.map(cookie =>
+        this._context.jar.setCookieSync(`${cookie};`, this._context.task.site.url),
+      );
+
+      resolve(true);
+    });
+  }
+
   async _handleAddToCart() {
     const { aborted, proxy } = this._context;
 
@@ -442,16 +481,33 @@ class TaskRunner {
     }
 
     const {
-      id: st,
-      variant: { id: s },
-    } = this._context.task.product;
+      product: {
+        id: st,
+        variant: { id: s },
+      },
+      site: { name },
+      monitorDelay,
+      forceCaptcha,
+    } = this._context.task;
 
     this._emitTaskEvent({ message: 'Adding to cart' });
+
+    if (!this._pooky) {
+      if (/US/i.test(name)) {
+        this._pooky = await this.generatePooky('US');
+      }
+      if (/EU/i.test(name)) {
+        this._pooky = await this.generatePooky('EU');
+      }
+      if (/JP/i.test(name)) {
+        this._pooky = await this.generatePooky('JP');
+      }
+    }
 
     try {
       const res = await this._request(`/shop/${s}/add.json`, {
         method: 'POST',
-        agent: proxy ? new HttpsProxyAgent(proxy) : null,
+        agent: proxy,
         headers: {
           authority: 'www.supremenewyork.com',
           accept:
@@ -475,6 +531,20 @@ class TaskRunner {
         const error = new Error('Failed add to cart');
         error.status = res.status || res.errno;
         throw error;
+      }
+
+      const body = await res.json();
+
+      if (body && !body.length) {
+        this._pooky = false;
+        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        await this._delayer;
+        return States.ADD_TO_CART;
+      }
+
+      if (forceCaptcha && !this.captchaToken) {
+        return States.CAPTCHA;
       }
 
       return States.SUBMIT_CHECKOUT;
@@ -556,11 +626,6 @@ class TaskRunner {
       return States.ABORT;
     }
 
-    if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
     const {
       variant: { id: s },
     } = this._context.task.product;
@@ -576,7 +641,7 @@ class TaskRunner {
     // TOOD: format phone?, figure out EU country
     const cookieSub = JSON.stringify({ [s]: 1 });
 
-    const form = `store_credit_id=&from_mobile=1&cookie-sub=${encodeURIComponent(
+    let form = `store_credit_id=&from_mobile=1&cookie-sub=${encodeURIComponent(
       cookieSub,
     )}&same_as_billing_address=1&order%5Bbilling_name%5D=${fullName}&order%5Bemail%5D=${encodeURIComponent(
       payment.email,
@@ -594,13 +659,15 @@ class TaskRunner {
       payment.cvv
     }&order%5Bterms%5D=0&order%5Bterms%5D=1`;
 
+    if (this.captchaToken) {
+      form += `g-recaptcha-response=${this.captchaToken}`;
+    }
+
     if (checkoutDelay) {
       this._emitTaskEvent({ message: `Waiting ${checkoutDelay}ms` });
       this._delayer = waitForDelay(checkoutDelay, this._aborter.signal);
       await this._delayer;
     }
-
-    console.log(form);
 
     this._emitTaskEvent({ messge: 'Submitting checkout' });
 
@@ -627,6 +694,10 @@ class TaskRunner {
         body: form,
       });
 
+      // no matter what, set pooky back to false
+      this._pooky = false;
+      this._cookies = '';
+
       if (!res.ok) {
         const error = new Error('Failed submitting checkout');
         error.status = res.status || res.errno;
@@ -634,7 +705,6 @@ class TaskRunner {
       }
 
       const body = await res.json();
-      console.log(body);
 
       if (body && body.status && /queue/i.test(body.status)) {
         const { slug } = body;
@@ -772,7 +842,6 @@ class TaskRunner {
 
       return States.CHECK_STATUS;
     } catch (error) {
-      console.log(error);
       return this._handleFetchErrors([error], States.CHECK_STATUS);
     }
   }

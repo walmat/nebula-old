@@ -84,7 +84,7 @@ export class TasksPrimitive extends PureComponent {
           placeholder={placeholder}
           className={`bulk-action-sidebar__${delayType}-delay`}
           style={buildStyle(false)}
-          onBlur={e => this.createOnChangeHandler(field, e)}
+          onChange={e => this.createOnChangeHandler(field, e)}
           required
         />
       </div>

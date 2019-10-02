@@ -261,7 +261,7 @@ export class TaskRowPrimitive extends PureComponent {
                 isOptionDisabled={option =>
                   !option.supported &&
                   option.supported !== undefined &&
-                  !process.env.NODE_ENV === 'development'
+                  process.env.NODE_ENV !== 'development'
                 }
                 onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
