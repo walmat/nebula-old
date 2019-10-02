@@ -259,7 +259,6 @@ class CaptchaWindowManager {
     for (const s of this._sessions.values()) {
       if (!s.inUse) {
         session = s;
-        this._sessions.delete(s.id);
         session.inUse = true;
         this._sessions.set(session.id, session);
         break;
