@@ -43,9 +43,19 @@ class Monitor {
     this._prevState = States.PARSE;
     this.shouldBanProxy = 0;
 
+    const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
+
+    if (p) {
+      p.options.maxSockets = Infinity;
+      p.options.maxFreeSockets = Infinity;
+      p.options.keepAlive = true;
+      p.maxFreeSockets = Infinity;
+      p.maxSockets = Infinity;
+    }
+
     this._context = {
       ...context,
-      proxy: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
+      proxy: p,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
@@ -284,7 +294,16 @@ class Monitor {
           });
         } else {
           this.proxy = proxy;
-          this._context.proxy = new HttpsProxyAgent(proxy.proxy);
+          const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
+
+          if (p) {
+            p.options.maxSockets = Infinity;
+            p.options.maxFreeSockets = Infinity;
+            p.options.keepAlive = true;
+            p.maxFreeSockets = Infinity;
+            p.maxSockets = Infinity;
+          }
+          this._context.proxy = p;
           this._context.rawProxy = proxy.raw;
           this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);

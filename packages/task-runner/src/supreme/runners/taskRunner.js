@@ -22,7 +22,7 @@ const {
   TaskRunner: { States, Types, DelayTypes, HookTypes, HarvestStates },
   Monitor: { ParseType },
 } = require('../utils/constants');
-const { ATC } = require('../utils/forms');
+const { ATC, backupForm } = require('../utils/forms');
 
 // SUPREME
 class TaskRunner {
@@ -53,9 +53,19 @@ class TaskRunner {
     this._slack = new Slack(this._task.slack);
     this._logger = context.logger;
 
+    const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
+
+    if (p) {
+      p.options.maxSockets = Infinity;
+      p.options.maxFreeSockets = Infinity;
+      p.options.keepAlive = true;
+      p.maxFreeSockets = Infinity;
+      p.maxSockets = Infinity;
+    }
+
     this._context = {
       ...context,
-      proxy: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
+      proxy: p,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
@@ -341,16 +351,38 @@ class TaskRunner {
         this.shouldBanProxy,
       );
       // Proxy is fine, update the references
-      if (proxy) {
-        this.proxy = proxy;
-        this._context.proxy = new HttpsProxyAgent(proxy.proxy);
-        this._context.rawProxy = proxy.raw;
-        this.shouldBanProxy = 0; // reset ban flag
-        this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-        this._emitTaskEvent({
-          message: `Swapped proxy to: ${proxy.raw}`,
-          proxy: proxy.raw,
-        });
+      if (proxy || proxy === null) {
+        if (proxy === null) {
+          this.proxy = proxy; // null
+          this._context.proxy = proxy; // null
+          this._checkout._context.proxy = proxy; // null
+          this._context.rawProxy = 'localhost';
+          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+          this._emitTaskEvent({
+            message: `Swapped proxy to: localhost`,
+            proxy,
+          });
+        } else {
+          this.proxy = proxy;
+          const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
+
+          if (p) {
+            p.options.maxSockets = Infinity;
+            p.options.maxFreeSockets = Infinity;
+            p.options.keepAlive = true;
+            p.maxFreeSockets = Infinity;
+            p.maxSockets = Infinity;
+          }
+          this._context.proxy = p;
+          this._checkout._context.proxy = p;
+          this._context.rawProxy = proxy.raw;
+          this.shouldBanProxy = 0; // reset ban flag
+          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+          this._emitTaskEvent({
+            message: `Swapped proxy to: ${proxy.raw}`,
+            proxy: proxy.raw,
+          });
+        }
         this._logger.debug('Rewinding to state: %s', this._prevState);
         return this._prevState;
       }
@@ -375,9 +407,8 @@ class TaskRunner {
 
   async _pickSize() {
     const {
-      product: { variants },
+      product: { variants, randomInStock },
       size,
-      randomInStock,
     } = this._context.task;
 
     let grouping = variants;
@@ -387,6 +418,7 @@ class TaskRunner {
 
       // if we filtered all the products out, rewind it...
       if (!grouping || !grouping.length) {
+        this._emitTaskEvent({ message: 'No sizes in stock!' });
         grouping = variants;
       }
     }
@@ -636,9 +668,10 @@ class TaskRunner {
   async _handleSubmitCheckout() {
     const {
       task: {
-        profile: { payment, billing },
+        profile: { payment, shipping, billing, billingMatchesShipping },
         site: { name },
         checkoutDelay,
+        monitorDelay,
       },
       aborted,
       proxy,
@@ -653,37 +686,17 @@ class TaskRunner {
       variant: { id: s },
     } = this._context.task.product;
 
-    const fullName = `${billing.firstName.replace(/\s/g, '+')}+${billing.lastName.replace(
-      /\s/g,
-      '+',
-    )}`;
-    const card = payment.cardNumber.match(/.{1,4}/g).join('+');
-    const month = payment.exp.slice(0, 2);
-    const year = `20${payment.exp.slice(3, 5)}`;
-    const country = /US/i.test(name) ? 'USA' : '';
-    // TOOD: format phone?, figure out EU country
-    const cookieSub = JSON.stringify({ [s]: 1 });
-
-    let form = `store_credit_id=&from_mobile=1&cookie-sub=${encodeURIComponent(
-      cookieSub,
-    )}&same_as_billing_address=1&order%5Bbilling_name%5D=${fullName}&order%5Bemail%5D=${encodeURIComponent(
-      payment.email,
-    )}&order%5Btel%5D=${billing.phone}&order%5Bbilling_address%5D=${billing.address.replace(
-      /\s/g,
-      '+',
-    )}&order%5Bbilling_address_2%5D=${
-      billing.apt ? billing.apt.replace(/\s/g, '+') : ''
-    }&order%5Bbilling_zip%5D=${billing.zipCode}&order%5Bbilling_city%5D=${billing.city.replace(
-      /\s/g,
-      '+',
-    )}&order%5Bbilling_state%5D=${
-      billing.province ? billing.province.value.replace(/\s/g, '+') : ''
-    }&order%5Bbilling_country%5D=${country}&carn=${card}&credit_card%5Bmonth%5D=${month}&credit_card%5Byear%5D=${year}&credit_card%5Bvvv%5D=${
-      payment.cvv
-    }&order%5Bterms%5D=0&order%5Bterms%5D=1`;
-
+    let region = 'US';
+    if (/EU/i.test(name)) {
+      region = 'EU';
+    }
+    if (/JP/i.test(name)) {
+      region = 'JP';
+    }
+    const profileInfo = billingMatchesShipping ? shipping : billing;
+    this._form = backupForm(region, profileInfo, payment, s);
     if (this.captchaToken) {
-      form += `&g-recaptcha-response=${this.captchaToken}`;
+      this._form += `&g-recaptcha-response=${this.captchaToken}`;
     }
 
     if (!this._pooky) {
@@ -710,7 +723,7 @@ class TaskRunner {
       await this._delayer;
     }
 
-    this._emitTaskEvent({ messge: 'Submitting checkout' });
+    this._emitTaskEvent({ message: 'Submitting checkout' });
 
     try {
       const res = await this._request('/checkout.json', {
@@ -718,8 +731,7 @@ class TaskRunner {
         agent: proxy,
         headers: {
           authority: 'www.supremenewyork.com',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+          accept: 'application/json',
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
           'sec-fetch-mode': 'navigate',
@@ -732,7 +744,7 @@ class TaskRunner {
           'user-agent':
             'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
         },
-        body: form,
+        body: this._form,
       });
 
       // no matter what, set pooky back to false
@@ -746,7 +758,6 @@ class TaskRunner {
       }
 
       const body = await res.json();
-
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
@@ -757,13 +768,20 @@ class TaskRunner {
         return States.CHECK_STATUS;
       }
 
+      if (body && body.status && /out/i.test(body.status)) {
+        this._pooky = false;
+        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        await this._delayer;
+      }
+
       if (body && body.status && /dup/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Duplicate order!' });
+        this._emitTaskEvent({ message: 'Duplicate order' });
         return States.DONE;
       }
 
       if (body && body.status && /failed/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Checkout failed!' });
+        this._emitTaskEvent({ message: 'Checkout failed' });
         return States.ADD_TO_CART;
       }
 
@@ -813,8 +831,8 @@ class TaskRunner {
 
       const body = await res.json();
 
-      if (body && body.status && /failed/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Checkout failed!' });
+      if (body && body.status && /failed|out/i.test(body.status)) {
+        this._emitTaskEvent({ message: 'Checkout failed' });
 
         const {
           task: {

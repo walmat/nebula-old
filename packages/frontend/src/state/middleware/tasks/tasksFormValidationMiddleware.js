@@ -58,6 +58,8 @@ const tasksFormValidationMiddleware = store => next => action => {
             response.product[mapTaskFieldsToKey[field]],
             true,
           );
+        } else if (field === TASK_FIELDS.EDIT_CHECKOUT_DELAY) {
+          errors[mapTaskFieldsToKey[field]] = false;
         } else if (field === TASK_FIELDS.EDIT_TASK_ACCOUNT) {
           errors[mapTaskFieldsToKey[field]] = false;
         } else if (action.type === TASK_ACTIONS.ADD) {

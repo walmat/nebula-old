@@ -8,13 +8,16 @@ import { addTestId } from '../utils';
 const OutputCol = ({ output, classMap, checkoutUrl }) => {
   const outputColorMap = {
     'Waiting for captcha': 'warning',
+    'Duplicate order': 'warning',
+    'Checking order status': 'warning',
     'Polling queue': 'warning',
     'Payment successful': 'success',
     'Card declined': 'failed',
     'Payment failed': 'failed',
+    'Checkout failed': 'failed',
   };
 
-  const match = /Waiting for captcha|Polling queue|Payment successful|Payment failed|Card declined/i.exec(
+  const match = /Waiting for captcha|Duplicate order|Checking order status|Checkout failed|Polling queue|Payment successful|Payment failed|Card declined/i.exec(
     output,
   );
   const messageClassName = match ? outputColorMap[match[0]] : 'normal';

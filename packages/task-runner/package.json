@@ -16,6 +16,7 @@
     "@babel/runtime": "^7.4.5",
     "abort-controller": "^3.0.0",
     "bottleneck": "^2.19.5",
+    "card-validator": "6.2.0",
     "cheerio": "^1.0.0-rc.2",
     "delay": "^4.3.0",
     "discord.js": "^11.5.1",

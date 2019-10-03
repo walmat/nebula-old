@@ -53,6 +53,16 @@ class TaskRunner {
     this._slack = new Slack(this._task.slack);
     this._logger = context.logger;
 
+    const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
+
+    if (p) {
+      p.options.maxSockets = Infinity;
+      p.options.maxFreeSockets = Infinity;
+      p.options.keepAlive = true;
+      p.maxFreeSockets = Infinity;
+      p.maxSockets = Infinity;
+    }
+
     /**
      * The context of this task runner
      *
@@ -61,7 +71,7 @@ class TaskRunner {
      */
     this._context = {
       ...context,
-      proxy: proxy ? new HttpsProxyAgent(proxy.proxy) : null,
+      proxy: p,
       rawProxy: proxy ? proxy.raw : null,
       parseType: this._parseType,
       aborter: this._aborter,
@@ -220,7 +230,7 @@ class TaskRunner {
         TaskManagerEvents.StartHarvest,
         this._context.id,
         SiteKeyForPlatform[this._platform](this._context.task.site.url),
-        'http://checkout.shopify.com'
+        'http://checkout.shopify.com',
       );
     }
 
@@ -1353,8 +1363,17 @@ class TaskRunner {
           });
         } else {
           this.proxy = proxy;
-          this._context.proxy = new HttpsProxyAgent(proxy.proxy);
-          this._checkout._context.proxy = new HttpsProxyAgent(proxy.proxy);
+          const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
+
+          if (p) {
+            p.options.maxSockets = Infinity;
+            p.options.maxFreeSockets = Infinity;
+            p.options.keepAlive = true;
+            p.maxFreeSockets = Infinity;
+            p.maxSockets = Infinity;
+          }
+          this._context.proxy = p;
+          this._checkout._context.proxy = p;
           this._context.rawProxy = proxy.raw;
           this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
