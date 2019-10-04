@@ -2,17 +2,6 @@
   "name": "@nebula/api",
   "version": "0.0.1",
   "private": true,
-  "dependencies": {
-    "@babel/runtime": "^7.4.5",
-    "aws-sdk": "^2.477.0",
-    "cors": "^2.8.4",
-    "dotenv": "^8.0.0",
-    "express": "^4.16.3",
-    "jsonwebtoken": "^8.2.2",
-    "moment": "^2.22.2",
-    "node-fetch": "^2.6.0",
-    "recaptcha-verify": "^0.1.1"
-  },
   "scripts": {
     "build": "babel --root-mode upward --no-comments -d build src/",
     "ci": "exit 0",
@@ -35,5 +24,17 @@
     "prod": "cross-env NODE_ENV=production nodemon build/app.js",
     "start": "yarn run prod",
     "test": "echo \"Warning: no test specified\" && exit 0"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.4.5",
+    "aws-sdk": "^2.477.0",
+    "cors": "^2.8.4",
+    "dotenv": "^8.0.0",
+    "express": "^4.16.3",
+    "jsonwebtoken": "^8.2.2",
+    "moment": "^2.22.2",
+    "node-fetch": "^2.6.0",
+    "recaptcha-verify": "^0.1.1",
+    "stripe": "7.7.0"
   }
 }

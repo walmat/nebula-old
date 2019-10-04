@@ -39,6 +39,68 @@ module.exports = function setupApiRoutes(app) {
     return res.status(200).json(response);
   });
 
+  app.get('/auth/active', authenticate, async (req, res) => {
+    // Get Key
+    const {
+      dec: { key },
+    } = res.locals.jwt;
+
+    // [BETA]: if using a limited access key, bypass deleting key
+    if (key === process.env.NEBULA_API_LTD_ACCESS_KEY) {
+      console.log('[TRACE]: LTD ACCESS KEY DETECTED: bypassing delete key...');
+      return res.status(200).json({
+        response: 'success',
+        message: 'success',
+      });
+    }
+
+    // Attempt to Delete Key
+    const response = await authUtils.setActiveUser(key);
+
+    // Handle Response
+    if (response.error) {
+      if (response.error.name === 'InternalError') {
+        // Internal error
+        return res.status(501).json(response);
+      }
+      // Bad request
+      return res.status(400).json(response);
+    }
+    // Success
+    return res.status(200).json(response);
+  });
+
+  app.delete('/auth/ative', authenticate, async (req, res) => {
+    // Get Key
+    const {
+      dec: { key },
+    } = res.locals.jwt;
+
+    // [BETA]: if using a limited access key, bypass deleting key
+    if (key === process.env.NEBULA_API_LTD_ACCESS_KEY) {
+      console.log('[TRACE]: LTD ACCESS KEY DETECTED: bypassing delete key...');
+      return res.status(200).json({
+        response: 'success',
+        message: 'success',
+      });
+    }
+
+    // Attempt to Delete Key
+    const response = await authUtils.removeActiveUser(key);
+
+    // Handle Response
+    if (response.error) {
+      if (response.error.name === 'InternalError') {
+        // Internal error
+        return res.status(501).json(response);
+      }
+      // Bad request
+      return res.status(400).json(response);
+    }
+    // Success
+    return res.status(200).json(response);
+  });
+
   app.post('/auth/token', async (req, res) => {
     // Check grant type
     const { grant_type } = req.body;

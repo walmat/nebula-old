@@ -37,7 +37,7 @@ const SiteKeyForPlatform = {
   [Platforms.Supreme]: '6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz',
   [Platforms.Footsites]: '',
   [Platforms.Mesh]: '',
-}
+};
 
 module.exports = {
   Manager: {

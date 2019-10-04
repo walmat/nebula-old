@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.NEBULA_STRIPE_KEY);
 
 const config = require('../../utils/setupDynamoConfig').getConfig();
 const { storeUser, deleteUser } = require('../../../dynamoDBUser');
@@ -36,7 +37,7 @@ function generateTokens(key, refreshPayload) {
       issuer: process.env.NEBULA_API_ID,
       subject: 'feref',
       audience: 'api',
-      expiresIn: '28d',
+      expiresIn: '7d',
     },
   );
 
@@ -73,10 +74,26 @@ function checkValidKey(key) {
     .query(params)
     .promise()
     .then(
-      data => {
+      async data => {
         console.log('[DEBUG]: CHECK KEY RESPONSE: ', data);
-        if (data.Items.length && data.Items[0].licenseKey) {
-          return data.Items[0].licenseKey;
+        if (data.Items.length) {
+          const { licenseKey, subscription } = data.Items[0];
+
+          if (subscription) {
+            try {
+              const { status } = await stripe.subscriptions.retrieve(subscription);
+
+              if (status !== 'active' || status !== 'trailing') {
+                return null;
+              }
+              return licenseKey;
+            } catch (error) {
+              // if we can't get the subscription, return null?
+              return null;
+            }
+          }
+          // lifetime keys won't have this subscription field...
+          return licenseKey;
         }
         return null;
       },
@@ -87,6 +104,63 @@ function checkValidKey(key) {
     );
 }
 module.exports.checkValidKey = checkValidKey;
+
+async function setActiveUser(keyHash) {
+  AWS.config = new AWS.Config(config);
+  const docClient = new AWS.DynamoDB.DocumentClient({
+    endpoint: new AWS.Endpoint(config.endpoint),
+  });
+
+  const keyId = hash(algo, keyHash, salt, output);
+
+  const params = {
+    TableName: 'Running',
+    Item: {
+      licenseKey: keyId,
+    },
+  };
+
+  docClient.put(params, (err, data) => {
+    if (err) {
+      console.error('Unable to add item. Error JSON:', JSON.stringify(err, null, 2));
+    } else {
+      console.log('Added item:', JSON.stringify(data, null, 2));
+    }
+  });
+}
+module.exports.setActiveUser = setActiveUser;
+
+async function removeActiveUser(keyHash) {
+  AWS.config = new AWS.Config(config);
+  const docClient = new AWS.DynamoDB.DocumentClient({
+    endpoint: new AWS.Endpoint(config.endpoint),
+  });
+
+  const keyId = hash(algo, keyHash, salt, output);
+
+  const params = {
+    TableName: 'Running',
+    Key: {
+      keyId,
+    },
+    Exists: true,
+    ReturnConsumedCapacity: 'TOTAL',
+  };
+  await docClient
+    .delete(params)
+    .promise()
+    .then(
+      () => {
+        console.log('[SUCCESS]: Successfully deleted active user');
+        return true;
+      },
+      err => {
+        console.log('[ERROR]: ', err, err.stack);
+        return false;
+      },
+    );
+}
+module.exports.removeActiveUser = removeActiveUser;
 
 /**
  * Returns the discord user tied to a given key
