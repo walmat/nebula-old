@@ -90,66 +90,6 @@ class WindowManager {
     autoUpdater.logger = log;
     // autoUpdater.logger.transports.file.level = 'debug';
     autoUpdater.autoInstallOnAppQuit = false;
-    autoUpdater.checkForUpdates();
-
-    // attach event listeners
-    autoUpdater.on('checking-for-update', () => {
-      log.info('CHECKING FOR UPDATE');
-      // if (this._main) {
-      //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate);
-      // }
-    });
-
-    autoUpdater.on('update-available', info => {
-      log.info('UPDATE AVAILABLE: ', info);
-      const { version, releaseNotes } = info;
-      Electron.dialog.showMessageBox(
-        {
-          type: 'question',
-          title: `Nebula ${version} is now live! Update now?`,
-          message: releaseNotes,
-          buttons: ['Update Now', 'Update Later'],
-          cancelId: 1,
-          defaultId: 0,
-        },
-        response => {
-          if (response === 0) {
-            this._shouldUpdate = true;
-          }
-        },
-      );
-    });
-
-    autoUpdater.on('update-not-available', info => {
-      log.info('UPDATE NOT AVAILABLE: ', info);
-      // if (this._main) {
-      //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
-      // }
-    });
-
-    autoUpdater.on('error', error => {
-      log.info('ERROR: ', error);
-      // if (this._main) {
-      //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true, error });
-      // }
-    });
-
-    autoUpdater.on('download-progress', progressObj => {
-      log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
-      // if (this._main) {
-      //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { progressObj });
-      // }
-    });
-
-    autoUpdater.on('update-downloaded', async info => {
-      log.info('NEW UPDATE DOWNLOADED: ', info);
-      if (this._shouldUpdate) {
-        // if (this._main) {
-        //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
-        // }
-        autoUpdater.quitAndInstall();
-      }
-    });
   }
 
   /**
@@ -264,6 +204,66 @@ class WindowManager {
           this._splash.destroy();
           this._splash = null;
         }
+        autoUpdater.checkForUpdates();
+
+        // attach event listeners
+        autoUpdater.on('checking-for-update', () => {
+          log.info('CHECKING FOR UPDATE');
+          // if (this._main) {
+          //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate);
+          // }
+        });
+
+        autoUpdater.on('update-available', info => {
+          log.info('UPDATE AVAILABLE: ', info);
+          const { version, releaseNotes } = info;
+          Electron.dialog.showMessageBox(
+            {
+              type: 'question',
+              title: `Nebula ${version} is now live! Update now?`,
+              message: releaseNotes,
+              buttons: ['Update Now', 'Update Later'],
+              cancelId: 1,
+              defaultId: 0,
+            },
+            response => {
+              if (response === 0) {
+                this._shouldUpdate = true;
+              }
+            },
+          );
+        });
+
+        autoUpdater.on('update-not-available', info => {
+          log.info('UPDATE NOT AVAILABLE: ', info);
+          // if (this._main) {
+          //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
+          // }
+        });
+
+        autoUpdater.on('error', error => {
+          log.info('ERROR: ', error);
+          // if (this._main) {
+          //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true, error });
+          // }
+        });
+
+        autoUpdater.on('download-progress', progressObj => {
+          log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
+          // if (this._main) {
+          //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { progressObj });
+          // }
+        });
+
+        autoUpdater.on('update-downloaded', async info => {
+          log.info('NEW UPDATE DOWNLOADED: ', info);
+          if (this._shouldUpdate) {
+            // if (this._main) {
+            //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
+            // }
+            autoUpdater.quitAndInstall();
+          }
+        });
       }
 
       if (win === this._main) {
