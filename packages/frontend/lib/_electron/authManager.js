@@ -1,4 +1,5 @@
 const Store = require('electron-store');
+const { random } = require('lodash');
 const fetch = require('node-fetch');
 
 const nebulaEnv = require('./env');
@@ -27,7 +28,8 @@ class AuthManager {
         windowManager._captchaWindowManager.closeAllCaptchaWindows();
         windowManager.transitionToDeauthedState();
       }
-    }, 15000);
+      // eslint-disable-next-line no-bitwise
+    }, random(15000, 30000));
 
     /**
      * Application Store
@@ -296,7 +298,7 @@ class AuthManager {
           windowManager._captchaWindowManager.closeAllCaptchaWindows();
           windowManager.transitionToDeauthedState();
         }
-      }, 15000);
+      }, random(15000, 30000));
       await this.createActiveSession();
       windowManager.transitiontoAuthedState();
     }
