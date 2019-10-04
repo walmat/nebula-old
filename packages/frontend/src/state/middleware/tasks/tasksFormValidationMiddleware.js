@@ -17,7 +17,7 @@ const tasksFormValidationMiddleware = store => next => action => {
   let combinedErrors = false;
 
   const response = newAction.response.task;
-  const { platform } = response;
+  const { platform } = action.type === TASK_ACTIONS.ADD ? response : response.edits;
   newAction.errors = {};
   const { errors } = action.type === TASK_ACTIONS.ADD ? response : response.edits;
   switch (platform) {

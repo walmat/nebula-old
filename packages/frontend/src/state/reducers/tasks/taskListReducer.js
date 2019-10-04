@@ -263,8 +263,11 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
+      console.log(updateTask.edits);
+
       // Check if current task has been setup properly
       if (updateTask.edits) {
+        updateTask.platform = updateTask.edits.platform || updateTask.platform;
         updateTask.profile = updateTask.edits.profile || updateTask.profile;
         updateTask.product = updateTask.edits.product || updateTask.product;
         updateTask.site = updateTask.edits.site || updateTask.site;
@@ -277,6 +280,17 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       }
 
       updateTask.product = parsedProduct;
+
+      if (updateTask.platform === PLATFORMS.Shopify) {
+        delete updateTask.product.variation;
+        delete updateTask.category;
+        delete updateTask.checkoutDelay;
+      } else if (updateTask.platform === PLATFORMS.Supreme) {
+        delete updateTask.type;
+        delete updateTask.oneCheckout;
+        delete updateTask.restockMode;
+        delete updateTask.account;
+      }
 
       // copy over to edits
       updateTask.edits = {

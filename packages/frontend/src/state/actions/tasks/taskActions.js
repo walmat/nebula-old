@@ -32,6 +32,7 @@ const _updateTaskRequest = async (id, task) => {
 
   if (copy.edits !== null) {
     copy.profile = copy.edits.profile || copy.profile;
+    copy.platform = copy.edits.platform || copy.platform;
     copy.product = copy.edits.product || copy.product;
     copy.size = copy.edits.size || copy.size;
     copy.site = copy.edits.site || copy.site;
@@ -55,6 +56,7 @@ const _updateTaskRequest = async (id, task) => {
   // Update the edits map
   copy.edits = {
     profile: copy.profile,
+    platform: copy.platform,
     product: copy.product,
     size: copy.size,
     site: copy.site,

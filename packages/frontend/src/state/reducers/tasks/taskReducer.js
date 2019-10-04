@@ -65,7 +65,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
               special: newSite.special || false,
               auth: newSite.auth,
             },
-            account: null,
+            platform: siteToPlatform(newSite.value),
             errors: Object.assign({}, state.errors, action.errors),
           };
           break;
@@ -78,13 +78,11 @@ export function taskReducer(state = initialTaskStates.task, action) {
             change = {
               platform: siteToPlatform(action.value.url),
               site: action.value,
-              account: null,
               errors: Object.assign({}, state.errors, action.errors),
             };
           } else {
             change = {
               site: initialTaskStates.site,
-              account: null,
               errors: Object.assign({}, state.errors, action.errors),
             };
           }
@@ -257,10 +255,11 @@ export function taskReducer(state = initialTaskStates.task, action) {
                   special: newSite.special || false,
                   auth: newSite.auth,
                 },
-                account: null,
+                platform: siteToPlatform(newSite.value),
                 errors: Object.assign({}, state.edits.errors, action.errors),
               },
             };
+            console.log(change);
           } else {
             change = {
               edits: {
@@ -277,21 +276,22 @@ export function taskReducer(state = initialTaskStates.task, action) {
             if (state.edits.site && action.value.name === state.edits.site.name) {
               break;
             }
+            console.log(action.value.url, siteToPlatform(action.value.url));
             change = {
               edits: {
                 ...state.edits,
-                errors: Object.assign({}, state.edits.errors, action.errors),
+                platform: siteToPlatform(action.value.url),
                 site: action.value,
-                account: null,
+                errors: Object.assign({}, state.edits.errors, action.errors),
               },
             };
+            console.log(change);
           } else {
             change = {
               edits: {
                 ...state.edits,
-                errors: Object.assign({}, state.edits.errors, action.errors),
                 site: initialTaskStates.edit.site,
-                account: null,
+                errors: Object.assign({}, state.edits.errors, action.errors),
               },
             };
           }
