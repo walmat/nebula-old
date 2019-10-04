@@ -293,7 +293,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       // copy over to edits
       updateTask.edits = {
         ...updateTask.edits,
-        platform: updateTask.platform;
+        platform: updateTask.platform,
         profile: updateTask.profile,
         product: updateTask.product,
         size: updateTask.size,
