@@ -204,6 +204,10 @@ class WindowManager {
           this._splash.destroy();
           this._splash = null;
         }
+      }
+
+      if (win === this._main) {
+        log.info('Starting update check...');
         autoUpdater.checkForUpdates();
 
         // attach event listeners
@@ -264,11 +268,6 @@ class WindowManager {
             autoUpdater.quitAndInstall();
           }
         });
-      }
-
-      if (win === this._main) {
-        log.info('Starting update check...');
-        autoUpdater.checkForUpdatesAndNotify();
         // generate captcha window sessions
         this._captchaWindowManager.generateSessions();
       }
