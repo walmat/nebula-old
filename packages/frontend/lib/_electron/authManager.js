@@ -15,6 +15,18 @@ class AuthManager {
    */
   constructor(context) {
     this._context = context;
+    this._authInterval = setInterval(async () => {
+      const validUser = await this.checkSession();
+
+      if (!validUser) {
+        const windowManager = this._context._windowManager;
+        clearInterval(this._authInterval);
+        this._authInterval = null;
+        await this.removeActiveSession();
+        await this.clearSession();
+        windowManager.transitionToDeauthedState();
+      }
+    }, 15000);
 
     /**
      * Application Store
@@ -93,6 +105,96 @@ class AuthManager {
       return null;
     }
     return null;
+  }
+
+  /**
+   * Polls every 10-15 seconds to make sure the valid session still holds
+   * @return {Boolean} valid user
+   */
+  async checkSession() {
+    if (nebulaEnv.isDevelopment()) {
+      return true;
+    }
+
+    const session = await this.getSession();
+
+    if (!session) {
+      return false;
+    }
+
+    try {
+      const res = await fetch(`${process.env.NEBULA_API_URL}/auth`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('[DEBUG]: CHECKING SESSION STATUS CODE: ', res.status);
+
+      if (!res.ok) {
+        const error = new Error('Invalid response!');
+        error.status = res.status;
+        throw error;
+      }
+    } catch (error) {
+      return false;
+    }
+    return true;
+  }
+
+  async createActiveSession() {
+    if (nebulaEnv.isDevelopment()) {
+      return true;
+    }
+
+    const session = await this.getSession();
+    if (session) {
+      try {
+        const res = await fetch(`${process.env.NEBULA_API_URL}/auth/active`, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${session.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log('[DEBUG]: CREATE ACTIVE SESSION STATUS CODE: ', res.status);
+        return true;
+      } catch (err) {
+        console.log('UNABLE TO SET ACTIVE USER: ', err);
+        // fail silently...
+      }
+    }
+    return false;
+  }
+
+  async removeActiveSession() {
+    if (nebulaEnv.isDevelopment()) {
+      return true;
+    }
+
+    const session = await this.getSession();
+    if (session) {
+      try {
+        const res = await fetch(`${process.env.NEBULA_API_URL}/auth/active`, {
+          method: 'DELETE',
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${session.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log('[DEBUG]: REMOVE ACTIVE SESSION STATUS CODE: ', res.status);
+        return true;
+      } catch (err) {
+        console.log('UNABLE TO REMOVE ACTIVE USER: ', err);
+        // fail silently...
+      }
+    }
+    return false;
   }
 
   /**
@@ -176,9 +278,23 @@ class AuthManager {
 
     if (!session || (session && session.errors)) {
       if (!windowManager._auth) {
+        clearInterval(this._authInterval);
+        this._authInterval = null;
+        await this.clearSession();
         windowManager.transitionToDeauthedState();
       }
     } else {
+      this._authInterval = setInterval(async () => {
+        const validUser = await this.checkSession();
+
+        if (!validUser) {
+          clearInterval(this._authInterval);
+          this._authInterval = null;
+          await this.clearSession();
+          windowManager.transitionToDeauthedState();
+        }
+      }, 15000);
+      await this.createActiveSession();
       windowManager.transitiontoAuthedState();
     }
   }
@@ -188,6 +304,7 @@ class AuthManager {
    * @return {none}
    */
   async _onAuthRequestDeactivate(ev) {
+    await this.removeActiveSession();
     const deactivated = await this.clearSession();
     if (!deactivated) {
       ev.sender.send('error', 'Unable to invalidate');

@@ -1,6 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const Electron = require('electron');
-const fetch = require('node-fetch');
 const RPC = require('./rpc');
 const CaptchaServerManager = require('./captchaServerManager');
 const MainMenu = require('./mainMenu');
@@ -85,7 +84,6 @@ class App {
     }
 
     this._rpcInterval = null;
-    this._authInterval = null;
     this._loggerInterval = null;
   }
 
@@ -158,47 +156,10 @@ class App {
     }
 
     const session = await this._authManager.getSession();
-
     // create splash page if not in dev mode
     if (session && !nebulaEnv.isDevelopment()) {
       await this._windowManager.createNewWindow('splash');
-
-      try {
-        await fetch(`${process.env.NEBULA_API_URL}/auth/active`, {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${session.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-      } catch (err) {
-        console.log('Unable to set active user!');
-        // fail silently...
-      }
-
-      // set a timeout to check for a valid user entry in the db
-      this._authInterval = setInterval(async () => {
-        try {
-          const res = await fetch(`${process.env.NEBULA_API_URL}/auth`, {
-            method: 'GET',
-            headers: {
-              Accept: 'application/json',
-              Authorization: `Bearer ${session.accessToken}`,
-              'Content-Type': 'application/json',
-            },
-          });
-
-          if (!res.ok) {
-            const error = new Error('Invalid response!');
-            error.status = res.status;
-            throw error;
-          }
-        } catch (error) {
-          await this._authManager.clearSession();
-          this.onWindowAllClosed();
-        }
-      }, 5000);
+      await this._authManager.createActiveSession();
     }
 
     // security check for http loggers
@@ -207,7 +168,7 @@ class App {
       this._loggerInterval = setInterval(async () => {
         const isRunning = await this._securityManager.isHTTPLoggerRunning();
         if (isRunning) {
-          this.onWindowAllClosed();
+          await this.onWindowAllClosed();
         }
       }, 1500);
     }
@@ -248,26 +209,12 @@ class App {
     }
     clearInterval(this._rpcInterval);
     clearInterval(this._loggerInterval);
-    clearInterval(this._authInterval);
     this._rpcInterval = null;
     this._loggerInterval = null;
-    this._authInterval = null;
 
     const session = await this._authManager.getSession();
     if (session && !nebulaEnv.isDevelopment()) {
-      try {
-        await fetch(`${process.env.NEBULA_API_URL}/auth/active`, {
-          method: 'DELETE',
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${session.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-      } catch (err) {
-        console.log('Unable to delete active user!');
-        // fail silently...
-      }
+      await this._authManager.removeActiveSession();
     }
   }
 
