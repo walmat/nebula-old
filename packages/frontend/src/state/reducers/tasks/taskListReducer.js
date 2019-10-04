@@ -262,9 +262,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (idxToUpdate < 0) {
         break;
       }
-
-      console.log(updateTask.edits);
-
+      
       // Check if current task has been setup properly
       if (updateTask.edits) {
         updateTask.platform = updateTask.edits.platform || updateTask.platform;
@@ -295,6 +293,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       // copy over to edits
       updateTask.edits = {
         ...updateTask.edits,
+        platform: updateTask.platform;
         profile: updateTask.profile,
         product: updateTask.product,
         size: updateTask.size,

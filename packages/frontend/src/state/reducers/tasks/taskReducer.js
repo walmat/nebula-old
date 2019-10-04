@@ -259,7 +259,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 errors: Object.assign({}, state.edits.errors, action.errors),
               },
             };
-            console.log(change);
           } else {
             change = {
               edits: {
@@ -276,7 +275,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
             if (state.edits.site && action.value.name === state.edits.site.name) {
               break;
             }
-            console.log(action.value.url, siteToPlatform(action.value.url));
             change = {
               edits: {
                 ...state.edits,
@@ -285,7 +283,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
                 errors: Object.assign({}, state.edits.errors, action.errors),
               },
             };
-            console.log(change);
           } else {
             change = {
               edits: {
