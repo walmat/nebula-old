@@ -312,6 +312,7 @@ class WindowManager {
    * Function to handle the transition between main -> auth window
    */
   async transitionToDeauthedState() {
+    console.log('[DEBUG]: TRANSITIONING TO DEAUTHED STATE!!');
     // Auth window is already open, no need to open it again
     if (this._auth) {
       return this._auth;
@@ -337,7 +338,7 @@ class WindowManager {
    * Function to handle the transition between auth -> main window
    */
   async transitiontoAuthedState() {
-    console.log('transitioning to authed state!');
+    console.log('[DEBUG]: TRANSITIONING TO AUTHED STATE!!');
     // Main window is already open, no need to open it again
     if (this._main) {
       return this._main;

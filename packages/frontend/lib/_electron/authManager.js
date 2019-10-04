@@ -24,6 +24,7 @@ class AuthManager {
         this._authInterval = null;
         await this.removeActiveSession();
         await this.clearSession();
+        windowManager._captchaWindowManager.closeAllCaptchaWindows();
         windowManager.transitionToDeauthedState();
       }
     }, 15000);
@@ -281,6 +282,7 @@ class AuthManager {
         clearInterval(this._authInterval);
         this._authInterval = null;
         await this.clearSession();
+        windowManager._captchaWindowManager.closeAllCaptchaWindows();
         windowManager.transitionToDeauthedState();
       }
     } else {
@@ -291,6 +293,7 @@ class AuthManager {
           clearInterval(this._authInterval);
           this._authInterval = null;
           await this.clearSession();
+          windowManager._captchaWindowManager.closeAllCaptchaWindows();
           windowManager.transitionToDeauthedState();
         }
       }, 15000);
