@@ -117,7 +117,7 @@ class Monitor {
         return;
       }
 
-      if (!/(?!([23]0[0-9]))\d/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) {
+      if (!/(?!([23][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) {
         // 400+ status code or connection error
         ban = true;
       }

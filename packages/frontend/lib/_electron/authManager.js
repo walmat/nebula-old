@@ -29,7 +29,7 @@ class AuthManager {
         windowManager.transitionToDeauthedState();
       }
       // eslint-disable-next-line no-bitwise
-    }, random(1500, 2500));
+    }, random(5500, 10000));
 
     /**
      * Application Store
@@ -143,7 +143,10 @@ class AuthManager {
         throw error;
       }
     } catch (error) {
-      return false;
+      if (error.status && !/(?!([23][0-9]))\d{3}/g.test(error.status)) {
+        return false;
+      }
+      return true;
     }
     return true;
   }
@@ -298,7 +301,7 @@ class AuthManager {
           windowManager._captchaWindowManager.closeAllCaptchaWindows();
           windowManager.transitionToDeauthedState();
         }
-      }, random(1500, 2500));
+      }, random(5500, 10000));
       await this.createActiveSession();
       windowManager.transitiontoAuthedState();
     }
