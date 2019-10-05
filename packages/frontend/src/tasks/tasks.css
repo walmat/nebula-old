@@ -160,7 +160,7 @@
   background: #f4f4f4;
 }
 .theme-dark .tasks .tasks-create__input--variation {
-  background: #393c3f;
+  background: none;
 }
 .theme-light .tasks .tasks-create__input--variation:disabled {
   background: #dcdcdc;
@@ -203,7 +203,7 @@
   background: #f4f4f4;
 }
 .theme-dark .tasks .tasks-create__input--checkout-delay {
-  background: #393c3f;
+  background: none;
 }
 .theme-light .tasks .tasks-create__input--checkout-delay:disabled {
   background: #dcdcdc;
@@ -224,7 +224,7 @@
   background: #f4f4f4;
 }
 .theme-dark .tasks .tasks-create__input--checkout-delay__short {
-  background: #393c3f;
+  background: none;
 }
 .theme-light .tasks .tasks-create__input--checkout-delay__short:disabled {
   background: #dcdcdc;
@@ -245,7 +245,7 @@
   background: #f4f4f4;
 }
 .theme-dark .tasks .tasks-create__input--field {
-  background: #393c3f;
+  background: none;
 }
 .theme-light .tasks .tasks-create__input--field:disabled {
   background: #dcdcdc;
@@ -266,7 +266,7 @@
   background: #f4f4f4;
 }
 .theme-dark .tasks .tasks-create__input--field__short {
-  background: #393c3f;
+  background: none;
 }
 .theme-light .tasks .tasks-create__input--field__short:disabled {
   background: #dcdcdc;
@@ -299,7 +299,7 @@
 }
 .theme-dark .tasks .tasks-create__amount {
   border-color: #f0405e;
-  background: #393c3f;
+  background: none;
 }
 .tasks .tasks-create__submit {
   margin-right: -1px;

@@ -37,7 +37,7 @@
   color: #6d6e70;
 }
 .theme-dark .settings .proxy-list__input-group--text {
-  background: #313236;
+  background: none;
 }
 
 .settings__input-group--button__discord, .settings__input-group--button__slack, .settings__button--close-captcha, .settings__button--open-captcha, .settings--import, .settings--export, .settings-defaults__input-group--clear, .settings-defaults__input-group--save, .settings--account-manager__input-group--delete, .settings--account-manager__input-group--save, .settings--shipping-manager__input-group--clear, .settings--shipping-manager__input-group--fetch {

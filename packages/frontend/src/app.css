@@ -162,7 +162,7 @@ body .theme-light {
 }
 html .theme-dark,
 body .theme-dark {
-  background: #313236;
+  background: #000000;
 }
 
 input,
@@ -361,7 +361,7 @@ select {
 }
 .theme-dark input,
 .theme-dark select {
-  background: #393c3f;
+  background: none;
 }
 
 .theme-light input::placeholder,
