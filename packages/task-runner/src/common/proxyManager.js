@@ -1,6 +1,8 @@
 /* eslint-disable no-restricted-syntax */
-const hash = require('object-hash');
-const shortid = require('shortid');
+import EventEmitter from 'eventemitter3';
+import hash from 'object-hash';
+import shortid from 'shortid';
+import { Manager } from '../constants';
 
 class ProxyManager {
   get proxies() {
@@ -10,6 +12,7 @@ class ProxyManager {
   constructor(logger) {
     this._logger = logger;
     this._proxies = new Map();
+    this._events = new EventEmitter();
     this.retry = 1000; // retry delay for swapping
   }
 
@@ -77,6 +80,7 @@ class ProxyManager {
       proxy: formattedProxy,
       platforms: {},
       use: {},
+      runners: {},
     });
     this._logger.debug('Proxy Added with id %s', id);
   }
@@ -106,6 +110,10 @@ class ProxyManager {
       this._logger.debug('Proxy with hash %s not found! Skipping removal', proxyHash);
       return;
     }
+
+    this._logger.debug('Emitting event to remove proxy from runners %j', stored.runners);
+    this._events.emit(Manager.Events.DeregisterProxy, stored.runners);
+
     this._logger.debug('Proxy found with hash %s. Removing now', proxyHash);
     this._proxies.delete(stored.id);
     this._logger.debug('Proxy removed with id %s', stored.id);
@@ -146,6 +154,7 @@ class ProxyManager {
         this._proxies.delete(proxy.id);
         // set it to in use
         proxy.use[site] = true;
+        proxy.runners[id] = id;
         proxy.platforms[platform] = true;
         // push the proxy back onto the end of the stack
         this._proxies.set(proxy.id, proxy);
@@ -181,6 +190,7 @@ class ProxyManager {
     }
     // otherwise, just free up the use list
     delete proxy.use[site];
+    delete proxy.runners[id];
     delete proxy.platforms[platform];
     this._logger.debug('Released Proxy %s', proxyId);
   }

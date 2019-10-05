@@ -562,6 +562,8 @@ export class CreateTaskPrimitive extends PureComponent {
       };
     }
 
+    const { randomInStock } = task.product;
+
     let newSizeValue = null;
     if (task.size) {
       newSizeValue = {
@@ -697,9 +699,10 @@ export class CreateTaskPrimitive extends PureComponent {
                 role="button"
                 tabIndex={0}
                 onKeyPress={onKeyPress}
+                title={randomInStock ? 'Random In Stock' : 'Not Random In Stock'}
                 onClick={() => this.createOnChangeHandler(TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK)}
               >
-                {task.product.randomInStock
+                {randomInStock
                   ? renderSvgIcon(InStock, {
                       title: 'Random In Stock',
                       alt: 'Random In Stock',

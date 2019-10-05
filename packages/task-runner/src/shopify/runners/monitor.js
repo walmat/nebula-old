@@ -219,15 +219,15 @@ class Monitor {
 
     const { monitorDelay } = this._context.task;
     let delayStatus;
-    let ban = true; // assume we have a softban
+    let ban = false; // assume we don't have a softban
     errors.forEach(({ status }) => {
       if (!status) {
         return;
       }
 
-      if (!/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(status)) {
-        // status is neither 429, 430, so set ban to false
-        ban = false;
+      if (/429|430|ECONNRESET|ENOTFOUND/.test(status)) {
+        // status is neither 429, 430, or a connection error so set ban to false
+        ban = true;
       }
 
       if (

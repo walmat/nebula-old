@@ -1371,7 +1371,12 @@ class SafeCheckout extends CheckoutPrimitive {
       }
 
       const body = await res.text();
-      const $ = cheerio.load(body);
+      const $ = cheerio.load(body, {
+        xmlMode: true,
+        normalizeWhitespace: true,
+        recognizeCDATA: true,
+        ignoreWhitespace: true,
+      });
 
       const priceRecap = $('.total-recap__final-price').attr('data-checkout-payment-due-target');
 
@@ -1510,6 +1515,22 @@ class SafeCheckout extends CheckoutPrimitive {
         'input, select, textarea, button',
       );
 
+      $('noscript').each((_, el) => {
+        if (!$(el).attr('src')) {
+          const iframe = $(el).find('iframe');
+          if (iframe) {
+            const src = iframe.attr('src');
+            if (src && /recaptcha/i.test(src)) {
+              const match = src.match(/\?k=(.*)/);
+              console.log(match);
+              if (match && match.length) {
+                [, this._context.task.site.sitekey] = match;
+              }
+            }
+          }
+        }
+      });
+
       if ((/captcha/i.test(body) || this.needsCaptcha) && !this.captchaToken) {
         return { message: 'Waiting for captcha', nextState: States.CAPTCHA };
       }
@@ -1623,6 +1644,7 @@ class SafeCheckout extends CheckoutPrimitive {
       }
 
       const body = await res.text();
+      console.log(body);
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
       if (/captcha validation failed/i.test(body)) {

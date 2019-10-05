@@ -14,7 +14,6 @@ const stateForError = ({ status, name, errno }, { message, nextState }) => {
     switch (match[1]) {
       // connection reset
       case 'ENOTFOUND':
-      case 'ECONNREFUSED':
       case 'ECONNRESET': {
         return {
           message: 'Swapping proxy',
@@ -23,6 +22,7 @@ const stateForError = ({ status, name, errno }, { message, nextState }) => {
       }
       // request timeout or socket freeze timeout
       case 'ETIMEDOUT':
+      case 'ECONNREFUSED':
       case 'ESOCKETTIMEDOUT': {
         return { message, nextState };
       }
@@ -32,16 +32,11 @@ const stateForError = ({ status, name, errno }, { message, nextState }) => {
     }
   }
 
-  // Check request status code
-  let shouldBan = 0;
   switch (status) {
-    case 403:
     case 429:
     case 430: {
-      shouldBan = status === 403 ? 2 : 1;
       return {
         message: `Swapping proxy - (${status})`,
-        shouldBan,
         nextState: States.SWAP,
       };
     }

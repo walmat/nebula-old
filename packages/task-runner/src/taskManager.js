@@ -83,6 +83,7 @@ class TaskManager {
     this.productInterval = null;
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
+    this._proxyManager._events.on(Events.DeregisterProxy, this.handleDeregisterProxy, this);
   }
 
   // MARK: Event Related Methods
@@ -158,6 +159,24 @@ class TaskManager {
 
       this._events.emit(Events.ProductFound, runnerId, product, parseType);
     }, 1000);
+  }
+
+  async handleDeregisterProxy(runnerIds) {
+    console.log(runnerIds);
+    Object.values(runnerIds).forEach(id => {
+      console.log(id);
+      const runner = this._runners[id];
+      // const monitor = this._monitors[id];
+
+      console.log(runner);
+      // if there's no task running, just exit early..
+      if (!runner) {
+        return;
+      }
+
+      // TODO: figure out the best way to handle removing the proxy from the runner
+      this._events.emit(Events.DeregisterProxy, runner.id);
+    });
   }
 
   async handleWebhook(hooks = {}) {
@@ -487,6 +506,7 @@ class TaskManager {
             Events.ChangeDelay,
             Events.UpdateHook,
             Events.ProductFound,
+            Events.DeregisterProxy,
           ];
 
     // Generate Handlers for each event
@@ -512,6 +532,15 @@ class TaskManager {
             if (monitor) {
               monitor._handleProduct(id, product, parseType);
             }
+          };
+          break;
+        }
+        case Events.DeregisterProxy: {
+          handler = id => {
+            runner._handleDeregisterProxy(id);
+            // if (monitor) {
+            //   monitor._handleDeregisterProxy(id);
+            // }
           };
           break;
         }

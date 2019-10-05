@@ -18,46 +18,43 @@ const parseForm = async ($, formName, wanted, billing, payment, size) => {
     const name = $(el).attr('name');
     const value = $(el).attr('value') || '';
 
+    // blacklisted values/names
+    if (/qty|size-options/i.test(name)) {
+      return;
+    }
+
     if (name) {
       data.push({ name, value });
     }
   });
 
-  const formValues = await data.map(({ name, value }) => {
+  const formValues = data.map(({ name, value }) => {
     let val = value.toString();
-
     if (/email/i.test(name)) {
       val = encodeURIComponent(payment.email);
     }
-
     if (/tel/i.test(name)) {
-      val = billing.phone;
+      val = phoneFormatter.format(billing.phone, 'NNN-NNN-NNNN');
     }
-
-    if (/address/i.test(name)) {
-      if (!/2/i.test(name)) {
+    if (/address/i.test(name) && !/same|store/i.test(name)) {
+      if (!/2|3/i.test(name)) {
         val = billing.address.replace(/\s/g, '+');
-      } else {
+      } else if (/2/i.test(name)) {
         val = billing.apt ? billing.apt.replace(/\s/g, '+') : '';
       }
     }
-
     if (/zip/i.test(name)) {
       val = billing.zipCode;
     }
-
     if (/city/i.test(name)) {
       val = billing.city.replace(/\s/g, '+');
     }
-
     if (/state/i.test(name)) {
       val = billing.province ? billing.province.value.replace(/\s/g, '+') : '';
     }
-
     if (/country/i.test(name)) {
       val = billing.country.value;
     }
-
     if (/bn|name/i.test(name)) {
       const fullName = `${billing.firstName.replace(/\s/g, '+')}+${billing.lastName.replace(
         /\s/g,
@@ -65,51 +62,40 @@ const parseForm = async ($, formName, wanted, billing, payment, size) => {
       )}`;
       val = fullName;
     }
-
     if (/carn|card/i.test(name) && !/month|year|vv|type/i.test(name)) {
       val = payment.cardNumber.match(/.{1,4}/g).join('+');
     }
-
     if (/card/i.test(name) && /month/i.test(name)) {
       let month = payment.exp.slice(0, 2);
-
       if (month.length !== 2) {
         month = `0${month}`;
       }
-
       val = month;
     }
-
     if (/card/i.test(name) && /year/i.test(name)) {
       val = `20${payment.exp.slice(3, 5)}`;
     }
-
     if (/card/i.test(name) && /type/i.test(name)) {
       const validNumber = validator.number(payment.cardNumber);
       let cardType = validNumber.card ? validNumber.card.type : 'visa';
       if (/american/i.test(cardType)) {
         cardType = 'american_express';
       }
-
       if (/master/i.test(cardType)) {
         cardType = 'master';
       }
     }
-
     if (/card/i.test(name) && /vv/i.test(name)) {
       val = payment.cvv;
     }
-
     if (/cookie-sub/i.test(name)) {
-      // NOTE: we can't include the spaces here!!
+      // NOTE: disable this ESLint error, as we can't include the spaces here!!
       // eslint-disable-next-line prettier/prettier
-      val = encodeURIComponent(JSON.stringify({[size]:1}));
+      val = encodeURIComponent(JSON.stringify({ [size]: 1 }));
     }
-
     if (!val) {
       return `${encodeURI(name)}=&`;
     }
-
     return `${encodeURI(name)}=${val}&`;
   });
 

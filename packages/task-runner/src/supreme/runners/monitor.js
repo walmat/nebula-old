@@ -54,7 +54,7 @@ class Monitor {
     this._context = {
       ...context,
       proxy: p,
-      rawProxy: proxy ? proxy.raw : null,
+      rawProxy: proxy ? proxy.raw : 'localhost',
       aborter: this._aborter,
       delayer: this._delayer,
       signal: this._aborter.signal,
@@ -111,15 +111,15 @@ class Monitor {
 
     const { monitorDelay } = this._context.task;
     let delayStatus;
-    let ban = true; // assume we have a softban
+    let ban = false; // assume we have a ban
     errors.forEach(({ status }) => {
       if (!status) {
         return;
       }
 
-      if (!/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(status)) {
-        // status is neither 429, 430, so set ban to false
-        ban = false;
+      if (!/(?!([23]0[0-9]))\d/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) {
+        // 400+ status code or connection error
+        ban = true;
       }
 
       if (!delayStatus && (status === ErrorCodes.ProductNotFound || status >= 400)) {
@@ -533,7 +533,6 @@ class Monitor {
       const matchedProduct = await this.matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter at this point...
       if (!matchedProduct) {
         this._logger.silly('Supreme Monitor: Unable to find matching product!');
-        // TODO: Maybe replace with a custom error object?
         const error = new Error('Product Not Found');
         error.status = ErrorCodes.ProductNotFound;
         throw error;

@@ -72,7 +72,7 @@ class TaskRunner {
     this._context = {
       ...context,
       proxy: p,
-      rawProxy: proxy ? proxy.raw : null,
+      rawProxy: proxy ? proxy.raw : 'localhost',
       parseType: this._parseType,
       aborter: this._aborter,
       delayer: this._delayer,
@@ -118,15 +118,19 @@ class TaskRunner {
       suspendHarvestCaptcha: this.suspendHarvestCaptcha.bind(this),
     });
 
+    this._deregisterOverride = false;
+
     this._history = [];
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
     this._handleProduct = this._handleProduct.bind(this);
+    this._handleDeregisterProxy = this._handleDeregisterProxy.bind(this);
 
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
     this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
     this._events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
+    this._events.on(TaskManagerEvents.DeregisterProxy, this._handleDeregisterProxy, this);
   }
 
   _handleAbort(id) {
@@ -183,6 +187,15 @@ class TaskRunner {
     }
   }
 
+  _handleDeregisterProxy(id) {
+    if (id === this._context.id) {
+      this._deregisterOverride = true;
+      if (this._delayer) {
+        this._delayer.clear();
+      }
+    }
+  }
+
   _handleDelay(id, delay, type) {
     if (id === this._context.id) {
       if (type === DelayTypes.error) {
@@ -229,7 +242,7 @@ class TaskRunner {
       this._events.emit(
         TaskManagerEvents.StartHarvest,
         this._context.id,
-        SiteKeyForPlatform[this._platform](this._context.task.site.url),
+        this._checkout._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
         'http://checkout.shopify.com',
       );
     }
@@ -589,6 +602,10 @@ class TaskRunner {
 
     if (this._context.productFound) {
       return States.ADD_TO_CART;
+    }
+
+    if (this._deregisterOverride) {
+      return States.SWAP;
     }
 
     this._delayer = waitForDelay(500, this._aborter.signal);
@@ -1428,7 +1445,7 @@ class TaskRunner {
         message: this._context.status || `Task has ${status}`,
         done: true,
       });
-      return States.STOP;
+      return States.DONE;
     };
   }
 
@@ -1489,13 +1506,20 @@ class TaskRunner {
         return true;
       }
     }
-    this._logger.silly('Run Loop finished, state transitioned to: %s', nextState);
 
     if (this._state !== nextState) {
       this._history.push(this._state);
       this._prevState = this._state;
       this._state = nextState;
     }
+
+    // overwrite nextState if we're deregistering proxy
+    if (this._deregisterOverride) {
+      this._state = States.SWAP;
+      this._deregisterOverride = false;
+    }
+
+    this._logger.silly('Run Loop finished, state transitioned to: %s', this._state);
 
     if (nextState === States.ABORT) {
       return true;
@@ -1508,7 +1532,7 @@ class TaskRunner {
     this._prevState = States.STARTED;
 
     let shouldStop = false;
-    while (this._state !== States.STOP && !shouldStop) {
+    while (this._state !== States.DONE && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.run();
     }

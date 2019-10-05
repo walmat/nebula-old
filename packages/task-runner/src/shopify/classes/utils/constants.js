@@ -117,12 +117,10 @@ const QueueNextState = {
     };
   },
   // should only be called in safe mode!
-  [CheckoutStates.GO_TO_CART]: () => {
-    return {
-      message: 'Creating checkout',
-      nextState: CheckoutStates.CREATE_CHECKOUT,
-    };
-  },
+  [CheckoutStates.GO_TO_CART]: () => ({
+    message: 'Creating checkout',
+    nextState: CheckoutStates.CREATE_CHECKOUT,
+  }),
   [CheckoutStates.CREATE_CHECKOUT]: (type, task) => {
     if (type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(task.site.name)) {
       return {
@@ -142,12 +140,12 @@ const QueueNextState = {
         if (task.forceCaptcha) {
           return {
             message: 'Waiting for captcha',
-            nextState: States.CAPTCHA,
+            nextState: CheckoutStates.CAPTCHA,
           };
         }
         return {
           message: 'Submitting pament',
-          nextState: States.PAYMENT_TOKEN,
+          nextState: CheckoutStates.PAYMENT_TOKEN,
         };
       }
       return {

@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable array-callback-return */
 import AbortController from 'abort-controller';
+import cheerio from 'cheerio';
 import HttpsProxyAgent from 'https-proxy-agent';
 import { isEqual } from 'lodash';
 import fetch from 'node-fetch';
@@ -22,7 +23,7 @@ const {
   TaskRunner: { States, Types, DelayTypes, HookTypes, HarvestStates },
   Monitor: { ParseType },
 } = require('../utils/constants');
-const { ATC, backupForm } = require('../utils/forms');
+const { ATC, backupForm, parseForm } = require('../utils/forms');
 
 // SUPREME
 class TaskRunner {
@@ -66,7 +67,7 @@ class TaskRunner {
     this._context = {
       ...context,
       proxy: p,
-      rawProxy: proxy ? proxy.raw : null,
+      rawProxy: proxy ? proxy.raw : 'localhost',
       aborter: this._aborter,
       delayer: this._delayer,
       signal: this._aborter.signal,
@@ -694,9 +695,63 @@ class TaskRunner {
       region = 'JP';
     }
     const profileInfo = billingMatchesShipping ? shipping : billing;
-    this._form = backupForm(region, profileInfo, payment, s);
-    if (this.captchaToken) {
-      this._form += `&g-recaptcha-response=${this.captchaToken}`;
+
+    if (!this._form) {
+      let body;
+      try {
+        const res = await this._request('/mobile/checkout', {
+          method: 'GET',
+          agent: proxy,
+          headers: {
+            authority: 'www.supremenewyork.com',
+            accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'en-US,en;q=0.9',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'none',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': 1,
+            'content-type': 'application/x-www-form-urlencoded',
+            origin: 'https://www.supremenewyork.com',
+            referer: 'https://www.supremenewyork.com/mobile',
+            'user-agent':
+              'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
+          },
+        });
+
+        if (!res.ok) {
+          const error = new Error('Unable to fetch checkout page');
+          error.status = res.status || res.errno;
+          throw error;
+        }
+
+        body = await res.text();
+      } catch (error) {
+        this._logger.debug('Unable to fetch checkout form!');
+        // fail silently...
+      }
+
+      if (body) {
+        this._logger.debug('Attempting to parse checkout fields');
+        const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+        this._form = await parseForm(
+          $,
+          'script#checkoutViewTemplate',
+          'input, textarea, select, button',
+          profileInfo,
+          payment,
+          s,
+        );
+      } else {
+        // fallback to static form..
+        this._form = backupForm(region, profileInfo, payment, s);
+      }
+
+      // patch in the captcha token
+      if (this.captchaToken) {
+        this._form += `&g-recaptcha-response=${this.captchaToken}`;
+      }
     }
 
     if (!this._pooky) {
@@ -764,6 +819,8 @@ class TaskRunner {
           this._emitTaskEvent({ message: 'Invalid checkout slug' });
           return States.SUBMIT_CHECKOUT;
         }
+        // reset form..
+        this._form = '';
         this._slug = slug;
         return States.CHECK_STATUS;
       }
@@ -871,7 +928,7 @@ class TaskRunner {
         this._cookies = '';
         this.captchaToken = '';
         this._context.task.checkoutDelay = 0;
-        return States.SUBMIT_CHECKOUT;
+        return /US/i.test(siteName) ? States.SUBMIT_CHECKOUT : States.CAPTCHA;
       }
 
       if (body && body.status && /paid/i.test(body.status)) {

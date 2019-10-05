@@ -668,7 +668,7 @@ const sites = [
       {
         label: 'Supreme EU',
         value: 'https://www.supremenewyork.com',
-        supported: false,
+        supported: true,
       },
       {
         label: 'Supreme JP',
