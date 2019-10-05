@@ -326,7 +326,7 @@
   background: #f4f4f4;
 }
 .theme-dark .server .proxy-options__input--field {
-  background: #393c3f;
+  background: none;
 }
 .server .proxy-options__input--field:disabled {
   cursor: not-allowed;
