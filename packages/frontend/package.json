@@ -1,6 +1,6 @@
 {
   "name": "@nebula/orion",
-  "version": "1.2.33",
+  "version": "1.2.34",
   "private": true,
   "main": "./dist/_electron/electron.js",
   "homepage": "./",
