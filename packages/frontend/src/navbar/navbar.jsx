@@ -11,7 +11,7 @@ import Bodymovin from './bodymovin';
 import { ReactComponent as TasksIcon } from '../_assets/tasks.svg';
 import { ReactComponent as ProfilesIcon } from '../_assets/profiles.svg';
 import { ReactComponent as ServerIcon } from '../_assets/server.svg';
-import { ReactComponent as SettingsIcon } from '../_assets/settings.svg';
+import { ReactComponent as SettingsIcon } from '../_assets/settings2.svg';
 import { mapBackgroundThemeToColor } from '../constants/themes';
 import './navbar.css';
 
