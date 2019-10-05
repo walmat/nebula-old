@@ -99,7 +99,17 @@ const parseForm = async ($, formName, wanted, billing, payment, size) => {
     return `${encodeURI(name)}=${val}&`;
   });
 
-  return formValues.join('').slice(0, -1);
+  let fv = formValues.join('');
+
+  // replace any leftover spaces with a +
+  fv = fv.replace(/\s/g, '+');
+
+  // trim off the trailing ampersand
+  if (fv.endsWith('&')) {
+    fv = fv.slice(0, -1);
+  }
+
+  return fv;
 };
 
 const backupForm = (region, billing, payment, size) => {
