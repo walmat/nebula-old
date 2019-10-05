@@ -14,7 +14,7 @@ export const mapBackgroundThemeToColor = {
 };
 
 export const mapThemeToColor = {
-  [THEMES.DARK]: '#393c3f',
+  [THEMES.DARK]: '#000000',
   [`${THEMES.DARK}--disabled`]: '#262626',
   [THEMES.LIGHT]: '#f4f4f4',
   [`${THEMES.LIGHT}--disabled`]: '#dcdcdc',
