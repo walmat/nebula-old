@@ -29,7 +29,7 @@ class AuthManager {
         windowManager.transitionToDeauthedState();
       }
       // eslint-disable-next-line no-bitwise
-    }, random(15000, 30000));
+    }, random(1500, 2500));
 
     /**
      * Application Store
@@ -298,7 +298,7 @@ class AuthManager {
           windowManager._captchaWindowManager.closeAllCaptchaWindows();
           windowManager.transitionToDeauthedState();
         }
-      }, random(15000, 30000));
+      }, random(1500, 2500));
       await this.createActiveSession();
       windowManager.transitiontoAuthedState();
     }
