@@ -754,6 +754,8 @@ class TaskRunner {
       }
     }
 
+    console.log(this._form);
+
     if (!this._pooky) {
       try {
         if (/US/i.test(name)) {

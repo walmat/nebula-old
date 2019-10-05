@@ -591,12 +591,17 @@
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--id {
   width: 15px;
-  margin-left: 12px !important;
+  margin-left: 8px !important;
   flex-grow: 0;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store {
-  width: 110px;
-  margin-left: 9px !important;
+  width: 113px;
+  padding-left: 12px;
+  flex-grow: 1;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--store--fullscreen {
+  width: 113px;
+  padding-left: 12px;
   flex-grow: 1;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product {
@@ -605,12 +610,17 @@
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product--fullscreen {
   visibility: visible;
-  width: 116px;
-  margin-right: 10px !important;
+  width: 111px;
+  padding-left: 15px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size {
   width: 65px;
-  margin-left: 17px !important;
+  padding-left: 19px;
+  flex-grow: 1;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--size--fullscreen {
+  width: 57px;
+  padding-left: 18px;
   flex-grow: 1;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy {
@@ -619,14 +629,19 @@
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--proxy--fullscreen {
   visibility: visible;
-  width: 132px;
-  margin-right: 10px !important;
+  padding-left: 10px;
+  width: 118px;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
-  width: 20px;
-  margin-left: 31px !important;
+  width: 50px;
+  padding-left: 33px;
   flex-grow: 10;
   transition: ease all 0.35s;
+}
+.tasks .tasks-log .tasks-row-container .tasks-row__log--output--fullscreen {
+  width: 50px;
+  padding-left: 26px;
+  flex-grow: 10;
 }
 
 /*

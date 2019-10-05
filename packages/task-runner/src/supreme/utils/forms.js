@@ -28,6 +28,23 @@ const parseForm = async ($, formName, wanted, billing, payment, size) => {
     }
   });
 
+  let country;
+
+  switch (billing.country.value) {
+    case 'US': {
+      country = 'USA';
+      break;
+    }
+    case 'CA': {
+      country = 'CANADA';
+      break;
+    }
+    default: {
+      country = billing.country.value;
+      break;
+    }
+  }
+
   const formValues = data.map(({ name, value }) => {
     let val = value.toString();
     if (/email/i.test(name)) {
@@ -53,7 +70,7 @@ const parseForm = async ($, formName, wanted, billing, payment, size) => {
       val = billing.province ? billing.province.value.replace(/\s/g, '+') : '';
     }
     if (/country/i.test(name)) {
-      val = billing.country.value;
+      val = country;
     }
     if (/bn|name/i.test(name)) {
       const fullName = `${billing.firstName.replace(/\s/g, '+')}+${billing.lastName.replace(
@@ -84,6 +101,7 @@ const parseForm = async ($, formName, wanted, billing, payment, size) => {
       if (/master/i.test(cardType)) {
         cardType = 'master';
       }
+      val = cardType;
     }
     if (/card/i.test(name) && /vv/i.test(name)) {
       val = payment.cvv;
@@ -91,8 +109,9 @@ const parseForm = async ($, formName, wanted, billing, payment, size) => {
     if (/cookie-sub/i.test(name)) {
       // NOTE: disable this ESLint error, as we can't include the spaces here!!
       // eslint-disable-next-line prettier/prettier
-      val = encodeURIComponent(JSON.stringify({ [size]: 1 }));
+      val = encodeURIComponent(encodeURIComponent(JSON.stringify({[size]:1})));
     }
+
     if (!val) {
       return `${encodeURI(name)}=&`;
     }
@@ -123,10 +142,26 @@ const backupForm = (region, billing, payment, size) => {
   const month =
     payment.exp.slice(0, 2).length < 2 ? `0${payment.exp.slice(0, 2)}` : payment.exp.slice(0, 2);
   const year = `20${payment.exp.slice(3, 5)}`;
-  const country = /US/i.test(region) ? 'USA' : 'GB';
   // NOTE: we can't include the spaces here!!
   // eslint-disable-next-line prettier/prettier
   const cookieSub = encodeURIComponent(JSON.stringify({[size]:1}));
+
+  let country;
+
+  switch (billing.country.value) {
+    case 'US': {
+      country = 'USA';
+      break;
+    }
+    case 'CA': {
+      country = 'CANADA';
+      break;
+    }
+    default: {
+      country = billing.country.value;
+      break;
+    }
+  }
 
   switch (region) {
     case 'US': {
