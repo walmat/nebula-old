@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { parseURL } from 'whatwg-url';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import NumberFormat from 'react-number-format';
@@ -43,6 +44,15 @@ export class TasksPrimitive extends PureComponent {
     this.stopAllTasks = this.stopAllTasks.bind(this);
     this.destroyAllTasks = this.destroyAllTasks.bind(this);
     this.renderDelay = this.renderDelay.bind(this);
+    this._handleKeyDown = this._handleKeyDown.bind(this);
+  }
+
+  componentDidMount() {
+    window.addEventListener('keydown', this._handleKeyDown);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this._handleKeyDown);
   }
 
   createOnChangeHandler(field, event) {
@@ -71,6 +81,59 @@ export class TasksPrimitive extends PureComponent {
     const { tasks, onDestroyAllTasks } = this.props;
     if (tasks.length) {
       onDestroyAllTasks(tasks);
+    }
+  }
+
+  async _handleKeyDown(e) {
+    const { keyCode } = e;
+
+    if (window.Bridge) {
+      switch (keyCode) {
+        case 114: {
+          // START ALL
+          this.startAllTasks();
+          break;
+        }
+        case 115: {
+          // STOP ALL
+          this.stopAllTasks();
+          break;
+        }
+        case 116: {
+          // MASS OVERRIDE LINK
+          /**
+           * 1. Get clipboard data
+           * 2. Check if it's a valid link
+           * 3. Change all tasks with the same site url to the new product data (edit task to show it as well)
+           * 4. Start all newly changed tasks
+           */
+          const clipboard = await navigator.clipboard.readText();
+          const URL = parseURL(clipboard);
+          if (!URL || !URL.host) {
+            break;
+          }
+
+          const { tasks, onMassEdit } = this.props;
+
+          const tasksToChange = tasks.filter(
+            t => t.site.url.indexOf(URL.host) > -1 && t.status === 'running',
+          );
+
+          onMassEdit(tasksToChange, clipboard);
+          break;
+        }
+        case 117: {
+          // MASS OVERRIDE PW
+          /** TODO:
+           * 1. Get clipboard data
+           * 2. Send window.Bridge event with data
+           * 3. on task-runner side, check to see which tasks are needing a password somehow
+           */
+          break;
+        }
+        default:
+          break;
+      }
     }
   }
 
@@ -221,6 +284,7 @@ TasksPrimitive.propTypes = {
   tasks: tDefns.taskList.isRequired,
   proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
   onSettingsChange: PropTypes.func.isRequired,
+  onMassEdit: PropTypes.func.isRequired,
   onDestroyAllTasks: PropTypes.func.isRequired,
   onStartAllTasks: PropTypes.func.isRequired,
   onStopAllTasks: PropTypes.func.isRequired,
@@ -250,6 +314,9 @@ export const mapDispatchToProps = dispatch => ({
   },
   onStopAllTasks: tasks => {
     dispatch(taskActions.stopAll(tasks));
+  },
+  onMassEdit: (tasks, url) => {
+    dispatch(taskActions.editAll(tasks, url));
   },
 });
 

@@ -106,6 +106,10 @@ const _startTasks = (tasks, options) => {
   util.sendEvent(IPCKeys.RequestStartTasks, tasks, options);
 };
 
+const _restartTasks = (tasks, options) => {
+  util.sendEvent(IPCKeys.RequestRestartTasks, tasks, options);
+};
+
 /**
  * Sends task(s) that should be stopped to launcher.js
  */
@@ -129,7 +133,6 @@ const _startShippingRatesRunner = task => {
 
     // Define srr message handler to retrive data
     const srrMessageHandler = (_, payload) => {
-      console.log(payload);
       // Only respond to specific type and id
       if (payload[SRR_ID] && payload[SRR_ID].type === TaskRunnerTypes.ShippingRates) {
         // Runner type is exposed from the task-runner package
@@ -241,6 +244,7 @@ process.once('loaded', () => {
     // registerForUpdateEvents: _registerForUpdateEvents,
     deregisterForTaskEvents: _deregisterForTaskEvents,
     startTasks: _startTasks,
+    restartTasks: _restartTasks,
     stopTasks: _stopTasks,
     openInDefaultBrowser: _openInDefaultBrowser,
     addProxies: _addProxies,

@@ -48,6 +48,7 @@ const IPCKeys = {
   RequestDeregisterTaskEventHandler: 'RequestDeregisterTaskEventhandler',
   DeregisterTaskEventHandler: 'DeregisterTaskEventHander',
   RequestStartTasks: 'RequestStartTasks',
+  RequestRestartTasks: 'RequestRestartTasks',
   RequestStopTasks: 'RequestStopTasks',
   RequestAddProxies: 'RequestAddProxies',
   RequestRemoveProxies: 'RequestRemoveProxies',

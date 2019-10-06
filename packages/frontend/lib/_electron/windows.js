@@ -134,7 +134,7 @@ const _createWindow = options => {
         break;
       }
       default: {
-        callback(false);
+        callback(true);
       }
     }
   });

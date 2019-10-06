@@ -37,6 +37,7 @@ class TaskLauncher {
     // Forward ipc requests to launcher
     [
       IPCKeys.RequestStartTasks,
+      IPCKeys.RequestRestartTasks,
       IPCKeys.RequestStopTasks,
       IPCKeys.RequestAddProxies,
       IPCKeys.RequestRemoveProxies,

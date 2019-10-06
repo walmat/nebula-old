@@ -73,6 +73,7 @@ class TaskManagerAdapter {
       }
     });
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));
+    ipcRenderer.on(IPCKeys.RequestRestartTasks, this._onRestartTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestStopTasks, this._onStopTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestAddProxies, this._onAddProxiesRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestRemoveProxies, this._onRemoveProxiesRequest.bind(this));
@@ -97,6 +98,14 @@ class TaskManagerAdapter {
       this._taskManager.startAll(tasks, options);
     } else {
       this._taskManager.start(tasks, options);
+    }
+  }
+
+  _onRestartTasksRequest(_, tasks, options) {
+    if (tasks instanceof Array) {
+      this._taskManager.restartAll(tasks, options);
+    } else {
+      this._taskManager.restart(tasks, options);
     }
   }
 

@@ -8,6 +8,7 @@ export const TASK_ACTIONS = {
   REMOVE: 'REMOVE_TASK',
   REMOVE_ALL: 'REMOVE_ALL_TASKS',
   EDIT: 'EDIT_TASK',
+  EDIT_ALL: 'EDIT_ALL_TASKS',
   SELECT: 'SELECT_TASK',
   UPDATE: 'UPDATE_TASK',
   COPY: 'COPY_TASK',
@@ -162,6 +163,7 @@ const _stopAllTasks = makeActionCreator(TASK_ACTIONS.STOP_ALL, 'response');
 
 // Public Actions
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value');
+const editAllTasks = makeActionCreator(TASK_ACTIONS.EDIT_ALL, 'tasks', 'url');
 const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
 const statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'messageBuffer');
 const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
@@ -267,6 +269,7 @@ export const taskActions = {
   destroy: destroyTask,
   destroyAll: destroyAllTasks,
   edit: editTask,
+  editAll: editAllTasks,
   clearEdits,
   select: selectTask,
   update: updateTask,

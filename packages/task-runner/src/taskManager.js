@@ -162,19 +162,15 @@ class TaskManager {
   }
 
   async handleDeregisterProxy(runnerIds) {
-    console.log(runnerIds);
     Object.values(runnerIds).forEach(id => {
-      console.log(id);
       const runner = this._runners[id];
       // const monitor = this._monitors[id];
 
-      console.log(runner);
       // if there's no task running, just exit early..
       if (!runner) {
         return;
       }
 
-      // TODO: figure out the best way to handle removing the proxy from the runner
       this._events.emit(Events.DeregisterProxy, runner.id);
     });
   }
@@ -420,6 +416,35 @@ class TaskManager {
   }
 
   /**
+   * Called after a task gets updated and needs to restart
+   */
+  async restart(task, options = {}) {
+    this._logger.silly('Restarting task %s', task.id);
+
+    // TODO: Split monitor/runner abort event calls up into separate events..
+    const monitorId = Object.keys(this._monitors).find(k => this._monitors[k].taskId === task.id);
+    const runnerId = Object.keys(this._runners).find(k => this._runners[k].taskId === task.id);
+    const runner = this._runners[runnerId];
+    // TODO: comparisons here.. we should only reset the monitor if the product data/site changes
+    if (monitorId) {
+      const monitor = this._monitors[monitorId];
+      // otherwise, just patch in the new task data (as we don't need to set the new defaults)
+      const parseType = getParseType(task.product, task.site, task.platform);
+      monitor._context.task = task;
+      runner._context.task = task;
+      monitor._parseType = parseType;
+      runner._parseType = parseType;
+      if (monitor._delayer) {
+        monitor._delayer.clear();
+      }
+    }
+  }
+
+  restartAll(tasks, options) {
+    [...tasks].forEach(t => this.restart(t, options));
+  }
+
+  /**
    * Stop a task
    *
    * This method stops a given task if it is running. This is done by sending
@@ -584,7 +609,6 @@ class TaskManager {
       monitor._events.on(RunnerEvents.SwapMonitorProxy, this.handleSwapProxy, this);
     }
     runner.registerForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
-    runner._events.on(Events.ProductFound, this.handleProduct, this);
     runner._events.on(Events.Webhook, this.handleWebhook, this);
     runner._events.on(Events.Success, this.handleSuccess, this);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);

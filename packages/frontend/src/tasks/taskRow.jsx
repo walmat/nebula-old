@@ -520,9 +520,6 @@ export const mapDispatchToProps = dispatch => ({
   onSelectTask: task => {
     dispatch(taskActions.select(task));
   },
-  onUpdateTask: task => {
-    dispatch(taskActions.update(task.id, task));
-  },
   onCopyTask: task => {
     dispatch(taskActions.copy(task));
   },

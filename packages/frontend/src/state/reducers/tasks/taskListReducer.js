@@ -262,7 +262,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (idxToUpdate < 0) {
         break;
       }
-      
+
       // Check if current task has been setup properly
       if (updateTask.edits) {
         updateTask.platform = updateTask.edits.platform || updateTask.platform;
@@ -278,17 +278,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       }
 
       updateTask.product = parsedProduct;
-
-      if (updateTask.platform === PLATFORMS.Shopify) {
-        delete updateTask.product.variation;
-        delete updateTask.category;
-        delete updateTask.checkoutDelay;
-      } else if (updateTask.platform === PLATFORMS.Supreme) {
-        delete updateTask.type;
-        delete updateTask.oneCheckout;
-        delete updateTask.restockMode;
-        delete updateTask.account;
-      }
 
       // copy over to edits
       updateTask.edits = {
@@ -306,8 +295,50 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         },
       };
 
+      // restart the task with the newly given data
+      if (window.Bridge) {
+        window.Bridge.restartTasks(updateTask, { override: false });
+      }
+
       // Update the task
       nextState[idxToUpdate] = updateTask;
+      break;
+    }
+    case TASK_ACTIONS.EDIT_ALL: {
+      if (!action || (action && !action.url) || (action && !action.tasks.length)) {
+        break;
+      }
+
+      const { tasks, url } = action;
+
+      if (window.Bridge) {
+        tasks.forEach(t => {
+          const idx = nextState.findIndex(task => task.id === t.id);
+
+          if (idx > -1) {
+            const newTask = {
+              ...t,
+              product: {
+                ...t.product,
+                raw: url,
+                url,
+              },
+              edits: {
+                ...t.edits,
+                product: {
+                  ...t.edits.product,
+                  raw: url,
+                  url,
+                },
+              },
+            };
+
+            nextState[idx] = newTask;
+          }
+        });
+
+        window.Bridge.restartTasks(tasks, { override: false });
+      }
       break;
     }
     case TASK_ACTIONS.STATUS: {
