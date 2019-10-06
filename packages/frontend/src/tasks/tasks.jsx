@@ -107,9 +107,9 @@ export class TasksPrimitive extends PureComponent {
            * 3. Change all tasks with the same site url to the new product data (edit task to show it as well)
            * 4. Start all newly changed tasks
            */
-          const clipboard = await navigator.clipboard.readText();
-          const URL = parseURL(clipboard);
-          if (!URL || !URL.host) {
+          const url = await navigator.clipboard.readText();
+          const URL = parseURL(url);
+          if (!URL || !URL.host || (URL.path && !URL.path[0])) {
             break;
           }
 
@@ -119,7 +119,7 @@ export class TasksPrimitive extends PureComponent {
             t => t.site.url.indexOf(URL.host) > -1 && t.status === 'running',
           );
 
-          onMassEdit(tasksToChange, clipboard);
+          onMassEdit(tasksToChange, { url });
           break;
         }
         case 117: {
@@ -129,6 +129,13 @@ export class TasksPrimitive extends PureComponent {
            * 2. Send window.Bridge event with data
            * 3. on task-runner side, check to see which tasks are needing a password somehow
            */
+          const password = await navigator.clipboard.readText();
+
+          if (!password) {
+            break;
+          }
+          const { tasks, onMassEdit } = this.props;
+          onMassEdit(tasks, { password });
           break;
         }
         default:
@@ -315,8 +322,8 @@ export const mapDispatchToProps = dispatch => ({
   onStopAllTasks: tasks => {
     dispatch(taskActions.stopAll(tasks));
   },
-  onMassEdit: (tasks, url) => {
-    dispatch(taskActions.editAll(tasks, url));
+  onMassEdit: (tasks, edits) => {
+    dispatch(taskActions.editAll(tasks, edits));
   },
 });
 

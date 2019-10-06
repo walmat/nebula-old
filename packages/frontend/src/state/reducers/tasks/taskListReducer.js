@@ -305,34 +305,52 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       break;
     }
     case TASK_ACTIONS.EDIT_ALL: {
-      if (!action || (action && !action.url) || (action && !action.tasks.length)) {
+      if (!action || (action && !action.edits) || (action && !action.tasks.length)) {
         break;
       }
 
-      const { tasks, url } = action;
+      const { tasks, edits: { url, password } } = action;
 
       if (window.Bridge) {
         tasks.forEach(t => {
           const idx = nextState.findIndex(task => task.id === t.id);
 
           if (idx > -1) {
-            const newTask = {
-              ...t,
-              product: {
-                ...t.product,
-                raw: url,
-                url,
-              },
-              edits: {
-                ...t.edits,
+            let newTask;
+            if (url) {
+              newTask = {
+                ...t,
                 product: {
-                  ...t.edits.product,
+                  ...t.product,
                   raw: url,
                   url,
                 },
-              },
-            };
-
+                edits: {
+                  ...t.edits,
+                  product: {
+                    ...t.edits.product,
+                    raw: url,
+                    url,
+                  },
+                },
+              };
+            } else {
+              newTask = {
+                ...t,
+                site: {
+                  ...t.site,
+                  password,
+                },
+                edits: {
+                  ...t.edits,
+                  site: {
+                    ...t.edits.site,
+                    password,
+                  }
+                },
+              };
+            }
+            
             nextState[idx] = newTask;
           }
         });

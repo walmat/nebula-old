@@ -8,8 +8,8 @@ import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
-const Discord = require('../classes/hooks/discord');
-const Slack = require('../classes/hooks/slack');
+const Discord = require('../hooks/discord');
+const Slack = require('../hooks/slack');
 const { notification } = require('../classes/hooks');
 const AsyncQueue = require('../../common/asyncQueue');
 const Timer = require('../../common/timer');
