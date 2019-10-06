@@ -26,8 +26,6 @@ const _addTaskRequest = async (task, amount) => {
 };
 
 const _updateTaskRequest = async (id, task) => {
-  // TODO: Replace this with an actual API call
-  // API will likely do something like this:
   const copy = JSON.parse(JSON.stringify(task));
 
   if (copy.edits !== null) {

@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 import { getAllSizesStripped } from '../constants/getAllSizes';
-import getAllSites from '../constants/getAllSites';
+import { getSitesForCategory } from '../constants/getAllSites';
 import {
   DropdownIndicator,
   Control,
@@ -28,18 +28,6 @@ import { buildStyle } from '../utils/styles';
 
 export class TaskRowPrimitive extends PureComponent {
   static createSite(value) {
-    const sites = getAllSites();
-    const exists = sites.find(s => s.value.indexOf(value) > -1);
-    if (exists) {
-      return {
-        name: exists.label,
-        url: exists.value,
-        localCheckout: exists.localCheckout || false,
-        special: exists.special || false,
-        apiKey: exists.apiKey,
-        auth: exists.auth,
-      };
-    }
     const URL = parseURL(value);
     if (!URL || !URL.host) {
       return null;
@@ -265,7 +253,7 @@ export class TaskRowPrimitive extends PureComponent {
                 }
                 onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
-                options={getAllSites()}
+                options={getSitesForCategory(task.platform)}
                 data-testid={addTestId(`${testIdBase}.siteSelect`)}
               />
             </div>

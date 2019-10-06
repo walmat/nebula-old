@@ -224,6 +224,8 @@ const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => 
     data.push({ name: 'checkout[client_details][browser_tz]', value: 240 });
   }
 
+  const billingInfo = profile.billingMatchesShipping ? profile.shipping : profile.billing;
+
   const formValuesObj = {
     'checkout[email]': encodeURIComponent(profile.payment.email),
     'checkout[email_or_phone]': encodeURIComponent(profile.payment.email),
@@ -238,17 +240,15 @@ const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => 
       : '',
     'checkout[shipping_address][zip]': profile.shipping.zipCode,
     'checkout[shipping_address][phone]': profile.shipping.phone,
-    'checkout[billing_address][first_name]': profile.billing.firstName,
-    'checkout[billing_address][last_name]': profile.billing.lastName,
-    'checkout[billing_address][address1]': profile.billing.address,
-    'checkout[billing_address][address2]': profile.billing.apt,
-    'checkout[billing_address][city]': profile.billing.city,
-    'checkout[billing_address][country]': profile.billing.country.label,
-    'checkout[billing_address][province]': profile.billing.province
-      ? profile.billing.province.value
-      : '',
-    'checkout[billing_address][zip]': profile.billing.zipCode,
-    'checkout[billing_address][phone]': profile.billing.phone,
+    'checkout[billing_address][first_name]': billingInfo.firstName,
+    'checkout[billing_address][last_name]': billingInfo.lastName,
+    'checkout[billing_address][address1]': billingInfo.address,
+    'checkout[billing_address][address2]': billingInfo.apt,
+    'checkout[billing_address][city]': billingInfo.city,
+    'checkout[billing_address][country]': billingInfo.country.label,
+    'checkout[billing_address][province]': billingInfo.province ? billingInfo.province.value : '',
+    'checkout[billing_address][zip]': billingInfo.zipCode,
+    'checkout[billing_address][phone]': billingInfo.phone,
   };
 
   const formValues = await data.map(({ name, value }) => {

@@ -1522,7 +1522,6 @@ class SafeCheckout extends CheckoutPrimitive {
             const src = iframe.attr('src');
             if (src && /recaptcha/i.test(src)) {
               const match = src.match(/\?k=(.*)/);
-              console.log(match);
               if (match && match.length) {
                 [, this._context.task.site.sitekey] = match;
               }
@@ -1644,7 +1643,6 @@ class SafeCheckout extends CheckoutPrimitive {
       }
 
       const body = await res.text();
-      console.log(body);
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
       if (/captcha validation failed/i.test(body)) {
