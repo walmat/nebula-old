@@ -29,10 +29,11 @@ class ProxyManager {
 
     // subnet proxies
     if (/^http/.test(rawData)) {
-      const [, subnet, port, username, password] = rawData.split(':');
+      const [proto, subnet, port, username, password] = rawData.split(':');
       const host = subnet.replace(/\//g, '');
       if (username && password) {
         return {
+          // host: `${proto}://${host}`,
           host,
           port,
           auth: {

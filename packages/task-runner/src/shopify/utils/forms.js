@@ -67,46 +67,34 @@ const patchCheckoutForm = (billingMatchesShipping, shipping, billing, payment, c
   return data;
 };
 
-const addToCart = (variant, name, hash, props = {}) => {
+const addToCart = (variant, name, hash) => {
   switch (name) {
     case 'DSM US': {
       return `id=${variant}&quantity=1&properties%5B_HASH%5D=${hash}`;
     }
     case 'DSM UK': {
-      return JSON.stringify({
+      return {
         id: variant,
         quantity: 1,
         'properties%5B_hash%5D': hash || 'ee3e8f7a9322eaa382e04f8539a7474c11555',
-      });
+      };
     }
     case 'Funko Shop': {
-      return JSON.stringify({
+      return {
         id: variant,
         quantity: 1,
         'properties%5B_sELerAVIcKmA_aRCesTiVanDl_%5D': 'Zfq3N1cDdi1',
-      });
-    }
-    case 'Yeezy Supply': {
-      return JSON.stringify({
-        id: variant,
-        properties: {
-          ...props,
-        },
-        quantity: 1,
-      });
+      };
     }
     case 'eraserfase.com': {
-      return JSON.stringify({
+      return {
         id: variant,
         quantity: 1,
         success: undefined,
-      });
+      };
     }
     default:
-      return JSON.stringify({
-        id: variant,
-        quantity: 1,
-      });
+      return `id=${variant}&quantity=1`;
   }
 };
 

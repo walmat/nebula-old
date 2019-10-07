@@ -3,6 +3,7 @@ import http from 'http';
 import https from 'https';
 import { pick, isEqual } from 'lodash';
 import axiosCookieJarSupport from 'axios-cookiejar-support';
+import AbortController from 'abort-controller';
 import { getParseType } from '../utils/parse';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
@@ -28,7 +29,8 @@ class Monitor {
     this._logger = context.logger;
     this._parseType = type;
 
-    this._aborter = axios.CancelToken.source();
+    this._aborter = new AbortController();
+    this._signal = axios.CancelToken.source();
 
     // eslint-disable-next-line global-require
     const _request = axiosCookieJarSupport(axios);
@@ -38,8 +40,11 @@ class Monitor {
       httpAgent: new http.Agent({ keepAlive: true }),
       httpsAgent: new https.Agent({ keepAlive: true }),
       maxRedirects: 10,
-      cancelToken: this._aborter.token,
+      cancelToken: this._signal.token,
     });
+
+    // patch in cookie jar to the defaults...
+    this._request.defaults.jar = context.jar;
 
     this._delayer = null;
 
@@ -51,8 +56,8 @@ class Monitor {
       proxy: proxy ? proxy.proxy : null,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
+      signal: this._signal,
       delayer: this._delayer,
-      token: this._aborter.token,
       request: this._request,
       logger: this._logger,
     };
@@ -118,7 +123,8 @@ class Monitor {
   _handleAbort(id) {
     if (id === this._context.id) {
       this._context.aborted = true;
-      this._aborter.cancel('Monitor aborted');
+      this._aborter.abort();
+      this._signal.cancel('Monitor aborted!');
       if (this._delayer) {
         this._delayer.clear();
       }
@@ -252,7 +258,7 @@ class Monitor {
     }
 
     this._emitMonitorEvent({ message: `${message} Delaying ${monitorDelay}ms` });
-    this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+    this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
     await this._delayer;
     return States.PARSE;
   }
@@ -299,7 +305,7 @@ class Monitor {
         message: `No open proxy! Delaying ${errorDelay}ms`,
       });
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
-      this._delayer = waitForDelay(errorDelay, this._aborter.token);
+      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
       await this._delayer;
       this._emitMonitorEvent({ message: 'Proxy banned!' });
     } catch (err) {

@@ -6,6 +6,7 @@ import https from 'https';
 import { isEqual, isEmpty, min } from 'lodash';
 import { parse } from 'query-string';
 import axiosCookieJarSupport from 'axios-cookiejar-support';
+import AbortController from 'abort-controller';
 
 import Timer from '../../common/timer';
 import { notification } from '../hooks';
@@ -36,18 +37,22 @@ class TaskRunnerPrimitive {
     this.taskId = context.taskId;
     this.proxy = proxy;
     this._events = context.events;
-    this._aborter = axios.CancelToken.source();
-    this._signal = this._aborter.token;
+    this._aborter = new AbortController();
+    this._signal = axios.CancelToken.source();
+
     // eslint-disable-next-line global-require
-    const _request = axiosCookieJarSupport(axios);
-    this._request = _request.create({
+    this._request = axios.create({
       baseURL: this._task.site.url,
-      timeout: 120000,
+      timeout: 60000,
       httpAgent: new http.Agent({ keepAlive: true }),
       httpsAgent: new https.Agent({ keepAlive: true }),
       maxRedirects: 10,
-      cancelToken: this._aborter.token,
+      cancelToken: this._signal.token,
     });
+
+    // patch in cookie jar to the defaults...
+    axiosCookieJarSupport(this._request);
+    this._request.defaults.jar = context.jar;
 
     this._parseType = type;
     this._platform = platform;
@@ -69,8 +74,8 @@ class TaskRunnerPrimitive {
       rawProxy: proxy ? proxy.raw : 'localhost',
       parseType: this._parseType,
       aborter: this._aborter,
+      signal: this._signal,
       delayer: this._delayer,
-      token: this._aborter.token,
       request: this._request,
       timers: this._timers,
       discord: this._discord,
@@ -156,7 +161,8 @@ class TaskRunnerPrimitive {
   _handleAbort(id) {
     if (id === this._context.id) {
       this._context.aborted = true;
-      this._aborter.cancel('Task aborted!');
+      this._aborter.abort();
+      this._signal.cancel('Task aborted!');
       if (this._delayer) {
         this._delayer.clear();
       }
@@ -458,7 +464,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', proxy: rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.LOGIN;
         }
@@ -555,9 +561,10 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      let res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
+      let res = await this._request({
+        url: 'https://elb.deposit.shopifycs.com/sessions',
         method: 'OPTIONS',
-        compress: true,
+        maxRedirects: 0,
         proxy,
         headers: {
           'User-Agent': userAgent,
@@ -565,7 +572,6 @@ class TaskRunnerPrimitive {
           'Access-Control-Request-Headers': 'content-type',
           'Access-Control-Request-Method': 'POST',
           DNT: 1,
-          Connection: 'Keep-Alive',
           Origin: 'https://checkout.shopifycs.com',
           'Sec-Fetch-Mode': 'no-cors',
           Referer: `https://checkout.shopifycs.com/number?identifier=${
@@ -576,22 +582,17 @@ class TaskRunnerPrimitive {
         },
       });
 
-      if (!res.ok) {
-        this._emitTaskEvent({ message: 'Creating payment session' });
-        return States.PAYMENT_TOKEN;
-      }
-
-      res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
+      res = await this._request({
+        url: 'https://elb.deposit.shopifycs.com/sessions',
         method: 'POST',
-        compress: true,
-        agent: proxy,
+        proxy,
+        maxRedirects: 0,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
           'Access-Control-Request-Headers': 'content-type',
           'Access-Control-Request-Method': 'POST',
           DNT: 1,
-          Connection: 'Keep-Alive',
           Origin: 'https://checkout.shopifycs.com',
           'Sec-Fetch-Mode': 'no-cors',
           Referer: `https://checkout.shopifycs.com/number?identifier=${
@@ -600,7 +601,7 @@ class TaskRunnerPrimitive {
             `${url}/${this._storeId}/checkouts/${this._checkoutToken}?previous_step=shipping_method&step=payment_method`,
           )}`,
         },
-        body: JSON.stringify({
+        data: JSON.stringify({
           credit_card: {
             number: payment.cardNumber,
             name: `${billing.firstName} ${billing.lastName}`,
@@ -611,7 +612,9 @@ class TaskRunnerPrimitive {
         }),
       });
 
-      const { status } = res;
+      console.log(res);
+
+      const { status, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -629,7 +632,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const { id } = await res.json();
+      const { id } = data;
 
       if (id) {
         this._logger.silly('Payment token: %s', id);
@@ -687,15 +690,16 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(url, {
-        method: 'GET',
+      const res = await this._request({
+        url,
         proxy,
+        maxRedirects: 5,
         headers: {
           'User-Agent': userAgent,
         },
       });
 
-      const { status } = res;
+      const { status, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -713,8 +717,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-      let match = body.match(/<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/);
+      let match = data.match(/<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/);
 
       let accessToken;
       if (match && match.length) {
@@ -724,7 +727,7 @@ class TaskRunnerPrimitive {
 
       if (!accessToken) {
         // check the script location as well
-        match = body.match(/"accessToken":(.*)","betas"/);
+        match = data.match(/"accessToken":(.*)","betas"/);
 
         if (!match || !match.length) {
           this._emitTaskEvent({ message: 'Invalid Shopify site', rawProxy });
@@ -813,16 +816,14 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/checkpoint`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+      const res = await this._request({
+        url: '/checkpoint',
+        proxy,
+        maxRedirects: 0,
         headers: getHeaders({ url, apiKey }),
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -840,7 +841,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.debug('Checkpoint redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
@@ -851,7 +852,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -867,16 +868,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                connection: 'close',
                 referer: url,
                 accept:
                   'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
@@ -900,9 +898,7 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const body = await res.text();
-
-      const $ = cheerio.load(body, { normalizeWhitespace: true, xmlMode: false });
+      const $ = cheerio.load(data, { normalizeWhitespace: true, xmlMode: false });
 
       $('form[action="/checkpoint"] input, textarea, select, button').each((_, el) => {
         const name = $(el).attr('name');
@@ -999,17 +995,16 @@ class TaskRunnerPrimitive {
     this._logger.debug('CHECKPOINT FORM: %j', this._checkpointForm);
 
     try {
-      const res = await this._request(`/checkpoint`, {
+      const res = await this._request({
+        url: '/checkpoint',
         method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/x-www-form-urlencoded',
         },
-        body: this._checkpointForm,
+        data: this._checkpointForm,
       });
 
       const { status, headers } = res;
@@ -1041,7 +1036,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1057,12 +1052,10 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
@@ -1159,19 +1152,19 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`${url}/cart`, {
+      const res = await this._request({
+        url: '/cart',
         method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/x-www-form-urlencoded',
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._cartForm,
+        data: this._cartForm,
+        validateStatus: status => status >= 200 && status < 400, // default
       });
 
       this._cartForm = '';
@@ -1193,7 +1186,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
@@ -1204,7 +1197,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1220,16 +1213,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                connection: 'close',
                 referer: url,
                 accept:
                   'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
@@ -1310,14 +1300,14 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`${url}/checkout`, {
+      const res = await this._request({
+        url: '/checkout',
         method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+        proxy,
+        maxRedirects: 0,
         headers: getHeaders({ url, apiKey }),
-        body: JSON.stringify({}),
+        data: JSON.stringify({}),
+        validateStatus: status => status >= 200 && status < 400,
       });
 
       const { status, headers } = res;
@@ -1338,7 +1328,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
@@ -1353,7 +1343,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1369,16 +1359,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                connection: 'close',
                 referer: url,
                 accept:
                   'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
@@ -1454,14 +1441,13 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`${url}/wallets/checkouts`, {
+      const res = await this._request({
+        url: '/wallets/checkouts',
         method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+        proxy,
+        maxRedirects: 0,
         headers: getHeaders({ url, apiKey }),
-        body: JSON.stringify({
+        data: JSON.stringify({
           card_source: 'vault',
           pollingOptions: {
             poll: false,
@@ -1474,7 +1460,7 @@ class TaskRunnerPrimitive {
         }),
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -1492,7 +1478,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
@@ -1503,7 +1489,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1519,16 +1505,19 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
+                referer: url,
+                accept:
+                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'en-US,en;q=0.9',
+                host: `${url.split('/')[2]}`,
               },
             });
           } catch (error) {
@@ -1540,12 +1529,10 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const body = await res.json();
-
-      if (body && body.error) {
-        if (/channel is locked/i.test(body.error)) {
+      if (data && data.error) {
+        if (/channel is locked/i.test(data.error)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1553,8 +1540,8 @@ class TaskRunnerPrimitive {
         return States.CREATE_CHECKOUT;
       }
 
-      if (body && body.checkout) {
-        const { web_url: checkoutUrl } = body.checkout;
+      if (data && data.checkout) {
+        const { web_url: checkoutUrl } = data.checkout;
         if (/checkouts/i.test(checkoutUrl)) {
           [, , , this._storeId, , this._checkoutToken] = checkoutUrl.split('/');
           this._emitTaskEvent({ message: 'Submitting information', rawProxy });
@@ -1617,25 +1604,22 @@ class TaskRunnerPrimitive {
     let message;
     let nextState;
     try {
-      const res = await this._request(`${url}/checkout/poll?js_poll=1`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'follow',
-        follow: 5,
+      const res = await this._request({
+        url: '/checkout/poll?js_poll=1',
+        proxy,
+        maxRedirects: 5,
         headers: {
           'User-Agent': userAgent,
-          Connection: 'Keep-Alive',
           referer: this.queueReferer,
-          connection: 'close',
           accept: '*/*',
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
           host: `${url.split('/')[2]}`,
         },
+        validateStatus: status => status >= 200 && status < 400,
       });
 
-      const { status } = res;
+      const { status, data } = res;
 
       this._logger.debug('Checkout: poll response %d', status);
       nextState = stateForError(
@@ -1653,15 +1637,8 @@ class TaskRunnerPrimitive {
         return nextState.nextState;
       }
 
-      if (status === 400) {
-        this._emitTaskEvent({ message: 'Invalid checkout!', rawProxy });
-        return States.CREATE_CHECKOUT;
-      }
-
-      const body = await res.text();
-
       let { url: redirectUrl } = res;
-      this._logger.debug('CHECKOUT: Queue response: %j \nBody: %j', status, body);
+      this._logger.debug('CHECKOUT: Queue response: %j \nBody: %j', status, data);
       if (status === 302) {
         if (!redirectUrl || /throttle/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Not through queue (${status})`, rawProxy });
@@ -1670,19 +1647,23 @@ class TaskRunnerPrimitive {
 
         if (/_ctd/i.test(redirectUrl)) {
           try {
-            const response = await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
+            const response = await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
+                referer: url,
+                accept:
+                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'en-US,en;q=0.9',
+                host: `${url.split('/')[2]}`,
               },
             });
 
-            const respBody = await response.text();
+            const respBody = response.data;
 
             this._logger.debug('NEW QUEUE BODY: %j', respBody);
 
@@ -1710,7 +1691,7 @@ class TaskRunnerPrimitive {
         }
         this._logger.silly('CHECKOUT: Polling queue redirect url %s...', redirectUrl);
       } else if (status === 200) {
-        if (isEmpty(body) || (!isEmpty(body) && body.length < 2)) {
+        if (isEmpty(data) || (!isEmpty(data) && data.length < 2)) {
           let ctd;
           if (!this._ctd) {
             ctd = await this.getCookie(this._context.jar, '_ctd');
@@ -1719,20 +1700,25 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            const response = await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            const response = await this._request({
+              url: `/throttle/queue?_ctd=${ctd}&_ctd_update=`,
+              proxy,
+              maxRedirects: 0,
               headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
+                headers: {
+                  'Upgrade-Insecure-Requests': 1,
+                  'User-Agent': userAgent,
+                  referer: url,
+                  accept:
+                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                  'accept-encoding': 'gzip, deflate, br',
+                  'accept-language': 'en-US,en;q=0.9',
+                  host: `${url.split('/')[2]}`,
+                },
               },
             });
 
-            const respBody = await response.text();
+            const respBody = response.data;
             this._logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);
 
             const [, checkoutUrl] = respBody.match(/href="(.*)"/);
@@ -1757,7 +1743,7 @@ class TaskRunnerPrimitive {
             // fail silently...
           }
         }
-        const $ = cheerio.load(body, { xmlMode: false, normalizeWhitespace: true });
+        const $ = cheerio.load(data, { xmlMode: false, normalizeWhitespace: true });
         const [checkoutUrl] = $('input[name="checkout_url"]');
 
         if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
@@ -1790,7 +1776,7 @@ class TaskRunnerPrimitive {
       this._logger.silly('CHECKOUT: Not passed queue, delaying 5000ms');
       message = status ? `Not through queue! (${status})` : 'Not through queue!';
       this._emitTaskEvent({ message, rawProxy });
-      this._delayer = waitForDelay(5000, this._aborter.token);
+      this._delayer = waitForDelay(5000, this._aborter.signal);
       await this._delayer;
       return States.QUEUE;
     } catch (err) {
@@ -1800,6 +1786,13 @@ class TaskRunnerPrimitive {
         err.message,
         err.stack,
       );
+
+      // bad request
+      if (err && err.status && err.status === 400) {
+        this._emitTaskEvent({ message: 'Invalid checkout!', rawProxy });
+        return States.CREATE_CHECKOUT;
+      }
+
       nextState = stateForError(err, {
         message: 'Polling queue',
         nextState: States.QUEUE,
@@ -1837,7 +1830,7 @@ class TaskRunnerPrimitive {
       return States.SWAP;
     }
 
-    this._delayer = waitForDelay(500, this._aborter.token);
+    this._delayer = waitForDelay(500, this._aborter.signal);
     await this._delayer;
 
     return States.WAIT_FOR_PRODUCT;
@@ -1886,10 +1879,9 @@ class TaskRunnerPrimitive {
 
     this._context.task.product.size = option;
 
-    console.log(proxy);
-
     try {
-      const res = await this._request('/cart/add.js', {
+      const res = await this._request({
+        url: '/cart/add.js',
         method: 'POST',
         proxy,
         headers: {
@@ -1900,14 +1892,12 @@ class TaskRunnerPrimitive {
           'user-agent': userAgent,
           Accept: 'application/json,text/javascript,*/*;q=0.01',
           referer: restockUrl,
-          'content-type': /eflash/i.test(url)
-            ? 'application/x-www-form-urlencoded'
-            : 'application/json',
+          'content-type': 'application/json',
         },
-        data: addToCart(id, name, hash),
+        data: JSON.stringify(addToCart(id, name, hash)),
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -1936,14 +1926,14 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.ADD_TO_CART;
         }
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.ADD_TO_CART;
         }
@@ -1959,16 +1949,19 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._request({
+              url: redirectUrl,
               method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+              proxy,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
+                referer: url,
+                accept:
+                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+                'accept-encoding': 'gzip, deflate, br',
+                'accept-language': 'en-US,en;q=0.9',
+                host: `${url.split('/')[2]}`,
               },
             });
           } catch (error) {
@@ -1980,16 +1973,14 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const body = await res.text();
-
-      if (/cannot find variant/i.test(body)) {
+      if (/cannot find variant/i.test(data)) {
         this._emitTaskEvent({ message: `Variant not live, delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.ADD_TO_CART;
       }
 
-      const { price } = body;
+      const { price } = data;
 
       if (price) {
         this._prices.cart = price;
@@ -2096,15 +2087,16 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/wallets/checkouts/${this._checkoutToken}.json`, {
+      const res = await this._request({
+        url: `/wallets/checkouts/${this._checkoutToken}.json`,
         method: 'PATCH',
-        compress: true,
-        agent: proxy,
+        proxy,
+        maxRedirects: 1,
         headers: {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/json',
         },
-        body: JSON.stringify({
+        data: JSON.stringify({
           ...base,
           checkout: {
             ...base.checkout,
@@ -2113,7 +2105,7 @@ class TaskRunnerPrimitive {
         }),
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -2131,14 +2123,14 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.silly('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       // check redirects
       if (redirectUrl) {
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.ADD_TO_CART;
         }
@@ -2154,16 +2146,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -2175,13 +2164,12 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const body = await res.json();
-      if (body.errors && body.errors.line_items) {
-        const error = body.errors.line_items[0];
+      if (data.errors && data.errors.line_items) {
+        const error = data.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.ADD_TO_CART;
         }
@@ -2190,7 +2178,7 @@ class TaskRunnerPrimitive {
             message: `Variant not live! Delaying ${monitorDelay}ms`,
             rawProxy,
           });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.ADD_TO_CART;
         }
@@ -2200,13 +2188,13 @@ class TaskRunnerPrimitive {
         return States.ADD_TO_CART;
       }
 
-      if (body.checkout && body.checkout.line_items && body.checkout.line_items.length) {
-        const { total_price: totalPrice } = body.checkout;
+      if (data.checkout && data.checkout.line_items && data.checkout.line_items.length) {
+        const { total_price: totalPrice } = data.checkout;
 
-        this._context.task.product.name = body.checkout.line_items[0].title;
-        this._context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
-          ? body.checkout.line_items[0].image_url
-          : `http:${body.checkout.line_items[0].image_url}`;
+        this._context.task.product.name = data.checkout.line_items[0].title;
+        this._context.task.product.image = data.checkout.line_items[0].image_url.startsWith('http')
+          ? data.checkout.line_items[0].image_url
+          : `http:${data.checkout.line_items[0].image_url}`;
 
         this._prices.cart = parseFloat(totalPrice).toFixed(2);
 
@@ -2273,15 +2261,11 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`${url}/cart`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+      const res = await this._request({
+        url: '/cart',
+        proxy,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
           'sec-fetch-mode': 'navigate',
@@ -2290,7 +2274,8 @@ class TaskRunnerPrimitive {
         },
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
+      console.log(data);
 
       const nextState = stateForError(
         { status },
@@ -2308,7 +2293,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
@@ -2318,7 +2303,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_CART;
         }
@@ -2334,16 +2319,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                connection: 'close',
                 referer: url,
                 accept:
                   'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
@@ -2361,9 +2343,7 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const body = await res.text();
-
-      const $ = cheerio.load(body, {
+      const $ = cheerio.load(data, {
         normalizeWhitespace: true,
         xmlMode: false,
       });
@@ -2539,24 +2519,23 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+      const res = await this._request({
+        url: `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': apiKey,
           'sec-fetch-mode': 'navigate',
           'sec-fetch-site': 'same-origin',
           'sec-fetch-user': '?1',
         },
+        validateStatus: status => status >= 200 && status < 400,
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
+      console.log(status, headers);
 
       const nextState = stateForError(
         { status },
@@ -2574,9 +2553,8 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-      const $ = cheerio.load(body, {
-        xmlMode: true,
+      const $ = cheerio.load(data, {
+        xmlMode: false,
         normalizeWhitespace: true,
         recognizeCDATA: true,
         ignoreWhitespace: true,
@@ -2584,7 +2562,7 @@ class TaskRunnerPrimitive {
 
       // grab the checkoutKey if it's exists and we don't have it yet..
       if (!this._checkoutKey) {
-        const match = body.match(
+        const match = data.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
@@ -2594,7 +2572,7 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.silly(`CHECKOUT: Get checkout redirect url: %s`, redirectUrl);
 
       // check if redirected
@@ -2606,7 +2584,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
@@ -2622,16 +2600,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -2645,7 +2620,7 @@ class TaskRunnerPrimitive {
         if (/stock_problems/i.test(redirectUrl)) {
           // TODO: restock mode
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
@@ -2656,10 +2631,10 @@ class TaskRunnerPrimitive {
         }
       }
 
-      if (/stock_problems/i.test(body)) {
+      if (/stock_problems/i.test(data)) {
         // TODO: restock mode
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.GO_TO_CHECKOUT;
       }
@@ -2690,7 +2665,7 @@ class TaskRunnerPrimitive {
         }
       });
 
-      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/recaptcha/i.test(data) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
       }
@@ -2753,21 +2728,18 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+      const res = await this._request({
+        url: `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -2785,7 +2757,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.silly('CHECKOUT: Get checkout redirect url: %s', redirectUrl);
 
       // check if redirected
@@ -2802,14 +2774,14 @@ class TaskRunnerPrimitive {
 
         if (/cart/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
@@ -2825,16 +2797,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -2846,10 +2815,8 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const body = await res.text();
-
       if (!this._checkoutKey) {
-        const match = body.match(
+        const match = data.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
@@ -2860,7 +2827,7 @@ class TaskRunnerPrimitive {
       }
 
       if (this._selectedShippingRate.id) {
-        if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+        if ((/recaptcha/i.test(data) || forceCaptcha) && !this._captchaToken) {
           this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
           return States.CAPTCHA;
         }
@@ -2938,15 +2905,13 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`${url}/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._request({
+        ur: `${url}/${this._storeId}/checkouts/${this._checkoutToken}`,
         method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'follow',
-        follow: 1,
+        proxy,
+        maxRedirects: 5,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'content-type': 'application/x-www-form-urlencoded',
           'Upgrade-Insecure-Requests': '1',
           'sec-fetch-mode': 'navigate',
@@ -2956,10 +2921,10 @@ class TaskRunnerPrimitive {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        data: this._formValues,
       });
 
-      const { status, url: redirectUrl } = res;
+      const { status, url: redirectUrl, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -2977,10 +2942,9 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+      const match = data.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
-      if (/captcha validation failed/i.test(body)) {
+      if (/captcha validation failed/i.test(data)) {
         this._captchaToken = '';
         this._emitTaskEvent({ message: 'Captcha failed', rawProxy });
         return States.GO_TO_CHECKOUT;
@@ -2990,7 +2954,7 @@ class TaskRunnerPrimitive {
         const [, step] = match;
         if (/stock_problems/i.test(step)) {
           this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
@@ -3012,17 +2976,17 @@ class TaskRunnerPrimitive {
       }
 
       // if we followed a redirect at some point...
-      if (res.redirected) {
+      if (redirectUrl) {
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.SUBMIT_CUSTOMER;
         }
@@ -3038,16 +3002,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              ur: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -3110,23 +3071,22 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/wallets/checkouts/${this._checkoutToken}.json`, {
+      const res = await this._request({
+        url: `/wallets/checkouts/${this._checkoutToken}.json`,
         method: 'PATCH',
-        compress: true,
-        agent: proxy,
-        redirect: 'follow',
-        follow: 1,
+        proxy,
+        maxRedirects: 1,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
         },
-        body: JSON.stringify(
+        data: JSON.stringify(
           patchCheckoutForm(billingMatchesShipping, shipping, billing, payment, this._captchaToken),
         ),
       });
 
-      const { status, url: redirectUrl } = res;
+      const { status, url: redirectUrl, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -3145,7 +3105,7 @@ class TaskRunnerPrimitive {
       }
 
       // if we followed a redirect at some point...
-      if (res.redirected) {
+      if (redirectUrl) {
         if (/throttle/i.test(redirectUrl)) {
           const queryStrings = new URL(redirectUrl).search;
           const parsed = parse(queryStrings);
@@ -3157,16 +3117,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -3178,13 +3135,11 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const body = await res.json();
-
       if (
-        body &&
-        body.checkout &&
-        !body.checkout.shipping_address &&
-        !body.checkout.billing_address
+        data &&
+        data.checkout &&
+        !data.checkout.shipping_address &&
+        !data.checkout.billing_address
       ) {
         const message = status ? `Submitting information – (${status})` : 'Submitting information';
         this._emitTaskEvent({ message, rawProxy });
@@ -3252,15 +3207,12 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+      const res = await this._request({
+        url: `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': apiKey,
           'sec-fetch-mode': 'navigate',
@@ -3269,7 +3221,7 @@ class TaskRunnerPrimitive {
         },
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -3287,9 +3239,8 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-      const $ = cheerio.load(body, {
-        xmlMode: true,
+      const $ = cheerio.load(data, {
+        xmlMode: false,
         normalizeWhitespace: true,
         recognizeCDATA: true,
         ignoreWhitespace: true,
@@ -3297,7 +3248,7 @@ class TaskRunnerPrimitive {
 
       // grab the checkoutKey if it's exists and we don't have it yet..
       if (!this._checkoutKey) {
-        const match = body.match(
+        const match = data.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
@@ -3307,7 +3258,7 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.silly(`CHECKOUT: Get shipping redirect url: %s`, redirectUrl);
 
       // check if redirected
@@ -3319,7 +3270,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_SHIPPING;
         }
@@ -3335,16 +3286,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -3358,7 +3306,7 @@ class TaskRunnerPrimitive {
         if (/stock_problems/i.test(redirectUrl)) {
           // TODO: restock mode
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_SHIPPING;
         }
@@ -3369,17 +3317,17 @@ class TaskRunnerPrimitive {
         }
       }
 
-      if (/stock_problems/i.test(body)) {
+      if (/stock_problems/i.test(data)) {
         // TODO: restock mode
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.GO_TO_SHIPPING;
       }
 
-      if (/Getting available shipping rates/i.test(body)) {
+      if (/Getting available shipping rates/i.test(data)) {
         this._emitTaskEvent({ message: 'Polling rates', rawProxy });
-        this._delayer = waitForDelay(1000, this._aborter.token);
+        this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
         return States.GO_TO_SHIPPING;
       }
@@ -3394,7 +3342,7 @@ class TaskRunnerPrimitive {
         'input, select, textarea, button',
       );
 
-      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/recaptcha/i.test(data) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
       }
@@ -3450,17 +3398,21 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(
-        `/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
-        {
-          method: 'GET',
-          compress: true,
-          agent: proxy,
-          headers: getHeaders({ url, apiKey }),
+      const res = await this._request({
+        url: `/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
+        agent: proxy,
+        maxRedirects: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': apiKey,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
         },
-      );
+      });
 
-      const { status } = res;
+      const { status, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -3483,10 +3435,9 @@ class TaskRunnerPrimitive {
         return States.ERROR;
       }
 
-      const body = await res.json();
-      if (body && body.errors) {
-        this._logger.silly('CHECKOUT: Error getting shipping rates: %j', body.errors);
-        const { checkout } = body.errors;
+      if (data && data.errors) {
+        this._logger.silly('CHECKOUT: Error getting shipping rates: %j', data.errors);
+        const { checkout } = data.errors;
         if (checkout) {
           const errorMessage = JSON.stringify(checkout);
           if (errorMessage.indexOf('does_not_require_shipping') > -1) {
@@ -3505,13 +3456,13 @@ class TaskRunnerPrimitive {
           }
         }
         this._emitTaskEvent({ message: 'Polling rates', rawProxy });
-        this._delayer = waitForDelay(1000, this._aborter.token);
+        this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
         return States.GO_TO_SHIPPING;
       }
 
-      if (body && body.shipping_rates && body.shipping_rates.length > 0) {
-        const { shipping_rates: shippingRates } = body;
+      if (data && data.shipping_rates && data.shipping_rates.length > 0) {
+        const { shipping_rates: shippingRates } = data;
         shippingRates.forEach(rate => {
           this._shippingMethods.push(rate);
         });
@@ -3536,7 +3487,7 @@ class TaskRunnerPrimitive {
         return States.PAYMENT_TOKEN;
       }
       this._emitTaskEvent({ message: 'Polling rates', rawProxy });
-      this._delayer = waitForDelay(1000, this._aborter.token);
+      this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
       return States.GO_TO_SHIPPING;
     } catch (err) {
@@ -3593,15 +3544,13 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._request({
+        url: `/${this._storeId}/checkouts/${this._checkoutToken}`,
         method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'follow',
-        follow: 1,
+        proxy,
+        maxRedirects: 5,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'content-type': 'application/x-www-form-urlencoded',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
@@ -3611,10 +3560,10 @@ class TaskRunnerPrimitive {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        data: this._formValues,
       });
 
-      const { status, url: redirectUrl } = res;
+      const { status, url: redirectUrl, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -3632,10 +3581,9 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+      const match = data.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
-      if (/recaptcha/i.test(body)) {
+      if (/recaptcha/i.test(data)) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
       }
@@ -3645,12 +3593,12 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(step)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.SUBMIT_SHIPPING;
         }
 
-        if (/captcha validation failed/i.test(body)) {
+        if (/captcha validation failed/i.test(data)) {
           this._captchaToken = '';
           this._emitTaskEvent({ message: 'Captcha failed', rawProxy });
           return States.GO_TO_CHECKOUT;
@@ -3678,7 +3626,7 @@ class TaskRunnerPrimitive {
       }
 
       // if we followed a redirect at some point...
-      if (res.redirected) {
+      if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Processing payment', rawProxy });
           return States.PROCESS_PAYMENT;
@@ -3686,14 +3634,14 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.SUBMIT_SHIPPING;
         }
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.SUBMIT_SHIPPING;
         }
@@ -3709,16 +3657,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -3782,15 +3727,12 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+      const res = await this._request({
+        url: `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': apiKey,
           'sec-fetch-mode': 'navigate',
@@ -3799,7 +3741,7 @@ class TaskRunnerPrimitive {
         },
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -3817,8 +3759,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-      const $ = cheerio.load(body, {
+      const $ = cheerio.load(data, {
         xmlMode: true,
         normalizeWhitespace: true,
         recognizeCDATA: true,
@@ -3829,7 +3770,7 @@ class TaskRunnerPrimitive {
 
       // grab the checkoutKey if it's exists and we don't have it yet..
       if (!this._checkoutKey) {
-        const match = body.match(
+        const match = data.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
@@ -3839,7 +3780,7 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.silly(`CHECKOUT: Get payment redirect url: %s`, redirectUrl);
 
       // check if redirected
@@ -3851,7 +3792,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_PAYMENT;
         }
@@ -3867,16 +3808,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -3890,7 +3828,7 @@ class TaskRunnerPrimitive {
         if (/stock_problems/i.test(redirectUrl)) {
           // TODO: restock mode
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.GO_TO_PAYMENT;
         }
@@ -3901,17 +3839,17 @@ class TaskRunnerPrimitive {
         }
       }
 
-      if (/stock_problems/i.test(body)) {
+      if (/stock_problems/i.test(data)) {
         // TODO: restock mode
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.GO_TO_PAYMENT;
       }
 
-      if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
+      if (/calculating taxes/i.test(data) || /polling/i.test(data)) {
         this._emitTaskEvent({ message: 'Calculating taxes', rawProxy });
-        this._delayer = waitForDelay(1000, this._aborter.token);
+        this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
         return States.GO_TO_PAYMENT;
       }
@@ -3926,7 +3864,7 @@ class TaskRunnerPrimitive {
         'input, select, textarea, button',
       );
 
-      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/recaptcha/i.test(data) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
       }
@@ -4018,15 +3956,13 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._request({
+        url: `/${this._storeId}/checkouts/${this._checkoutToken}`,
         method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'content-type': 'application/x-www-form-urlencoded',
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
@@ -4038,10 +3974,10 @@ class TaskRunnerPrimitive {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        data: this._formValues,
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -4062,30 +3998,29 @@ class TaskRunnerPrimitive {
       this.needsPaymentToken = true;
       this._paymentToken = '';
 
-      const body = await res.text();
-      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+      const match = data.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
-      if (/stock_problems/i.test(body)) {
+      if (/stock_problems/i.test(data)) {
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.SUBMIT_PAYMENT;
       }
 
-      if (/Your payment can’t be processed/i.test(body)) {
+      if (/Your payment can’t be processed/i.test(data)) {
         this._emitTaskEvent({ message: 'Processing error (429)', rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.SUBMIT_PAYMENT;
       }
 
-      if (/captcha/i.test(body)) {
+      if (/captcha/i.test(data)) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
       }
 
       // if we followed a redirect at some point...
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
 
       if (/processing/i.test(redirectUrl)) {
         this._emitTaskEvent({ message: 'Processing payment', rawProxy });
@@ -4094,14 +4029,14 @@ class TaskRunnerPrimitive {
 
       if (/stock_problems/i.test(redirectUrl)) {
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.SUBMIT_PAYMENT;
       }
 
       if (/password/i.test(redirectUrl)) {
         this._emitTaskEvent({ message: 'Password page', rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.SUBMIT_PAYMENT;
       }
@@ -4117,16 +4052,13 @@ class TaskRunnerPrimitive {
         }
 
         try {
-          await this._request(redirectUrl, {
-            method: 'GET',
-            compress: true,
-            agent: proxy,
-            redirect: 'manual',
-            follow: 0,
+          await this._request({
+            url: redirectUrl,
+            proxy,
+            maxRedirects: 0,
             headers: {
               'Upgrade-Insecure-Requests': 1,
               'User-Agent': userAgent,
-              Connection: 'Keep-Alive',
             },
           });
         } catch (error) {
@@ -4237,22 +4169,22 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._request({
+        url: `/${this._storeId}/checkouts/${this._checkoutToken}`,
         method: 'PATCH',
-        compress: true,
-        agent: proxy,
-        follow: 0,
-        redirect: 'manual',
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
-        body: JSON.stringify(form),
+        data: JSON.stringify(form),
+        validateStatus: status => status >= 200 && status < 400,
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -4270,13 +4202,11 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
-      const body = await res.text();
-
       if (!this._checkoutKey) {
-        const match = body.match(
+        const match = data.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
@@ -4301,7 +4231,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.SUBMIT_PAYMENT;
         }
@@ -4317,16 +4247,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -4339,18 +4266,18 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
       }
 
-      if ((/captcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/captcha/i.test(data) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
       }
 
-      const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
+      const match = data.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
       if (match && /review/i.test(match)) {
         this._emitTaskEvent({ message: 'Completing payment', rawProxy });
         return States.COMPLETE_PAYMENT;
@@ -4427,15 +4354,13 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._request({
+        url: `/${this._storeId}/checkouts/${this._checkoutToken}`,
         method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'follow',
-        follow: 5,
+        proxy,
+        maxRedirects: 5,
         headers: {
           ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'content-type': 'application/x-www-form-urlencoded',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
@@ -4445,10 +4370,10 @@ class TaskRunnerPrimitive {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        data: this._formValues,
       });
 
-      const { status, url: redirectUrl } = res;
+      const { status, url: redirectUrl, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -4466,8 +4391,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+      const match = data.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
       if (match && match.length) {
         const [, step] = match;
@@ -4479,14 +4403,14 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(step)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
 
         if (/password/i.test(step)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4502,16 +4426,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -4551,7 +4472,7 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4563,7 +4484,7 @@ class TaskRunnerPrimitive {
 
         if (/password/.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4579,16 +4500,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -4600,14 +4518,14 @@ class TaskRunnerPrimitive {
         }
       }
 
-      if (/stock_problems/i.test(body)) {
+      if (/stock_problems/i.test(data)) {
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.COMPLETE_PAYMENT;
       }
 
-      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/recaptcha/i.test(data) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
       }
@@ -4675,22 +4593,22 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._request({
+        url: `/${this._storeId}/checkouts/${this._checkoutToken}`,
         method: 'PATCH',
-        compress: true,
-        agent: proxy,
-        follow: 5,
-        redirect: 'follow',
+        proxy,
+        maxRedirects: 5,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
-        body: JSON.stringify(form),
+        data: JSON.stringify(form),
+        validateStatus: status => status >= 200 && status < 400,
       });
 
-      const { status, url: redirectUrl } = res;
+      const { status, url: redirectUrl, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -4708,10 +4626,8 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-
       if (!this._checkoutKey) {
-        const match = body.match(
+        const match = data.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
@@ -4734,14 +4650,14 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4757,16 +4673,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -4778,12 +4691,12 @@ class TaskRunnerPrimitive {
         }
       }
 
-      if ((/captcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/captcha/i.test(data) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
       }
 
-      const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
+      const match = data.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
 
       if (match && match.length) {
         const [, step] = match;
@@ -4795,14 +4708,14 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(step)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
 
         if (/password/i.test(step)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4818,16 +4731,13 @@ class TaskRunnerPrimitive {
           }
 
           try {
-            await this._request(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy,
-              redirect: 'manual',
-              follow: 0,
+            await this._request({
+              url: redirectUrl,
+              proxy,
+              maxRedirects: 0,
               headers: {
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
               },
             });
           } catch (error) {
@@ -4916,11 +4826,10 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`${url}/wallets/checkouts/${this._checkoutToken}/payments`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
+      const res = await this._request({
+        url: `${url}/wallets/checkouts/${this._checkoutToken}/payments`,
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
@@ -4929,8 +4838,7 @@ class TaskRunnerPrimitive {
         },
       });
 
-      const body = await res.json();
-      const { status } = res;
+      const { status, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -4948,7 +4856,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const { payments } = body;
+      const { payments } = data;
 
       if (payments && payments.length) {
         const bodyString = JSON.stringify(payments[0]);
@@ -5094,7 +5002,7 @@ class TaskRunnerPrimitive {
       }
       this._logger.silly('CHECKOUT: Processing payment');
       this._emitTaskEvent({ message: 'Processing payment', rawProxy });
-      this._delayer = waitForDelay(1000, this._aborter.token);
+      this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
       return States.PROCESS_PAYMENT;
     } catch (err) {
@@ -5150,12 +5058,10 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`${url}/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+      const res = await this._request({
+        url: `${url}/${this._storeId}/checkouts/${this._checkoutToken}`,
+        proxy,
+        maxRedirects: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
@@ -5164,7 +5070,7 @@ class TaskRunnerPrimitive {
         },
       });
 
-      const { status, headers } = res;
+      const { status, headers, data } = res;
 
       const nextState = stateForError(
         { status },
@@ -5182,7 +5088,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
 
       if (redirectUrl) {
         if (/thank_you/i.test(redirectUrl)) {
@@ -5191,19 +5097,17 @@ class TaskRunnerPrimitive {
         }
       }
 
-      const body = await res.text();
-
-      if (/Card was decline/i.test(body)) {
+      if (/Card was decline/i.test(data)) {
         this._emitTaskEvent({ message: 'Card declined!', rawProxy });
         return States.SUBMIT_PAYMENT;
       }
 
-      if (/no match|Your payment can’t be processed/i.test(body)) {
+      if (/no match|Your payment can’t be processed/i.test(data)) {
         this._emitTaskEvent({ message: 'Payment failed!', rawProxy });
         return States.SUBMIT_PAYMENT;
       }
       this._emitTaskEvent({ message: 'Processing payment', rawProxy });
-      this._delayer = waitForDelay(1000, this._aborter.token);
+      this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
       return States.PROCESS_PAYMENT;
     } catch (err) {
@@ -5246,9 +5150,8 @@ class TaskRunnerPrimitive {
       const proxy = await this.swapProxies();
 
       this._logger.debug(
-        'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
+        'PROXY IN _handleSwapProxies: %j',
         proxy,
-        this.shouldBanProxy,
       );
       // Proxy is fine, update the references
       if (proxy || proxy === null) {
@@ -5280,7 +5183,7 @@ class TaskRunnerPrimitive {
         message: `No open proxy! Delaying ${errorDelay}ms`,
       });
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
-      this._delayer = waitForDelay(errorDelay, this._aborter.token);
+      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
       await this._delayer;
       this._emitTaskEvent({ message: 'Proxy banned!' });
     } catch (err) {

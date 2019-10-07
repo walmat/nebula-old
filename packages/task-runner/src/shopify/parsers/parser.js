@@ -23,7 +23,7 @@ class Parser {
     const _logger = logger || { log: () => {} };
     _logger.log('silly', 'Parser: Getting Full Product Info...');
     _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', productUrl);
-    _logger.log('debug', 'Aborter?: %j', aborter);
+    _logger.log('debug', 'proxy: %j', proxy);
     const genRequestPromise = url =>
       request({
         url,

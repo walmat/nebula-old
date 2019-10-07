@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 const { userAgent } = require('../../common');
 const { States } = require('./constants').TaskRunner;
 
@@ -5,7 +7,7 @@ const stateForError = ({ status, name, errno }, { message, nextState }) => {
   // Look for errors in cause
   const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED)/.exec(errno);
 
-  if (/aborterror/i.test(name)) {
+  if (axios.isCancel({ status, name, errno }) || /aborterror/i.test(name)) {
     return { nextState: States.ABORT };
   }
 
