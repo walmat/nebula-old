@@ -152,6 +152,10 @@ const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => 
           value = !profile.billingMatchesShipping;
         }
 
+        if (/recaptcha/i.test(name)) {
+          return;
+        }
+
         if (
           (profile.billingMatchesShipping &&
             data.some(({ name: existing }) => /shipping_address/i.test(existing)) &&
