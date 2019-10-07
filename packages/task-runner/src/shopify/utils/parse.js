@@ -2,7 +2,7 @@ const { sortBy, map, find, flatten, filter, every, some } = require('lodash');
 const { parseString } = require('xml2js');
 const { isSpecialSite } = require('./siteOptions');
 const { ParseType } = require('./constants').Monitor;
-const { Platforms } = require('../../../constants');
+const { Platforms } = require('../../constants');
 
 module.exports = {};
 

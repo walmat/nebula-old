@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-const { rfrl, userAgent } = require('../../../common');
+const { rfrl, userAgent } = require('../../common');
 const { matchVariant, matchKeywords } = require('../utils/parse');
 const {
   ErrorCodes,

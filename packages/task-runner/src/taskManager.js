@@ -18,11 +18,11 @@ const {
 const ShopifyRunner = require('./shopify/runners/taskRunner');
 const ShopifyMonitor = require('./shopify/runners/monitor');
 const RateFetcher = require('./shopify/runners/rateFetcher');
-const { getParseType } = require('./shopify/classes/utils/parse');
-const { ParseType } = require('./shopify/classes/utils/constants').Monitor;
-const { HookTypes, Types: RunnerTypes } = require('./shopify/classes/utils/constants').TaskRunner;
-const Discord = require('./shopify/classes/hooks/discord');
-const Slack = require('./shopify/classes/hooks/slack');
+const { getParseType } = require('./shopify/utils/parse');
+const { ParseType } = require('./shopify/utils/constants').Monitor;
+const { HookTypes, Types: RunnerTypes } = require('./shopify/utils/constants').TaskRunner;
+const Discord = require('./shopify/hooks/discord');
+const Slack = require('./shopify/hooks/slack');
 
 // TODO: footsites includes
 

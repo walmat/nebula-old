@@ -377,7 +377,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             const {
               message,
               size,
-              proxy,
+              rawProxy,
               found,
               apiKey,
               checkoutUrl,
@@ -391,8 +391,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
             if (size) {
               task.chosenSize = size;
             }
-            if (proxy) {
-              task.proxy = proxy;
+            if (rawProxy) {
+              task.proxy = rawProxy;
             }
             if (found) {
               task.product.found = found;

@@ -109,6 +109,7 @@ export class TasksPrimitive extends PureComponent {
            */
           const url = await navigator.clipboard.readText();
           const URL = parseURL(url);
+
           if (!URL || !URL.host || (URL.path && !URL.path[0])) {
             break;
           }

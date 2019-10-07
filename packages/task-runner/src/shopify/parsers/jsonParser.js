@@ -1,4 +1,4 @@
-const { userAgent, getRandomIntInclusive } = require('../../../common');
+const { userAgent, getRandomIntInclusive } = require('../../common');
 const Parser = require('./parser');
 
 class JsonParser extends Parser {

@@ -6,7 +6,7 @@ const {
   ErrorCodes,
   Monitor: { ParseType },
 } = require('../utils/constants');
-const { userAgent } = require('../../../common');
+const { userAgent } = require('../../common');
 
 class SpecialParser extends Parser {
   constructor(request, type, task, proxy, aborter, logger, name) {
