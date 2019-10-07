@@ -144,9 +144,9 @@ class AuthManager {
       }
     } catch (error) {
       if (error.status && !/(?!([23][0-9]))\d{3}/g.test(error.status)) {
-        return false;
+        return true;
       }
-      return true;
+      return false;
     }
     return true;
   }
