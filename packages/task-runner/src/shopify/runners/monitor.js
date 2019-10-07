@@ -243,7 +243,6 @@ class Monitor {
 
     if (ban) {
       this._logger.silly('Proxy was banned, swapping proxies...');
-      this.shouldBanProxy = 0;
       this._emitMonitorEvent({ message: 'Proxy banned!' });
       return States.SWAP;
     }

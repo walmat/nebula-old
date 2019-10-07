@@ -111,13 +111,27 @@ class TaskRunnerPrimitive {
 
     this._history = [];
 
-    // checkout specific globals
-    this._shippingMethods = [];
+    const preFetchedShippingRates = this._context.task.profile.rates.find(
+      r => r.site.url === this._context.task.site.url,
+    );
+
     this._selectedShippingRate = {
       name: null,
       price: null,
       id: null,
     };
+
+    if (preFetchedShippingRates && preFetchedShippingRates.selectedRate) {
+      const { name, price, rate } = preFetchedShippingRates.selectedRate;
+      this._selectedShippingRate = {
+        name,
+        price,
+        id: rate,
+      };
+    }
+
+    // checkout specific globals
+    this._shippingMethods = [];
     this._captchaToken = null;
     this._webhookSent = false;
     this._captchaTokenRequest = null;
@@ -185,6 +199,7 @@ class TaskRunnerPrimitive {
   }
 
   async _handleProduct(id, product, parseType) {
+    console.log(parseType, this._parseType);
     if (parseType === this._parseType) {
       const isSameProductData = await this._compareProductInput(product, parseType);
 
@@ -2176,6 +2191,7 @@ class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
+      console.log(body);
       if (body.errors && body.errors.line_items) {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
@@ -2216,7 +2232,7 @@ class TaskRunnerPrimitive {
             parseFloat(this._prices.cart) + parseFloat(this._selectedShippingRate.price)
           ).toFixed(2);
           this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-          return States.SUBMIT_PAYMENT;
+          return States.PAYMENT_TOKEN;
         }
         this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
         return States.GO_TO_CHECKOUT;
@@ -4258,7 +4274,7 @@ class TaskRunnerPrimitive {
         { status },
         {
           message: 'Submitting payment',
-          nextState: States.GO_TO_PAYMENT,
+          nextState: States.SUBMIT_PAYMENT,
         },
       );
 
@@ -4274,6 +4290,7 @@ class TaskRunnerPrimitive {
       this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       const body = await res.text();
+      console.log(body);
 
       if (!this._checkoutKey) {
         const match = body.match(

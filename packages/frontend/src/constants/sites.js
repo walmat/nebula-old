@@ -5,7 +5,7 @@ const sites = [
     options: [
       {
         label: '12AM Run',
-        value: 'https://12amrun.com',
+        value: 'https://www.12amrun.com',
         apiKey: 'e5b0d0dc103ac126c494f8cc1fd70fe9',
         supported: true,
       },
