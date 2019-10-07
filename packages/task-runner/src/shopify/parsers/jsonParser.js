@@ -23,12 +23,12 @@ class JsonParser extends Parser {
         `/products.json?page=-${getRandomIntInclusive(500000000000, 900000000000)}`,
         {
           method: 'GET',
-          compress: true,
           headers: {
             'X-Shopify-Api-Features': getRandomIntInclusive(30000, 90000),
             'User-Agent': userAgent,
           },
-          agent: this._proxy,
+          cancelToken: this._aborter.token,
+          proxy: this._proxy,
         },
       );
 
@@ -63,7 +63,7 @@ class JsonParser extends Parser {
       throw new Error('unable to match the product');
     }
     this._logger.silly('%s: Product Found!', this._name);
-    this._aborter.abort();
+    this._aborter.cancel();
     return {
       ...matchedProduct,
       // insert generated product url (for restocking purposes)

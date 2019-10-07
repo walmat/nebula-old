@@ -1,8 +1,8 @@
-import AbortController from 'abort-controller';
-import HttpsProxyAgent from 'https-proxy-agent';
-import fetch from 'node-fetch';
-import defaults from 'fetch-defaults';
+import axios from 'axios';
+import http from 'http';
+import https from 'https';
 import { pick, isEqual } from 'lodash';
+import axiosCookieJarSupport from 'axios-cookiejar-support';
 import { getParseType } from '../utils/parse';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
@@ -28,40 +28,32 @@ class Monitor {
     this._logger = context.logger;
     this._parseType = type;
 
-    this._aborter = new AbortController();
-    this._signal = this._aborter.signal;
+    this._aborter = axios.CancelToken.source();
 
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie')(fetch, context.jar);
-    this._request = defaults(_request, this._task.site.url, {
-      timeout: 120000, // to be overridden as necessary
-      signal: this._aborter.signal, // generic abort signal
+    const _request = axiosCookieJarSupport(axios);
+    this._request = _request.create({
+      baseURL: this._task.site.url,
+      timeout: 120000,
+      httpAgent: new http.Agent({ keepAlive: true }),
+      httpsAgent: new https.Agent({ keepAlive: true }),
+      maxRedirects: 10,
+      cancelToken: this._aborter.token,
     });
+
     this._delayer = null;
 
     this._state = States.PARSE;
     this._prevState = States.PARSE;
-    this.shouldBanProxy = 0;
-
-    const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
-
-    if (p) {
-      p.options.maxSockets = Infinity;
-      p.options.maxFreeSockets = Infinity;
-      p.options.keepAlive = true;
-      p.maxFreeSockets = Infinity;
-      p.maxSockets = Infinity;
-    }
 
     this._context = {
       ...context,
-      proxy: p,
+      proxy: proxy ? proxy.proxy : null,
       rawProxy: proxy ? proxy.raw : null,
       aborter: this._aborter,
       delayer: this._delayer,
-      signal: this._aborter.signal,
+      token: this._aborter.token,
       request: this._request,
-      jar: this._jar,
       logger: this._logger,
     };
 
@@ -126,7 +118,7 @@ class Monitor {
   _handleAbort(id) {
     if (id === this._context.id) {
       this._context.aborted = true;
-      this._aborter.abort();
+      this._aborter.cancel('Monitor aborted');
       if (this._delayer) {
         this._delayer.clear();
       }
@@ -139,7 +131,7 @@ class Monitor {
 
   async swapProxies() {
     // emit the swap event
-    this._events.emit(Events.SwapMonitorProxy, this.id, this.proxy, this.shouldBanProxy);
+    this._events.emit(Events.SwapMonitorProxy, this.id, this.proxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
@@ -148,8 +140,6 @@ class Monitor {
         clearTimeout(timeout);
         // reset the timeout
         timeout = null;
-        // reset the ban flag
-        this.shouldBanProxy = 0;
         // finally, resolve with the new proxy
         resolve(proxy);
       };
@@ -262,7 +252,7 @@ class Monitor {
     }
 
     this._emitMonitorEvent({ message: `${message} Delaying ${monitorDelay}ms` });
-    this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+    this._delayer = waitForDelay(monitorDelay, this._aborter.token);
     await this._delayer;
     return States.PARSE;
   }
@@ -293,18 +283,8 @@ class Monitor {
           });
         } else {
           this.proxy = proxy;
-          const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
-
-          if (p) {
-            p.options.maxSockets = Infinity;
-            p.options.maxFreeSockets = Infinity;
-            p.options.keepAlive = true;
-            p.maxFreeSockets = Infinity;
-            p.maxSockets = Infinity;
-          }
-          this._context.proxy = p;
+          this._context.proxy = proxy.proxy;
           this._context.rawProxy = proxy.raw;
-          this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitMonitorEvent({
             message: `Swapped proxy to: ${proxy.raw}`,
@@ -319,7 +299,7 @@ class Monitor {
         message: `No open proxy! Delaying ${errorDelay}ms`,
       });
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
-      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
+      this._delayer = waitForDelay(errorDelay, this._aborter.token);
       await this._delayer;
       this._emitMonitorEvent({ message: 'Proxy banned!' });
     } catch (err) {
@@ -342,7 +322,7 @@ class Monitor {
       this._parseType,
       this._context.task,
       this._context.proxy,
-      new AbortController(),
+      axios.CancelToken.source(),
       this._context.logger,
     );
 

@@ -29,11 +29,11 @@ class AtomParser extends Parser {
       );
       const res = await this._request('/collections/all.atom', {
         method: 'GET',
-        compress: true,
         headers: {
           'User-Agent': userAgent,
         },
-        agent: this._proxy,
+        cancelToken: this._aborter.token,
+        proxy: this._proxy,
       });
 
       if (!/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(res.status)) {
@@ -87,7 +87,7 @@ class AtomParser extends Parser {
         this._logger,
       );
       this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
-      this._aborter.abort();
+      this._aborter.cancel();
       return {
         ...matchedProduct,
         ...fullProductInfo,

@@ -23,13 +23,12 @@ class Parser {
     const _logger = logger || { log: () => {} };
     _logger.log('silly', 'Parser: Getting Full Product Info...');
     _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', productUrl);
-    const genRequestPromise = uri =>
-      request(uri, {
+    _logger.log('debug', 'Aborter?: %j', aborter);
+    const genRequestPromise = url =>
+      request({
+        url,
         method: 'GET',
-        redirect: 'follow',
-        follow: 1,
-        compress: true,
-        agent: proxy,
+        proxy,
         headers: {
           'User-Agent': userAgent,
         },
@@ -39,15 +38,7 @@ class Parser {
       [
         genRequestPromise(`${productUrl}.js`).then(
           // {productUrl}.js contains the format we need -- just return it
-          async res => {
-            if (!res.ok) {
-              const err = new Error(res.message);
-              err.status = res.status || 404;
-              err.name = res.name;
-              throw err;
-            }
-            return res.json();
-          },
+          async res => res.data,
           async error => {
             if (error && error.type && /system/i.test(error.type)) {
               const rethrow = new Error(error.errno);
@@ -63,22 +54,15 @@ class Parser {
         ),
         genRequestPromise(`${productUrl}.oembed`).then(
           async res => {
-            if (!res.ok) {
-              // Error occured, return a rejection with the status code attached
-              const err = new Error(res.message);
-              err.status = res.status || 404;
-              err.name = res.name;
-              throw err;
-            }
             // {productUrl}.oembed requires a little transformation before returning:
-            const json = await res.json();
+            const { data } = res;
 
             return {
-              title: json.title,
-              vendor: json.provider,
-              handle: json.product_id,
-              featured_image: json.thumbnail_url,
-              variants: json.offers.map(offer => ({
+              title: data.title,
+              vendor: data.provider,
+              handle: data.product_id,
+              featured_image: data.thumbnail_url,
+              variants: data.offers.map(offer => ({
                 title: offer.title,
                 id: offer.offer_id,
                 price: `${offer.price}`,

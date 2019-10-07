@@ -32,11 +32,11 @@ class XmlParser extends Parser {
 
       const res = await this._request('/sitemap_products_1.xml?from=1&to=299999999999999999', {
         method: 'GET',
-        compress: true,
         headers: {
           'User-Agent': userAgent,
         },
-        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+        proxy: this._proxy,
+        cancelToken: this._aborter.token,
       });
 
       if (/429|430|403/.test(res.status)) {
@@ -84,7 +84,7 @@ class XmlParser extends Parser {
         this._logger,
       );
       this._logger.silly('%s: Full Product Info Found! Merging data and Returning.', this._name);
-      this._aborter.abort();
+      this._aborter.cancel();
       return {
         ...matchedProduct,
         ...fullProductInfo,

@@ -29,20 +29,40 @@ class ProxyManager {
 
     // subnet proxies
     if (/^http/.test(rawData)) {
-      const [schema, subnet, port, user, pass] = rawData.split(':');
-      const sub = subnet.replace(/\//g, '');
-      if (user && pass) {
-        return `${schema}://${user}:${pass}@${sub}:${port}`;
+      const [, subnet, port, username, password] = rawData.split(':');
+      const host = subnet.replace(/\//g, '');
+      if (username && password) {
+        return {
+          host,
+          port,
+          auth: {
+            username,
+            password,
+          },
+        };
       }
-      return `${schema}://${sub}:${port}`;
+      return {
+        host,
+        port,
+      };
     }
 
-    const [ip, port, user, pass] = rawData.split(':');
+    const [host, port, username, password] = rawData.split(':');
 
-    if (user && pass) {
-      return `http://${user}:${pass}@${ip}:${port}`;
+    if (username && password) {
+      return {
+        host,
+        port,
+        auth: {
+          username,
+          password,
+        },
+      };
     }
-    return `http://${ip}:${port}`;
+    return {
+      host,
+      port,
+    };
   }
 
   /**

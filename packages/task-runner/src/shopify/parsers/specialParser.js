@@ -37,13 +37,11 @@ class SpecialParser extends Parser {
 
       const res = await this._request(initialUrl, {
         method: 'GET',
-        redirect: 'follow',
-        follow: 5,
-        compress: true,
-        agent: this._proxy,
+        proxy: this._proxy,
         headers: {
           'User-Agent': userAgent,
         },
+        cancelToken: this._aborter.token,
       });
 
       this._logger.info('SPECIAL PARSER INITIAL RESPONSE STATUS: %j', res.status);

@@ -1,11 +1,11 @@
 /* eslint-disable no-nested-ternary */
 import cheerio from 'cheerio';
+import axios from 'axios';
+import http from 'http';
+import https from 'https';
 import { isEqual, isEmpty, min } from 'lodash';
 import { parse } from 'query-string';
-import HttpsProxyAgent from 'https-proxy-agent';
-import AbortController from 'abort-controller';
-import fetch from 'node-fetch';
-import defaults from 'fetch-defaults';
+import axiosCookieJarSupport from 'axios-cookiejar-support';
 
 import Timer from '../../common/timer';
 import { notification } from '../hooks';
@@ -36,14 +36,19 @@ class TaskRunnerPrimitive {
     this.taskId = context.taskId;
     this.proxy = proxy;
     this._events = context.events;
-    this._aborter = new AbortController();
-    this._signal = this._aborter.signal;
+    this._aborter = axios.CancelToken.source();
+    this._signal = this._aborter.token;
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie')(fetch, context.jar);
-    this._request = defaults(_request, this._task.site.url, {
-      timeout: 120000, // to be overridden as necessary
-      signal: this._aborter.signal, // generic abort signal
+    const _request = axiosCookieJarSupport(axios);
+    this._request = _request.create({
+      baseURL: this._task.site.url,
+      timeout: 120000,
+      httpAgent: new http.Agent({ keepAlive: true }),
+      httpsAgent: new https.Agent({ keepAlive: true }),
+      maxRedirects: 10,
+      cancelToken: this._aborter.token,
     });
+
     this._parseType = type;
     this._platform = platform;
 
@@ -58,30 +63,14 @@ class TaskRunnerPrimitive {
     this._slack = new Slack(this._task.slack);
     this._logger = context.logger;
 
-    const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
-
-    if (p) {
-      p.options.maxSockets = Infinity;
-      p.options.maxFreeSockets = Infinity;
-      p.options.keepAlive = true;
-      p.maxFreeSockets = Infinity;
-      p.maxSockets = Infinity;
-    }
-
-    /**
-     * The context of this task runner
-     *
-     * This is a wrapper that contains all data about the task runner.
-     * @type {TaskRunnerContext}
-     */
     this._context = {
       ...context,
-      proxy: p,
+      proxy: proxy ? proxy.proxy : null,
       rawProxy: proxy ? proxy.raw : 'localhost',
       parseType: this._parseType,
       aborter: this._aborter,
       delayer: this._delayer,
-      signal: this._aborter.signal,
+      token: this._aborter.token,
       request: this._request,
       timers: this._timers,
       discord: this._discord,
@@ -167,7 +156,7 @@ class TaskRunnerPrimitive {
   _handleAbort(id) {
     if (id === this._context.id) {
       this._context.aborted = true;
-      this._aborter.abort();
+      this._aborter.cancel('Task aborted!');
       if (this._delayer) {
         this._delayer.clear();
       }
@@ -436,10 +425,7 @@ class TaskRunnerPrimitive {
     try {
       const res = await this._request(`${url}/account/login`, {
         method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
+        proxy,
         headers: heads,
         body: form,
       });
@@ -472,7 +458,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', proxy: rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.LOGIN;
         }
@@ -572,7 +558,7 @@ class TaskRunnerPrimitive {
       let res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
         method: 'OPTIONS',
         compress: true,
-        agent: proxy,
+        proxy,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
@@ -703,9 +689,7 @@ class TaskRunnerPrimitive {
     try {
       const res = await this._request(url, {
         method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'follow',
+        proxy,
         headers: {
           'User-Agent': userAgent,
         },
@@ -867,7 +851,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1057,7 +1041,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1220,7 +1204,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1369,7 +1353,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1519,7 +1503,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1561,7 +1545,7 @@ class TaskRunnerPrimitive {
       if (body && body.error) {
         if (/channel is locked/i.test(body.error)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.CREATE_CHECKOUT;
         }
@@ -1806,7 +1790,7 @@ class TaskRunnerPrimitive {
       this._logger.silly('CHECKOUT: Not passed queue, delaying 5000ms');
       message = status ? `Not through queue! (${status})` : 'Not through queue!';
       this._emitTaskEvent({ message, rawProxy });
-      this._delayer = waitForDelay(5000, this._aborter.signal);
+      this._delayer = waitForDelay(5000, this._aborter.token);
       await this._delayer;
       return States.QUEUE;
     } catch (err) {
@@ -1853,7 +1837,7 @@ class TaskRunnerPrimitive {
       return States.SWAP;
     }
 
-    this._delayer = waitForDelay(500, this._aborter.signal);
+    this._delayer = waitForDelay(500, this._aborter.token);
     await this._delayer;
 
     return States.WAIT_FOR_PRODUCT;
@@ -1902,11 +1886,12 @@ class TaskRunnerPrimitive {
 
     this._context.task.product.size = option;
 
+    console.log(proxy);
+
     try {
       const res = await this._request('/cart/add.js', {
         method: 'POST',
-        compress: true,
-        agent: proxy,
+        proxy,
         headers: {
           origin: url,
           host: `${url.split('/')[2]}`,
@@ -1919,7 +1904,7 @@ class TaskRunnerPrimitive {
             ? 'application/x-www-form-urlencoded'
             : 'application/json',
         },
-        body: addToCart(id, name, hash),
+        data: addToCart(id, name, hash),
       });
 
       const { status, headers } = res;
@@ -1940,7 +1925,7 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const redirectUrl = headers.get('location');
+      const redirectUrl = headers.location;
       this._logger.silly('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
@@ -1951,14 +1936,14 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.ADD_TO_CART;
         }
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.ADD_TO_CART;
         }
@@ -1999,7 +1984,7 @@ class TaskRunnerPrimitive {
 
       if (/cannot find variant/i.test(body)) {
         this._emitTaskEvent({ message: `Variant not live, delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
         await this._delayer;
         return States.ADD_TO_CART;
       }
@@ -2153,7 +2138,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.ADD_TO_CART;
         }
@@ -2196,7 +2181,7 @@ class TaskRunnerPrimitive {
         this._logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.ADD_TO_CART;
         }
@@ -2205,7 +2190,7 @@ class TaskRunnerPrimitive {
             message: `Variant not live! Delaying ${monitorDelay}ms`,
             rawProxy,
           });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.ADD_TO_CART;
         }
@@ -2333,7 +2318,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_CART;
         }
@@ -2621,7 +2606,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
@@ -2660,7 +2645,7 @@ class TaskRunnerPrimitive {
         if (/stock_problems/i.test(redirectUrl)) {
           // TODO: restock mode
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
@@ -2674,7 +2659,7 @@ class TaskRunnerPrimitive {
       if (/stock_problems/i.test(body)) {
         // TODO: restock mode
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
         await this._delayer;
         return States.GO_TO_CHECKOUT;
       }
@@ -2817,14 +2802,14 @@ class TaskRunnerPrimitive {
 
         if (/cart/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
@@ -3005,7 +2990,7 @@ class TaskRunnerPrimitive {
         const [, step] = match;
         if (/stock_problems/i.test(step)) {
           this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
@@ -3030,14 +3015,14 @@ class TaskRunnerPrimitive {
       if (res.redirected) {
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_CHECKOUT;
         }
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.SUBMIT_CUSTOMER;
         }
@@ -3334,7 +3319,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_SHIPPING;
         }
@@ -3373,7 +3358,7 @@ class TaskRunnerPrimitive {
         if (/stock_problems/i.test(redirectUrl)) {
           // TODO: restock mode
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_SHIPPING;
         }
@@ -3387,14 +3372,14 @@ class TaskRunnerPrimitive {
       if (/stock_problems/i.test(body)) {
         // TODO: restock mode
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
         await this._delayer;
         return States.GO_TO_SHIPPING;
       }
 
       if (/Getting available shipping rates/i.test(body)) {
         this._emitTaskEvent({ message: 'Polling rates', rawProxy });
-        this._delayer = waitForDelay(1000, this._aborter.signal);
+        this._delayer = waitForDelay(1000, this._aborter.token);
         await this._delayer;
         return States.GO_TO_SHIPPING;
       }
@@ -3520,7 +3505,7 @@ class TaskRunnerPrimitive {
           }
         }
         this._emitTaskEvent({ message: 'Polling rates', rawProxy });
-        this._delayer = waitForDelay(1000, this._aborter.signal);
+        this._delayer = waitForDelay(1000, this._aborter.token);
         await this._delayer;
         return States.GO_TO_SHIPPING;
       }
@@ -3551,7 +3536,7 @@ class TaskRunnerPrimitive {
         return States.PAYMENT_TOKEN;
       }
       this._emitTaskEvent({ message: 'Polling rates', rawProxy });
-      this._delayer = waitForDelay(1000, this._aborter.signal);
+      this._delayer = waitForDelay(1000, this._aborter.token);
       await this._delayer;
       return States.GO_TO_SHIPPING;
     } catch (err) {
@@ -3660,7 +3645,7 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(step)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.SUBMIT_SHIPPING;
         }
@@ -3701,14 +3686,14 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.SUBMIT_SHIPPING;
         }
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.SUBMIT_SHIPPING;
         }
@@ -3866,7 +3851,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_PAYMENT;
         }
@@ -3905,7 +3890,7 @@ class TaskRunnerPrimitive {
         if (/stock_problems/i.test(redirectUrl)) {
           // TODO: restock mode
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.GO_TO_PAYMENT;
         }
@@ -3919,14 +3904,14 @@ class TaskRunnerPrimitive {
       if (/stock_problems/i.test(body)) {
         // TODO: restock mode
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
         await this._delayer;
         return States.GO_TO_PAYMENT;
       }
 
       if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
         this._emitTaskEvent({ message: 'Calculating taxes', rawProxy });
-        this._delayer = waitForDelay(1000, this._aborter.signal);
+        this._delayer = waitForDelay(1000, this._aborter.token);
         await this._delayer;
         return States.GO_TO_PAYMENT;
       }
@@ -4082,14 +4067,14 @@ class TaskRunnerPrimitive {
 
       if (/stock_problems/i.test(body)) {
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
         await this._delayer;
         return States.SUBMIT_PAYMENT;
       }
 
       if (/Your payment can’t be processed/i.test(body)) {
         this._emitTaskEvent({ message: 'Processing error (429)', rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
         await this._delayer;
         return States.SUBMIT_PAYMENT;
       }
@@ -4109,14 +4094,14 @@ class TaskRunnerPrimitive {
 
       if (/stock_problems/i.test(redirectUrl)) {
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
         await this._delayer;
         return States.SUBMIT_PAYMENT;
       }
 
       if (/password/i.test(redirectUrl)) {
         this._emitTaskEvent({ message: 'Password page', rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
         await this._delayer;
         return States.SUBMIT_PAYMENT;
       }
@@ -4316,7 +4301,7 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.SUBMIT_PAYMENT;
         }
@@ -4354,7 +4339,7 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4494,14 +4479,14 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(step)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
 
         if (/password/i.test(step)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4566,7 +4551,7 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4578,7 +4563,7 @@ class TaskRunnerPrimitive {
 
         if (/password/.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4617,7 +4602,7 @@ class TaskRunnerPrimitive {
 
       if (/stock_problems/i.test(body)) {
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitorDelay, this._aborter.token);
         await this._delayer;
         return States.COMPLETE_PAYMENT;
       }
@@ -4749,14 +4734,14 @@ class TaskRunnerPrimitive {
 
         if (/password/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -4810,14 +4795,14 @@ class TaskRunnerPrimitive {
 
         if (/stock_problems/i.test(step)) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
 
         if (/password/i.test(step)) {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitorDelay, this._aborter.token);
           await this._delayer;
           return States.COMPLETE_PAYMENT;
         }
@@ -5109,7 +5094,7 @@ class TaskRunnerPrimitive {
       }
       this._logger.silly('CHECKOUT: Processing payment');
       this._emitTaskEvent({ message: 'Processing payment', rawProxy });
-      this._delayer = waitForDelay(1000, this._aborter.signal);
+      this._delayer = waitForDelay(1000, this._aborter.token);
       await this._delayer;
       return States.PROCESS_PAYMENT;
     } catch (err) {
@@ -5218,7 +5203,7 @@ class TaskRunnerPrimitive {
         return States.SUBMIT_PAYMENT;
       }
       this._emitTaskEvent({ message: 'Processing payment', rawProxy });
-      this._delayer = waitForDelay(1000, this._aborter.signal);
+      this._delayer = waitForDelay(1000, this._aborter.token);
       await this._delayer;
       return States.PROCESS_PAYMENT;
     } catch (err) {
@@ -5278,16 +5263,7 @@ class TaskRunnerPrimitive {
           });
         } else {
           this.proxy = proxy;
-          const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
-
-          if (p) {
-            p.options.maxSockets = Infinity;
-            p.options.maxFreeSockets = Infinity;
-            p.options.keepAlive = true;
-            p.maxFreeSockets = Infinity;
-            p.maxSockets = Infinity;
-          }
-          this._context.proxy = p;
+          this._context.proxy = proxy.proxy;
           this._context.rawProxy = proxy.raw;
           this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
@@ -5304,7 +5280,7 @@ class TaskRunnerPrimitive {
         message: `No open proxy! Delaying ${errorDelay}ms`,
       });
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
-      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
+      this._delayer = waitForDelay(errorDelay, this._aborter.token);
       await this._delayer;
       this._emitTaskEvent({ message: 'Proxy banned!' });
     } catch (err) {

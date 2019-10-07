@@ -32,7 +32,7 @@ const SupremeMonitor = require('./supreme/runners/monitor');
 
 // TODO: mesh includes
 
-// OVERRIDES
+// GLOBAL OVERRIDES
 globalAgent.maxSockets = Infinity;
 
 class TaskManager {
