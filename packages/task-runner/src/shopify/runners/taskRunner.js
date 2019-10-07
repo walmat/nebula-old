@@ -191,7 +191,7 @@ class TaskRunnerPrimitive {
       }
       case ParseType.Url: {
         const { url } = this._context.task.product;
-        return product.url.toUpperCase() === url.toUpperCase();
+        return url && product.url.toUpperCase() === url.toUpperCase();
       }
       default:
         return false;
@@ -203,14 +203,13 @@ class TaskRunnerPrimitive {
       const isSameProductData = await this._compareProductInput(product, parseType);
 
       if (
-        (isSameProductData && !this._context.productFound) ||
-        (id === this.id && !this._context.productFound)
+        (isSameProductData && !this._context.task.product.variants) ||
+        (id === this.id && !this._context.task.product.variants)
       ) {
         this._context.task.product = {
           ...this._context.task.product,
           ...product,
         };
-        this._context.productFound = true;
       }
     }
   }
@@ -1807,6 +1806,8 @@ class TaskRunnerPrimitive {
       this._logger.silly('CHECKOUT: Not passed queue, delaying 5000ms');
       message = status ? `Not through queue! (${status})` : 'Not through queue!';
       this._emitTaskEvent({ message, rawProxy });
+      this._delayer = waitForDelay(5000, this._aborter.signal);
+      await this._delayer;
       return States.QUEUE;
     } catch (err) {
       this._logger.error(
