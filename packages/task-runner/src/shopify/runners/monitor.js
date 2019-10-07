@@ -3,18 +3,18 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { pick, isEqual } from 'lodash';
-import { getParseType } from '../classes/utils/parse';
+import { getParseType } from '../utils/parse';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
 const { Events } = require('../../constants').Runner;
 const { Platforms } = require('../../constants');
-const { Parser, getSpecialParser, getParsers } = require('../classes/parsers');
+const { Parser, getSpecialParser, getParsers } = require('../parsers');
 const { rfrl, capitalizeFirstLetter, waitForDelay } = require('../../common');
 const {
   Monitor: { States, DelayTypes, ParseType },
   TaskRunner: { Types },
-} = require('../classes/utils/constants');
-const { ErrorCodes } = require('../classes/utils/constants');
+} = require('../utils/constants');
+const { ErrorCodes } = require('../utils/constants');
 
 // SHOPIFY
 class Monitor {

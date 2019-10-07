@@ -1,4 +1,4 @@
-const { userAgent } = require('../../../common');
+const { userAgent } = require('../../common');
 const { States } = require('./constants').TaskRunner;
 
 const stateForError = ({ status, name, errno }, { message, nextState }) => {
@@ -61,6 +61,7 @@ const getHeaders = ({ url, apiKey }) => ({
   'X-Shopify-Checkout-Version': '2019-10-06',
   'X-Shopify-Access-Token': apiKey,
   'x-barba': 'yes',
+  connection: 'keep-alive',
   'User-Agent': userAgent,
   host: `${url.split('/')[2]}`,
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,

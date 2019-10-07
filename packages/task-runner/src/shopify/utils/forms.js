@@ -1,15 +1,5 @@
 const { States } = require('./constants').TaskRunner;
 
-const buildPaymentForm = (payment, billing) => ({
-  credit_card: {
-    number: payment.cardNumber,
-    name: `${billing.firstName} ${billing.lastName}`,
-    month: parseInt(payment.exp.slice(0, 2), 10),
-    year: `20${parseInt(payment.exp.slice(3, 5), 10)}`,
-    verification_value: payment.cvv,
-  },
-});
-
 const patchCheckoutForm = (billingMatchesShipping, shipping, billing, payment, captchaToken) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   let data = {
@@ -272,7 +262,6 @@ const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => 
 };
 
 module.exports = {
-  buildPaymentForm,
   patchCheckoutForm,
   addToCart,
   patchToCart,

@@ -8,12 +8,12 @@ import { pick } from 'lodash';
 
 import { Runner, Platforms } from '../../constants';
 import { createLogger } from '../../common/logger';
-import pickVariant from '../classes/utils/pickVariant';
+import pickVariant from '../utils/pickVariant';
 import { rfrl, userAgent } from '../../common';
-import { addToCart } from '../classes/utils/forms';
-import { getParseType } from '../classes/utils/parse';
-import { Monitor, TaskRunner } from '../classes/utils/constants';
-import { Parser, getSpecialParser, getParsers } from '../classes/parsers';
+import { addToCart } from '../utils/forms';
+import { getParseType } from '../utils/parse';
+import { Monitor, TaskRunner } from '../utils/constants';
+import { Parser, getSpecialParser, getParsers } from '../parsers';
 
 const { ParseType } = Monitor;
 const { Types } = TaskRunner;
