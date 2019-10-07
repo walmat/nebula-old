@@ -199,7 +199,6 @@ class TaskRunnerPrimitive {
   }
 
   async _handleProduct(id, product, parseType) {
-    console.log(parseType, this._parseType);
     if (parseType === this._parseType) {
       const isSameProductData = await this._compareProductInput(product, parseType);
 
@@ -2191,7 +2190,6 @@ class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
-      console.log(body);
       if (body.errors && body.errors.line_items) {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
@@ -4290,7 +4288,6 @@ class TaskRunnerPrimitive {
       this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       const body = await res.text();
-      console.log(body);
 
       if (!this._checkoutKey) {
         const match = body.match(
