@@ -11,8 +11,8 @@
  */
 class AsyncQueue {
   constructor() {
-    this._backlog = [];
-    this._waitQueue = [];
+    this._backlog = {}; // backlog of tokens for this sitekey
+    this._waitQueue = {}; // waitQueue of runners for this sitekey
     this._expiration = {
       thisArg: null,
       filterFunc: null,
@@ -23,31 +23,31 @@ class AsyncQueue {
   }
 
   get backlogLength() {
-    return this._backlog.length;
+    return Object.values(this._backlog).length;
   }
 
   get lineLength() {
-    return this._waitQueue.length;
+    return Object.values(this._waitQueue).length;
   }
 
-  insert(datum) {
+  insert(sitekey, datum) {
+    console.log('INSERTING CAPTCHA TOKEN! WAIT QUEUE?', this._waitQueue[sitekey]);
     // Check if we have anybody waiting for data
-    if (this._waitQueue.length) {
+    if (this._waitQueue[sitekey] && this._waitQueue[sitekey].length) {
       // Get the resolution and invoke it with the data
-      const resolution = this._waitQueue.pop();
+      const resolution = this._waitQueue[sitekey].pop();
       resolution.request.status = 'fulfilled';
       resolution.request.value = datum;
       resolution.request.cancel = () => {};
       resolution.resolve(datum);
     } else {
-      // Add data to the backlog
-      this._backlog.unshift(datum);
+      this._backlog[sitekey].unshift(datum);
       this._startExpirationInterval();
     }
-    return this._backlog.length;
+    return this._backlog[sitekey].length;
   }
 
-  next() {
+  next(sitekey) {
     // initialize request
     const nextRequest = {
       status: 'pending', // status of the request
@@ -57,10 +57,19 @@ class AsyncQueue {
       value: null, // the resolved value
     };
 
+    if (!this._waitQueue[sitekey]) {
+      this._waitQueue[sitekey] = [];
+    }
+
+    // Add data to the backlog
+    if (!this._backlog[sitekey]) {
+      this._backlog[sitekey] = [];
+    }
+
     // Check if we don't have any waiters and we do have a backlog
-    if (!this._waitQueue.length && this._backlog.length) {
+    if (!this._waitQueue[sitekey].length && this._backlog[sitekey].length) {
       // return from the backlog immediately
-      const value = this._backlog.pop();
+      const value = this._backlog[sitekey].pop();
       const promise = Promise.resolve(value);
       return {
         ...nextRequest,
@@ -75,29 +84,29 @@ class AsyncQueue {
       nextRequest.cancel = reason => {
         nextRequest.status = 'cancelled';
         nextRequest.reason = reason;
-        this._waitQueue = this._waitQueue.filter(r => r.request !== nextRequest);
+        this._waitQueue[sitekey] = this._waitQueue[sitekey].filter(r => r.request !== nextRequest);
         reject(reason);
       };
-      this._waitQueue.unshift({ resolve, reject, request: nextRequest });
+      this._waitQueue[sitekey].unshift({ resolve, reject, request: nextRequest });
     });
 
     return nextRequest;
   }
 
-  clear() {
+  clear(sitekey) {
     // Remove all items from the backlog if they exist
-    this._backlog = [];
+    delete this._backlog[sitekey];
     this._stopExpirationInterval();
   }
 
-  destroy() {
+  destroy(sitekey) {
     // Reject all resolutions in the wait queue
-    this._waitQueue.forEach(({ reject, request }) => {
+    this._waitQueue[sitekey].forEach(({ reject, request }) => {
       request.status = 'destroyed';
       request.reason = 'Queue was destroyed';
       reject('Queue was destroyed');
     });
-    this._waitQueue = [];
+    delete this._waitQueue[sitekey];
 
     // Remove all items from the backlog if they exist
     this.clear();
@@ -116,6 +125,7 @@ class AsyncQueue {
       onUpdate,
       intervalId: null,
     };
+    // TODO:
     // Start interval if we have items in the backlog
     if (this.backlogLength > 0) {
       this._startExpirationInterval();
@@ -131,7 +141,9 @@ class AsyncQueue {
     }
     this._expiration.intervalId = setInterval(() => {
       const { filterFunc, thisArg, onUpdate } = this._expiration;
-      this._backlog = this._backlog.filter(filterFunc, thisArg);
+      // set the filter for each backlog object
+      Object.values(this._backlog).forEach(backlog => backlog.filter(filterFunc, thisArg));
+      // this._backlog = this._backlog.filter(filterFunc, thisArg);
       if (this.backlogLength === 0) {
         this._stopExpirationInterval();
       }

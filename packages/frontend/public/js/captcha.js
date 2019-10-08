@@ -217,21 +217,6 @@ async function _registerStartHandler(_, runnerId, siteKey, host) {
   _host = host;
   _started = true;
 
-  // TODO: WE SHOULD DO A CHECK HERE TO SEE IF WE'RE SOLVING ALREADY FOR THE PROPER HOST
-  // // check to see if we're on the proper host
-  // const currentWindow = remote.getCurrentWindow();
-  // const currentLocation = currentWindow.webContents.getURL();
-  // console.log(currentLocation, _host);
-  // if (currentLocation !== _host) {
-  //   console.log('not the same');
-  //   _started = false;
-  //   currentWindow.webContents.loadURL(_host);
-  //   currentWindow.webContents.reload();
-  //   return;
-  // }
-
-  // console.log(host, _host);
-
   // Show the form if it was previous hidden
   const form = document.getElementById('captchaForm');
   form.setAttribute('style', 'visibility:visible;');

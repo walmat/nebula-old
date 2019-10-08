@@ -490,8 +490,8 @@ class WindowManager {
    *
    * Forward call to Captcha Window Manager
    */
-  getNextCaptcha() {
-    return this._captchaWindowManager.getNextCaptcha();
+  getNextCaptcha(sitekey) {
+    return this._captchaWindowManager.getNextCaptcha(sitekey);
   }
 
   /**

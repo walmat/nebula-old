@@ -942,6 +942,12 @@ class TaskRunnerPrimitive {
         this._checkpointForm = this._checkpointForm.slice(0, -1);
       }
 
+      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (match && match.length) {
+        [, this._context.task.site.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
+
       this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
       return States.CAPTCHA;
     } catch (err) {
@@ -2690,20 +2696,11 @@ class TaskRunnerPrimitive {
       );
 
       // recaptcha sitekey parser...
-      $('noscript').each((_, el) => {
-        if (!$(el).attr('src')) {
-          const iframe = $(el).find('iframe');
-          if (iframe) {
-            const src = iframe.attr('src');
-            if (src && /recaptcha/i.test(src)) {
-              const match = src.match(/\?k=(.*)/);
-              if (match && match.length) {
-                [, this._context.task.site.sitekey] = match;
-              }
-            }
-          }
-        }
-      });
+      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (match && match.length) {
+        [, this._context.task.site.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });

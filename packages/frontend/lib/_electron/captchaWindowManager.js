@@ -27,7 +27,7 @@ class CaptchaWindowManager {
     /**
      * Array of created captcha windows
      */
-    this._captchaWindows = [];
+    this._captchaWindows = {};
 
     this._captchaWindowSessionPairs = new Map();
     this._sessions = new Map();
@@ -85,7 +85,14 @@ class CaptchaWindowManager {
       IPCKeys.RequestCloseWindow,
       this.validateSender(ev => {
         // No need to check for `undefined` because `validateSender` has done that for us...
-        this._captchaWindows.find(win => win.webContents.id === ev.sender.id).close();
+        let win;
+        Object.values(this._captchaWindows).forEach(group => {
+          win = group.find(w => w.webContents.id === ev.sender.id);
+        });
+
+        if (win) {
+          win.close();
+        }
       }),
     );
 
@@ -164,7 +171,10 @@ class CaptchaWindowManager {
   validateSender(handler) {
     return (ev, ...params) => {
       // Check for window to be a captcha windows
-      const check = this._captchaWindows.find(win => win.webContents.id === ev.sender.id);
+      let check;
+      Object.values(this._captchaWindows).forEach(group => {
+        check = group.find(win => win.webContents.id === ev.sender.id);
+      });
       if (check && !check.isDestroyed()) {
         // call the handler
         handler.apply(this, [ev, ...params]);
@@ -180,20 +190,22 @@ class CaptchaWindowManager {
    *
    * If no captcha windows are present, one is created
    */
-  async startHarvesting(runnerId, siteKey, host) {
+  async startHarvesting(runnerId, sitekey, host) {
     this._harvestStatus = {
       state: HARVEST_STATES.ACTIVE,
       runnerId,
-      siteKey,
+      sitekey,
       host,
     };
-    if (this._captchaWindows.length === 0) {
+
+    // TODO: we should add some logic to spawn more than just one window if lots of tasks are requesting...
+    if (!this._captchaWindows[sitekey] || !this._captchaWindows[sitekey].length) {
       this.spawnCaptchaWindow();
     } else {
       await Promise.all(
-        this._captchaWindows.map(async (win, idx) => {
+        Object.values(this._captchaWindows[sitekey]).map(async (win, idx) => {
           await new Promise(resolve => setTimeout(resolve, idx * 250));
-          win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
+          win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, sitekey, host);
         }),
       );
     }
@@ -212,9 +224,10 @@ class CaptchaWindowManager {
       siteKey,
       host,
     };
-    this._captchaWindows.forEach(win => {
-      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey, host);
-    });
+    // TODO: this should be sitekey specific...
+    Object.values(this._captchaWindows).forEach(group =>
+      group.map(win => win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey, host)),
+    );
   }
 
   /**
@@ -230,9 +243,10 @@ class CaptchaWindowManager {
       siteKey: null,
       host: null,
     };
-    this._captchaWindows.forEach(win => {
-      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey, host);
-    });
+    // TODO: this should be sitekey specific...
+    Object.values(this._captchaWindows).forEach(group =>
+      group.map(win => win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey, host)),
+    );
   }
 
   /**
@@ -240,17 +254,22 @@ class CaptchaWindowManager {
    *
    * Return the next valid, available captcha from the queue
    */
-  getNextCaptcha() {
-    return this._tokenQueue.next();
+  getNextCaptcha(sitekey) {
+    return this._tokenQueue.next(sitekey);
   }
 
   /**
    * Create a captcha window and show it
    */
   spawnCaptchaWindow(options = {}) {
-    const { state, runnerId, siteKey, host } = this._harvestStatus;
-    // Prevent more than 5 windows from spawning
-    if (this._captchaWindows.length >= 5) {
+    const { state, runnerId, sitekey, host } = this._harvestStatus;
+
+    if (!this._captchaWindows[sitekey]) {
+      this._captchaWindows[sitekey] = [];
+    }
+
+    // Prevent more than 5 windows from spawning per sitekey
+    if (this._captchaWindows[sitekey].length >= 5) {
       return null;
     }
     if (!this._context.captchaServerManager.isRunning) {
@@ -283,7 +302,8 @@ class CaptchaWindowManager {
     );
     const winId = win.id;
     const webContentsId = win.webContents.id;
-    this._captchaWindows.push(win);
+
+    this._captchaWindows[sitekey].push(win);
     this._captchaWindowSessionPairs.set(winId, session.id);
     CaptchaWindowManager.setProxy(win, {
       proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
@@ -318,7 +338,7 @@ class CaptchaWindowManager {
 
       // If we are actively harvesting, start harvesting on the new window as well
       if (state === HARVEST_STATES.ACTIVE) {
-        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
+        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, sitekey, host);
         if (Notification.isSupported()) {
           const sound = nebulaEnv.isDevelopment()
             ? Path.join(__dirname, '../../public/assets/sounds/notification.mp3')
@@ -338,7 +358,8 @@ class CaptchaWindowManager {
       if (nebulaEnv.isDevelopment()) {
         console.log(`[DEBUG]: Window was closed, id = ${winId}`);
       }
-      this._captchaWindows = this._captchaWindows.filter(w => w.id !== winId);
+      this._captchaWindows[sitekey] = this._captchaWindows[sitekey].filter(w => w.id !== winId);
+
       const sessionId = this._captchaWindowSessionPairs.get(winId);
       const s = this._sessions.get(sessionId);
       this._captchaWindowSessionPairs.delete(winId);
@@ -354,7 +375,7 @@ class CaptchaWindowManager {
         ytWin.close();
       }
 
-      if (this._captchaWindows.length === 0) {
+      if (!Object.values(this._captchaWindows).length) {
         // Close the server
         console.log('[DEBUG]: Stopping captcha server...');
         this._context.captchaServerManager.stop();
@@ -426,13 +447,11 @@ class CaptchaWindowManager {
    */
   closeAllCaptchaWindows() {
     // Do nothing if we don't have any captcha windows
-    if (this._captchaWindows.length === 0) {
+    if (!Object.values(this._captchaWindows).length) {
       return;
     }
     console.log('[DEBUG]: Closing all captcha windows...');
-    this._captchaWindows.forEach(win => {
-      win.close();
-    });
+    Object.values(this._captchaWindows).forEach(group => group.map(w => w.close()));
   }
 
   /**
@@ -444,9 +463,10 @@ class CaptchaWindowManager {
       ...options,
     };
     // Update currently opened windows
-    this._captchaWindows.forEach(win => {
-      win.webContents.send(IPCKeys.ChangeTheme, this._captchaThemeOpts);
-    });
+
+    Object.values(this._captchaWindows).forEach(group =>
+      group.map(w => w.webContents.send(IPCKeys.ChangeTheme, this._captchaThemeOpts)),
+    );
   }
 
   /**
@@ -488,20 +508,20 @@ class CaptchaWindowManager {
     _,
     runnerId,
     token,
-    siteKey = 'unattached',
+    sitekey = 'unattached',
     host = 'http://checkout.shopify.com',
   ) {
     // Store the new token
-    this._tokenQueue.insert({
+    this._tokenQueue.insert(sitekey, {
       token,
-      siteKey,
+      sitekey,
       host,
       timestamp: new Date(),
     });
 
     if (this._tokenQueue.backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {
       console.log('[DEBUG]: Token Queue is greater than max, suspending...');
-      this.suspendHarvesting(runnerId, siteKey);
+      this.suspendHarvesting(runnerId, sitekey);
     }
   }
 
@@ -525,7 +545,7 @@ class CaptchaWindowManager {
   }
 
   _onRequestSaveCaptchaProxy(_, winId, proxy) {
-    const win = this._captchaWindows.find(w => w.id === winId);
+    const win = Object.values(this._captchaWindows).map(group => group.find(w => w.id === winId));
     CaptchaWindowManager.setProxy(win, { proxyRules: CaptchaWindowManager.formatProxy(proxy) });
   }
 }
