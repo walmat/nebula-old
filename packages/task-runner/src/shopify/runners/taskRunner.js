@@ -5035,7 +5035,7 @@ class TaskRunnerPrimitive {
 
           const rewindToState =
             type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
-              ? States.COMPLETE_PAYMENT
+              ? States.PAYMENT_TOKEN
               : States.GO_TO_PAYMENT;
           this._emitTaskEvent({ message: 'Card declined!' });
           return rewindToState;
@@ -5069,7 +5069,7 @@ class TaskRunnerPrimitive {
 
             const rewindToState =
               type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
-                ? States.COMPLETE_PAYMENT
+                ? States.PAYMENT_TOKEN
                 : States.GO_TO_PAYMENT;
 
             this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
@@ -5100,7 +5100,7 @@ class TaskRunnerPrimitive {
 
           const rewindToState =
             type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
-              ? States.COMPLETE_PAYMENT
+              ? States.PAYMENT_TOKEN
               : States.GO_TO_PAYMENT;
 
           this._emitTaskEvent({ message: 'Payment failed!' });

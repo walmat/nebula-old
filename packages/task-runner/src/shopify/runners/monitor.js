@@ -139,7 +139,7 @@ class Monitor {
 
   async swapProxies() {
     // emit the swap event
-    this._events.emit(Events.SwapMonitorProxy, this.id, this.proxy, this.shouldBanProxy);
+    this._events.emit(Events.SwapMonitorProxy, this.id, this.proxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
@@ -148,8 +148,6 @@ class Monitor {
         clearTimeout(timeout);
         // reset the timeout
         timeout = null;
-        // reset the ban flag
-        this.shouldBanProxy = 0;
         // finally, resolve with the new proxy
         resolve(proxy);
       };

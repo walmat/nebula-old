@@ -1,5 +1,3 @@
-import HttpsProxyAgent from 'https-proxy-agent';
-
 const Parser = require('./parser');
 const { convertToJson } = require('../utils/parse');
 const { ParseType } = require('../utils/constants').Monitor;
@@ -36,7 +34,7 @@ class XmlParser extends Parser {
         headers: {
           'User-Agent': userAgent,
         },
-        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+        agent: this._proxy,
       });
 
       if (/429|430|403/.test(res.status)) {

@@ -72,7 +72,7 @@ class SpecialParser extends Parser {
       const body = await res.text();
       response = cheerio.load(body, {
         normalizeWhitespace: true,
-        xmlMode: true,
+        xmlMode: false,
       });
     } catch (error) {
       // Handle other error responses
@@ -286,7 +286,7 @@ class SpecialParser extends Parser {
         method: 'GET',
         redirect: 'follow',
         follow: 5,
-        agent: this._proxy ? new HttpsProxyAgent(this._proxy) : null,
+        agent: this._proxy,
         headers: {
           'User-Agent': userAgent,
         },
