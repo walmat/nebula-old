@@ -271,7 +271,7 @@ class TaskManager {
    * If the runner was not previously harvesting captchas, this method does
    * nothing.
    */
-  handleStopHarvest(runnerId) {
+  handleStopHarvest(runnerId, sitekey, host) {
     const container = this._captchaQueues.get(runnerId);
 
     // If this container was never started, there's no need to do anything further
@@ -283,7 +283,7 @@ class TaskManager {
     this._captchaQueues.delete(runnerId);
 
     // Emit an event to stop harvesting
-    this._events.emit(Events.StopHarvest, runnerId);
+    this._events.emit(Events.StopHarvest, runnerId, sitekey, host);
   }
   // MARK: Task Runner Callback Methods
 

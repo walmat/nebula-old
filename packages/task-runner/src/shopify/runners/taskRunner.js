@@ -230,6 +230,7 @@ class TaskRunnerPrimitive {
       } else if (type === DelayTypes.monitor) {
         this._context.task.monitorDelay = delay;
       }
+      console.log(this._delayer);
       if (this._delayer) {
         this._delayer.clear();
       }
@@ -279,7 +280,12 @@ class TaskRunnerPrimitive {
   suspendHarvestCaptcha() {
     if (this._context.harvestState === HarvestStates.start) {
       this._logger.silly('[DEBUG]: Suspending harvest...');
-      this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
+      this._events.emit(
+        TaskManagerEvents.StopHarvest,
+        this._context.id,
+        this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
+        'http://checkout.shopify.com'
+      );
       this._context.harvestState = HarvestStates.suspend;
     }
   }
@@ -290,7 +296,12 @@ class TaskRunnerPrimitive {
       this._captchaQueue.destroy();
       this._captchaQueue = null;
       this._logger.silly('[DEBUG]: Stopping harvest...');
-      this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
+      this._events.emit(
+        TaskManagerEvents.StopHarvest,
+        this._context.id,
+        this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
+        'http://checkout.shopify.com'
+      );
       this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
       this._context.harvestState = HarvestStates.stop;
     }
@@ -1548,6 +1559,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -1624,7 +1636,7 @@ class TaskRunnerPrimitive {
       rawProxy,
       task: {
         type,
-        site: { url },
+        site: { url, name, apiKey },
       },
       proxy,
       timers: { monitor },
@@ -1639,13 +1651,14 @@ class TaskRunnerPrimitive {
     let message;
     let nextState;
     try {
-      const res = await this._request(`${url}/checkout/poll?js_poll=1`, {
+      const res = await this._request('/checkout/poll?js_poll=1', {
         method: 'GET',
         compress: true,
         agent: proxy,
         redirect: 'follow',
         follow: 5,
         headers: {
+          ...getHeaders({ url, apiKey }),
           'User-Agent': userAgent,
           Connection: 'Keep-Alive',
           referer: this.queueReferer,
@@ -1698,33 +1711,54 @@ class TaskRunnerPrimitive {
               agent: proxy,
               redirect: 'manual',
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
               },
             });
 
-            const respBody = await response.text();
+            let respBody;
+            if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
+              respBody = await response.json();
+              this._logger.debug('NEW QUEUE BODY: %j', respBody);
 
-            this._logger.debug('NEW QUEUE BODY: %j', respBody);
+              if (respBody && respBody.checkout) {
+                const checkoutUrl = respBody.checkout.web_url;
+                if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
+                  const [checkoutNoQs] = checkoutUrl.split('?');
+                  [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
+                  ({ message, nextState } = StateMap[this._prevState](
+                    type,
+                    this._context.task,
+                    this._selectedShippingRate,
+                  ));
 
-            const [, checkoutUrl] = respBody.match(/href="(.*)"/);
-
-            if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
-              const [checkoutNoQs] = checkoutUrl.split('?');
-              [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
-              if (type === Modes.FAST) {
-                monitor.start();
+                  this._emitTaskEvent({ message, rawProxy });
+                  return nextState;
+                }
               }
+            } else {
+              respBody = await response.text();
+              this._logger.debug('NEW QUEUE BODY: %j', respBody);
+              const [, checkoutUrl] = respBody.match(/href="(.*)"/);
 
-              ({ message, nextState } = StateMap[this._prevState](
-                type,
-                this._context.task,
-                this._selectedShippingRate,
-              ));
+              if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
+                const [checkoutNoQs] = checkoutUrl.split('?');
+                [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
+                if (type === Modes.FAST) {
+                  monitor.start();
+                }
 
-              this._emitTaskEvent({ message, rawProxy });
-              return nextState;
+                ({ message, nextState } = StateMap[this._prevState](
+                  type,
+                  this._context.task,
+                  this._selectedShippingRate,
+                ));
+
+                this._emitTaskEvent({ message, rawProxy });
+                return nextState;
+              }
             }
           } catch (e) {
             this._logger.error('Error fetching cookied checkout: %j', e);
@@ -1748,39 +1782,66 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
               },
             });
 
-            const respBody = await response.text();
-            this._logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);
+            let respBody;
+            if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
+              respBody = await response.json();
+              this._logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);
 
-            const [, checkoutUrl] = respBody.match(/href="(.*)"/);
-            this._logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
+              if (respBody && respBody.checkout) {
+                const checkoutUrl = respBody.checkout.web_url;
+                if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
+                  const [checkoutNoQs] = checkoutUrl.split('?');
+                  [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
+                  ({ message, nextState } = StateMap[this._prevState](
+                    type,
+                    this._context.task,
+                    this._selectedShippingRate,
+                  ));
 
-            if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
-              const [checkoutNoQs] = checkoutUrl.split('?');
-              [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
-              if (type === Modes.FAST) {
-                monitor.start();
+                  this._emitTaskEvent({ message, rawProxy });
+                  return nextState;
+                }
               }
-              ({ message, nextState } = StateMap[this._prevState](
-                type,
-                this._context.task,
-                this._selectedShippingRate,
-              ));
+            } else {
+              respBody = await response.text();
+              this._logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);
+              const [, checkoutUrl] = respBody.match(/href="(.*)"/);
+              this._logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
 
-              this._emitTaskEvent({ message, rawProxy });
-              return nextState;
+              if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
+                const [checkoutNoQs] = checkoutUrl.split('?');
+                [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
+                if (type === Modes.FAST) {
+                  monitor.start();
+                }
+                ({ message, nextState } = StateMap[this._prevState](
+                  type,
+                  this._context.task,
+                  this._selectedShippingRate,
+                ));
+
+                this._emitTaskEvent({ message, rawProxy });
+                return nextState;
+              }
             }
           } catch (error) {
             // fail silently...
           }
         }
         const $ = cheerio.load(body, { xmlMode: false, normalizeWhitespace: true });
-        const [checkoutUrl] = $('input[name="checkout_url"]');
+
+        const input = $('input[name="checkout_url"]');
+        let checkoutUrl;
+        if (input) {
+          [checkoutUrl] = input;
+        }
 
         if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
           [redirectUrl] = checkoutUrl.split('?');
@@ -1843,7 +1904,7 @@ class TaskRunnerPrimitive {
   }
 
   async _handleWaitForProduct() {
-    const { aborted } = this._context;
+    const { aborted, rawProxy } = this._context;
 
     // exit if abort is detected
     if (aborted) {
@@ -1852,6 +1913,7 @@ class TaskRunnerPrimitive {
     }
 
     if (this._context.task.product.variants) {
+      this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
       return States.ADD_TO_CART;
     }
 
@@ -1870,7 +1932,7 @@ class TaskRunnerPrimitive {
       aborted,
       rawProxy,
       task: {
-        site: { name, url },
+        site: { name, url, apiKey },
         product: { variants, hash, restockUrl, randomInStock },
         size,
         type,
@@ -1898,10 +1960,8 @@ class TaskRunnerPrimitive {
     }
 
     if (!variant) {
-      return {
-        message: 'No size matched! Stopping...',
-        nextState: States.ERROR,
-      };
+      this._emitTaskEvent({ message: 'Unable to match size!' });
+      return States.ERROR;
     }
 
     const { option, id } = variant;
@@ -1951,19 +2011,23 @@ class TaskRunnerPrimitive {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy, size });
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            rawProxy,
+            size,
+          });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.ADD_TO_CART;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page', rawProxy, size });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           return States.ADD_TO_CART;
@@ -1987,6 +2051,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -1996,7 +2061,7 @@ class TaskRunnerPrimitive {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue', rawProxy, size });
           return States.QUEUE;
         }
       }
@@ -2004,7 +2069,11 @@ class TaskRunnerPrimitive {
       const body = await res.text();
 
       if (/cannot find variant/i.test(body)) {
-        this._emitTaskEvent({ message: `Variant not live, delaying ${monitorDelay}ms`, rawProxy });
+        this._emitTaskEvent({
+          message: `Variant not live, delaying ${monitorDelay}ms`,
+          rawProxy,
+          size,
+        });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         return States.ADD_TO_CART;
@@ -2016,7 +2085,7 @@ class TaskRunnerPrimitive {
         this._prices.cart = price;
       }
 
-      this._emitTaskEvent({ message: 'Going to cart', rawProxy });
+      this._emitTaskEvent({ message: 'Going to cart', rawProxy, size });
       return States.GO_TO_CART;
     } catch (err) {
       this._logger.error(
@@ -2182,6 +2251,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -2201,18 +2271,25 @@ class TaskRunnerPrimitive {
         const error = body.errors.line_items[0];
         this._logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            rawProxy,
+            size,
+          });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Adding to cart', rawProxy, size });
           return States.ADD_TO_CART;
         }
         if (error && error.variant_id && error.variant_id.length) {
           this._emitTaskEvent({
             message: `Variant not live! Delaying ${monitorDelay}ms`,
             rawProxy,
+            size,
           });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Adding to cart', rawProxy, size });
           return States.ADD_TO_CART;
         }
 
@@ -2362,6 +2439,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 connection: 'close',
@@ -2411,9 +2489,9 @@ class TaskRunnerPrimitive {
       this._logger.info('Cart form parsed: %j', this._cartForm);
 
       if (this._needsLogin) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        this._emitTaskEvent({ message: 'Logging in', rawProxy });
         // we can assume that if we're here and need a login, it's due to us hitting `/challenge`
-        return States.CAPTCHA;
+        return States.LOGIN;
       }
       this._emitTaskEvent({ message: 'Creating checkout', rawProxy });
       return States.CREATE_CHECKOUT;
@@ -2597,10 +2675,8 @@ class TaskRunnerPrimitive {
 
       const body = await res.text();
       const $ = cheerio.load(body, {
-        xmlMode: true,
+        xmlMode: false,
         normalizeWhitespace: true,
-        recognizeCDATA: true,
-        ignoreWhitespace: true,
       });
 
       // grab the checkoutKey if it's exists and we don't have it yet..
@@ -2613,6 +2689,13 @@ class TaskRunnerPrimitive {
           [, this._checkoutKey] = match;
           this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
+      }
+
+      let checkoutUrl;
+      if (this._storeId && this._checkoutToken && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+        // TODO: toggle to send the checkout link to discord
+        this._emitTaskEvent({ message: `Created checkout ${checkoutUrl}`, checkoutUrl });
       }
 
       const redirectUrl = headers.get('location');
@@ -2629,6 +2712,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
           return States.GO_TO_CHECKOUT;
         }
 
@@ -2650,6 +2734,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -2668,6 +2753,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
           return States.GO_TO_CHECKOUT;
         }
 
@@ -2682,6 +2768,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
         return States.GO_TO_CHECKOUT;
       }
 
@@ -2705,12 +2792,6 @@ class TaskRunnerPrimitive {
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
-      }
-
-      let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
-        // TODO: toggle to send the checkout link to discord
       }
 
       this._emitTaskEvent({ message: 'Submitting information', rawProxy, checkoutUrl });
@@ -2797,6 +2878,25 @@ class TaskRunnerPrimitive {
         return erroredState;
       }
 
+      const body = await res.text();
+      if (!this._checkoutKey) {
+        const match = body.match(
+          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
+        );
+
+        if (match) {
+          [, this._checkoutKey] = match;
+          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+        }
+      }
+
+      let checkoutUrl;
+      if (this._storeId && this._checkoutToken && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+        // TODO: toggle to send the checkout link to discord
+        this._emitTaskEvent({ message: `Created checkout ${checkoutUrl}`, checkoutUrl });
+      }
+
       const redirectUrl = headers.get('location');
       this._logger.silly('CHECKOUT: Get checkout redirect url: %s', redirectUrl);
 
@@ -2816,6 +2916,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
           return States.GO_TO_CHECKOUT;
         }
 
@@ -2823,6 +2924,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
           return States.GO_TO_CHECKOUT;
         }
 
@@ -2844,6 +2946,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -2855,19 +2958,6 @@ class TaskRunnerPrimitive {
 
           this._emitTaskEvent({ message: 'Polling queue', rawProxy });
           return States.QUEUE;
-        }
-      }
-
-      const body = await res.text();
-
-      if (!this._checkoutKey) {
-        const match = body.match(
-          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
-        );
-
-        if (match) {
-          [, this._checkoutKey] = match;
-          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
       }
 
@@ -3057,6 +3147,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -3176,6 +3267,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -3301,10 +3393,8 @@ class TaskRunnerPrimitive {
 
       const body = await res.text();
       const $ = cheerio.load(body, {
-        xmlMode: true,
+        xmlMode: false,
         normalizeWhitespace: true,
-        recognizeCDATA: true,
-        ignoreWhitespace: true,
       });
 
       // grab the checkoutKey if it's exists and we don't have it yet..
@@ -3354,6 +3444,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -3405,6 +3496,13 @@ class TaskRunnerPrimitive {
         'form.edit_checkout',
         'input, select, textarea, button',
       );
+
+      // recaptcha sitekey parser...
+      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (match && match.length) {
+        [, this._context.task.site.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
@@ -3496,6 +3594,7 @@ class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
+      console.log(body);
       if (body && body.errors) {
         this._logger.silly('CHECKOUT: Error getting shipping rates: %j', body.errors);
         const { checkout } = body.errors;
@@ -3728,6 +3827,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -3744,6 +3844,204 @@ class TaskRunnerPrimitive {
 
       this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
       return States.GO_TO_SHIPPING;
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %s Request Error..\n Step: Submit shipping .\n\n %j %j',
+        err.status || err.errno,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Submitting shipping',
+        nextState: States.SUBMIT_SHIPPING,
+      });
+
+      if (nextState) {
+        const { message, nextState: erroredState } = nextState;
+        if (message) {
+          this._emitTaskEvent({ message, rawProxy });
+        }
+        return erroredState;
+      }
+
+      const message =
+        err.status || err.errno
+          ? `Submitting shipping - (${err.status || err.errno})`
+          : 'Submitting shipping';
+
+      this._emitTaskEvent({ message, rawProxy });
+      return States.SUBMIT_SHIPPING;
+    }
+  }
+
+  async _handleBackupSubmitShipping() {
+    const {
+      aborted,
+      rawProxy,
+      proxy,
+      task: {
+        monitorDelay,
+        site: { url, apiKey },
+        forceCaptcha,
+      },
+    } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    const { id } = this._selectedShippingRate;
+
+    const form = {
+      complete: 1,
+      checkout: {
+        shipping_line: {
+          handle: id,
+        },
+      },
+    };
+
+    try {
+      const res = await this._request(`/wallets/checkouts/${this._checkoutToken}.json`, {
+        method: 'PATCH',
+        compress: true,
+        agent: proxy,
+        follow: 0,
+        redirect: 'manual',
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          'Content-Type': 'application/json',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': apiKey,
+        },
+        body: JSON.stringify(form),
+      });
+
+      const { status, headers } = res;
+
+      const nextState = stateForError(
+        { status },
+        {
+          message: 'Submitting shipping',
+          nextState: States.SUBMIT_PAYMENT,
+        },
+      );
+
+      if (nextState) {
+        const { message, nextState: erroredState } = nextState;
+        if (message) {
+          this._emitTaskEvent({ message, rawProxy });
+        }
+        return erroredState;
+      }
+
+      const redirectUrl = headers.get('location');
+      this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
+
+      const body = await res.text();
+      console.log(body);
+      if (!this._checkoutKey) {
+        const match = body.match(
+          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
+        );
+
+        if (match) {
+          [, this._checkoutKey] = match;
+          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+        }
+      }
+
+      // check if redirected
+      if (redirectUrl) {
+        if (/processing/i.test(redirectUrl)) {
+          this._captchaToken = '';
+          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          return States.PROCESS_PAYMENT;
+        }
+
+        if (/checkpoint/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          return States.GO_TO_CHECKPOINT;
+        }
+
+        if (/password/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          await this._delayer;
+          return States.SUBMIT_PAYMENT;
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
+          }
+
+          try {
+            await this._request(redirectUrl, {
+              method: 'GET',
+              compress: true,
+              agent: proxy,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                ...getHeaders({ url, apiKey }),
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          return States.QUEUE;
+        }
+
+        if (/stock_problems/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          await this._delayer;
+          return States.COMPLETE_PAYMENT;
+        }
+      }
+
+      if ((/captcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        return States.CAPTCHA;
+      }
+
+      const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
+      if (match && /review/i.test(match)) {
+        this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+        return States.COMPLETE_PAYMENT;
+      }
+
+      if (match && /payment/i.test(match)) {
+        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+        return States.SUBMIT_PAYMENT;
+      }
+
+      if (match && /shipping/i.test(match)) {
+        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+        return States.SUBMIT_SHIPPING;
+      }
+
+      if (match && /process/i.test(match)) {
+        this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+        return States.PROCESS_PAYMENT;
+      }
+
+      this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+      return States.SUBMIT_SHIPPING;
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Submit shipping .\n\n %j %j',
@@ -3831,10 +4129,8 @@ class TaskRunnerPrimitive {
 
       const body = await res.text();
       const $ = cheerio.load(body, {
-        xmlMode: true,
+        xmlMode: false,
         normalizeWhitespace: true,
-        recognizeCDATA: true,
-        ignoreWhitespace: true,
       });
 
       const priceRecap = $('.total-recap__final-price').attr('data-checkout-payment-due-target');
@@ -3886,6 +4182,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -3937,6 +4234,13 @@ class TaskRunnerPrimitive {
         'form.edit_checkout',
         'input, select, textarea, button',
       );
+
+      // recaptcha sitekey parser...
+      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (match && match.length) {
+        [, this._context.task.site.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
@@ -4136,6 +4440,7 @@ class TaskRunnerPrimitive {
             redirect: 'manual',
             follow: 0,
             headers: {
+              ...getHeaders({ url, apiKey }),
               'Upgrade-Insecure-Requests': 1,
               'User-Agent': userAgent,
               Connection: 'Keep-Alive',
@@ -4235,8 +4540,8 @@ class TaskRunnerPrimitive {
       complete: 1,
       s: this._paymentToken,
       checkout: {
-        shipping_rate: {
-          id,
+        shipping_line: {
+          handle: id,
         },
       },
     };
@@ -4286,7 +4591,7 @@ class TaskRunnerPrimitive {
       this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       const body = await res.text();
-
+      console.log(body);
       if (!this._checkoutKey) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
@@ -4336,6 +4641,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -4383,7 +4689,8 @@ class TaskRunnerPrimitive {
         return States.PROCESS_PAYMENT;
       }
 
-      return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
+      this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+      return States.SUBMIT_PAYMENT;
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Post Payment.\n\n %j %j',
@@ -4521,6 +4828,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -4598,6 +4906,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -4776,6 +5085,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -4837,6 +5147,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',

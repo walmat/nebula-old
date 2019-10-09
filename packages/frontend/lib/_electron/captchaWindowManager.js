@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { session: Session, Notification } = require('electron');
 const Path = require('path');
+const { parseURL } = require('whatwg-url');
 const { differenceInSeconds } = require('date-fns');
 
 const { createCaptchaWindow, createYouTubeWindow, urls } = require('./windows');
@@ -54,11 +55,7 @@ class CaptchaWindowManager {
     /**
      * Current Harvest State
      */
-    this._harvestStatus = {
-      state: HARVEST_STATES.IDLE,
-      runnerId: null,
-      siteKey: null,
-    };
+    this._harvestStatus = {};
 
     this.validateSender = this.validateSender.bind(this);
 
@@ -97,18 +94,19 @@ class CaptchaWindowManager {
     );
 
     if (nebulaEnv.isDevelopment()) {
-      context.ipc.on('debug', (ev, type) => {
+      context.ipc.on('debug', (ev, type, sitekey) => {
         switch (type) {
           case 'viewCwmQueueStats': {
             ev.sender.send(
               'debug',
               type,
-              `Queue Line Length: ${this._tokenQueue.lineLength}, Backlog Length: ${this._tokenQueue.backlogLength}`,
+              `Queue Line Length: ${this._tokenQueue.getWaitQueueLengthForSitekey(sitekey)},
+               Backlog Length: ${this._tokenQueue.getBackLogLengthForSitekey(sitekey)}`,
             );
             break;
           }
           case 'viewCwmHarvestState': {
-            ev.sender.send('debug', type, `State: ${this._harvestStatus.state}`);
+            ev.sender.send('debug', type, `State: ${this._harvestStatus[sitekey].state}`);
             break;
           }
           default: {
@@ -191,19 +189,38 @@ class CaptchaWindowManager {
    * If no captcha windows are present, one is created
    */
   async startHarvesting(runnerId, sitekey, host) {
-    this._harvestStatus = {
+    if (!this._harvestStatus[sitekey]) {
+      this._harvestStatus[sitekey] = {};
+    }
+
+    this._harvestStatus[sitekey] = {
       state: HARVEST_STATES.ACTIVE,
       runnerId,
       sitekey,
       host,
     };
 
-    // TODO: we should add some logic to spawn more than just one window if lots of tasks are requesting...
-    if (!this._captchaWindows[sitekey] || !this._captchaWindows[sitekey].length) {
-      this.spawnCaptchaWindow();
+    console.log(this._captchaWindows);
+
+    if (
+      !this._captchaWindows[sitekey] ||
+      (this._captchaWindows[sitekey] && !Object.values(this._captchaWindows[sitekey]).length)
+    ) {
+      this.spawnCaptchaWindow({ host, sitekey });
     } else {
+      // if we're not at our limit yet, spawn another window to help solving
+      if (Object.values(this._captchaWindows[sitekey]).length < MAX_HARVEST_CAPTCHA_COUNT) {
+        this.spawnCaptchaWindow({ host, sitekey });
+      }
+
       await Promise.all(
         Object.values(this._captchaWindows[sitekey]).map(async (win, idx) => {
+          const url = win.webContents.getURL();
+          const current = parseURL(url);
+          const newHost = parseURL(host);
+          if (current && newHost && newHost.host !== current.host) {
+            await win.loadURL(host);
+          }
           await new Promise(resolve => setTimeout(resolve, idx * 250));
           win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, sitekey, host);
         }),
@@ -217,16 +234,19 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
-  suspendHarvesting(runnerId, siteKey, host) {
-    this._harvestStatus = {
+  suspendHarvesting(runnerId, sitekey, host) {
+    if (!this._harvestStatus[sitekey]) {
+      this._harvestStatus[sitekey] = {};
+    }
+
+    this._harvestStatus[sitekey] = {
       state: HARVEST_STATES.SUSPEND,
       runnerId,
-      siteKey,
+      sitekey,
       host,
     };
-    // TODO: this should be sitekey specific...
-    Object.values(this._captchaWindows).forEach(group =>
-      group.map(win => win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey, host)),
+    Object.values(this._captchaWindows[sitekey]).forEach(group =>
+      group.map(win => win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, sitekey, host)),
     );
   }
 
@@ -236,17 +256,23 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
-  stopHarvesting(runnerId, siteKey, host) {
-    this._harvestStatus = {
+  stopHarvesting(runnerId, sitekey, host) {
+    console.log(this._harvestStatus, sitekey);
+    if (!this._harvestStatus[sitekey]) {
+      this._harvestStatus[sitekey] = {};
+    }
+
+    this._harvestStatus[sitekey] = {
       state: HARVEST_STATES.IDLE,
       runnerId: null,
-      siteKey: null,
-      host: null,
+      sitekey,
+      host,
     };
-    // TODO: this should be sitekey specific...
-    Object.values(this._captchaWindows).forEach(group =>
-      group.map(win => win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey, host)),
-    );
+
+    for (let i = 0; i < Object.values(this._captchaWindows[sitekey]).length; i += 1) {
+      const window = this._captchaWindows[sitekey][i];
+      window.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, sitekey, host);
+    }
   }
 
   /**
@@ -262,16 +288,30 @@ class CaptchaWindowManager {
    * Create a captcha window and show it
    */
   spawnCaptchaWindow(options = {}) {
-    const { state, runnerId, sitekey, host } = this._harvestStatus;
+    const { host: domain, sitekey: key } = options;
 
+    if (!this._harvestStatus[key]) {
+      this._harvestStatus[key] = {
+        state: HARVEST_STATES.IDLE,
+        runnerId: null,
+        sitekey: key || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
+        host: domain || 'http://checkout.shopify.com',
+      };
+    }
+
+    const { state, runnerId, sitekey, host } = this._harvestStatus[key];
+
+    console.log(this._harvestStatus);
     if (!this._captchaWindows[sitekey]) {
       this._captchaWindows[sitekey] = [];
     }
 
     // Prevent more than 5 windows from spawning per sitekey
     if (this._captchaWindows[sitekey].length >= 5) {
+      // TODO: notify user of harvester limit
       return null;
     }
+
     if (!this._context.captchaServerManager.isRunning) {
       console.log('[DEBUG]: Starting captcha server');
       this._context.captchaServerManager.start();
@@ -309,7 +349,7 @@ class CaptchaWindowManager {
       proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
       proxyBypassRules: '.google.com,.gstatic.com,.youtube.com',
     });
-    win.loadURL(host || urls.get('captcha'));
+    win.loadURL(host);
     win.on('ready-to-show', () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`[DEBUG]: Window was opened, id = ${winId}`);
@@ -333,7 +373,7 @@ class CaptchaWindowManager {
         }),
     );
 
-    win.webContents.once('did-finish-load', () => {
+    win.webContents.once('did-finish-load', async () => {
       CaptchaWindowManager.setProxy(win, {});
 
       // If we are actively harvesting, start harvesting on the new window as well
@@ -490,10 +530,13 @@ class CaptchaWindowManager {
    * _and_ the number of tokens in the backlog is 0.
    */
   _handleTokenExpirationUpdate() {
-    const { state, runnerId, siteKey, host } = this._harvestStatus;
-    if (this._tokenQueue.backlogLength === 0 && state === HARVEST_STATES.SUSPEND) {
+    const { state, runnerId, sitekey, host } = this._harvestStatus;
+    if (
+      this._tokenQueue.getBackLogLengthForSitekey(sitekey) === 0 &&
+      state === HARVEST_STATES.SUSPEND
+    ) {
       console.log('[DEBUG]: Resuming harvesters...');
-      this.startHarvesting(runnerId, siteKey, host);
+      this.startHarvesting(runnerId, sitekey, host);
     }
   }
 
@@ -519,7 +562,7 @@ class CaptchaWindowManager {
       timestamp: new Date(),
     });
 
-    if (this._tokenQueue.backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {
+    if (this._tokenQueue.getBackLogLengthForSitekey(sitekey) >= MAX_HARVEST_CAPTCHA_COUNT) {
       console.log('[DEBUG]: Token Queue is greater than max, suspending...');
       this.suspendHarvesting(runnerId, sitekey);
     }

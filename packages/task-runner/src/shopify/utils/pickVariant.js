@@ -33,8 +33,8 @@ async function pickVariant(variants, size, url, logger = { log: () => {} }, rand
     // Determine if we are checking for shoe sizes or not
     let sizeMatcher;
     if (/[0-9]+/.test(size)) {
-      // We are matching a shoe size
-      sizeMatcher = s => new RegExp(`^${size}`, 'i').test(s);
+      // We are matching a shoe size so strip all non-digits from the size
+      sizeMatcher = s => new RegExp(`^${size}`, 'i').test(s.replace(/.*(?=[0-9])/g, ''));
     } else {
       // We are matching a garment size
       sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());

@@ -61,6 +61,8 @@ export class NavbarPrimitive extends PureComponent {
     if (window.Bridge) {
       return window.Bridge.launchCaptchaHarvester({
         backgroundColor: mapBackgroundThemeToColor[theme],
+        host: 'http://checkout.shopify.com',
+        sitekey: '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
       });
     }
     // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77

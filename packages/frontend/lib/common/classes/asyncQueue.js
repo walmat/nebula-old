@@ -22,12 +22,12 @@ class AsyncQueue {
     };
   }
 
-  get backlogLength() {
-    return Object.values(this._backlog).length;
+  getBackLogLengthForSitekey(sitekey) {
+    return Object.values(this._backlog[sitekey]).length;
   }
 
-  get lineLength() {
-    return Object.values(this._waitQueue).length;
+  getWaitQueueLengthForSitekey(sitekey) {
+    return Object.values(this._waitQueue[sitekey]).length;
   }
 
   insert(sitekey, datum) {

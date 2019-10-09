@@ -399,10 +399,10 @@ class WindowManager {
    *
    * @param {IPCEvent} ev Event data.
    */
-  _onRequestCreateNewWindow(ev, tag, opts) {
+  _onRequestCreateNewWindow(ev, tag, opts = {}) {
     if (tag === 'captcha') {
       // Use captcha window manager to spawn captcha window
-      this._captchaWindowManager.spawnCaptchaWindow(opts);
+      this._captchaWindowManager.spawnCaptchaWindow({ ...opts });
       ev.sender.send(IPCKeys.FinishCreateNewWindow);
     } else {
       try {
@@ -472,8 +472,8 @@ class WindowManager {
    *
    * Forward call to Captcha Window Manager
    */
-  startHarvestingCaptcha(runnerId, siteKey, host) {
-    this._captchaWindowManager.startHarvesting(runnerId, siteKey, host);
+  startHarvestingCaptcha(runnerId, sitekey, host) {
+    this._captchaWindowManager.startHarvesting(runnerId, sitekey, host);
   }
 
   /**
@@ -481,8 +481,9 @@ class WindowManager {
    *
    * Forward call to Captcha Window Manager
    */
-  stopHarvestingCaptcha(runnerId, siteKey) {
-    this._captchaWindowManager.stopHarvesting(runnerId, siteKey);
+  stopHarvestingCaptcha(runnerId, sitekey, host) {
+    console.log(sitekey, host);
+    this._captchaWindowManager.stopHarvesting(runnerId, sitekey, host);
   }
 
   /**

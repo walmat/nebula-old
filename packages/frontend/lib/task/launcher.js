@@ -342,7 +342,7 @@ class TaskLauncher {
     }
   }
 
-  _stopHarvestEventHandler(_, runnerId, sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
+  _stopHarvestEventHandler(_, runnerId, sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF', host = 'http://checkout.shopify.com') {
     // Decrement the semaphore only if we had previously started harvesting for this runner
     if (this._captchaRequesters[runnerId]) {
       let cancelCount = 0;
@@ -361,7 +361,7 @@ class TaskLauncher {
     // If we drop back down to 0 requesters, stop the harvesting.
     if (this._captchaSemaphore === 0) {
       console.log('[DEBUG]: No more tokens requested, stopping the harvester');
-      this._context.windowManager.stopHarvestingCaptcha(runnerId, sitekey);
+      this._context.windowManager.stopHarvestingCaptcha(runnerId, sitekey, host);
     }
   }
 }

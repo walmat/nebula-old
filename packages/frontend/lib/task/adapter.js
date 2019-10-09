@@ -44,12 +44,12 @@ class TaskManagerAdapter {
 
     // TODO: Research if this should always listened to, or if we can dynamically
     //       Start/Stop listening like we with task events
-    this._taskManager._events.on(TaskManager.Events.StartHarvest, (...args) =>
-      ipcRenderer.send(IPCKeys.RequestStartHarvestCaptcha, ...args),
-    );
-    this._taskManager._events.on(TaskManager.Events.StopHarvest, (...args) =>
-      ipcRenderer.send(IPCKeys.RequestStopHarvestCaptcha, ...args),
-    );
+    this._taskManager._events.on(TaskManager.Events.StartHarvest, (...args) => {
+      ipcRenderer.send(IPCKeys.RequestStartHarvestCaptcha, ...args);
+    });
+    this._taskManager._events.on(TaskManager.Events.StopHarvest, (...args) => {
+      ipcRenderer.send(IPCKeys.RequestStopHarvestCaptcha, ...args);
+    });
 
     ipcRenderer.on(IPCKeys.RequestAbortAllTasksForClose, async () => {
       await this.abortAllTasks();

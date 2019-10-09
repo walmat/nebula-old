@@ -56,6 +56,14 @@ const _harvestCaptchaToken = (runnerId, token, siteKey, host) => {
   util.sendEvent(IPCKeys.HarvestCaptcha, runnerId, token, siteKey, host);
 };
 
+const _registerForReloadCaptcha = callback => {
+  util.handleEvent(IPCKeys.RequestReloadHost, callback);
+};
+
+const _deregisterForReloadCaptcha = callback => {
+  util.removeEvent(IPCKeys.RequestReloadHost, callback);
+};
+
 const _registerForStartHarvestCaptcha = callback => {
   util.handleEvent(IPCKeys.StartHarvestCaptcha, callback);
 };
@@ -98,6 +106,10 @@ process.once('loaded', () => {
       stop: {
         register: _registerForStopHarvestCaptcha,
         deregister: _deregisterForStopHarvestCaptcha,
+      },
+      reload: {
+        register: _registerForReloadCaptcha,
+        deregister: _deregisterForReloadCaptcha,
       },
       getPosition: _getPosition,
     },
