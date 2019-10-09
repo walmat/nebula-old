@@ -149,15 +149,17 @@ class TaskManager {
     this._events.emit(Events.SendProxy, runnerId, newProxy);
   }
 
-  async handleProduct(runnerId, product, parseType) {
+  async handleProduct(runnerIds, product, parseType) {
     const interval = setInterval(() => {
-      const runner = Object.values(this._runners).find(r => r.id === runnerId);
+      [runnerIds].forEach(id => {
+        const runner = Object.values(this._runners).find(r => r.id === id);
 
-      if (!runner || (runner && runner._aborted)) {
-        clearInterval(interval);
-      }
+        if (!runner || (runner && runner._aborted)) {
+          clearInterval(interval);
+        }
 
-      this._events.emit(Events.ProductFound, runnerId, product, parseType);
+        this._events.emit(Events.ProductFound, id, product, parseType);
+      });
     }, 1000);
   }
 
@@ -204,6 +206,9 @@ class TaskManager {
       case ParseType.Url: {
         const { url } = product1;
         return product2.url.toUpperCase() === url.toUpperCase();
+      }
+      case ParseType.Variant: {
+        return product1.variant === product2.variant;
       }
       default:
         return false;
@@ -294,7 +299,7 @@ class TaskManager {
    * is used to merge all task runner events into a single stream, so only one
    * event handler is needed to consume all task runner events.
    *
-   * @param {String} runnerId the id of the runner that emitted the event
+   * @param {String} runnerId the id of the runner/monitor that emitted the event
    * @param {String} message the status message
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
@@ -309,8 +314,10 @@ class TaskManager {
 
     if (event === RunnerEvents.MonitorStatus) {
       this._logger.silly('Reemitting this monitor update...');
-      const { taskId } = this._monitors[runnerId];
-      this._events.emit('status', taskId, message, event);
+      const { taskIds } = this._monitors[runnerId];
+      for (let i = 0; i < taskIds.length; i += 1) {
+        this._events.emit('status', taskIds[i], message, event);
+      }
     }
   }
 
@@ -418,11 +425,13 @@ class TaskManager {
   /**
    * Called after a task gets updated and needs to restart
    */
-  async restart(task, options = {}) {
+  async restart(task) {
     this._logger.silly('Restarting task %s', task.id);
 
     // TODO: Split monitor/runner abort event calls up into separate events..
-    const monitorId = Object.keys(this._monitors).find(k => this._monitors[k].taskId === task.id);
+    const monitorId = Object.keys(this._monitors).find(k =>
+      this._monitors[k].taskIds.some(id => id === task.id),
+    );
     const runnerId = Object.keys(this._runners).find(k => this._runners[k].taskId === task.id);
     const runner = this._runners[runnerId];
     // TODO: comparisons here.. we should only reset the monitor if the product data/site changes
@@ -554,9 +563,6 @@ class TaskManager {
         case Events.ProductFound: {
           handler = (id, product, parseType) => {
             runner._handleProduct(id, product, parseType);
-            if (monitor) {
-              monitor._handleProduct(id, product, parseType);
-            }
           };
           break;
         }
@@ -676,9 +682,39 @@ class TaskManager {
 
           runner = new ShopifyRunner(context, openProxy, parseType);
           runner.parseType = parseType;
-          monitor = new ShopifyMonitor(context, openProxy, parseType);
-          monitor.site = task.site.url;
-          monitor.type = parseType;
+
+          // prevent multiple monitors on same site with same data
+          const existing = await Object.values(this._monitors).find(m => {
+            if (!m) {
+              return null;
+            }
+
+            const isSameProduct = TaskManager._compareProductInput(
+              m._task.product,
+              context.task.product,
+              parseType,
+            );
+
+            this._logger.debug('Same product data?: %j', isSameProduct);
+
+            if (isSameProduct) {
+              return m;
+            }
+
+            return null;
+          });
+
+          this._logger.debug('Existing monitor? %j', existing);
+
+          if (existing) {
+            this._logger.debug('Existing monitor found! Just adding ids');
+            existing.ids.push(context.id);
+            existing.taskIds.push(context.taskId);
+          } else {
+            monitor = new ShopifyMonitor(context, openProxy, parseType);
+            monitor.site = task.site.url;
+            monitor.type = parseType;
+          }
         } else if (type === RunnerTypes.ShippingRates) {
           runner = new RateFetcher(runnerId, task, openProxy, this._loggerPath);
         }
@@ -704,9 +740,40 @@ class TaskManager {
 
         runner = new SupremeRunner(context, openProxy, ParseType.Keywords);
         runner.parseType = ParseType.Keywords;
-        monitor = new SupremeMonitor(context, openProxy);
-        monitor.site = task.site.url;
-        monitor.type = ParseType.Keywords;
+
+        // prevent multiple monitors on same site with same data
+        const existing = await Object.values(this._monitors).find(m => {
+          if (!m) {
+            return null;
+          }
+
+          const isSameProduct = TaskManager._compareProductInput(
+            m._task.product,
+            context.task.product,
+            ParseType.Keywords,
+          );
+
+          this._logger.debug('Same product data?: %j', isSameProduct);
+
+          if (isSameProduct && m._task.category === context.task.category) {
+            return m;
+          }
+
+          return null;
+        });
+
+        this._logger.debug('Existing monitor? %j', existing);
+
+        if (existing) {
+          this._logger.debug('Existing monitor found! Just adding ids');
+          existing.ids.push(context.id);
+          existing.taskIds.push(context.taskId);
+        } else {
+          this._logger.debug('No monitor found! Creating a new monitor');
+          monitor = new SupremeMonitor(context, openProxy);
+          monitor.site = task.site.url;
+          monitor.type = ParseType.Keywords;
+        }
         break;
       }
       default:

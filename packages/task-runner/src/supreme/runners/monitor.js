@@ -4,7 +4,7 @@ import AbortController from 'abort-controller';
 import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
-import { filter, isEqual, every, some, sortBy } from 'lodash';
+import { filter, every, some, sortBy } from 'lodash';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
 const { Events } = require('../../constants').Runner;
@@ -17,9 +17,9 @@ const { capitalizeFirstLetter, waitForDelay, getRandomIntInclusive } = require('
 // SUPREME
 class Monitor {
   constructor(context, proxy, type = ParseType.Keywords) {
-    this.id = context.id;
+    this.ids = [context.id];
     this._task = context.task;
-    this.taskId = context.taskId;
+    this.taskIds = [context.taskId];
     this.proxy = proxy;
     this._jar = context.jar;
     this._events = context.events;
@@ -39,7 +39,6 @@ class Monitor {
 
     this._state = States.PARSE;
     this._prevState = States.PARSE;
-    this.shouldBanProxy = 0;
 
     const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
 
@@ -68,7 +67,6 @@ class Monitor {
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
 
-    this._events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
   }
 
@@ -85,24 +83,6 @@ class Monitor {
     }
   }
 
-  async _compareProductInput(product, parseType) {
-    // we only care about keywords/url matching here...
-    switch (parseType) {
-      case ParseType.Keywords: {
-        const { pos_keywords: posKeywords, neg_keywords: negKeywords } = this._context.task.product;
-        const samePositiveKeywords = isEqual(product.pos_keywords.sort(), posKeywords.sort());
-        const sameNegativeKeywords = isEqual(product.neg_keywords.sort(), negKeywords.sort());
-        return samePositiveKeywords && sameNegativeKeywords;
-      }
-      case ParseType.Url: {
-        const { url } = this._context.task.product;
-        return product.url.toUpperCase() === url.toUpperCase();
-      }
-      default:
-        return false;
-    }
-  }
-
   async _handleParsingErrors(errors) {
     if (this._context.aborted || this._context.productFound) {
       this._logger.silly('Abort Detected, Stopping...');
@@ -110,20 +90,22 @@ class Monitor {
     }
 
     const { monitorDelay } = this._context.task;
-    let delayStatus;
     let ban = false; // assume we have a ban
     errors.forEach(({ status }) => {
       if (!status) {
         return;
       }
 
-      if (!/(?!([23][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) {
+      console.log(status);
+
+      if (
+        (!/(?!([23][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) &&
+        status !== ErrorCodes.ProductNotFound &&
+        ErrorCodes.NoStylesFound &&
+        ErrorCodes.VariantNotFound
+      ) {
         // 400+ status code or connection error
         ban = true;
-      }
-
-      if (!delayStatus && (status === ErrorCodes.ProductNotFound || status >= 400)) {
-        delayStatus = status; // find the first error that is either a product not found or 4xx response
       }
     });
 
@@ -137,24 +119,6 @@ class Monitor {
     this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
     await this._delayer;
     return States.PARSE;
-  }
-
-  async _handleProduct(id, product, parseType) {
-    if (parseType === this._parseType) {
-      const isSameProductData = await this._compareProductInput(product, parseType);
-
-      if (
-        (isSameProductData && !this._context.productFound) ||
-        (id === this.id && !this._context.productFound)
-      ) {
-        this._context.task.product = {
-          ...this._context.task.product,
-          ...product,
-        };
-
-        this._context.productFound = true;
-      }
-    }
   }
 
   _handleAbort(id) {
@@ -173,7 +137,9 @@ class Monitor {
 
   async swapProxies() {
     // emit the swap event
-    this._events.emit(Events.SwapMonitorProxy, this.id, this.proxy, this.shouldBanProxy);
+
+    // index 0 will always be the origination task.. so let's use that to swap
+    this._events.emit(Events.SwapMonitorProxy, this.ids[0], this.proxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
@@ -182,8 +148,6 @@ class Monitor {
         clearTimeout(timeout);
         // reset the timeout
         timeout = null;
-        // reset the ban flag
-        this.shouldBanProxy = 0;
         // finally, resolve with the new proxy
         resolve(proxy);
       };
@@ -227,7 +191,7 @@ class Monitor {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        this._events.emit(event, this._context.id, payload, event);
+        this._events.emit(event, this.ids[0], payload, event);
         break;
       }
       default: {
@@ -409,11 +373,7 @@ class Monitor {
       this._logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
-      this._logger.debug(
-        'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
-        proxy,
-        this.shouldBanProxy,
-      );
+      this._logger.debug('PROXY IN _handleSwapProxies: %j', proxy);
       // Proxy is fine, update the references
       if (proxy || proxy === null) {
         if (proxy === null) {
@@ -438,7 +398,6 @@ class Monitor {
           }
           this._context.proxy = p;
           this._context.rawProxy = proxy.raw;
-          this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitMonitorEvent({
             message: `Swapped proxy to: ${proxy.raw}`,
@@ -591,7 +550,7 @@ class Monitor {
 
         this._events.emit(
           TaskManagerEvents.ProductFound,
-          this.id,
+          this.ids,
           this._context.task.product,
           this._parseType,
         );
@@ -611,9 +570,28 @@ class Monitor {
     }
   }
 
-  async _handleError() {
-    this._events.emit(TaskManagerEvents.Abort, this.id);
+  async _handleDone() {
+    if (this._context.aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    this._events.emit(
+      TaskManagerEvents.ProductFound,
+      this.ids,
+      this._context.task.product,
+      this._parseType,
+    );
+
+    this._delayer = waitForDelay(500, this._aborter.signal);
+    await this._delayer;
+
     return States.DONE;
+  }
+
+  async _handleError() {
+    this._events.emit(TaskManagerEvents.Abort, this.ids);
+    return States.ABORT;
   }
 
   async _handleStepLogic(currentState) {
@@ -627,7 +605,7 @@ class Monitor {
       [States.PARSE]: this._handleParse,
       [States.SWAP]: this._handleSwapProxies,
       [States.ERROR]: this._handleError,
-      [States.DONE]: () => States.DONE,
+      [States.DONE]: this._handleDone,
       [States.ABORT]: () => States.DONE,
     };
 
@@ -670,12 +648,7 @@ class Monitor {
   async start() {
     let shouldStop = false;
 
-    if (this._context.productFound) {
-      this._state = States.DONE;
-      shouldStop = true;
-    }
-
-    while (this._state !== States.DONE && !shouldStop) {
+    while (this._state !== States.ABORT && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.run();
     }
