@@ -23,7 +23,10 @@ class AsyncQueue {
   }
 
   getBackLogLengthForSitekey(sitekey) {
-    return Object.values(this._backlog[sitekey]).length;
+    if (this._backlog[sitekey]) {
+      return Object.values(this._backlog[sitekey]).length;
+    }
+    return ;
   }
 
   getWaitQueueLengthForSitekey(sitekey) {
@@ -126,8 +129,8 @@ class AsyncQueue {
       intervalId: null,
     };
     // TODO:
-    // Start interval if we have items in the backlog
-    if (this.backlogLength > 0) {
+    // Start interval if we have keys in the backlog
+    if (this._backlog && Object.values(this._backlog).length) {
       this._startExpirationInterval();
     }
   }
@@ -143,8 +146,8 @@ class AsyncQueue {
       const { filterFunc, thisArg, onUpdate } = this._expiration;
       // set the filter for each backlog object
       Object.values(this._backlog).forEach(backlog => backlog.filter(filterFunc, thisArg));
-      // this._backlog = this._backlog.filter(filterFunc, thisArg);
-      if (this.backlogLength === 0) {
+      
+      if (this._backlog && !Object.values(this._backlog).length) {
         this._stopExpirationInterval();
       }
       if (onUpdate) {
