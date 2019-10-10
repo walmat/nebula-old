@@ -684,12 +684,12 @@ class TaskManager {
           runner.parseType = parseType;
 
           // prevent multiple monitors on same site with same data
-          const existing = await Object.values(this._monitors).find(m => {
+          const existing = await Object.values(this._monitors).find(async m => {
             if (!m) {
               return null;
             }
 
-            const isSameProduct = TaskManager._compareProductInput(
+            const isSameProduct = await TaskManager._compareProductInput(
               m._task.product,
               context.task.product,
               parseType,
@@ -697,7 +697,7 @@ class TaskManager {
 
             this._logger.debug('Same product data?: %j', isSameProduct);
 
-            if (isSameProduct) {
+            if (isSameProduct && m._task.site.url === context.task.site.url) {
               return m;
             }
 
@@ -742,12 +742,12 @@ class TaskManager {
         runner.parseType = ParseType.Keywords;
 
         // prevent multiple monitors on same site with same data
-        const existing = await Object.values(this._monitors).find(m => {
+        const existing = await Object.values(this._monitors).find(async m => {
           if (!m) {
             return null;
           }
 
-          const isSameProduct = TaskManager._compareProductInput(
+          const isSameProduct = await TaskManager._compareProductInput(
             m._task.product,
             context.task.product,
             ParseType.Keywords,
@@ -755,7 +755,7 @@ class TaskManager {
 
           this._logger.debug('Same product data?: %j', isSameProduct);
 
-          if (isSameProduct && m._task.category === context.task.category) {
+          if (isSameProduct && m._task.category === context.task.category && m._task.site.url === context.task.site.url) {
             return m;
           }
 

@@ -34,7 +34,7 @@ class Monitor {
     // eslint-disable-next-line global-require
     const _request = require('fetch-cookie')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
-      timeout: 120000, // to be overridden as necessary
+      timeout: 30000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
     this._delayer = null;
@@ -321,10 +321,12 @@ class Monitor {
       // handle parsing errors
       return this._handleParsingErrors(errors);
     }
+
     this._logger.debug('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.debug('MONITOR: Mapping variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     this._context.task.product.image = parsed.featured_image;
+    this._context.task.product.hash = parsed.hash || '';
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._context.task.product.variants = parsed.variants.map(v =>

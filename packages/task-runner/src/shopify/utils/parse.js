@@ -20,10 +20,6 @@ function getParseType(product, site, platform = Platforms.Shopify) {
 
   switch (platform) {
     case Platforms.Shopify: {
-      if (site && isSpecialSite(site) && !product.variant) {
-        return ParseType.Special;
-      }
-
       if (product.variant) {
         return ParseType.Variant;
       }
@@ -59,22 +55,6 @@ function getParseType(product, site, platform = Platforms.Shopify) {
     }
     default:
       break;
-  }
-
-  if (site && isSpecialSite(site) && !product.variant) {
-    return ParseType.Special;
-  }
-
-  if (product.variant) {
-    return ParseType.Variant;
-  }
-
-  if (product.url) {
-    return ParseType.Url;
-  }
-
-  if (product.pos_keywords && product.neg_keywords) {
-    return ParseType.Keywords;
   }
 
   return ParseType.Unknown;
@@ -242,6 +222,7 @@ function matchKeywords(products, keywords, _filter, logger, returnAll) {
 
   const matches = filter(products, product => {
     const title = product.title.toUpperCase();
+    const { body_html: bodyHtml } = product;
     const rawHandle = product.handle || '';
     const handle = rawHandle.replace(new RegExp('-', 'g'), ' ').toUpperCase();
 
@@ -253,7 +234,10 @@ function matchKeywords(products, keywords, _filter, logger, returnAll) {
     if (keywords.pos.length > 0) {
       pos = every(
         keywords.pos.map(k => k.toUpperCase()),
-        keyword => title.indexOf(keyword.toUpperCase()) > -1 || handle.indexOf(keyword) > -1,
+        keyword =>
+          title.indexOf(keyword.toUpperCase()) > -1 ||
+          handle.indexOf(keyword) > -1 ||
+          bodyHtml.indexOf(keyword) > -1,
       );
     }
 
@@ -261,7 +245,10 @@ function matchKeywords(products, keywords, _filter, logger, returnAll) {
     if (keywords.neg.length > 0) {
       neg = some(
         keywords.neg.map(k => k.toUpperCase()),
-        keyword => title.indexOf(keyword) > -1 || handle.indexOf(keyword) > -1,
+        keyword =>
+          title.indexOf(keyword) > -1 ||
+          handle.indexOf(keyword) > -1 ||
+          bodyHtml.indexOf(keyword) > -1,
       );
     }
     return pos && !neg;
