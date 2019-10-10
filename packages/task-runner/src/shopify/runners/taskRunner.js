@@ -230,7 +230,6 @@ class TaskRunnerPrimitive {
       } else if (type === DelayTypes.monitor) {
         this._context.task.monitorDelay = delay;
       }
-      console.log(this._delayer);
       if (this._delayer) {
         this._delayer.clear();
       }
