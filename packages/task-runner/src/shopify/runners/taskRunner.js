@@ -3940,7 +3940,6 @@ class TaskRunnerPrimitive {
       this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       const body = await res.text();
-      console.log(body);
       if (!this._checkoutKey) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
