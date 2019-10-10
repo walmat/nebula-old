@@ -13,6 +13,7 @@ class WebhookManager {
       } catch (e) {
         this._logger.error('Error sending webhook! %j', e);
         // fail silently...
+        this.notify({ embed, client });
       }
     }, 2500);
   }

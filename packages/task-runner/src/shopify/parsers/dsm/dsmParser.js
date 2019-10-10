@@ -105,7 +105,6 @@ class DsmParser extends SpecialParser {
     this._logger.silly('%s: Product script found, returning parsed output', this._name);
 
     const parsedProduct = JSON.parse(product.html());
-
     // Calcalate and store hash for this product
     const hash = await this.parseProductInfoPageForHash($, this._task.site);
     if (hash) {
