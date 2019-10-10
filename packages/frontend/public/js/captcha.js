@@ -225,8 +225,6 @@ async function _registerStartHandler(_, runnerId, siteKey, host) {
     const dataSize = /supreme/i.test(_host) ? 'invisible' : 'normal';
     const script = document.createElement('script');
     script.src = 'https://www.google.com/recaptcha/api.js';
-    script.async = true;
-    script.defer = true;
     const container = document.createElement('div');
     container.setAttribute('id', 'captchaContainer');
     container.setAttribute('class', 'g-recaptcha');

@@ -36,7 +36,7 @@ class TaskManagerAdapter {
     };
 
     this._taskEventMessageSender = () => {
-      if (this.statusMessageBuffer) {
+      if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
         this.statusMessageBuffer = {};
       }
@@ -59,7 +59,7 @@ class TaskManagerAdapter {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
         if (!this._messageInterval) {
-          // batch status updates every 1 second
+          // batch status updates every .25s
           this._messageInterval = setInterval(this._taskEventMessageSender, 250);
         }
       }

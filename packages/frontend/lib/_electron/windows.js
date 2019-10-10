@@ -13,7 +13,7 @@ const _defaultWebPreferences = {
   webSecurity: true,
   allowRunningInsecureContent: false,
   experimentalCanvasFeatures: true,
-  experimentalFeatures: false,
+  experimentalFeatures: true,
   blinkFeatures: '',
 };
 
@@ -37,58 +37,58 @@ const _createWindow = options => {
   const win = new Electron.BrowserWindow(browserWindowOptions);
 
   // Attach CSP Header by Default
-  win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    // The majority of styling is currently inlne, so we have to allow this!
-    // TODO: move away from inline styles!
-    let cspHeaders = [
-      "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
-    ];
-    if (nebulaEnv.isDevelopment()) {
-      // If in dev mode, allow inline scripts to run (for developer tool extensions)
-      cspHeaders = [
-        "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
-      ];
-    }
-    callback({
-      ...details,
-      responseHeaders: {
-        ...details.responseHeaders,
-        'Content-Security-Policy': cspHeaders,
-      },
-    });
-  });
+  // win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+  //   // The majority of styling is currently inlne, so we have to allow this!
+  //   // TODO: move away from inline styles!
+  //   let cspHeaders = [
+  //     "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
+  //   ];
+  //   if (nebulaEnv.isDevelopment()) {
+  //     // If in dev mode, allow inline scripts to run (for developer tool extensions)
+  //     cspHeaders = [
+  //       "default-src 'none'; connect-src 'self' https: wss:; child-src 'self' blob:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http://* https://* 'unsafe-inline' 'unsafe-eval' blob:; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:; worker-src blob: https:;",
+  //     ];
+  //   }
+  //   callback({
+  //     ...details,
+  //     responseHeaders: {
+  //       ...details.responseHeaders,
+  //       'Content-Security-Policy': cspHeaders,
+  //     },
+  //   });
+  // });
 
-  win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
-    const url = new URL(details.url);
-    const { host, origin } = url;
+  // win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
+  //   const url = new URL(details.url);
+  //   const { host, origin } = url;
 
-    callback({
-      cancel: false,
-      ...details,
-      requestHeaders: {
-        ...details.requestHeaders,
-        host,
-        origin,
-        DNT: 1,
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
-      },
-    });
-  });
+  //   callback({
+  //     cancel: false,
+  //     ...details,
+  //     requestHeaders: {
+  //       ...details.requestHeaders,
+  //       host,
+  //       origin,
+  //       DNT: 1,
+  //       'User-Agent':
+  //         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+  //     },
+  //   });
+  // });
 
-  win.webContents.session.webRequest.onBeforeSendHeaders(
-    { urls: ['https://*.google.com, https://*.gstatic.com'] },
-    (details, callback) =>
-      callback({
-        requestHeaders: {
-          ...details.requestHeaders,
-          DNT: 1,
-          'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
-          'Content-Language': 'en-US,en;q=0.9',
-        },
-      }),
-  );
+  // win.webContents.session.webRequest.onBeforeSendHeaders(
+  //   { urls: ['https://*.google.com, https://*.gstatic.com'] },
+  //   (details, callback) =>
+  //     callback({
+  //       requestHeaders: {
+  //         ...details.requestHeaders,
+  //         DNT: 1,
+  //         'User-Agent':
+  //           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+  //         'Content-Language': 'en-US,en;q=0.9',
+  //       },
+  //     }),
+  // );
 
   win.webContents.session.webRequest.onBeforeSendHeaders(
     { urls: ['https://*.amazonaws.com'] },
@@ -229,6 +229,7 @@ const createCaptchaWindow = (options = {}, webPreferences = {}) =>
     webPreferences: {
       ..._defaultWebPreferences,
       ...webPreferences,
+      webviewTag: true,
       webSecurity: false,
       nodeIntegration: true,
       nodeIntegrationInWorker: true,

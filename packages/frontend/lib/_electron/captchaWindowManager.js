@@ -206,21 +206,15 @@ class CaptchaWindowManager {
       !this._captchaWindows[sitekey] ||
       (this._captchaWindows[sitekey] && !Object.values(this._captchaWindows[sitekey]).length)
     ) {
-      this.spawnCaptchaWindow({ host, sitekey });
+      this.spawnCaptchaWindow({ runnerId, host, sitekey });
     } else {
       // if we're not at our limit yet, spawn another window to help solving
       if (Object.values(this._captchaWindows[sitekey]).length < MAX_HARVEST_CAPTCHA_COUNT) {
-        this.spawnCaptchaWindow({ host, sitekey });
+        this.spawnCaptchaWindow({ runnerId, host, sitekey });
       }
 
       await Promise.all(
         Object.values(this._captchaWindows[sitekey]).map(async (win, idx) => {
-          const url = win.webContents.getURL();
-          const current = parseURL(url);
-          const newHost = parseURL(host);
-          if (current && newHost && newHost.host !== current.host) {
-            await win.loadURL(host);
-          }
           await new Promise(resolve => setTimeout(resolve, idx * 250));
           win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, sitekey, host);
         }),
@@ -245,6 +239,11 @@ class CaptchaWindowManager {
       sitekey,
       host,
     };
+
+    if (!this._captchaWindows[sitekey]) {
+      this._captchaWindows[sitekey] = [];
+    }
+
     Object.values(this._captchaWindows[sitekey]).forEach(group =>
       group.map(win => win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, sitekey, host)),
     );
@@ -257,7 +256,6 @@ class CaptchaWindowManager {
    * harvest state to 'idle'
    */
   stopHarvesting(runnerId, sitekey, host) {
-    console.log(this._harvestStatus, sitekey);
     if (!this._harvestStatus[sitekey]) {
       this._harvestStatus[sitekey] = {};
     }
@@ -269,10 +267,16 @@ class CaptchaWindowManager {
       host,
     };
 
+    if (!this._captchaWindows[sitekey]) {
+      this._captchaWindows[sitekey] = [];
+    }
+
     for (let i = 0; i < Object.values(this._captchaWindows[sitekey]).length; i += 1) {
       const window = this._captchaWindows[sitekey][i];
       window.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, sitekey, host);
     }
+
+    console.log(this._harvestStatus);
   }
 
   /**
@@ -287,13 +291,14 @@ class CaptchaWindowManager {
   /**
    * Create a captcha window and show it
    */
-  spawnCaptchaWindow(options = {}) {
-    const { host: domain, sitekey: key } = options;
+  async spawnCaptchaWindow(options = {}) {
+    console.log(options);
+    const { runnerId: id, host: domain, sitekey: key } = options;
 
     if (!this._harvestStatus[key]) {
       this._harvestStatus[key] = {
         state: HARVEST_STATES.IDLE,
-        runnerId: null,
+        runnerId: id || null,
         sitekey: key || '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
         host: domain || 'http://checkout.shopify.com',
       };
@@ -301,7 +306,6 @@ class CaptchaWindowManager {
 
     const { state, runnerId, sitekey, host } = this._harvestStatus[key];
 
-    console.log(this._harvestStatus);
     if (!this._captchaWindows[sitekey]) {
       this._captchaWindows[sitekey] = [];
     }
@@ -336,10 +340,10 @@ class CaptchaWindowManager {
       { ...options, ...this._captchaThemeOpts },
       { session: session.session },
     );
-    win.webContents.session.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
-      '*/*',
-    );
+    // win.webContents.session.setUserAgent(
+    //   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
+    //   '*/*',
+    // );
     const winId = win.id;
     const webContentsId = win.webContents.id;
 
@@ -378,6 +382,7 @@ class CaptchaWindowManager {
 
       // If we are actively harvesting, start harvesting on the new window as well
       if (state === HARVEST_STATES.ACTIVE) {
+        console.log('[DEBUG]: Starting harvest for %s on %s with sitekey: %s', runnerId, host, sitekey);
         win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, sitekey, host);
         if (Notification.isSupported()) {
           const sound = nebulaEnv.isDevelopment()
