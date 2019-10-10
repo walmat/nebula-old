@@ -96,7 +96,6 @@ class Monitor {
         return;
       }
 
-      console.log(status);
 
       if (
         (!/(?!([23][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) &&

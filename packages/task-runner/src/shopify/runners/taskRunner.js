@@ -2075,7 +2075,6 @@ class TaskRunnerPrimitive {
       parseType,
     } = this._context;
 
-    console.log(hash);
 
     // exit if abort is detected
     if (aborted) {

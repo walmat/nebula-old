@@ -77,7 +77,6 @@ const LogTaskRow = ({
     Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
   }
 
-  console.log('rendering row %d', index);
 
   const storeCss = checkoutUrl
     ? `${classMap.store.join(' ')} checkout-ready `
