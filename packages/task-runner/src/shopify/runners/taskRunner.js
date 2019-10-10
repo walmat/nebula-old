@@ -41,7 +41,7 @@ class TaskRunnerPrimitive {
     // eslint-disable-next-line global-require
     const _request = require('fetch-cookie')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
-      timeout: 120000, // to be overridden as necessary
+      timeout: 60000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
     this._parseType = type;
@@ -100,7 +100,7 @@ class TaskRunnerPrimitive {
       this._state = States.LOGIN;
     } else if (
       /dsm uk|dsm jp|dsm sg/i.test(this._context.task.site.name) ||
-      this._context.task.type === Modes.FAST
+      (!/dsm us/i.test(this._context.task.site.name) && this._context.task.type === Modes.FAST)
     ) {
       this._state = States.CREATE_CHECKOUT;
     } else {
@@ -152,6 +152,7 @@ class TaskRunnerPrimitive {
     this._checkpointForm = '';
     this._formValues = '';
     this._isFreeCheckout = false;
+    this._isChecking = false;
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
@@ -199,7 +200,8 @@ class TaskRunnerPrimitive {
   }
 
   async _handleProduct(id, product, parseType) {
-    if (parseType === this._parseType) {
+    if (parseType === this._parseType && !this._isChecking) {
+      this._isChecking = true;
       const isSameProductData = await this._compareProductInput(product, parseType);
 
       if (
@@ -210,6 +212,8 @@ class TaskRunnerPrimitive {
           ...this._context.task.product,
           ...product,
         };
+      } else {
+        this._isChecking = false;
       }
     }
   }
@@ -484,6 +488,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', proxy: rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Logging in' });
           return States.LOGIN;
         }
 
@@ -879,6 +884,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Creating checkout' });
           return States.CREATE_CHECKOUT;
         }
 
@@ -1075,6 +1081,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Creating checkout' });
           return States.CREATE_CHECKOUT;
         }
 
@@ -1182,7 +1189,7 @@ class TaskRunnerPrimitive {
       return this._handleCreateCheckoutWallets();
     }
 
-    if (type === Modes.FAST) {
+    if (!/dsm us/i.test(name) && type === Modes.FAST) {
       return this._handleBackupCreateCheckout();
     }
 
@@ -1238,6 +1245,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Creating checkout' });
           return States.CREATE_CHECKOUT;
         }
 
@@ -1387,6 +1395,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Creating checkout' });
           return States.CREATE_CHECKOUT;
         }
 
@@ -1537,6 +1546,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Creating checkout' });
           return States.CREATE_CHECKOUT;
         }
 
@@ -1580,6 +1590,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Creating checkout' });
           return States.CREATE_CHECKOUT;
         }
         this._emitTaskEvent({ message: 'Invalid checkout!', rawProxy });
@@ -1874,6 +1885,7 @@ class TaskRunnerPrimitive {
       this._emitTaskEvent({ message, rawProxy });
       this._delayer = waitForDelay(5000, this._aborter.signal);
       await this._delayer;
+      this._emitTaskEvent({ message: 'Polling queue' });
       return States.QUEUE;
     } catch (err) {
       this._logger.error(
@@ -1947,7 +1959,10 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (/dsm sg|dsm jp|dsm uk/i.test(name) || type === Modes.FAST) {
+    if (
+      /dsm sg|dsm jp|dsm uk/i.test(name) ||
+      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
+    ) {
       return this._handleBackupAddToCart();
     }
 
@@ -2022,6 +2037,7 @@ class TaskRunnerPrimitive {
           });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Adding to cart' });
           return States.ADD_TO_CART;
         }
 
@@ -2029,6 +2045,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy, size });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Adding to cart' });
           return States.ADD_TO_CART;
         }
 
@@ -2075,6 +2092,7 @@ class TaskRunnerPrimitive {
         });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Adding to cart' });
         return States.ADD_TO_CART;
       }
 
@@ -2130,6 +2148,7 @@ class TaskRunnerPrimitive {
       proxy,
       parseType,
     } = this._context;
+
 
     // exit if abort is detected
     if (aborted) {
@@ -2229,6 +2248,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Adding to cart' });
           return States.ADD_TO_CART;
         }
 
@@ -2417,6 +2437,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Going to cart' });
           return States.GO_TO_CART;
         }
 
@@ -2632,7 +2653,10 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (/dsm sg|dsm jp|dsm uk/i.test(name) || type === Modes.FAST) {
+    if (
+      /dsm sg|dsm jp|dsm uk/i.test(name) ||
+      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
+    ) {
       return this._handleBackupGetCheckout();
     }
 
@@ -2693,7 +2717,6 @@ class TaskRunnerPrimitive {
       let checkoutUrl;
       if (this._storeId && this._checkoutToken && this._checkoutKey) {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
-        // TODO: toggle to send the checkout link to discord
         this._emitTaskEvent({ message: `Created checkout ${checkoutUrl}`, checkoutUrl });
       }
 
@@ -2702,6 +2725,12 @@ class TaskRunnerPrimitive {
 
       // check if redirected
       if (redirectUrl) {
+
+        if (/login/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Account needed!', rawProxy });
+          return States.DONE;
+        }
+
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
           return States.GO_TO_CHECKPOINT;
@@ -2748,7 +2777,6 @@ class TaskRunnerPrimitive {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          // TODO: restock mode
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
@@ -2763,7 +2791,6 @@ class TaskRunnerPrimitive {
       }
 
       if (/stock_problems/i.test(body)) {
-        // TODO: restock mode
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
@@ -3020,7 +3047,10 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (/dsm sg|dsm jp|dsm uk/i.test(name) || type === Modes.FAST) {
+    if (
+      /dsm sg|dsm jp|dsm uk/i.test(name) ||
+      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
+    ) {
       return this._handleBackupSubmitCustomer();
     }
 
@@ -3093,6 +3123,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
           return States.GO_TO_CHECKOUT;
         }
 
@@ -3113,11 +3144,12 @@ class TaskRunnerPrimitive {
       }
 
       // if we followed a redirect at some point...
-      if (res.redirected) {
+      if (redirectUrl) {
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
           return States.GO_TO_CHECKOUT;
         }
 
@@ -3125,6 +3157,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
           return States.SUBMIT_CUSTOMER;
         }
 
@@ -3350,7 +3383,10 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (/dsm sg|dsm jp|dsm uk/i.test(name) || type === Modes.FAST) {
+    if (
+      /dsm sg|dsm jp|dsm uk/i.test(name) ||
+      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
+    ) {
       return this._handleBackupGetShipping();
     }
 
@@ -3422,6 +3458,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
           return States.GO_TO_SHIPPING;
         }
 
@@ -3462,6 +3499,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
           return States.GO_TO_SHIPPING;
         }
 
@@ -3476,6 +3514,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
         return States.GO_TO_SHIPPING;
       }
 
@@ -3483,6 +3522,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: 'Polling rates', rawProxy });
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
         return States.GO_TO_SHIPPING;
       }
 
@@ -3616,6 +3656,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: 'Polling rates', rawProxy });
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
         return States.GO_TO_SHIPPING;
       }
 
@@ -3647,6 +3688,7 @@ class TaskRunnerPrimitive {
       this._emitTaskEvent({ message: 'Polling rates', rawProxy });
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
+      this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
       return States.GO_TO_SHIPPING;
     } catch (err) {
       this._logger.error(
@@ -3697,7 +3739,10 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (/dsm sg|dsm jp|dsm uk/i.test(name) || type === Modes.FAST) {
+    if (
+      /dsm sg|dsm jp|dsm uk/i.test(name) ||
+      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
+    ) {
       return this._handleBackupSubmitShipping();
     }
 
@@ -3756,6 +3801,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
           return States.SUBMIT_SHIPPING;
         }
 
@@ -3797,6 +3843,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
           return States.SUBMIT_SHIPPING;
         }
 
@@ -3804,6 +3851,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
           return States.SUBMIT_SHIPPING;
         }
 
@@ -4158,6 +4206,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
           return States.GO_TO_PAYMENT;
         }
 
@@ -4198,6 +4247,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
           return States.GO_TO_PAYMENT;
         }
 
@@ -4212,6 +4262,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
         return States.GO_TO_PAYMENT;
       }
 
@@ -4219,6 +4270,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: 'Calculating taxes', rawProxy });
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
         return States.GO_TO_PAYMENT;
       }
 
@@ -4295,7 +4347,10 @@ class TaskRunnerPrimitive {
       },
     } = this._context;
 
-    if (/dsm sg|dsm jp|dsm uk/i.test(name) || type === Modes.FAST) {
+    if (
+      /dsm sg|dsm jp|dsm uk/i.test(name) ||
+      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
+    ) {
       return this._handleBackupSubmitPayment();
     }
 
@@ -4382,6 +4437,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
         return States.SUBMIT_PAYMENT;
       }
 
@@ -4389,6 +4445,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: 'Processing error (429)', rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
         return States.SUBMIT_PAYMENT;
       }
 
@@ -4409,6 +4466,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
         return States.SUBMIT_PAYMENT;
       }
 
@@ -4416,6 +4474,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: 'Password page', rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
         return States.SUBMIT_PAYMENT;
       }
 
@@ -4616,6 +4675,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
           return States.SUBMIT_PAYMENT;
         }
 
@@ -4655,6 +4715,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
       }
@@ -4731,7 +4792,10 @@ class TaskRunnerPrimitive {
       },
     } = this._context;
 
-    if (/dsm sg|dsm jp|dsm uk/i.test(name) || type === Modes.FAST) {
+    if (
+      /dsm sg|dsm jp|dsm uk/i.test(name) ||
+      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
+    ) {
       return this._handleBackupCompletePayment();
     }
 
@@ -4796,6 +4860,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4803,6 +4868,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4869,6 +4935,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4881,6 +4948,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4921,6 +4989,7 @@ class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Completing payment', rawProxy });
         return States.COMPLETE_PAYMENT;
       }
 
@@ -5053,6 +5122,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -5060,6 +5130,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -5115,6 +5186,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -5122,6 +5194,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
+          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -5415,6 +5488,7 @@ class TaskRunnerPrimitive {
       this._emitTaskEvent({ message: 'Processing payment', rawProxy });
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
+      this._emitTaskEvent({ message: 'Processing payment', rawProxy });
       return States.PROCESS_PAYMENT;
     } catch (err) {
       this._logger.error(
@@ -5524,6 +5598,7 @@ class TaskRunnerPrimitive {
       this._emitTaskEvent({ message: 'Processing payment', rawProxy });
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
+      this._emitTaskEvent({ message: 'Processing payment', rawProxy });
       return States.PROCESS_PAYMENT;
     } catch (err) {
       this._logger.error(

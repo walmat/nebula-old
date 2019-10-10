@@ -1,4 +1,5 @@
 const { userAgent, getRandomIntInclusive } = require('../../common');
+const { ErrorCodes } = require('../utils/constants');
 const Parser = require('./parser');
 
 class JsonParser extends Parser {
@@ -14,12 +15,13 @@ class JsonParser extends Parser {
 
   async run() {
     this._logger.silly('%s: Starting run...', this._name);
-    const { url } = this._task.site;
+    const { url, name } = this._task.site;
     let products;
+    let res;
     try {
       this._logger.silly(`%s: Making request for %s/products.json ...`, this._name, url);
 
-      const res = await this._request(
+      res = await this._request(
         `/products.json?page=-${getRandomIntInclusive(500000000000, 900000000000)}`,
         {
           method: 'GET',
@@ -35,6 +37,12 @@ class JsonParser extends Parser {
       if (/429|430/.test(res.status)) {
         const error = new Error('Proxy banned!');
         error.status = res.status;
+        throw error;
+      }
+
+      if (/401/.test(res.status)) {
+        const error = new Error('Password page');
+        error.status = ErrorCodes.PasswordPage;
         throw error;
       }
 
@@ -63,9 +71,49 @@ class JsonParser extends Parser {
       throw new Error('unable to match the product');
     }
     this._logger.silly('%s: Product Found!', this._name);
+
+    // if we're monitoring on dsm us, also grab the hash from the page...
+    let hash;
+    if (/dsm us/i.test(name)) {
+      const regex = /\$\(\s*atob\(\s*'PGlucHV0IHR5cGU9ImhpZGRlbiIgbmFtZT0icHJvcGVydGllc1tfSEFTSF0iIC8\+'\s*\)\s*\)\s*\.val\(\s*'(.+)'\s*\)/;
+      try {
+        res = await this._request(`${url}/products/${matchedProduct.handle}`, {
+          method: 'GET',
+          compress: true,
+          headers: {
+            'User-Agent': userAgent,
+          },
+          agent: this._proxy,
+        });
+
+        const body = await res.text();
+
+        const match = body.match(regex);
+
+        if (match && match.length) {
+          [, hash] = match;
+        }
+
+      } catch (error) {
+        if (error && error.type && /system/i.test(error.type)) {
+          const rethrow = new Error(error.errno);
+          rethrow.status = error.code;
+          throw rethrow;
+        }
+        this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
+        const rethrow = new Error('unable to make request');
+        rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given
+        rethrow.name = error.name;
+        throw rethrow;
+      }
+    } else if (/dsm uk/i.test(name)) {
+      hash = 'ee3e8f7a9322eaa382e04f8539a7474c11555';
+    }
+
     this._aborter.abort();
     return {
       ...matchedProduct,
+      hash,
       // insert generated product url (for restocking purposes)
       url: `${url}/products/${matchedProduct.handle}`,
     };

@@ -2,7 +2,7 @@ import AbortController from 'abort-controller';
 import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
-import { pick, isEqual } from 'lodash';
+import { pick } from 'lodash';
 import { getParseType } from '../utils/parse';
 
 const TaskManagerEvents = require('../../constants').Manager.Events;
@@ -19,9 +19,9 @@ const { ErrorCodes } = require('../utils/constants');
 // SHOPIFY
 class Monitor {
   constructor(context, proxy, type = ParseType.Unknown) {
-    this.id = context.id;
+    this.ids = [context.id];
     this._task = context.task;
-    this.taskId = context.taskId;
+    this.taskIds = [context.taskId];
     this.proxy = proxy;
     this._jar = context.jar;
     this._events = context.events;
@@ -34,14 +34,13 @@ class Monitor {
     // eslint-disable-next-line global-require
     const _request = require('fetch-cookie')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
-      timeout: 120000, // to be overridden as necessary
+      timeout: 30000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
     this._delayer = null;
 
     this._state = States.PARSE;
     this._prevState = States.PARSE;
-    this.shouldBanProxy = 0;
 
     const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
 
@@ -70,7 +69,6 @@ class Monitor {
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
 
-    this._events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
   }
 
@@ -83,42 +81,6 @@ class Monitor {
       }
       if (this._delayer) {
         this._delayer.clear();
-      }
-    }
-  }
-
-  async _compareProductInput(product, parseType) {
-    // we only care about keywords/url matching here...
-    switch (parseType) {
-      case ParseType.Keywords: {
-        const { pos_keywords: posKeywords, neg_keywords: negKeywords } = this._context.task.product;
-        const samePositiveKeywords = isEqual(product.pos_keywords.sort(), posKeywords.sort());
-        const sameNegativeKeywords = isEqual(product.neg_keywords.sort(), negKeywords.sort());
-        return samePositiveKeywords && sameNegativeKeywords;
-      }
-      case ParseType.Url: {
-        const { url } = this._context.task.product;
-        return product.url.toUpperCase() === url.toUpperCase();
-      }
-      default:
-        return false;
-    }
-  }
-
-  async _handleProduct(id, product, parseType) {
-    if (parseType === this._parseType) {
-      const isSameProductData = await this._compareProductInput(product, parseType);
-
-      if (
-        (isSameProductData && !this._context.productFound) ||
-        (id === this.id && !this._context.productFound)
-      ) {
-        this._context.task.product = {
-          ...this._context.task.product,
-          ...product,
-        };
-
-        this._context.productFound = true;
       }
     }
   }
@@ -191,7 +153,7 @@ class Monitor {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        this._events.emit(event, this._context.id, payload, event);
+        this._events.emit(event, this.ids[0], payload, event);
         break;
       }
       default: {
@@ -273,11 +235,7 @@ class Monitor {
       this._logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
-      this._logger.debug(
-        'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
-        proxy,
-        this.shouldBanProxy,
-      );
+      this._logger.debug('PROXY IN _handleSwapProxies: %j', proxy);
       // Proxy is fine, update the references
       if (proxy || proxy === null) {
         if (proxy === null) {
@@ -302,7 +260,6 @@ class Monitor {
           }
           this._context.proxy = p;
           this._context.rawProxy = proxy.raw;
-          this.shouldBanProxy = 0; // reset ban flag
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitMonitorEvent({
             message: `Swapped proxy to: ${proxy.raw}`,
@@ -364,10 +321,12 @@ class Monitor {
       // handle parsing errors
       return this._handleParsingErrors(errors);
     }
+
     this._logger.debug('MONITOR: %s retrieved as a matched product', parsed.title);
     this._logger.debug('MONITOR: Mapping variant lists now...');
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     this._context.task.product.image = parsed.featured_image;
+    this._context.task.product.hash = parsed.hash || '';
     this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._context.task.product.variants = parsed.variants.map(v =>
@@ -385,13 +344,6 @@ class Monitor {
       ),
     );
     this._logger.debug('MONITOR: Status is OK, emitting event');
-
-    this._events.emit(
-      TaskManagerEvents.ProductFound,
-      this.id,
-      this._context.task.product,
-      this._parseType,
-    );
 
     const { name } = this._context.task.product;
     this._emitMonitorEvent({
@@ -444,12 +396,6 @@ class Monitor {
       // Everything is setup -- kick it off to checkout
       this._logger.silly('MONITOR: Status is OK, proceeding checkout');
       this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
-      this._events.emit(
-        TaskManagerEvents.ProductFound,
-        this.id,
-        this._context.task.product,
-        this._parseType,
-      );
 
       const { name } = this._context.task.product;
       this._emitMonitorEvent({
@@ -505,12 +451,6 @@ class Monitor {
     this._logger.silly('MONITOR: Variants mapped! Updating context...');
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
-    this._events.emit(
-      TaskManagerEvents.ProductFound,
-      this.id,
-      this._context.task.product,
-      this._parseType,
-    );
 
     const { name } = this._context.task.product;
     this._emitMonitorEvent({
@@ -535,12 +475,6 @@ class Monitor {
         this._context.task.product.variants = [{ id: this._context.task.product.variant }];
 
         this._logger.silly('MONITOR: Status is OK, proceeding to checkout');
-        this._events.emit(
-          TaskManagerEvents.ProductFound,
-          this.id,
-          this._context.task.product,
-          this._parseType,
-        );
         return States.DONE;
       }
       case ParseType.Url: {
@@ -565,10 +499,28 @@ class Monitor {
     }
   }
 
-  async _handleError() {
-    this._emitMonitorEvent({ message: 'Monitor errored out!' });
-    this._events.emit(TaskManagerEvents.Abort, this.id);
+  async _handleDone() {
+    if (this._context.aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    this._events.emit(
+      TaskManagerEvents.ProductFound,
+      this.ids,
+      this._context.task.product,
+      this._parseType,
+    );
+
+    this._delayer = waitForDelay(500, this._aborter.signal);
+    await this._delayer;
+
     return States.DONE;
+  }
+
+  async _handleError() {
+    this._events.emit(TaskManagerEvents.Abort, this.ids);
+    return States.ABORT;
   }
 
   async _handleStepLogic(currentState) {
@@ -584,8 +536,8 @@ class Monitor {
       [States.RESTOCK]: this._handleRestock,
       [States.SWAP]: this._handleSwapProxies,
       [States.ERROR]: this._handleError,
-      [States.DONE]: () => States.DONE,
-      [States.ABORT]: () => States.DONE,
+      [States.DONE]: this._handleDone,
+      [States.ABORT]: () => States.ABORT,
     };
 
     const handler = stepMap[currentState] || defaultHandler;
@@ -627,12 +579,7 @@ class Monitor {
   async start() {
     let shouldStop = false;
 
-    if (this._context.productFound) {
-      this._state = States.DONE;
-      shouldStop = true;
-    }
-
-    while (this._state !== States.DONE && !shouldStop) {
+    while (this._state !== States.ABORT && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.run();
     }

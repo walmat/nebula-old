@@ -37,7 +37,6 @@ export class LogTaskPrimitive extends PureComponent {
     this.renderRow = this.renderRow.bind(this);
     this.isRowLoaded = this.isRowLoaded.bind(this);
     this.loadMoreRows = this.loadMoreRows.bind(this);
-    this.renderMassChangeOptions = this.renderMassChangeOptions.bind(this);
 
     this.state = {
       fullscreen: false, // fullscreen toggle
@@ -75,18 +74,13 @@ export class LogTaskPrimitive extends PureComponent {
                 rowHeight={30}
                 rowRenderer={this.renderRow}
                 rowCount={tasks.length}
-                overscanRowCount={20}
+                overscanRowCount={0}
               />
             )}
           </AutoSizer>
         )}
       </InfiniteLoader>
     );
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  renderMassChangeOptions() {
-    return <></>;
   }
 
   renderRow({ index, key, style }) {
@@ -199,7 +193,6 @@ export class LogTaskPrimitive extends PureComponent {
             </div>
           </div>
         </div>
-        {this.renderMassChangeOptions()}
       </div>
     );
   }
