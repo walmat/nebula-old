@@ -3593,7 +3593,6 @@ class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
-      console.log(body);
       if (body && body.errors) {
         this._logger.silly('CHECKOUT: Error getting shipping rates: %j', body.errors);
         const { checkout } = body.errors;
