@@ -289,7 +289,7 @@ class CaptchaWindowManager {
       proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
       proxyBypassRules: '.google.com,.gstatic.com,.youtube.com',
     });
-    win.loadURL(host || urls.get('captcha'));
+    win.loadURL(host || 'http://checkout.shopify.com');
     win.on('ready-to-show', () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`[DEBUG]: Window was opened, id = ${winId}`);
