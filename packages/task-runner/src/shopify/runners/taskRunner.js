@@ -2618,10 +2618,8 @@ class TaskRunnerPrimitive {
 
       const body = await res.text();
       const $ = cheerio.load(body, {
-        xmlMode: true,
+        xmlMode: false,
         normalizeWhitespace: true,
-        recognizeCDATA: true,
-        ignoreWhitespace: true,
       });
 
       // grab the checkoutKey if it's exists and we don't have it yet..
@@ -2647,6 +2645,12 @@ class TaskRunnerPrimitive {
 
       // check if redirected
       if (redirectUrl) {
+
+        if (/login/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Account needed!', rawProxy });
+          return States.DONE;
+        }
+
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
           return States.GO_TO_CHECKPOINT;
@@ -3343,10 +3347,8 @@ class TaskRunnerPrimitive {
 
       const body = await res.text();
       const $ = cheerio.load(body, {
-        xmlMode: true,
+        xmlMode: false,
         normalizeWhitespace: true,
-        recognizeCDATA: true,
-        ignoreWhitespace: true,
       });
 
       // grab the checkoutKey if it's exists and we don't have it yet..
@@ -3885,10 +3887,8 @@ class TaskRunnerPrimitive {
 
       const body = await res.text();
       const $ = cheerio.load(body, {
-        xmlMode: true,
+        xmlMode: false,
         normalizeWhitespace: true,
-        recognizeCDATA: true,
-        ignoreWhitespace: true,
       });
 
       const priceRecap = $('.total-recap__final-price').attr('data-checkout-payment-due-target');
