@@ -280,6 +280,9 @@
 .tasks .tasks-create__input--type-SAFE {
   color: #8aa27d;
 }
+.tasks .tasks-create__input--type-CART {
+  color: #C7B8EA;
+}
 .tasks .tasks-create__submit-row {
   align-self: flex-end;
 }
@@ -874,6 +877,14 @@
   margin-left: 14px !important;
   text-align: center;
   color: #858dbb;
+}
+.tasks .tasks-table .tasks-row-container .tasks-row__id--CART {
+  width: 26px;
+  width: 26px;
+  flex-grow: 0;
+  margin-left: 14px !important;
+  text-align: center;
+  color: #C7B8EA;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__id--SAFE {
   width: 26px;

@@ -2,7 +2,7 @@ const regexes = {
   email: /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/,
   urlRegex: /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/i,
   keywordRegex: /^[+-][A-Za-z0-9&-]+$/,
-  variantRegex: /[~]/,
+  variantRegex: /[0-9]/,
   aws_access_key: /(^|[^A-Z0-9])[A-Z0-9]{20}(?![A-Z0-9])/,
   aws_secret_key: /^[A-Za-z0-9/+=]{40}$/,
   creditCardCvv: /^\d{3}$/,

@@ -21,6 +21,29 @@ export const SETTINGS_ACTIONS = {
 // Async handler to start the shipping rates runner
 const _fetchShippingRequest = async task => {
   const copy = JSON.parse(JSON.stringify(task));
+
+  if (copy.product && copy.product.raw.startsWith('shopify-')) {
+    const titleMatch = copy.product.raw.match(/shopify-(.*)-/);
+    const priceMatch = copy.product.raw.match(/shopify-.*-(.*)/);
+
+    if (
+      !titleMatch ||
+      !priceMatch ||
+      (titleMatch && !titleMatch.length) ||
+      (priceMatch && !priceMatch.length)
+    ) {
+      throw new Error('Invalid prefetched data!');
+    }
+
+    const [, title] = titleMatch;
+    const [, price] = priceMatch;
+
+    return {
+      rates: [{ title: decodeURIComponent(title), price, id: copy.product.raw }],
+      selectedRate: { id: copy.product.raw, price, title: decodeURIComponent(title) },
+    };
+  }
+
   const parsedProduct = parseProductType(copy.product);
 
   if (!parsedProduct) {
@@ -56,6 +79,7 @@ const fetchShipping = task => dispatch => {
   dispatch(_setupShipping());
   return _fetchShippingRequest(task)
     .then(({ rates, selectedRate }) => {
+      console.log(rates, selectedRate);
       dispatch(
         _saveShippingRates({
           id: task.profile.id,

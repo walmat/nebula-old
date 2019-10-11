@@ -156,24 +156,18 @@ export class ShippingRatesPrimitive extends PureComponent {
   }
 
   render() {
-    const { value } = this.props;
-    const rateFieldsComponent = value.rates.length ? (
-      this.renderRateFields()
-    ) : (
-      <div className="col profiles-rates__input-group">
-        <div>
-          <p>No shipping rates found</p>
-        </div>
-      </div>
-    );
     return (
       <div className="col col--expand">
         <div className="row row--start">
-          <p className="row row--start row--expand body-text section-header profiles-rates__section-header">Shipping Rates</p>
+          <p className="row row--start row--expand body-text section-header profiles-rates__section-header">
+            Shipping Rates
+          </p>
         </div>
         <div className="row row--start row--expand">
           <div className="profiles-rates col col--start col--expand col--no-gutter">
-            <div className="row row--start row--expand row--no-gutter">{rateFieldsComponent}</div>
+            <div className="row row--start row--expand row--no-gutter">
+              {this.renderRateFields()}
+            </div>
           </div>
         </div>
       </div>

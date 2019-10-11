@@ -108,7 +108,7 @@ class Parser {
   /**
    * Construct a new parser
    */
-  constructor(request, type, task, proxy, aborter, logger, name) {
+  constructor(request, type, task, proxy, aborter, logger, random, name) {
     this._logger = logger || { log: () => {} };
     this._name = name || 'Parser';
     this._logger.log('silly', '%s: constructing...', this._name);
@@ -118,6 +118,7 @@ class Parser {
     this._type = type;
     this._aborter = aborter;
     this._logger.log('silly', '%s: constructed', this._name);
+    this._random = random;
   }
 
   /**
@@ -157,7 +158,7 @@ class Parser {
           neg: this._task.product.neg_keywords,
         };
 
-        const product = matchKeywords(products, keywords, null, this._logger); // no need to use a custom filter at this point...
+        const product = matchKeywords(products, keywords, null, this._logger, false, this._random); // no need to use a custom filter at this point...
         if (!product) {
           this._logger.silly('%s: Unable to find matching product! throwing error', this._name);
           // TODO: Maybe replace with a custom error object?

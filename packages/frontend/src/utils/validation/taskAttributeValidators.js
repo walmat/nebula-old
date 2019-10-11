@@ -17,13 +17,6 @@ function validateProduct(product, isFormValidator) {
     rawProduct = product.raw;
   }
 
-  // TEMPORARY! - for testing with the mock server:
-  // const localhostUrlRegex = /https?:\/\/localhost:\d{2,5}/;
-  // if (localhostUrlRegex.test(rawProduct)) {
-  //   return true;
-  // }
-  // END TEMPORARY
-
   if (regexes.urlRegex.test(rawProduct)) {
     return true;
   }

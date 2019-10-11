@@ -98,18 +98,30 @@ export function taskReducer(state = initialTaskStates.task, action) {
         }
         case TASK_FIELDS.EDIT_TASK_TYPE: {
           switch (state.type) {
-            case 'SAFE': {
+            case TASK_TYPES.SAFE: {
               change = {
                 type: TASK_TYPES.FAST,
               };
               break;
             }
-            case 'FAST': {
+            case TASK_TYPES.FAST: {
               change = {
                 type: TASK_TYPES.SAFE,
               };
               break;
             }
+            // case TASK_TYPES.FAST: {
+            //   change = {
+            //     type: TASK_TYPES.CART,
+            //   };
+            //   break;
+            // }
+            // case TASK_TYPES.CART: {
+            //   change = {
+            //     type: TASK_TYPES.SAFE,
+            //   };
+            //   break;
+            // }
             default: {
               change = {
                 type: TASK_TYPES.SAFE,

@@ -9,8 +9,8 @@ class JsonParser extends Parser {
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
    */
-  constructor(request, type, task, proxy, aborter, logger) {
-    super(request, type, task, proxy, aborter, logger, 'JsonParser');
+  constructor(request, type, task, proxy, aborter, logger, random) {
+    super(request, type, task, proxy, aborter, logger, random, 'JsonParser');
   }
 
   async run() {

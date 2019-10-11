@@ -199,7 +199,11 @@ module.exports.matchVariant = matchVariant;
  * @param {Object} keywords an object containing two arrays of strings (`pos` and `neg`)
  * @see filterAndLimit
  */
-function matchKeywords(products, keywords, _filter, logger, returnAll) {
+function matchKeywords(products, keywords, _filter, logger, returnAll, random) {
+
+  if (random) {
+    return products[0];
+  }
   const _logger = logger || { log: () => {} };
   _logger.log(
     'silly',

@@ -12,7 +12,7 @@ const { Parser, getSpecialParser, getParsers } = require('../parsers');
 const { rfrl, capitalizeFirstLetter, waitForDelay } = require('../../common');
 const {
   Monitor: { States, DelayTypes, ParseType },
-  TaskRunner: { Types },
+  TaskRunner: { Types, Modes },
 } = require('../utils/constants');
 const { ErrorCodes } = require('../utils/constants');
 
@@ -26,8 +26,9 @@ class Monitor {
     this._jar = context.jar;
     this._events = context.events;
     this._logger = context.logger;
+    this._tempParseTypeStore = type;
     this._parseType = type;
-
+    this._taskType = context.task.type;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
 
@@ -65,6 +66,8 @@ class Monitor {
     };
 
     this._history = [];
+
+    this._matchRandom = false;
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
@@ -177,7 +180,7 @@ class Monitor {
       return States.ABORT;
     }
 
-    const { monitorDelay } = this._context.task;
+    const { monitorDelay, type } = this._context.task;
     let delayStatus;
     let ban = false; // assume we don't have a softban
     errors.forEach(({ status }) => {
@@ -203,7 +206,7 @@ class Monitor {
 
     if (ban) {
       this._logger.silly('Proxy was banned, swapping proxies...');
-      this._emitMonitorEvent({ message: 'Proxy banned!' });
+      this._emitMonitorEvent({ message: 'Proxy banned!', rawProxy: this._context.rawProxy });
       return States.SWAP;
     }
 
@@ -221,7 +224,18 @@ class Monitor {
         break;
     }
 
-    this._emitMonitorEvent({ message: `${message} Delaying ${monitorDelay}ms` });
+
+    if (this._taskType === Modes.CART) {
+      this._emitMonitorEvent({ message: `Starting precart`, rawProxy: this._context.rawProxy });
+      this._parseType = ParseType.Keywords; // temporarily set the parseType to keywords..
+      this._matchRandom = true;
+      return States.PARSE;
+    }
+
+    this._emitMonitorEvent({
+      message: `${message} Delaying ${monitorDelay}ms`,
+      rawProxy: this._context.rawProxy,
+    });
     this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
     await this._delayer;
     return States.PARSE;
@@ -245,7 +259,7 @@ class Monitor {
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitMonitorEvent({
             message: `Swapped proxy to: localhost`,
-            proxy,
+            rawProxy: this._context.rawProxy,
           });
         } else {
           this.proxy = proxy;
@@ -263,7 +277,7 @@ class Monitor {
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitMonitorEvent({
             message: `Swapped proxy to: ${proxy.raw}`,
-            proxy: proxy.raw,
+            rawProxy: proxy.raw,
           });
         }
         this._logger.debug('Rewinding to state: %s', this._prevState);
@@ -272,15 +286,17 @@ class Monitor {
 
       this._emitMonitorEvent({
         message: `No open proxy! Delaying ${errorDelay}ms`,
+        rawProxy: this._context.rawProxy,
       });
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
       this._delayer = waitForDelay(errorDelay, this._aborter.signal);
       await this._delayer;
-      this._emitMonitorEvent({ message: 'Proxy banned!' });
+      this._emitMonitorEvent({ message: 'Proxy banned!', rawProxy: this._context.rawProxy });
     } catch (err) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitMonitorEvent({
         message: 'Error swapping proxies! Retrying...',
+        rawProxy: this._context.rawProxy,
       });
     }
     // Go back to previous state
@@ -299,6 +315,7 @@ class Monitor {
       this._context.proxy,
       new AbortController(),
       this._context.logger,
+      this._matchRandom,
     );
 
     // Return the winner of the race
@@ -349,6 +366,7 @@ class Monitor {
     this._emitMonitorEvent({
       message: `Product found: ${name}`,
       found: name || undefined,
+      rawProxy: this._context.rawProxy,
     });
     return States.DONE;
   }
@@ -401,6 +419,7 @@ class Monitor {
       this._emitMonitorEvent({
         message: `Product found: ${name}`,
         found: name || undefined,
+        rawProxy: this._context.rawProxy,
       });
       return States.DONE;
     } catch (errors) {
@@ -456,6 +475,7 @@ class Monitor {
     this._emitMonitorEvent({
       message: `Product found: ${name}`,
       found: name || undefined,
+      rawProxy: this._context.rawProxy,
     });
     return States.DONE;
   }
@@ -466,7 +486,7 @@ class Monitor {
       return States.ABORT;
     }
 
-    this._emitMonitorEvent({ message: 'Parsing products' });
+    this._emitMonitorEvent({ message: 'Parsing products', rawProxy: this._context.rawProxy });
 
     switch (this._parseType) {
       case ParseType.Variant: {
@@ -511,6 +531,27 @@ class Monitor {
       this._context.task.product,
       this._parseType,
     );
+
+    this._delayer = waitForDelay(1000, this._aborter.signal);
+    await this._delayer;
+
+    // means we matched on the first try...
+    if (this._taskType === Modes.CART && !this._matchRandom) {
+      this._context.task.type = Modes.SAFE;
+    }
+
+    // if we're in pre-cart mode, basically reset the monitor and it's data back to normal.
+    if (this._taskType === Modes.CART) {
+      this._emitMonitorEvent({ message: 'Resetting monitor...', rawProxy: this._context.rawProxy });
+      delete this._context.task.product.image;
+      delete this._context.task.product.restockUrl;
+      delete this._context.task.product.variants;
+      delete this._context.task.product.name;
+      this._matchRandom = false;
+      this._parseType = this._tempParseTypeStore;
+      this._taskType = Modes.SAFE; // set the task mode to safe..
+      return States.PARSE;
+    }
 
     this._delayer = waitForDelay(500, this._aborter.signal);
     await this._delayer;

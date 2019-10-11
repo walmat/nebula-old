@@ -8,6 +8,10 @@ function validateProduct(product) {
     return false;
   }
 
+  if (product.startsWith('shopify-')) {
+    return true;
+  }
+
   let rawProduct = product;
   if (typeof product === 'object') {
     rawProduct = product.raw;

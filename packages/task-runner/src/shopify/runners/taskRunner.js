@@ -41,7 +41,7 @@ class TaskRunnerPrimitive {
     // eslint-disable-next-line global-require
     const _request = require('fetch-cookie')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
-      timeout: 60000, // to be overridden as necessary
+      timeout: 45000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
     this._parseType = type;
@@ -92,6 +92,7 @@ class TaskRunnerPrimitive {
 
     this._needsLogin = this._context.task.account || false;
     this._state = States.STARTED;
+    this.checkpointUrl = '/checkpoint'; // default to normal checkpoint
 
     // decide what our start state should be!
     if (!this._context.task.site.apiKey) {
@@ -100,7 +101,7 @@ class TaskRunnerPrimitive {
       this._state = States.LOGIN;
     } else if (
       /dsm uk|dsm jp|dsm sg/i.test(this._context.task.site.name) ||
-      (!/dsm us/i.test(this._context.task.site.name) && this._context.task.type === Modes.FAST)
+      (!/dsm us|kith/i.test(this._context.task.site.name) && this._context.task.type === Modes.FAST)
     ) {
       this._state = States.CREATE_CHECKOUT;
     } else {
@@ -137,6 +138,7 @@ class TaskRunnerPrimitive {
     this._captchaTokenRequest = null;
     this._cartForm = '';
     this._paymentToken = null;
+    this._checkoutUrl = null;
     this._checkoutToken = null;
     this._checkoutKey = null;
     this._storeId = null;
@@ -834,13 +836,16 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/checkpoint`, {
+      const res = await this._request(this.checkpointUrl, {
         method: 'GET',
         compress: true,
         agent: proxy,
         redirect: 'manual',
         follow: 0,
-        headers: getHeaders({ url, apiKey }),
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          referer: `${url}/cart`,
+        },
       });
 
       const { status, headers } = res;
@@ -896,6 +901,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 connection: 'close',
@@ -943,6 +949,13 @@ class TaskRunnerPrimitive {
           this._checkpointForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
         }
       });
+
+      // recaptcha sitekey parser...
+      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (match && match.length) {
+        [, this._context.task.site.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
 
       if (this._checkpointForm.endsWith('&')) {
         this._checkpointForm = this._checkpointForm.slice(0, -1);
@@ -1221,6 +1234,7 @@ class TaskRunnerPrimitive {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
+          this.checkpointUrl = redirectUrl;
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
           return States.GO_TO_CHECKPOINT;
         }
@@ -1907,10 +1921,8 @@ class TaskRunnerPrimitive {
     }
 
     if (!variant) {
-      return {
-        message: 'No size matched! Stopping...',
-        nextState: States.ERROR,
-      };
+      this._emitTaskEvent({ message: 'No size matched!', rawProxy });
+      return States.ERROR;
     }
 
     const { option, id } = variant;
@@ -2028,6 +2040,11 @@ class TaskRunnerPrimitive {
         this._prices.cart = price;
       }
 
+      if (this._checkoutUrl) {
+        this._emitTaskEvent({ message: 'Going to checkout' });
+        return States.GO_TO_CHECKOUT;
+      }
+
       this._emitTaskEvent({ message: 'Going to cart', rawProxy });
       return States.GO_TO_CART;
     } catch (err) {
@@ -2061,6 +2078,85 @@ class TaskRunnerPrimitive {
     }
   }
 
+  async _handleClearCart() {
+    const {
+      aborted,
+      rawProxy,
+      task: {
+        site: { url, apiKey },
+      },
+      proxy,
+    } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    try {
+      const res = await this._request(`${url}/cart/clear.js`, {
+        method: 'POST',
+        compress: true,
+        agent: proxy,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+        },
+      });
+
+      const body = await res.json();
+
+      if (body && body.items && body.items.length) {
+        this._emitTaskEvent({ message: 'Failed to clear items, retrying...', rawProxy });
+        return States.CLEAR_CART;
+      }
+
+      // extra padding to make sure that the variants are reset...
+      delete this._context.task.product.variants;
+      delete this._context.task.product.variant;
+      delete this._context.task.product.size;
+
+      this._context.task.type = Modes.SAFE;
+
+      this._emitTaskEvent({ message: 'Cart cleared!', rawProxy });
+      return States.WAIT_FOR_PRODUCT;
+    } catch (err) {
+      this._logger.error(
+        'FRONTEND CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
+        err.status || err.errno,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Clearing cart',
+        nextState: States.CLEAR_CART,
+      });
+
+      if (nextState) {
+        const { message, nextState: erroredState } = nextState;
+        if (message) {
+          this._emitTaskEvent({ message, rawProxy });
+        }
+        return erroredState;
+      }
+
+      const message =
+        err.status || err.errno ? `Clearing cart - (${err.status || err.errno})` : 'Clearing cart';
+
+      this._emitTaskEvent({ message, rawProxy });
+      return States.CLEAR_CART;
+    }
+  }
+
   async _handleBackupAddToCart() {
     const {
       aborted,
@@ -2074,7 +2170,6 @@ class TaskRunnerPrimitive {
       proxy,
       parseType,
     } = this._context;
-
 
     // exit if abort is detected
     if (aborted) {
@@ -2090,10 +2185,8 @@ class TaskRunnerPrimitive {
     }
 
     if (!variant) {
-      return {
-        message: 'No size matched! Stopping...',
-        nextState: States.ERROR,
-      };
+      this._emitTaskEvent({ message: 'No size matched!', rawProxy });
+      return States.ERROR;
     }
 
     const { option, id } = variant;
@@ -2561,7 +2654,6 @@ class TaskRunnerPrimitive {
         site: { url, name, apiKey },
         monitorDelay,
         forceCaptcha,
-        type,
       },
       proxy,
     } = this._context;
@@ -2574,28 +2666,31 @@ class TaskRunnerPrimitive {
 
     if (
       /dsm sg|dsm jp|dsm uk/i.test(name) ||
-      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
+      (!/dsm us/i.test(this._context.task.site.name) && this._context.task.type === Modes.FAST)
     ) {
       return this._handleBackupGetCheckout();
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': apiKey,
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
+      const res = await this._request(
+        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        {
+          method: 'GET',
+          compress: true,
+          agent: proxy,
+          redirect: 'manual',
+          follow: 0,
+          headers: {
+            ...getHeaders({ url, apiKey }),
+            Connection: 'Keep-Alive',
+            'Upgrade-Insecure-Requests': '1',
+            'X-Shopify-Storefront-Access-Token': apiKey,
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+          },
         },
-      });
+      );
 
       const { status, headers } = res;
 
@@ -2637,6 +2732,13 @@ class TaskRunnerPrimitive {
       if (this._storeId && this._checkoutToken && this._checkoutKey) {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
+        this._checkoutUrl = checkoutUrl;
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
+      }
+      console.log(JSON.parse(JSON.stringify(this._context.task.type)));
+      if (this._context.task.type === Modes.CART) {
+        this._emitTaskEvent({ message: 'Clearing cart!' });
+        return States.CLEAR_CART;
       }
 
       const redirectUrl = headers.get('location');
@@ -2644,7 +2746,6 @@ class TaskRunnerPrimitive {
 
       // check if redirected
       if (redirectUrl) {
-
         if (/login/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Account needed!', rawProxy });
           return States.DONE;
@@ -2727,20 +2828,11 @@ class TaskRunnerPrimitive {
       );
 
       // recaptcha sitekey parser...
-      $('noscript').each((_, el) => {
-        if (!$(el).attr('src')) {
-          const iframe = $(el).find('iframe');
-          if (iframe) {
-            const src = iframe.attr('src');
-            if (src && /recaptcha/i.test(src)) {
-              const match = src.match(/\?k=(.*)/);
-              if (match && match.length) {
-                [, this._context.task.site.sitekey] = match;
-              }
-            }
-          }
-        }
-      });
+      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (match && match.length) {
+        [, this._context.task.site.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
@@ -2907,6 +2999,21 @@ class TaskRunnerPrimitive {
         }
       }
 
+      let checkoutUrl;
+      if (this._storeId && this._checkoutToken && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+        // TODO: toggle to send the checkout link to discord
+        this._checkoutUrl = checkoutUrl;
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
+      }
+
+      // recaptcha sitekey parser...
+      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (match && match.length) {
+        [, this._context.task.site.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
+
       if (this._selectedShippingRate.id) {
         if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
           this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
@@ -2989,26 +3096,29 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`${url}/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'follow',
-        follow: 1,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
-          'content-type': 'application/x-www-form-urlencoded',
-          'Upgrade-Insecure-Requests': '1',
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+      const res = await this._request(
+        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        {
+          method: 'POST',
+          compress: true,
+          agent: proxy,
+          redirect: 'follow',
+          follow: 1,
+          headers: {
+            ...getHeaders({ url, apiKey }),
+            Connection: 'Keep-Alive',
+            'content-type': 'application/x-www-form-urlencoded',
+            'Upgrade-Insecure-Requests': '1',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+            accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+          },
+          body: this._formValues,
         },
-        body: this._formValues,
-      });
+      );
 
       const { status, url: redirectUrl } = res;
 
@@ -3242,7 +3352,7 @@ class TaskRunnerPrimitive {
       ) {
         const message = status ? `Submitting information – (${status})` : 'Submitting information';
         this._emitTaskEvent({ message, rawProxy });
-        return { message, nextState: States.SUBMIT_CUSTOMER };
+        return States.SUBMIT_CUSTOMER;
       }
 
       if (this._context.task.product.variants) {
@@ -3309,22 +3419,25 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': apiKey,
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
+      const res = await this._request(
+        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        {
+          method: 'GET',
+          compress: true,
+          agent: proxy,
+          redirect: 'manual',
+          follow: 0,
+          headers: {
+            ...getHeaders({ url, apiKey }),
+            Connection: 'Keep-Alive',
+            'Upgrade-Insecure-Requests': '1',
+            'X-Shopify-Storefront-Access-Token': apiKey,
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+          },
         },
-      });
+      );
 
       const { status, headers } = res;
 
@@ -3360,6 +3473,14 @@ class TaskRunnerPrimitive {
           [, this._checkoutKey] = match;
           this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
+      }
+
+      let checkoutUrl;
+      if (this._storeId && this._checkoutToken && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+        // TODO: toggle to send the checkout link to discord
+        this._checkoutUrl = checkoutUrl;
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
       }
 
       const redirectUrl = headers.get('location');
@@ -3452,6 +3573,13 @@ class TaskRunnerPrimitive {
         'form.edit_checkout',
         'input, select, textarea, button',
       );
+
+      // recaptcha sitekey parser...
+      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (match && match.length) {
+        [, this._context.task.site.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
@@ -3640,6 +3768,7 @@ class TaskRunnerPrimitive {
         monitorDelay,
         site: { url, name, apiKey },
         type,
+        forceCaptcha,
       },
     } = this._context;
 
@@ -3657,26 +3786,29 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'follow',
-        follow: 1,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
-          'content-type': 'application/x-www-form-urlencoded',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+      const res = await this._request(
+        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        {
+          method: 'POST',
+          compress: true,
+          agent: proxy,
+          redirect: 'follow',
+          follow: 1,
+          headers: {
+            ...getHeaders({ url, apiKey }),
+            Connection: 'Keep-Alive',
+            'content-type': 'application/x-www-form-urlencoded',
+            'Upgrade-Insecure-Requests': '1',
+            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+            accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+          },
+          body: this._formValues,
         },
-        body: this._formValues,
-      });
+      );
 
       const { status, url: redirectUrl } = res;
 
@@ -3699,7 +3831,14 @@ class TaskRunnerPrimitive {
       const body = await res.text();
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
-      if (/recaptcha/i.test(body)) {
+      // recaptcha sitekey parser...
+      const key = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (key && key.length) {
+        [, this._context.task.site.sitekey] = key;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
+
+      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
       }
@@ -3849,22 +3988,25 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': apiKey,
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
+      const res = await this._request(
+        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        {
+          method: 'GET',
+          compress: true,
+          agent: proxy,
+          redirect: 'manual',
+          follow: 0,
+          headers: {
+            ...getHeaders({ url, apiKey }),
+            Connection: 'Keep-Alive',
+            'Upgrade-Insecure-Requests': '1',
+            'X-Shopify-Storefront-Access-Token': apiKey,
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+          },
         },
-      });
+      );
 
       const { status, headers } = res;
 
@@ -3902,6 +4044,14 @@ class TaskRunnerPrimitive {
           [, this._checkoutKey] = match;
           this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
+      }
+
+      let checkoutUrl;
+      if (this._storeId && this._checkoutToken && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+        // TODO: toggle to send the checkout link to discord
+        this._checkoutUrl = checkoutUrl;
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
       }
 
       const redirectUrl = headers.get('location');
@@ -3994,6 +4144,13 @@ class TaskRunnerPrimitive {
         'form.edit_checkout',
         'input, select, textarea, button',
       );
+
+      // recaptcha sitekey parser...
+      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (match && match.length) {
+        [, this._context.task.site.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
@@ -4090,28 +4247,31 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'manual',
-        follow: 0,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
-          'content-type': 'application/x-www-form-urlencoded',
-          'accept-encoding': 'gzip, deflate, br',
-          'accept-language': 'en-US,en;q=0.9',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+      const res = await this._request(
+        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        {
+          method: 'POST',
+          compress: true,
+          agent: proxy,
+          redirect: 'manual',
+          follow: 0,
+          headers: {
+            ...getHeaders({ url, apiKey }),
+            Connection: 'Keep-Alive',
+            'content-type': 'application/x-www-form-urlencoded',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'en-US,en;q=0.9',
+            'Upgrade-Insecure-Requests': '1',
+            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+            accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+          },
+          body: this._formValues,
         },
-        body: this._formValues,
-      });
+      );
 
       const { status, headers } = res;
 
@@ -4362,6 +4522,14 @@ class TaskRunnerPrimitive {
         }
       }
 
+      let checkoutUrl;
+      if (this._storeId && this._checkoutToken && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+        // TODO: toggle to send the checkout link to discord
+        this._checkoutUrl = checkoutUrl;
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
+      }
+
       // check if redirected
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
@@ -4449,7 +4617,8 @@ class TaskRunnerPrimitive {
         return States.PROCESS_PAYMENT;
       }
 
-      return { message: 'Submitting payment', nextState: States.SUBMIT_PAYMENT };
+      this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+      return States.SUBMIT_PAYMENT;
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Post Payment.\n\n %j %j',
@@ -4508,26 +4677,29 @@ class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'POST',
-        compress: true,
-        agent: proxy,
-        redirect: 'follow',
-        follow: 5,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
-          'content-type': 'application/x-www-form-urlencoded',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+      const res = await this._request(
+        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        {
+          method: 'POST',
+          compress: true,
+          agent: proxy,
+          redirect: 'follow',
+          follow: 5,
+          headers: {
+            ...getHeaders({ url, apiKey }),
+            Connection: 'Keep-Alive',
+            'content-type': 'application/x-www-form-urlencoded',
+            'Upgrade-Insecure-Requests': '1',
+            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'same-origin',
+            'sec-fetch-user': '?1',
+            accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+          },
+          body: this._formValues,
         },
-        body: this._formValues,
-      });
+      );
 
       const { status, url: redirectUrl } = res;
 
@@ -4693,6 +4865,13 @@ class TaskRunnerPrimitive {
         return States.COMPLETE_PAYMENT;
       }
 
+      // recaptcha sitekey parser...
+      const key = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (key && key.length) {
+        [, this._context.task.site.sitekey] = key;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+      }
+
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
         return States.CAPTCHA;
@@ -4805,6 +4984,14 @@ class TaskRunnerPrimitive {
           [, this._checkoutKey] = match;
           this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
+      }
+
+      let checkoutUrl;
+      if (this._storeId && this._checkoutToken && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+        // TODO: toggle to send the checkout link to discord
+        this._checkoutUrl = checkoutUrl;
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
       }
 
       if (redirectUrl) {
@@ -5440,6 +5627,7 @@ class TaskRunnerPrimitive {
       [States.QUEUE]: this._handlePollQueue,
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
+      [States.CLEAR_CART]: this._handleClearCart,
       [States.GO_TO_CART]: this._handleGoToCart,
       [States.GO_TO_CHECKOUT]: this._handleGetCheckout,
       [States.CAPTCHA]: this._handleRequestCaptcha,
