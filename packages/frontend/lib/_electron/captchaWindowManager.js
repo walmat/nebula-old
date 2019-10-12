@@ -1,3 +1,5 @@
+/* eslint-disable no-return-assign */
+/* eslint-disable no-param-reassign */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { session: Session, Notification } = require('electron');
 const Store = require('electron-store');
@@ -398,9 +400,24 @@ class CaptchaWindowManager {
     return win;
   }
 
+  async freeAllSessions() {
+    console.log('Freeing sessions');
+    // eslint-disable-next-line no-restricted-syntax
+    for (const key of Object.keys(this._sessions)) {
+      const session = this._sessions[key];
+      this._sessions[key] = {
+        ...session,
+        inUse: false,
+      };
+    }
+
+    this._store.set('captchaSessions', JSON.stringify(this._sessions));
+  }
+
   generateSessions(persist = true) {
     // get sessions store
     let sessions = this._store.get('captchaSessions');
+    console.log(sessions);
     if (sessions) {
       sessions = JSON.parse(sessions);
       this._sessions = sessions;

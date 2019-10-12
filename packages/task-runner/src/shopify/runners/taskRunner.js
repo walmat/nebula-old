@@ -93,16 +93,14 @@ class TaskRunnerPrimitive {
     this._needsLogin = this._context.task.account || false;
     this._state = States.STARTED;
     this.checkpointUrl = '/checkpoint'; // default to normal checkpoint
+    this._backupCheckout = false;
 
     // decide what our start state should be!
     if (!this._context.task.site.apiKey) {
       this._state = States.GET_SITE_DATA;
     } else if (this._needsLogin) {
       this._state = States.LOGIN;
-    } else if (
-      /dsm uk|dsm jp|dsm sg/i.test(this._context.task.site.name) ||
-      (!/dsm us|kith/i.test(this._context.task.site.name) && this._context.task.type === Modes.FAST)
-    ) {
+    } else if (this._context.task.type === Modes.FAST) {
       this._state = States.CREATE_CHECKOUT;
     } else {
       this._state = States.WAIT_FOR_PRODUCT;
@@ -1069,6 +1067,12 @@ class TaskRunnerPrimitive {
       this._logger.debug('Checkpoint redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
+        if (/checkout/i.test(redirectUrl)) {
+          this._backupCheckout = true;
+          this._emitTaskEvent({ message: 'Creating checkout' });
+          return States.CREATE_CHECKOUT;
+        }
+
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
           return States.GO_TO_CHECKPOINT;
@@ -1100,6 +1104,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 referer: url,
@@ -1182,11 +1187,11 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (/dsm sg|dsm jp|dsm uk/i.test(name)) {
+    if (/dsm sg|dsm jp|dsm uk/i.test(name) && type === Modes.FAST) {
       return this._handleCreateCheckoutWallets();
     }
 
-    if (!/dsm us/i.test(name) && type === Modes.FAST) {
+    if ((!/dsm us/i.test(name) && type === Modes.FAST) || this._backupCheckout) {
       return this._handleBackupCreateCheckout();
     }
 
@@ -1337,6 +1342,7 @@ class TaskRunnerPrimitive {
       task: {
         site: { url, apiKey },
         monitorDelay,
+        type,
       },
       proxy,
     } = this._context;
@@ -1436,7 +1442,12 @@ class TaskRunnerPrimitive {
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
-          this._emitTaskEvent({ message: 'Submitting information' });
+
+          if (type === Modes.SAFE) {
+            this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+            return States.GO_TO_CHECKOUT;
+          }
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
           return States.SUBMIT_CUSTOMER;
         }
       }
@@ -1643,7 +1654,7 @@ class TaskRunnerPrimitive {
       rawProxy,
       task: {
         type,
-        site: { url },
+        site: { url, apiKey },
       },
       proxy,
       timers: { monitor },
@@ -1717,6 +1728,7 @@ class TaskRunnerPrimitive {
               agent: proxy,
               redirect: 'manual',
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -1767,6 +1779,7 @@ class TaskRunnerPrimitive {
               redirect: 'manual',
               follow: 0,
               headers: {
+                ...getHeaders({ url, apiKey }),
                 'Upgrade-Insecure-Requests': 1,
                 'User-Agent': userAgent,
                 Connection: 'Keep-Alive',
@@ -1776,23 +1789,26 @@ class TaskRunnerPrimitive {
             const respBody = await response.text();
             this._logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);
 
-            const [, checkoutUrl] = respBody.match(/href="(.*)"/);
-            this._logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
+            const match = respBody.match(/href="(.*)"/);
 
-            if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
-              const [checkoutNoQs] = checkoutUrl.split('?');
-              [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
-              if (type === Modes.FAST) {
-                monitor.start();
+            if (match && match.length) {
+              const [, checkoutUrl] = match;
+              this._logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
+              if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
+                const [checkoutNoQs] = checkoutUrl.split('?');
+                [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
+                if (type === Modes.FAST) {
+                  monitor.start();
+                }
+                ({ message, nextState } = StateMap[this._prevState](
+                  type,
+                  this._context.task,
+                  this._selectedShippingRate,
+                ));
+
+                this._emitTaskEvent({ message, rawProxy });
+                return nextState;
               }
-              ({ message, nextState } = StateMap[this._prevState](
-                type,
-                this._context.task,
-                this._selectedShippingRate,
-              ));
-
-              this._emitTaskEvent({ message, rawProxy });
-              return nextState;
             }
           } catch (error) {
             // fail silently...
@@ -1906,10 +1922,7 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (
-      /dsm sg|dsm jp|dsm uk/i.test(name) ||
-      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
-    ) {
+    if (type === Modes.FAST) {
       return this._handleBackupAddToCart();
     }
 
@@ -1940,10 +1953,10 @@ class TaskRunnerPrimitive {
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
           'user-agent': userAgent,
-          Accept: 'application/json,text/javascript,*/*;q=0.01',
+          accept: /dsm/i.test(name) ? 'application/json,text/javascript,*/*;q=0.01' : '*/*',
           referer: restockUrl,
-          'content-type': /eflash/i.test(url)
-            ? 'application/x-www-form-urlencoded'
+          'Content-Type': /dsm/i.test(name)
+            ? 'application/x-www-form-urlencoded; charset=UTF-8'
             : 'application/json',
         },
         body: addToCart(id, name, hash),
@@ -1972,15 +1985,19 @@ class TaskRunnerPrimitive {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy, size });
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({
+            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            rawProxy,
+            size,
+          });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Adding to cart' });
+          this._emitTaskEvent({ message: 'Adding to cart', rawProxy, size });
           return States.ADD_TO_CART;
         }
 
@@ -1988,7 +2005,7 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Adding to cart' });
+          this._emitTaskEvent({ message: 'Adding to cart', rawProxy, size });
           return States.ADD_TO_CART;
         }
 
@@ -2019,7 +2036,7 @@ class TaskRunnerPrimitive {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue', rawProxy, size });
           return States.QUEUE;
         }
       }
@@ -2027,25 +2044,23 @@ class TaskRunnerPrimitive {
       const body = await res.text();
 
       if (/cannot find variant/i.test(body)) {
-        this._emitTaskEvent({ message: `Variant not live, delaying ${monitorDelay}ms`, rawProxy });
+        this._emitTaskEvent({
+          message: `Variant not live, delaying ${monitorDelay}ms`,
+          rawProxy,
+          size,
+        });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Adding to cart' });
+        this._emitTaskEvent({ message: 'Adding to cart', size });
         return States.ADD_TO_CART;
       }
 
-      const { price } = body;
-
-      if (price) {
-        this._prices.cart = price;
-      }
-
       if (this._checkoutUrl) {
-        this._emitTaskEvent({ message: 'Going to checkout' });
+        this._emitTaskEvent({ message: 'Going to checkout', size });
         return States.GO_TO_CHECKOUT;
       }
 
-      this._emitTaskEvent({ message: 'Going to cart', rawProxy });
+      this._emitTaskEvent({ message: 'Going to cart', rawProxy, size });
       return States.GO_TO_CART;
     } catch (err) {
       this._logger.error(
@@ -2651,9 +2666,10 @@ class TaskRunnerPrimitive {
       aborted,
       rawProxy,
       task: {
-        site: { url, name, apiKey },
+        site: { url, apiKey },
         monitorDelay,
         forceCaptcha,
+        type,
       },
       proxy,
     } = this._context;
@@ -2664,10 +2680,7 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (
-      /dsm sg|dsm jp|dsm uk/i.test(name) ||
-      (!/dsm us/i.test(this._context.task.site.name) && this._context.task.type === Modes.FAST)
-    ) {
+    if (type === Modes.FAST) {
       return this._handleBackupGetCheckout();
     }
 
@@ -3063,7 +3076,7 @@ class TaskRunnerPrimitive {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey, name },
+        site: { url, apiKey },
         type,
       },
     } = this._context;
@@ -3074,10 +3087,7 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (
-      /dsm sg|dsm jp|dsm uk/i.test(name) ||
-      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
-    ) {
+    if (type === Modes.FAST) {
       return this._handleBackupSubmitCustomer();
     }
 
@@ -3398,7 +3408,7 @@ class TaskRunnerPrimitive {
       rawProxy,
       proxy,
       task: {
-        site: { url, name, apiKey },
+        site: { url, apiKey },
         monitorDelay,
         forceCaptcha,
         type,
@@ -3411,10 +3421,7 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (
-      /dsm sg|dsm jp|dsm uk/i.test(name) ||
-      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
-    ) {
+    if (type === Modes.FAST) {
       return this._handleBackupGetShipping();
     }
 
@@ -3766,7 +3773,7 @@ class TaskRunnerPrimitive {
       proxy,
       task: {
         monitorDelay,
-        site: { url, name, apiKey },
+        site: { url, apiKey },
         type,
         forceCaptcha,
       },
@@ -3778,10 +3785,7 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (
-      /dsm sg|dsm jp|dsm uk/i.test(name) ||
-      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
-    ) {
+    if (type === Modes.FAST) {
       return this._handleBackupSubmitShipping();
     }
 
@@ -4203,15 +4207,12 @@ class TaskRunnerPrimitive {
       proxy,
       task: {
         monitorDelay,
-        site: { url, name, apiKey },
+        site: { url, apiKey },
         type,
       },
     } = this._context;
 
-    if (
-      /dsm sg|dsm jp|dsm uk/i.test(name) ||
-      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
-    ) {
+    if (type === Modes.FAST) {
       return this._handleBackupSubmitPayment();
     }
 
@@ -4657,16 +4658,13 @@ class TaskRunnerPrimitive {
       proxy,
       task: {
         monitorDelay,
-        site: { url, name, apiKey },
+        site: { url, apiKey },
         type,
         forceCaptcha,
       },
     } = this._context;
 
-    if (
-      /dsm sg|dsm jp|dsm uk/i.test(name) ||
-      (!/dsm us/i.test(this._context.task.site.name) && type === Modes.FAST)
-    ) {
+    if (type === Modes.FAST) {
       return this._handleBackupCompletePayment();
     }
 

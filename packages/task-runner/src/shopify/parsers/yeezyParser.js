@@ -11,7 +11,7 @@ class YeezyParser extends SpecialParser {
     return true;
   }
 
-  parseInitialPageForProducts($) {
+  async parseInitialPageForProducts($) {
     // Look for all `.js-product-json`'s
     const products = [];
 
@@ -90,9 +90,9 @@ class YeezyParser extends SpecialParser {
     return validatedProducts;
   }
 
-  parseProductInfoPageForProduct($) {
+  async parseProductInfoPageForProduct($) {
     // Proxy the initial page parsing since it works for product pages as well...
-    const [matchedProduct] = this.parseInitialPageForProducts($);
+    const [matchedProduct] = await this.parseInitialPageForProducts($);
     return matchedProduct;
   }
 }

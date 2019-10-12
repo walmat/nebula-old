@@ -93,7 +93,6 @@ class JsonParser extends Parser {
         if (match && match.length) {
           [, hash] = match;
         }
-
       } catch (error) {
         if (error && error.type && /system/i.test(error.type)) {
           const rethrow = new Error(error.errno);

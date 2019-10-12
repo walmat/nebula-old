@@ -660,7 +660,7 @@ class TaskManager {
     switch (platform) {
       case Platforms.Shopify: {
         if (type === RunnerTypes.Normal) {
-          const parseType = getParseType(task.product, task.site, platform);
+          const parseType = getParseType(task.product, null, platform);
 
           // shared context between monitor/checkout
           const context = {

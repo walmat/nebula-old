@@ -70,10 +70,15 @@ class SpecialParser extends Parser {
       }
 
       const body = await res.text();
-      response = cheerio.load(body, {
-        normalizeWhitespace: true,
-        xmlMode: false,
-      });
+
+      if (/travis/i.test(initialUrl)) {
+        response = body;
+      } else {
+        response = cheerio.load(body, {
+          normalizeWhitespace: true,
+          xmlMode: false,
+        });
+      }
     } catch (error) {
       // Handle other error responses
       this._logger.error(
@@ -303,6 +308,12 @@ class SpecialParser extends Parser {
       }
 
       const body = await res.text();
+
+      // for traviss let's use regex instead of cheerio..
+      if (/travis/i.test(this._task.site.url)) {
+        return body;
+      }
+
       const response = cheerio.load(body, {
         normalizeWhitespace: true,
         xmlMode: false,

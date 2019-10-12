@@ -4,8 +4,7 @@ const rfrl = require('./rfrl');
 
 const waitForDelay = (time, signal) => delay(time, { signal });
 const reflect = p => p.then(v => ({ v, status: 'fulfilled' }), e => ({ e, status: 'rejected' }));
-const userAgent =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
+const userAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; LCTE; rv:11.0) like Gecko';
 
 /**
  * Takes in either the pos_keywords/neg_keywords and trims the

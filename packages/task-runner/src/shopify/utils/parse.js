@@ -24,6 +24,10 @@ function getParseType(product, site, platform = Platforms.Shopify) {
         return ParseType.Variant;
       }
 
+      if ((site && isSpecialSite(site)) || (site && /traviss/i.test(site.name))) {
+        return ParseType.Special;
+      }
+
       if (product.url) {
         return ParseType.Url;
       }
@@ -200,7 +204,6 @@ module.exports.matchVariant = matchVariant;
  * @see filterAndLimit
  */
 function matchKeywords(products, keywords, _filter, logger, returnAll, random) {
-
   if (random) {
     return products[0];
   }

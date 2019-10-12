@@ -141,7 +141,6 @@ const sites = [
     url: 'https://eflash-us.doverstreetmarket.com',
     apiKey: 'c61dfd7121456f05d58cedf7a0b068b6',
     auth: false,
-    special: true,
     supported: true,
   },
   {
@@ -149,7 +148,6 @@ const sites = [
     url: 'https://eflash.doverstreetmarket.com',
     apiKey: '0386ed516cfb121c71eee5a33b357cc6',
     auth: false,
-    special: true,
     supported: true,
   },
   {
@@ -157,7 +155,6 @@ const sites = [
     url: 'https://eflash-sg.doverstreetmarket.com',
     apiKey: '0867cfd02e49786c54fd1a9fd02f03cd',
     auth: false,
-    special: true,
     supported: true,
   },
   {
@@ -165,7 +162,6 @@ const sites = [
     url: 'https://eflash-jp.doverstreetmarket.com',
     apiKey: '8cbefa53e1484d3a39a41396a00b9fe9',
     auth: false,
-    special: true,
     supported: true,
   },
   {
@@ -668,6 +664,7 @@ const sites = [
     url: 'https://aj1.travisscott.com',
     apiKey: '8eadffbda47bb8f4167fbf8a086590e0',
     auth: false,
+    special: true,
     supported: true,
   },
   {
@@ -675,6 +672,7 @@ const sites = [
     url: 'https://astros.travisscott.com',
     apiKey: '8eadffbda47bb8f4167fbf8a086590e0',
     auth: false,
+    special: true,
     supported: true,
   },
   {
@@ -682,6 +680,7 @@ const sites = [
     url: 'https://shop.travisscott.com',
     apiKey: '8eadffbda47bb8f4167fbf8a086590e0',
     auth: false,
+    special: true,
     supported: true,
   },
   {

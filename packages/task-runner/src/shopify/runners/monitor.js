@@ -68,6 +68,7 @@ class Monitor {
     this._history = [];
 
     this._matchRandom = false;
+    this._isSpecial = false;
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
@@ -180,12 +181,34 @@ class Monitor {
       return States.ABORT;
     }
 
-    const { monitorDelay, type } = this._context.task;
+    const { monitorDelay } = this._context.task;
     let delayStatus;
+    let setImmediate = false;
     let ban = false; // assume we don't have a softban
     errors.forEach(({ status }) => {
       if (!status) {
         return;
+      }
+
+      // fallback to special parser...
+      if (/404/.test(status) && this._isSpecial && this._parseType === ParseType.Keywords) {
+        this._logger.debug('Changing to backup parser!');
+        this._parseType = getParseType(
+          this._context.task.product,
+          this._context.task.site,
+          Platforms.Shopify,
+        );
+        setImmediate = true;
+      }
+
+      if (/403/i.test(status) && this._isSpecial && this._parseType === ParseType.Url) {
+        this._logger.debug('Changing to backup parser!');
+        this._parseType = getParseType(
+          this._context.task.product,
+          this._context.task.site,
+          Platforms.Shopify,
+        );
+        setImmediate = true;
       }
 
       if (/429|430|ECONNRESET|ENOTFOUND/.test(status)) {
@@ -203,6 +226,10 @@ class Monitor {
         delayStatus = status; // find the first error that is either a product not found or 4xx response
       }
     });
+
+    if (setImmediate) {
+      return States.PARSE;
+    }
 
     if (ban) {
       this._logger.silly('Proxy was banned, swapping proxies...');
@@ -223,7 +250,6 @@ class Monitor {
       default:
         break;
     }
-
 
     if (this._taskType === Modes.CART) {
       this._emitMonitorEvent({ message: `Starting precart`, rawProxy: this._context.rawProxy });
@@ -305,7 +331,6 @@ class Monitor {
 
   async _parseAll() {
     // Create the parsers and start the async run methods
-
     const Parsers = getParsers(this._context.task.site.url);
 
     const parsers = Parsers(
@@ -317,6 +342,12 @@ class Monitor {
       this._context.logger,
       this._matchRandom,
     );
+
+    // set a flag to let us know later if we hit a 404 to use a backup parser
+    if (parsers.length === 1) {
+      this._logger.debug('Setting special flag!');
+      this._isSpecial = true;
+    }
 
     // Return the winner of the race
     return rfrl(parsers.map(p => p.run()), 'parseAll');
@@ -378,6 +409,11 @@ class Monitor {
     }
 
     const [url] = this._context.task.product.url.split('?');
+
+    if (/yeezysupply|eflash|traviss/i.test(url)) {
+      this._logger.debug('Setting special flag!');
+      this._isSpecial = true;
+    }
 
     try {
       // Try getting full product info
@@ -477,6 +513,7 @@ class Monitor {
       found: name || undefined,
       rawProxy: this._context.rawProxy,
     });
+
     return States.DONE;
   }
 

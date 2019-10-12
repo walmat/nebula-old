@@ -295,6 +295,7 @@ class WindowManager {
       } else if (this._main && winId === this._main.id) {
         // Stop the task launcher when the main window closes
         this._context.taskLauncher.stop();
+        await this._captchaWindowManager.freeAllSessions();
         Electron.BrowserWindow.getAllWindows(w => w.close());
         this._main = null;
       } else if (this._auth && winId === this._auth.id) {
