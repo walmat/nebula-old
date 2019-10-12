@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { session: Session, Notification } = require('electron');
+const Store = require('electron-store');
 const Path = require('path');
 const { differenceInSeconds } = require('date-fns');
 
@@ -19,6 +20,8 @@ class CaptchaWindowManager {
      */
     this._context = context;
 
+    this._store = new Store();
+
     /**
      * Window options related to the theme of the captcha windows
      */
@@ -28,9 +31,7 @@ class CaptchaWindowManager {
      * Array of created captcha windows
      */
     this._captchaWindows = [];
-
-    this._captchaWindowSessionPairs = new Map();
-    this._sessions = new Map();
+    this._sessions = {};
 
     /**
      * Map of created youtube windows
@@ -50,6 +51,8 @@ class CaptchaWindowManager {
      * Prevents creating multiple token checkers
      */
     this._checkTokenIntervalId = null;
+
+    this.testInterval = null;
 
     /**
      * Current Harvest State
@@ -132,13 +135,7 @@ class CaptchaWindowManager {
     return null;
   }
 
-  static setProxy(
-    win,
-    {
-      proxyRules,
-      proxyBypassRules = '*.google.com,*.gstatic.com,.youtube.com,*.youtube.com,*.ytimg.com,*.doubleclick.net,*.googlevideo.com,https://www.youtube.com,*.ggpht.com,*.com',
-    },
-  ) {
+  static setProxy(win, { proxyRules, proxyBypassRules = '*.com' }) {
     if (win) {
       win.webContents.session.setProxy(
         {
@@ -188,7 +185,7 @@ class CaptchaWindowManager {
       host,
     };
     if (this._captchaWindows.length === 0) {
-      this.spawnCaptchaWindow();
+      await this.spawnCaptchaWindow();
     } else {
       await Promise.all(
         this._captchaWindows.map(async (win, idx) => {
@@ -258,16 +255,11 @@ class CaptchaWindowManager {
       this._context.captchaServerManager.start();
     }
 
-    let session = null;
-    // eslint-disable-next-line no-restricted-syntax
-    for (const s of this._sessions.values()) {
-      if (!s.inUse) {
-        session = s;
-        session.inUse = true;
-        this._sessions.set(session.id, session);
-        break;
-      }
+    const session = Object.values(this._sessions).find(s => !s.inUse);
+    if (session) {
+      session.inUse = true;
     }
+
     // Store background color if it is passed so we get the latest background color passed
     if (options.backgroundColor) {
       this._captchaThemeOpts.backgroundColor = options.backgroundColor;
@@ -275,16 +267,23 @@ class CaptchaWindowManager {
     console.log(`[DEBUG]: Session for captcha window: %j`, session);
     const win = createCaptchaWindow(
       { ...options, ...this._captchaThemeOpts },
-      { session: session.session },
+      { session: Session.fromPartition(session.session) },
     );
+
     win.webContents.session.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
       '*/*',
     );
     const winId = win.id;
     const webContentsId = win.webContents.id;
+
+    // patch in the window to the session mapping...
+    session.window = winId;
+    this._sessions[session.id] = session;
+    this._store.set('captchaSessions', JSON.stringify(this._sessions));
+    console.log(`[DEBUG]: Session for window set %j`, this._sessions[session.id]);
+
     this._captchaWindows.push(win);
-    this._captchaWindowSessionPairs.set(winId, session.id);
     CaptchaWindowManager.setProxy(win, {
       proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
       proxyBypassRules: '.google.com,.gstatic.com,.youtube.com',
@@ -314,7 +313,23 @@ class CaptchaWindowManager {
     );
 
     win.webContents.once('did-finish-load', () => {
-      CaptchaWindowManager.setProxy(win, {});
+      const { id: sessionId, proxy } = session;
+      console.log(`[DEBUG]: Session for window: ${sessionId}`);
+
+      if (sessionId !== undefined && sessionId !== null) {
+        console.log(`[DEBUG]: Proxy ${proxy} for session ${sessionId}`);
+        if (proxy) {
+          console.log(`[DEBUG]: Setting proxy!`);
+          win.webContents.send(IPCKeys.RequestShowProxy, proxy);
+          CaptchaWindowManager.setProxy(win, {
+            proxyRules: CaptchaWindowManager.formatProxy(proxy),
+          });
+        } else {
+          CaptchaWindowManager.setProxy(win, {});
+        }
+      } else {
+        CaptchaWindowManager.setProxy(win, {});
+      }
 
       // If we are actively harvesting, start harvesting on the new window as well
       if (state === HARVEST_STATES.ACTIVE) {
@@ -339,14 +354,24 @@ class CaptchaWindowManager {
         console.log(`[DEBUG]: Window was closed, id = ${winId}`);
       }
       this._captchaWindows = this._captchaWindows.filter(w => w.id !== winId);
-      const sessionId = this._captchaWindowSessionPairs.get(winId);
-      const s = this._sessions.get(sessionId);
-      this._captchaWindowSessionPairs.delete(winId);
-      this._sessions.set(s.id, {
-        id: s.id,
-        session: s.session,
-        inUse: false,
-      });
+
+      const { id: sessionId } = Object.values(this._sessions).find(s => s.window === winId);
+
+      console.log(`[DEBUG]: Session for window: ${sessionId}`);
+
+      if (sessionId !== undefined && sessionId !== null) {
+        console.log(`[DEBUG]: Removing window ${winId} from session`);
+        const s = this._sessions[sessionId];
+        this._sessions[sessionId] = {
+          id: s.id,
+          proxy: s.proxy,
+          window: '',
+          session: s.session,
+          inUse: false,
+        };
+        this._store.set('captchaSessions', JSON.stringify(this._sessions));
+      }
+
       const ytWin = this._youtubeWindows[webContentsId];
       if (ytWin) {
         // Close youtube window
@@ -374,19 +399,29 @@ class CaptchaWindowManager {
   }
 
   generateSessions(persist = true) {
-    // get sessions (or create new ones)
-    for (let i = 0; i < 5; i += 1) {
-      const session = persist ? `persist:${i}` : i;
-      this._sessions.set(i, {
-        id: i,
-        session: Session.fromPartition(session),
-        inUse: false,
-      });
+    // get sessions store
+    let sessions = this._store.get('captchaSessions');
+    if (sessions) {
+      sessions = JSON.parse(sessions);
+      this._sessions = sessions;
+    } else {
+      for (let i = 0; i < 5; i += 1) {
+        this._sessions[i] = {
+          id: i,
+          proxy: '',
+          window: '',
+          session: persist ? `persist:${i}` : i,
+          inUse: false,
+        };
+      }
+
+      this._store.set('captchaSessions', JSON.stringify(this._sessions));
     }
   }
 
   spawnYoutubeWindow(parentId, parentSession) {
     // Use parent session to link the two windows together
+    // TODO: Do we use the same proxy?
     const win = createYouTubeWindow(null, { session: parentSession });
     const winId = win.id;
     this._youtubeWindows[parentId] = win;
@@ -453,11 +488,15 @@ class CaptchaWindowManager {
    * Clears the storage data and cache for the session
    */
   _onRequestEndSession(ev) {
+    const winId = ev.sender.id;
+
+    console.log('[DEBUG]: Ending session!');
     ev.sender.session.flushStorageData();
     ev.sender.session.clearStorageData();
     ev.sender.session.clearCache(() => {});
+
     // close the youtube window if it exists
-    const win = this._youtubeWindows[ev.sender.id];
+    const win = this._youtubeWindows[winId];
     if (win) {
       win.close();
     }
@@ -526,6 +565,24 @@ class CaptchaWindowManager {
 
   _onRequestSaveCaptchaProxy(_, winId, proxy) {
     const win = this._captchaWindows.find(w => w.id === winId);
+
+    const { id: sessionId } = Object.values(this._sessions).find(s => s.window === winId);
+    console.log(`[DEBUG]: Session for window: ${sessionId}`);
+
+    if (sessionId !== undefined && sessionId !== null) {
+      console.log('[DEBUG]: Found session %s Updating proxy...', sessionId);
+      const s = this._sessions[sessionId];
+      this._sessions[sessionId] = {
+        id: s.id,
+        window: winId,
+        proxy, // save raw proxy, format it later...
+        session: s.session,
+        inUse: true,
+      };
+
+      this._store.set('captchaSessions', JSON.stringify(this._sessions));
+    }
+
     CaptchaWindowManager.setProxy(win, { proxyRules: CaptchaWindowManager.formatProxy(proxy) });
   }
 }

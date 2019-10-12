@@ -148,20 +148,23 @@ async function simulateClick(sourcePt) {
 
 async function autoClick() {
   // Wait for iframe load
-  await waitForLoad();
-
-  console.log('HOST IN AUTOCLICK FN:', _host);
 
   if (/supreme/i.test(_host)) {
+    await waitForLoad();
     window.grecaptcha.execute();
   } else {
-    // Get position and simulate click
-    const [x, y] = window.Bridge.Captcha.getPosition();
-    const sourcePt = {
-      x: x + rand(100, 300),
-      y: y + rand(100, 550),
-    };
-    await simulateClick(sourcePt);
+    const captchaInterval = setInterval(() => {
+      const challengeFrame = document.querySelector('iframe[role="presentation"]');
+      if (challengeFrame) {
+        const challengeButton = challengeFrame.contentDocument.getElementsByClassName(
+          'recaptcha-checkbox-checkmark',
+        )[0];
+        if (challengeButton) {
+          clearInterval(captchaInterval);
+          challengeButton.click();
+        }
+      }
+    }, 500);
   }
 }
 
@@ -207,7 +210,7 @@ async function submitCaptcha() {
   _submitting = false;
 }
 
-async function _registerStartHandler(_, runnerId, siteKey, host) {
+function _registerStartHandler(_, runnerId, siteKey, host) {
   if (_started) {
     return;
   }
@@ -217,27 +220,13 @@ async function _registerStartHandler(_, runnerId, siteKey, host) {
   _host = host;
   _started = true;
 
-  // TODO: WE SHOULD DO A CHECK HERE TO SEE IF WE'RE SOLVING ALREADY FOR THE PROPER HOST
-  // // check to see if we're on the proper host
-  // const currentWindow = remote.getCurrentWindow();
-  // const currentLocation = currentWindow.webContents.getURL();
-  // console.log(currentLocation, _host);
-  // if (currentLocation !== _host) {
-  //   console.log('not the same');
-  //   _started = false;
-  //   currentWindow.webContents.loadURL(_host);
-  //   currentWindow.webContents.reload();
-  //   return;
-  // }
-
-  // console.log(host, _host);
-
   // Show the form if it was previous hidden
   const form = document.getElementById('captchaForm');
   form.setAttribute('style', 'visibility:visible;');
 
   if (!_initialized) {
     const dataSize = /supreme/i.test(_host) ? 'invisible' : 'normal';
+    console.log(document.body.style['background-color']);
     const script = document.createElement('script');
     script.src = 'https://www.google.com/recaptcha/api.js';
     script.async = true;
@@ -267,6 +256,12 @@ function _registerStopHandler() {
   if (!_submitting) {
     resetChallenge();
   }
+}
+
+async function _showProxy(proxy) {
+  console.log(proxy);
+  const proxyInput = document.getElementById('captcha-proxy');
+  proxyInput.innerHTML = proxy;
 }
 
 function _onSaveProxy() {

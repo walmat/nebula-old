@@ -27,6 +27,14 @@ const _getPosition = () => {
   return win.getPosition();
 };
 
+const _registerForShowProxy = cb => {
+  util.sendEvent(IPCKeys.RequestShowProxy, cb);
+};
+
+const _deregisterForShowProxy = cb => {
+  util.removeEvent(IPCKeys.RequestShowProxy, cb);
+};
+
 /**
  * Registers a callback when Change theme event is sent
  */
@@ -98,6 +106,10 @@ process.once('loaded', () => {
       stop: {
         register: _registerForStopHarvestCaptcha,
         deregister: _deregisterForStopHarvestCaptcha,
+      },
+      proxy: {
+        register: _registerForShowProxy,
+        deregister: _deregisterForShowProxy,
       },
       getPosition: _getPosition,
     },

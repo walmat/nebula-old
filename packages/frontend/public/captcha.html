@@ -327,6 +327,14 @@
       }
     </style>
     <script src="./js/captcha.js"></script>
+    <script>
+      require('electron').ipcRenderer.on('RequestShowProxy', (_, proxy) => {
+        const proxyInput = document.getElementById('captcha-proxy');
+        proxyInput.value = proxy;
+      })
+    </script>
+
+  <script>window.$ = window.jQuery = require('jquery');</script>
   </head>
   <body>
     <div id="titlebar"></div>

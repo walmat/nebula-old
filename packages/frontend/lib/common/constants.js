@@ -29,6 +29,7 @@ const IPCKeys = {
 
   RequestLaunchHarvester: 'RequestLaunchHarvester',
   RequestCloseAllCaptchaWindows: 'RequestCloseAllCaptchaWindows',
+  RequestShowProxy: 'RequestShowProxy',
   RequestLaunchYoutube: 'RequestLaunchYoutube',
   RequestCloseWindow: 'RequestCloseWindow',
   RequestMinimizeWindow: 'RequestMinimizeWindow',
