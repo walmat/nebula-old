@@ -1,7 +1,8 @@
 /* eslint-disable no-return-assign */
 /* eslint-disable no-param-reassign */
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { session: Session, Notification } = require('electron');
+const { session: Session, Notification, net } = require('electron');
+const fs = require('fs');
 const Store = require('electron-store');
 const Path = require('path');
 const { differenceInSeconds } = require('date-fns');
@@ -190,8 +191,20 @@ class CaptchaWindowManager {
       await this.spawnCaptchaWindow();
     } else {
       await Promise.all(
-        this._captchaWindows.map(async (win, idx) => {
-          await new Promise(resolve => setTimeout(resolve, idx * 250));
+        this._captchaWindows.map(async win => {
+          const currentDomain = new URL(win.webContents.getURL()).hostname;
+          const newDomain = new URL(host).hostname;
+          if (currentDomain !== newDomain) {
+            CaptchaWindowManager.setupIntercept(win);
+            win.loadURL(host);
+
+            win.webContents.on('dom-ready', () => {
+              win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
+            });
+            return;
+          }
+
+          // await new Promise(resolve => setTimeout(resolve, (idx + 1) * 250));
           win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
         }),
       );
@@ -243,6 +256,45 @@ class CaptchaWindowManager {
     return this._tokenQueue.next();
   }
 
+  static setupIntercept(win) {
+    win.webContents.session.protocol.interceptBufferProtocol('http', (req, callback) => {
+      if (/supreme|shopify/i.test(req.url)) {
+        const html = fs.readFileSync(urls.get('captcha'));
+
+        callback({
+          mimeType: 'text/html',
+          data: Buffer.from(html),
+        });
+      } else {
+        const request = net.request(req);
+        request.on('response', res => {
+          const chunks = [];
+
+          res.on('data', chunk => {
+            chunks.push(Buffer.from(chunk));
+          });
+
+          res.on('end', async () => {
+            const file = Buffer.concat(chunks);
+            callback(file);
+          });
+        });
+
+        if (req.uploadData) {
+          req.uploadData.forEach(part => {
+            if (part.bytes) {
+              request.write(part.bytes);
+            } else if (part.file) {
+              request.write(fs.readFileSync(part.file));
+            }
+          });
+        }
+
+        request.end();
+      }
+    });
+  }
+
   /**
    * Create a captcha window and show it
    */
@@ -251,10 +303,6 @@ class CaptchaWindowManager {
     // Prevent more than 5 windows from spawning
     if (this._captchaWindows.length >= 5) {
       return null;
-    }
-    if (!this._context.captchaServerManager.isRunning) {
-      console.log('[DEBUG]: Starting captcha server');
-      this._context.captchaServerManager.start();
     }
 
     const session = Object.values(this._sessions).find(s => !s.inUse);
@@ -272,6 +320,8 @@ class CaptchaWindowManager {
       { session: Session.fromPartition(session.session) },
     );
 
+    CaptchaWindowManager.setupIntercept(win);
+
     win.webContents.session.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
       '*/*',
@@ -286,11 +336,7 @@ class CaptchaWindowManager {
     console.log(`[DEBUG]: Session for window set %j`, this._sessions[session.id]);
 
     this._captchaWindows.push(win);
-    CaptchaWindowManager.setProxy(win, {
-      proxyRules: `http://127.0.0.1:${this._context.captchaServerManager.port}`,
-      proxyBypassRules: '.google.com,.gstatic.com,.youtube.com',
-    });
-    win.loadURL(host || 'http://checkout.shopify.com');
+    win.loadURL(host || 'http://checkout.shopify.com'); // default to shopify...
     win.on('ready-to-show', () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`[DEBUG]: Window was opened, id = ${winId}`);
@@ -417,7 +463,6 @@ class CaptchaWindowManager {
   generateSessions(persist = true) {
     // get sessions store
     let sessions = this._store.get('captchaSessions');
-    console.log(sessions);
     if (sessions) {
       sessions = JSON.parse(sessions);
       this._sessions = sessions;

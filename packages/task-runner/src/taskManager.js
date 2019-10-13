@@ -116,22 +116,25 @@ class TaskManager {
    */
   harvestCaptchaToken(_, token) {
     // Check if we have tokens to pass through
+    this._logger.debug('TaskManager: Reserve queue length: %s', this._tokenReserveQueue.length);
     if (this._tokenReserveQueue.length) {
       // Get the next runner to pass the token
-      const { runnerId } = this._tokenReserveQueue.shift();
+      const { runnerId, priority } = this._tokenReserveQueue.shift();
+      this._logger.debug('TaskManager: Grabbed requester: %s with priority %s', runnerId, priority);
       // Use the runner id to get the container
       const container = this._captchaQueues.get(runnerId);
       if (!container) {
         // The current container no longer exists in the captcha queue,
         // Call recursively to get the next runner
+        this._logger.debug('TaskManager: Runner not found! Recursive calling next runner');
         this.harvestCaptchaToken(runnerId, token);
       }
       // Send event to pass data to runner
+      this._logger.debug('TaskManager: Sending token to %s', runnerId);
       this._events.emit(Events.Harvest, runnerId, token);
 
-      const priority = 1; // TODO: reset priority back to 1 here?
-      // Add the runner back into the token queue
-      this._tokenReserveQueue.push({ runnerId, priority });
+      // stop the harvester for that runner..
+      this.handleStopHarvest(runnerId);
     }
   }
 
@@ -253,6 +256,7 @@ class TaskManager {
    * @param {String} runnerId the runner for which to register captcha events
    */
   handleStartHarvest(runnerId, sitekey, host, priority) {
+    this._logger.debug('TaskManager: Inserting %s requester with %s priority', runnerId, priority);
     let container = this._captchaQueues.get(runnerId);
     if (!container) {
       // We haven't started harvesting for this runner yet, create a queue and start harvesting
@@ -262,9 +266,11 @@ class TaskManager {
 
       let contains = false;
       // priority checks...
+      this._logger.debug('TaskManager: Reserve queue length: %s', this._tokenReserveQueue.length);
       for (let i = 0; i < this._tokenReserveQueue.length; i += 1) {
         // if the new items priority is less than, splice it in place.
         if (this._tokenReserveQueue[i].priority > priority) {
+          this._logger.debug('TaskManager: Inserting %s as: %s place in line', runnerId, i);
           this._tokenReserveQueue.splice(i, 0, { runnerId, priority });
           contains = true;
           break;
@@ -272,6 +278,7 @@ class TaskManager {
       }
 
       if (!contains) {
+        this._logger.debug('TaskManager: Pushing %s to last place in line', runnerId);
         // Add the runner to the back of the token reserve queue
         this._tokenReserveQueue.push({ runnerId, priority });
       }
@@ -698,34 +705,34 @@ class TaskManager {
           runner.parseType = parseType;
 
           // prevent multiple monitors on same site with same data
-          const existing = await Object.values(this._monitors).find(async m => {
-            if (!m) {
-              return null;
+          // eslint-disable-next-line no-restricted-syntax
+          for (const m of Object.values(this._monitors)) {
+            if (m.platform === platform) {
+              // eslint-disable-next-line no-await-in-loop
+              const isSameProduct = await TaskManager._compareProductInput(
+                m._task.product,
+                context.task.product,
+                parseType,
+              );
+
+              this._logger.debug('Same product data?: %j', isSameProduct);
+
+              if (isSameProduct && m._task.site.url === context.task.site.url) {
+                monitor = m;
+                break;
+              }
             }
+          }
 
-            const isSameProduct = await TaskManager._compareProductInput(
-              m._task.product,
-              context.task.product,
-              parseType,
-            );
+          this._logger.debug('Existing monitor? %j', monitor);
 
-            this._logger.debug('Same product data?: %j', isSameProduct);
-
-            if (isSameProduct && m._task.site.url === context.task.site.url) {
-              return m;
-            }
-
-            return null;
-          });
-
-          this._logger.debug('Existing monitor? %j', existing);
-
-          if (existing) {
+          if (monitor) {
             this._logger.debug('Existing monitor found! Just adding ids');
-            existing.ids.push(context.id);
-            existing.taskIds.push(context.taskId);
+            monitor.ids.push(context.id);
+            monitor.taskIds.push(context.taskId);
           } else {
             monitor = new ShopifyMonitor(context, openProxy, parseType);
+            monitor.platform = platform;
             monitor.site = task.site.url;
             monitor.type = parseType;
           }
@@ -755,36 +762,39 @@ class TaskManager {
         runner = new SupremeRunner(context, openProxy, ParseType.Keywords);
         runner.parseType = ParseType.Keywords;
 
-        // prevent multiple monitors on same site with same data
-        const existing = await Object.values(this._monitors).find(async m => {
-          if (!m) {
-            return null;
+        // eslint-disable-next-line no-restricted-syntax
+        for (const m of Object.values(this._monitors)) {
+          if (m.platform === platform) {
+            // eslint-disable-next-line no-await-in-loop
+            const isSameProduct = await TaskManager._compareProductInput(
+              m._task.product,
+              context.task.product,
+              ParseType.Keywords,
+            );
+
+            this._logger.debug('Same product data?: %j', isSameProduct);
+
+            if (
+              isSameProduct &&
+              m._task.category === context.task.category &&
+              m._task.site.url === context.task.site.url
+            ) {
+              monitor = m;
+              break;
+            }
           }
+        }
 
-          const isSameProduct = await TaskManager._compareProductInput(
-            m._task.product,
-            context.task.product,
-            ParseType.Keywords,
-          );
+        this._logger.debug('Existing monitor? %j', monitor || false);
 
-          this._logger.debug('Same product data?: %j', isSameProduct);
-
-          if (isSameProduct && m._task.category === context.task.category && m._task.site.url === context.task.site.url) {
-            return m;
-          }
-
-          return null;
-        });
-
-        this._logger.debug('Existing monitor? %j', existing);
-
-        if (existing) {
+        if (monitor) {
           this._logger.debug('Existing monitor found! Just adding ids');
-          existing.ids.push(context.id);
-          existing.taskIds.push(context.taskId);
+          monitor.ids.push(context.id);
+          monitor.taskIds.push(context.taskId);
         } else {
           this._logger.debug('No monitor found! Creating a new monitor');
           monitor = new SupremeMonitor(context, openProxy);
+          monitor.platform = platform;
           monitor.site = task.site.url;
           monitor.type = ParseType.Keywords;
         }

@@ -153,6 +153,8 @@ class TaskRunnerPrimitive {
     this._formValues = '';
     this._isFreeCheckout = false;
     this._isChecking = false;
+    this._isRestocking = false;
+    this._previousProxy = '';
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
@@ -1188,7 +1190,7 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (/dsm sg|dsm jp|dsm uk/i.test(name) && type === Modes.FAST) {
+    if (/dsm sg|dsm jp|dsm uk/i.test(name) && (this._isRestocking || type === Modes.FAST)) {
       return this._handleCreateCheckoutWallets();
     }
 
@@ -1923,7 +1925,7 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (type === Modes.FAST) {
+    if (this._isRestocking || type === Modes.FAST) {
       return this._handleBackupAddToCart();
     }
 
@@ -2283,7 +2285,8 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Password page', rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Adding to cart' });
+          const message = this._isRestocking ? 'Checking stock' : 'Adding to cart';
+          this._emitTaskEvent({ message, rawProxy });
           return States.ADD_TO_CART;
         }
 
@@ -2327,7 +2330,8 @@ class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Adding to cart' });
+          const message = this._isRestocking ? 'Checking stock' : 'Adding to cart';
+          this._emitTaskEvent({ message, rawProxy });
           return States.ADD_TO_CART;
         }
         if (error && error.variant_id && error.variant_id.length) {
@@ -2337,7 +2341,8 @@ class TaskRunnerPrimitive {
           });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Adding to cart' });
+          const message = this._isRestocking ? 'Checking stock' : 'Adding to cart';
+          this._emitTaskEvent({ message, rawProxy });
           return States.ADD_TO_CART;
         }
 
@@ -2355,6 +2360,11 @@ class TaskRunnerPrimitive {
           : `http:${body.checkout.line_items[0].image_url}`;
 
         this._prices.cart = parseFloat(totalPrice).toFixed(2);
+
+        if (this._isRestocking) {
+          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          return States.PAYMENT_TOKEN;
+        }
 
         if (this._selectedShippingRate.id) {
           this._logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
@@ -2667,9 +2677,10 @@ class TaskRunnerPrimitive {
       aborted,
       rawProxy,
       task: {
-        site: { url, apiKey },
+        site: { url, name, apiKey },
         monitorDelay,
         forceCaptcha,
+        restockMode,
         type,
       },
       proxy,
@@ -2749,7 +2760,7 @@ class TaskRunnerPrimitive {
         this._checkoutUrl = checkoutUrl;
         this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
       }
-      console.log(JSON.parse(JSON.stringify(this._context.task.type)));
+
       if (this._context.task.type === Modes.CART) {
         this._emitTaskEvent({ message: 'Clearing cart!' });
         return States.CLEAR_CART;
@@ -2810,6 +2821,11 @@ class TaskRunnerPrimitive {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
+          if (/dsm sg|dsm uk|dsm jp/i.test(name) && restockMode) {
+            this._emitTaskEvent({ message: `Creating checkout`, rawProxy });
+            this._isRestocking = true;
+            return States.CREATE_CHECKOUT;
+          }
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
@@ -3088,7 +3104,7 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (type === Modes.FAST) {
+    if (this._isRestocking || type === Modes.FAST) {
       return this._handleBackupSubmitCustomer();
     }
 
@@ -3296,9 +3312,7 @@ class TaskRunnerPrimitive {
           'Content-Type': 'application/json',
           'Upgrade-Insecure-Requests': '1',
         },
-        body: JSON.stringify(
-          patchCheckoutForm(billingMatchesShipping, shipping, billing, payment, this._captchaToken),
-        ),
+        body: JSON.stringify(patchCheckoutForm(billingMatchesShipping, shipping, billing, payment)),
       });
 
       const { status, url: redirectUrl } = res;
@@ -3366,6 +3380,15 @@ class TaskRunnerPrimitive {
         return States.SUBMIT_CUSTOMER;
       }
 
+      if (this._isRestocking) {
+        if (!this._selectedShippingRate.id) {
+          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+          return States.GO_TO_SHIPPING;
+        }
+        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+        return States.SUBMIT_SHIPPING;
+      }
+
       if (this._context.task.product.variants) {
         this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
         return States.ADD_TO_CART;
@@ -3422,7 +3445,7 @@ class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (type === Modes.FAST) {
+    if (this._isRestocking || type === Modes.FAST) {
       return this._handleBackupGetShipping();
     }
 
@@ -3686,6 +3709,12 @@ class TaskRunnerPrimitive {
           const errorMessage = JSON.stringify(checkout);
           if (errorMessage.indexOf('does_not_require_shipping') > -1) {
             this._logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
+
+            if (this._isRestocking) {
+              this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
+              return States.ADD_TO_CART;
+            }
+
             if (forceCaptcha && !this._captchaToken) {
               this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
               return States.CAPTCHA;
@@ -3775,7 +3804,6 @@ class TaskRunnerPrimitive {
       task: {
         monitorDelay,
         site: { url, apiKey },
-        type,
         forceCaptcha,
       },
     } = this._context;
@@ -3784,10 +3812,6 @@ class TaskRunnerPrimitive {
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
-    }
-
-    if (type === Modes.FAST) {
-      return this._handleBackupSubmitShipping();
     }
 
     try {
@@ -5529,8 +5553,9 @@ class TaskRunnerPrimitive {
         this.shouldBanProxy,
       );
       // Proxy is fine, update the references
-      if (proxy || proxy === null) {
+      if ((proxy || proxy === null) && this._previousProxy !== null) {
         if (proxy === null) {
+          this._previousProxy = this._context.proxy;
           this.proxy = proxy; // null
           this._context.proxy = proxy; // null
           this._context.rawProxy = 'localhost';
@@ -5540,6 +5565,7 @@ class TaskRunnerPrimitive {
             proxy,
           });
         } else {
+          this._previousProxy = this._context.proxy;
           this.proxy = proxy;
           const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
 

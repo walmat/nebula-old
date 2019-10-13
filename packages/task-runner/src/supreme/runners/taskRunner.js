@@ -85,6 +85,7 @@ class TaskRunner {
     this._pooky = false;
     this.captchaToken = '';
     this._cookies = '';
+    this._previousProxy = '';
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
@@ -352,8 +353,9 @@ class TaskRunner {
         this.shouldBanProxy,
       );
       // Proxy is fine, update the references
-      if (proxy || proxy === null) {
+      if ((proxy || proxy === null) && this._previousProxy !== null) {
         if (proxy === null) {
+          this._previousProxy = this._context.proxy;
           this.proxy = proxy; // null
           this._context.proxy = proxy; // null
           this._checkout._context.proxy = proxy; // null
@@ -364,6 +366,7 @@ class TaskRunner {
             proxy,
           });
         } else {
+          this._previousProxy = this._context.proxy;
           this.proxy = proxy;
           const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
 

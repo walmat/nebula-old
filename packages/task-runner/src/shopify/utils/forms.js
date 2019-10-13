@@ -1,7 +1,16 @@
+/* eslint-disable no-nested-ternary */
 const { URLSearchParams } = require('url');
 const { States } = require('./constants').TaskRunner;
 
-const patchCheckoutForm = (billingMatchesShipping, shipping, billing, payment, captchaToken) => {
+const patchCheckoutForm = (
+  billingMatchesShipping,
+  shipping,
+  billing,
+  payment,
+  variant,
+  name,
+  hash,
+) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   let data = {
     complete: '1',
@@ -62,9 +71,31 @@ const patchCheckoutForm = (billingMatchesShipping, shipping, billing, payment, c
       },
     };
   }
-  if (captchaToken) {
-    data['g-recaptcha-response'] = captchaToken;
+
+  if (variant) {
+    data = {
+      ...data,
+      checkout: {
+        ...data.checkout,
+        line_items: [
+          {
+            variant_id: variant,
+            quantity: 1,
+            properties: /dsm uk/i.test(name)
+              ? {
+                  _hash: hash,
+                }
+              : /dsm us/i.test(name)
+              ? {
+                  _HASH: hash,
+                }
+              : {},
+          },
+        ],
+      },
+    };
   }
+
   return data;
 };
 

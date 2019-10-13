@@ -69,6 +69,7 @@ class Monitor {
 
     this._matchRandom = false;
     this._isSpecial = false;
+    this._previousProxy = '';
 
     this._handleAbort = this._handleAbort.bind(this);
     this._handleDelay = this._handleDelay.bind(this);
@@ -105,7 +106,9 @@ class Monitor {
 
   async swapProxies() {
     // emit the swap event
-    this._events.emit(Events.SwapMonitorProxy, this.id, this.proxy);
+
+    // index 0 will always be the origination task.. so let's use that to swap
+    this._events.emit(Events.SwapMonitorProxy, this.ids[0], this.proxy);
     return new Promise((resolve, reject) => {
       let timeout;
       const proxyHandler = (id, proxy) => {
@@ -277,8 +280,9 @@ class Monitor {
 
       this._logger.debug('PROXY IN _handleSwapProxies: %j', proxy);
       // Proxy is fine, update the references
-      if (proxy || proxy === null) {
+      if ((proxy || proxy === null) && this._previousProxy !== null) {
         if (proxy === null) {
+          this._previousProxy = this._context.proxy;
           this.proxy = proxy; // null
           this._context.proxy = proxy; // null
           this._context.rawProxy = 'localhost';
@@ -288,6 +292,7 @@ class Monitor {
             rawProxy: this._context.rawProxy,
           });
         } else {
+          this._previousProxy = this._context.proxy;
           this.proxy = proxy;
           const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
 

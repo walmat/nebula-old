@@ -241,9 +241,9 @@ const createCaptchaWindow = (options = {}, webPreferences = {}) =>
     },
   });
 
-let captchaUrl = `file:///${Path.join(__dirname, '../../build/captcha.html')}`;
+let captchaUrl = `${Path.join(__dirname, '../../build/captcha.html')}`;
 if (nebulaEnv.isDevelopment()) {
-  captchaUrl = `file:///${Path.join(__dirname, '../../public/captcha.html')}`;
+  captchaUrl = `${Path.join(__dirname, '../../public/captcha.html')}`;
 }
 urls.set('captcha', captchaUrl);
 
