@@ -474,6 +474,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', proxy: rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -873,6 +874,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -1390,6 +1392,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -1551,6 +1554,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -1828,6 +1832,7 @@ class TaskRunnerPrimitive {
 
       if (redirectUrl && /checkpoint/i.test(redirectUrl)) {
         this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+        this.checkpointUrl = redirectUrl;
         return States.GO_TO_CHECKPOINT;
       }
 
@@ -1989,6 +1994,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy, size });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -2469,6 +2475,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -2778,6 +2785,7 @@ class TaskRunnerPrimitive {
 
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -2960,6 +2968,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -3521,6 +3530,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -4090,6 +4100,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -4566,6 +4577,7 @@ class TaskRunnerPrimitive {
 
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -4824,6 +4836,7 @@ class TaskRunnerPrimitive {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
@@ -5025,6 +5038,7 @@ class TaskRunnerPrimitive {
 
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
