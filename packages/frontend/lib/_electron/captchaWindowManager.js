@@ -426,12 +426,6 @@ class CaptchaWindowManager {
         delete this._youtubeWindows[webContentsId];
         ytWin.close();
       }
-
-      if (this._captchaWindows.length === 0) {
-        // Close the server
-        console.log('[DEBUG]: Stopping captcha server...');
-        this._context.captchaServerManager.stop();
-      }
     };
 
     // Cleanup window if it was destroyed from outside source
