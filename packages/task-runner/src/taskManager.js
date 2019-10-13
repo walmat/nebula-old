@@ -114,23 +114,24 @@ class TaskManager {
    * @param {String} runnerId the runner to update
    * @param {String} token the captcha token to harvest
    */
-  harvestCaptchaToken(runnerId, token) {
+  harvestCaptchaToken(_, token) {
     // Check if we have tokens to pass through
     if (this._tokenReserveQueue.length) {
       // Get the next runner to pass the token
-      const rId = this._tokenReserveQueue.pop();
+      const { runnerId } = this._tokenReserveQueue.shift();
       // Use the runner id to get the container
-      const container = this._captchaQueues.get(rId);
+      const container = this._captchaQueues.get(runnerId);
       if (!container) {
         // The current container no longer exists in the captcha queue,
         // Call recursively to get the next runner
-        this.harvestCaptchaToken(rId, token);
+        this.harvestCaptchaToken(runnerId, token);
       }
       // Send event to pass data to runner
-      this._events.emit(Events.Harvest, rId, token);
+      this._events.emit(Events.Harvest, runnerId, token);
 
+      const priority = 1; // TODO: reset priority back to 1 here?
       // Add the runner back into the token queue
-      this._tokenReserveQueue.unshift(rId);
+      this._tokenReserveQueue.push({ runnerId, priority });
     }
   }
 
@@ -251,7 +252,7 @@ class TaskManager {
    *
    * @param {String} runnerId the runner for which to register captcha events
    */
-  handleStartHarvest(runnerId, sitekey, host) {
+  handleStartHarvest(runnerId, sitekey, host, priority) {
     let container = this._captchaQueues.get(runnerId);
     if (!container) {
       // We haven't started harvesting for this runner yet, create a queue and start harvesting
@@ -259,8 +260,21 @@ class TaskManager {
       // Store the container on the captcha queue map
       this._captchaQueues.set(runnerId, container);
 
-      // Add the runner to the token reserve queue
-      this._tokenReserveQueue.unshift(runnerId);
+      let contains = false;
+      // priority checks...
+      for (let i = 0; i < this._tokenReserveQueue.length; i += 1) {
+        // if the new items priority is less than, splice it in place.
+        if (this._tokenReserveQueue[i].priority > priority) {
+          this._tokenReserveQueue.splice(i, 0, { runnerId, priority });
+          contains = true;
+          break;
+        }
+      }
+
+      if (!contains) {
+        // Add the runner to the back of the token reserve queue
+        this._tokenReserveQueue.push({ runnerId, priority });
+      }
 
       // Emit an event to start harvesting
       this._events.emit(Events.StartHarvest, runnerId, sitekey, host);

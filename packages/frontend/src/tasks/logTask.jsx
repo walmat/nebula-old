@@ -10,6 +10,7 @@ export class LogTaskPrimitive extends PureComponent {
   static renderOutputLogRow(msg, i) {
     const outputColorMap = {
       'Waiting for captcha': 'warning',
+      'Checkpoint captcha': 'warning',
       'Duplicate order': 'warning',
       'Checking order status': 'warning',
       'Polling queue': 'warning',
@@ -19,7 +20,7 @@ export class LogTaskPrimitive extends PureComponent {
       'Checkout failed': 'failed',
     };
 
-    const match = /Waiting for captcha|Duplicate order|Checking order status|Checkout failed|Polling queue|Payment successful|Payment failed|Card declined/i.exec(
+    const match = /Waiting for captcha|Checkpoint captcha|Duplicate order|Checking order status|Checkout failed|Polling queue|Payment successful|Payment failed|Card declined/i.exec(
       msg,
     );
     const messageClassName = match ? outputColorMap[match[0]] : 'normal';

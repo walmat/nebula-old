@@ -273,6 +273,7 @@ class TaskRunnerPrimitive {
         this._context.id,
         this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
         'http://checkout.shopify.com',
+        this._prevState === States.GO_TO_CHECKPOINT ? 1 : 0, // priority flag
       );
     }
 
@@ -959,7 +960,7 @@ class TaskRunnerPrimitive {
         this._checkpointForm = this._checkpointForm.slice(0, -1);
       }
 
-      this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+      this._emitTaskEvent({ message: 'Checkpoint captcha', rawProxy });
       return States.CAPTCHA;
     } catch (err) {
       this._logger.error(
