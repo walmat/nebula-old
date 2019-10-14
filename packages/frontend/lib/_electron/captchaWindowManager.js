@@ -69,7 +69,7 @@ class CaptchaWindowManager {
     this.validateSender = this.validateSender.bind(this);
 
     this._tokenQueue.addExpirationFilter(
-      ({ timestamp }) => differenceInSeconds(new Date(), timestamp) <= 110,
+      ({ timestamp }) => differenceInSeconds(new Date(), timestamp) <= 120,
       1000,
       this._handleTokenExpirationUpdate,
       this,

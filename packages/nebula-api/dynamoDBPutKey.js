@@ -137,6 +137,7 @@ const keys = [
   't-b91608f2-f1c0-44f8-94e2-689e4469f0b9',
   '332e5f63-0a99-4feb-85be-7de8cb00d97b',
   'a60302f7-ae36-4a35-a8bd-6384493b1d49',
+  '0ff34be4-3eaa-4d41-b5b8-4ab81d3575b0',
 ];
 
 function storeKey(key) {

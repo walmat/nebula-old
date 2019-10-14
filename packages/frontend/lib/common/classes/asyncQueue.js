@@ -132,6 +132,7 @@ class AsyncQueue {
     this._expiration.intervalId = setInterval(() => {
       const { filterFunc, thisArg, onUpdate } = this._expiration;
       this._backlog = this._backlog.filter(filterFunc, thisArg);
+      console.log('[DEBUG]: Backlog length: %s', this.backlogLength);
       if (this.backlogLength === 0) {
         this._stopExpirationInterval();
       }

@@ -36,7 +36,8 @@ class TaskManagerAdapter {
     };
 
     this._taskEventMessageSender = () => {
-      if (this.statusMessageBuffer) {
+      if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
+        console.log('[DEBUG]: Relaying message buffer!');
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
         this.statusMessageBuffer = {};
       }
@@ -60,7 +61,7 @@ class TaskManagerAdapter {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
         if (!this._messageInterval) {
           // batch status updates every 1 second
-          this._messageInterval = setInterval(this._taskEventMessageSender, 250);
+          this._messageInterval = setInterval(this._taskEventMessageSender, 0);
         }
       }
     });
