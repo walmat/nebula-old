@@ -189,6 +189,7 @@ class TaskRunnerPrimitive {
         this._context.id,
         SiteKeyForPlatform[this._platform],
         'http://www.supremenewyork.com',
+        1,
       );
     }
 
