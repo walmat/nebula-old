@@ -6,16 +6,17 @@ import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { filter, every, some, sortBy } from 'lodash';
 
-const TaskManagerEvents = require('../../constants').Manager.Events;
-const { Events } = require('../../constants').Runner;
-const {
-  Monitor: { States, DelayTypes, ParseType, ErrorCodes },
-  TaskRunner: { Types },
-} = require('../utils/constants');
-const { capitalizeFirstLetter, waitForDelay, getRandomIntInclusive } = require('../../common');
+import { capitalizeFirstLetter, waitForDelay, getRandomIntInclusive } from '../../common';
+import { getHeaders } from '../utils'
+import { Manager, Runner } from '../../constants';
+import { Monitor, TaskRunner } from '../utils/constants';
+const { Events: TaskManagerEvents } = Manager;
+const { Events } = Runner;
+const { Types } = TaskRunner;
+const { States, DelayTypes, ParseType, ErrorCodes } = Monitor;
 
 // SUPREME
-class Monitor {
+class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Keywords) {
     this.ids = [context.id];
     this._task = context.task;
@@ -32,7 +33,7 @@ class Monitor {
     // eslint-disable-next-line global-require
     const _request = require('fetch-cookie')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
-      timeout: 120000, // to be overridden as necessary
+      timeout: 15000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
     this._delayer = null;
@@ -64,15 +65,27 @@ class Monitor {
 
     this._history = [];
     this._previousProxy = '';
-
-    this._handleAbort = this._handleAbort.bind(this);
-    this._handleDelay = this._handleDelay.bind(this);
+    this._checkingStock = false;
 
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
   }
 
+  _handleAbort(id) {
+    if (this.ids.some(i => i === id)) {
+      this.ids = this.ids.filter(i => i !== id);
+
+      if (!this.ids.length) {
+        this._context.aborted = true;
+        this._aborter.abort();
+        if (this._delayer) {
+          this._delayer.clear();
+        }
+      }
+    }
+  }
+
   _handleDelay(id, delay, type) {
-    if (id === this._context.id) {
+    if (this.ids.some(i => i === id)) {
       if (type === DelayTypes.error) {
         this._context.task.errorDelay = delay;
       } else if (type === DelayTypes.monitor) {
@@ -85,7 +98,7 @@ class Monitor {
   }
 
   async _handleParsingErrors(errors) {
-    if (this._context.aborted || this._context.productFound) {
+    if (this._context.aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
@@ -98,7 +111,7 @@ class Monitor {
       }
 
       if (
-        (!/(?!([23][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) &&
+        (!/(?!([235][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) &&
         status !== ErrorCodes.ProductNotFound &&
         ErrorCodes.NoStylesFound &&
         ErrorCodes.VariantNotFound
@@ -110,24 +123,14 @@ class Monitor {
 
     if (ban) {
       this._logger.silly('Proxy was banned, swapping proxies...');
-      this._emitMonitorEvent({ message: 'Proxy banned!' });
+      this._emitMonitorEvent({ message: 'Proxy banned!', rawProxy: this._context.rawProxy });
       return States.SWAP;
     }
 
-    this._emitMonitorEvent({ message: `No product found. Delaying ${monitorDelay}ms` });
+    this._emitMonitorEvent({ message: `No product found. Delaying ${monitorDelay}ms`, rawProxy: this._context.rawProxy });
     this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
     await this._delayer;
-    return States.PARSE;
-  }
-
-  _handleAbort(id) {
-    if (id === this._context.id) {
-      this._context.aborted = true;
-      this._aborter.abort();
-      if (this._delayer) {
-        this._delayer.clear();
-      }
-    }
+    return this._prevState;
   }
 
   _cleanup() {
@@ -208,7 +211,7 @@ class Monitor {
     }
   }
 
-  static filterAndLimit(list, sorter, limit, logger) {
+  static async filterAndLimit(list, sorter, limit, logger) {
     const _logger = logger || { log: () => {} };
     _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
     if (!list) {
@@ -240,7 +243,6 @@ class Monitor {
     return sorted.slice(0, _limit).reverse();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async matchKeywords(products, keywords, _filter, logger, returnAll = false) {
     const _logger = logger || { log: () => {} };
     _logger.log(
@@ -308,7 +310,7 @@ class Monitor {
           _logger.log('silly', "Overriding filter's limit and returning all products...");
           limit = 0;
         }
-        filtered = Monitor.filterAndLimit(matches, _filter.sorter, limit, this._logger);
+        filtered = await MonitorPrimitive.filterAndLimit(matches, _filter.sorter, limit, this._logger);
         if (!returnAll) {
           _logger.log('silly', 'Returning Matched Product: %s', filtered[0].name);
           return filtered[0];
@@ -322,11 +324,11 @@ class Monitor {
       );
       if (returnAll) {
         _logger.log('silly', 'Returning all products...');
-        filtered = Monitor.filterAndLimit(matches, 'updated_at', 0, this._logger);
+        filtered = await MonitorPrimitive.filterAndLimit(matches, 'position', 0, this._logger);
         _logger.log('silly', 'Returning %d Matched Products', filtered);
         return filtered;
       }
-      filtered = Monitor.filterAndLimit(matches, 'updated_at', -1, this._logger);
+      filtered = await MonitorPrimitive.filterAndLimit(matches, 'position', -1, this._logger);
       _logger.log('silly', 'Returning Matched Product: %s', filtered[0].name);
       return filtered[0];
     }
@@ -367,6 +369,7 @@ class Monitor {
   async _handleSwapProxies() {
     const {
       task: { errorDelay },
+      rawProxy,
     } = this._context;
     try {
       this._logger.silly('Waiting for new proxy...');
@@ -383,7 +386,7 @@ class Monitor {
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitMonitorEvent({
             message: `Swapped proxy to: localhost`,
-            proxy,
+            rawProxy: this._context.rawProxy,
           });
         } else {
           this._previousProxy = this._context.proxy;
@@ -402,7 +405,7 @@ class Monitor {
           this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
           this._emitMonitorEvent({
             message: `Swapped proxy to: ${proxy.raw}`,
-            proxy: proxy.raw,
+            rawProxy: proxy.raw,
           });
         }
         this._logger.debug('Rewinding to state: %s', this._prevState);
@@ -411,15 +414,17 @@ class Monitor {
 
       this._emitMonitorEvent({
         message: `No open proxy! Delaying ${errorDelay}ms`,
+        rawProxy,
       });
       // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
       this._delayer = waitForDelay(errorDelay, this._aborter.signal);
       await this._delayer;
-      this._emitMonitorEvent({ message: 'Proxy banned!' });
+      this._emitMonitorEvent({ message: 'Proxy banned!', rawProxy });
     } catch (err) {
       this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
       this._emitMonitorEvent({
         message: 'Error swapping proxies! Retrying...',
+        rawProxy,
       });
     }
     // Go back to previous state
@@ -427,36 +432,21 @@ class Monitor {
   }
 
   async _handleParse() {
-    const { aborted, productFound, task, proxy, logger } = this._context;
+    const { aborted, task, proxy, rawProxy, logger } = this._context;
     const { product, category } = task;
-    const { variation } = product;
 
-    if (aborted || productFound) {
+    if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    this._emitMonitorEvent({ message: 'Parsing products' });
+    this._emitMonitorEvent({ message: 'Parsing products', rawProxy });
 
-    let res;
-    let body;
     try {
-      res = await this._request('/mobile_stock.json', {
+      const res = await this._request('/mobile_stock.json', {
         method: 'GET',
         agent: proxy,
-        headers: {
-          authority: 'www.supremenewyork.com',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-          'accept-encoding': 'gzip, deflate, br',
-          'accept-language': 'en-US,en;q=0.9',
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'none',
-          'sec-fetch-user': '?1',
-          'upgrade-insecure-requests': 1,
-          'user-agent':
-            'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
-        },
+        headers: getHeaders(),
       });
 
       if (!res.ok) {
@@ -465,7 +455,7 @@ class Monitor {
         throw error;
       }
 
-      body = await res.json();
+      const body = await res.json();
 
       const { products_and_categories: productsAndCategories } = body;
 
@@ -491,6 +481,7 @@ class Monitor {
       };
 
       const matchedProduct = await this.matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter at this point...
+      
       if (!matchedProduct) {
         this._logger.silly('Supreme Monitor: Unable to find matching product!');
         const error = new Error('Product Not Found');
@@ -500,72 +491,79 @@ class Monitor {
 
       this._context.task.product.name = capitalizeFirstLetter(matchedProduct.name);
       this._context.task.product.price = matchedProduct.price;
+      this._context.task.product.style = matchedProduct.id;
 
       this._logger.silly('Supreme Monitor: Product found: %j', matchedProduct.name);
-      const { id } = matchedProduct;
-      try {
-        res = await this._request(`/shop/${id}.json`, {
-          method: 'GET',
-          agent: proxy,
-          headers: {
-            authority: 'www.supremenewyork.com',
-            accept:
-              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'en-US,en;q=0.9',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'none',
-            'sec-fetch-user': '?1',
-            'upgrade-insecure-requests': 1,
-            'user-agent':
-              'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
-          },
-        });
 
-        if (!res.ok) {
-          const error = new Error('Error fetching stock');
-          error.status = res.status || res.errno;
-          throw error;
-        }
+      return States.STOCK;
+    } catch (error) {
+      return this._handleParsingErrors([error]);
+    }
+  }
 
-        body = await res.json();
-        const { styles } = body;
-        if (!styles || (styles && !styles.length)) {
-          const error = new Error('No Product Styles');
-          error.status = 404;
-          throw error;
-        }
+  async _handleStock() {
+    const { aborted, task, proxy, rawProxy, logger } = this._context;
+    const { product: { variation, style } } = task;
 
-        const matchedVariation = await Monitor.matchVariation(styles, variation, logger);
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
 
-        if (!matchedVariation) {
-          this._emitMonitorEvent({ message: 'No variation found! Task Stopped' });
-          return States.ERROR;
-        }
+    if (!this._checkingStock) {
+      this._emitMonitorEvent({ message: 'Fetching stock', rawProxy });
+    }
 
-        this._context.task.product.id = matchedVariation.id;
-        this._context.task.product.currency = matchedVariation.currency;
-        this._context.task.product.name += ` / ${matchedVariation.name}`;
-        this._context.task.product.variants = matchedVariation.sizes;
-        this._context.task.product.image = matchedVariation.image_url;
+    try {
+      const res = await this._request(`/shop/${style}.json`, {
+        method: 'GET',
+        agent: proxy,
+        headers: getHeaders(),
+      });
 
-        this._events.emit(
-          TaskManagerEvents.ProductFound,
-          this.ids,
-          this._context.task.product,
-          this._parseType,
-        );
+      if (!res.ok) {
+        const error = new Error('Error fetching stock');
+        error.status = res.status || res.errno;
+        throw error;
+      }
 
-        const { name } = this._context.task.product;
+      const body = await res.json();
+      const { styles } = body;
+      if (!styles || (styles && !styles.length)) {
+        const error = new Error('No Product Styles');
+        error.status = 404;
+        throw error;
+      }
+
+      const matchedVariation = await MonitorPrimitive.matchVariation(styles, variation, logger);
+
+      if (!matchedVariation) {
+        this._emitMonitorEvent({ message: 'No variation matched!', rawProxy });
+        return States.ERROR;
+      }
+      
+      this._context.task.product.id = matchedVariation.id;
+      this._context.task.product.variants = matchedVariation.sizes;
+      this._context.task.product.currency = matchedVariation.currency;
+      this._context.task.product.image = matchedVariation.image_url;
+      this._context.task.product.chosenVariation = matchedVariation.name;
+
+      this._events.emit(
+        TaskManagerEvents.ProductFound,
+        this.ids,
+        this._context.task.product,
+        this._parseType,
+      );
+
+      const { name } = this._context.task.product;
+      if (!this._checkingStock) {
         this._emitMonitorEvent({
           message: `Product found: ${name}`,
           found: name || undefined,
+          rawProxy,
         });
-        return States.DONE;
-      } catch (error) {
-        // bubble this up!
-        throw error;
       }
+      return States.DONE;
     } catch (error) {
       return this._handleParsingErrors([error]);
     }
@@ -584,10 +582,11 @@ class Monitor {
       this._parseType,
     );
 
-    this._delayer = waitForDelay(500, this._aborter.signal);
+    this._delayer = waitForDelay(1000, this._aborter.signal);
     await this._delayer;
+    this._checkingStock = true;
 
-    return States.DONE;
+    return States.STOCK;
   }
 
   async _handleError() {
@@ -604,10 +603,11 @@ class Monitor {
 
     const stepMap = {
       [States.PARSE]: this._handleParse,
+      [States.STOCK]: this._handleStock,
       [States.SWAP]: this._handleSwapProxies,
       [States.ERROR]: this._handleError,
       [States.DONE]: this._handleDone,
-      [States.ABORT]: () => States.DONE,
+      [States.ABORT]: () => States.ABORT,
     };
 
     const handler = stepMap[currentState] || defaultHandler;
@@ -634,7 +634,7 @@ class Monitor {
     this._logger.debug('Monitor Loop finished, state transitioned to: %s', nextState);
 
     if (this._state !== nextState) {
-      this._history.push(this._state);
+      // this._history.push(this._state);
       this._prevState = this._state;
       this._state = nextState;
     }
@@ -658,4 +658,4 @@ class Monitor {
   }
 }
 
-module.exports = Monitor;
+module.exports = MonitorPrimitive;

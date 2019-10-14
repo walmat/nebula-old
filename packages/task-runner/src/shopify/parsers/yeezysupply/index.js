@@ -1,5 +1,5 @@
-const SpecialParser = require('./specialParser');
-const { ErrorCodes } = require('../utils/constants');
+import SpecialParser from '../specialParser';
+import { ErrorCodes } from '../../utils/constants';
 
 class YeezyParser extends SpecialParser {
   constructor(request, type, task, proxy, aborter, logger, random) {

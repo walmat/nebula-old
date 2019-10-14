@@ -1,5 +1,5 @@
-const validator = require('card-validator');
-const phoneFormatter = require('phone-formatter');
+import validator from 'card-validator';
+import phoneFormatter from 'phone-formatter';
 
 const ATC = (size, style, siteName) => {
   if (/eu/i.test(siteName)) {

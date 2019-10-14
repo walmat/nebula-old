@@ -7,26 +7,24 @@ import { isEqual } from 'lodash';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
-const TaskManagerEvents = require('../../constants').Manager.Events;
-const Discord = require('../hooks/discord');
-const Slack = require('../hooks/slack');
-const { notification } = require('../hooks');
-const AsyncQueue = require('../../common/asyncQueue');
-const Timer = require('../../common/timer');
-const { waitForDelay, getRandomIntInclusive } = require('../../common');
-const {
-  Runner: { Events },
-  Platforms,
-  SiteKeyForPlatform,
-} = require('../../constants');
-const {
-  TaskRunner: { States, Types, DelayTypes, HookTypes, HarvestStates },
-  Monitor: { ParseType },
-} = require('../utils/constants');
-const { ATC, backupForm, parseForm } = require('../utils/forms');
+import { Manager, Runner, Platforms, SiteKeyForPlatform } from '../../constants';
+import { TaskRunner, Monitor } from '../utils/constants';
+import { notification } from '../hooks';
+import Discord from '../hooks/discord';
+import Slack from '../hooks/slack';
+import AsyncQueue from '../../common/asyncQueue';
+import Timer from '../../common/timer';
+import { ATC, backupForm, parseForm } from '../utils/forms';
+import { getHeaders } from '../utils';
+import { waitForDelay, getRandomIntInclusive } from '../../common';
+
+const { Events: TaskManagerEvents } = Manager;
+const { Events } = Runner;
+const { States, Types, DelayTypes, HookTypes, HarvestStates } = TaskRunner;
+const { ParseType } = Monitor;
 
 // SUPREME
-class TaskRunner {
+class TaskRunnerPrimitive {
   constructor(context, proxy, type, platform = Platforms.Supreme) {
     this.id = context.id;
     this._task = context.task;
@@ -86,10 +84,6 @@ class TaskRunner {
     this.captchaToken = '';
     this._cookies = '';
     this._previousProxy = '';
-
-    this._handleAbort = this._handleAbort.bind(this);
-    this._handleDelay = this._handleDelay.bind(this);
-    this._handleProduct = this._handleProduct.bind(this);
 
     this._events.on(TaskManagerEvents.Abort, this._handleAbort, this);
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
@@ -250,7 +244,7 @@ class TaskRunner {
           case 'ECONNREFUSED':
           case 'ECONNRESET': {
             return {
-              message: 'Swapping proxy',
+              message: 'Proxy banned!',
               nextState: States.SWAP,
             };
           }
@@ -422,7 +416,7 @@ class TaskRunner {
 
       // if we filtered all the products out, rewind it...
       if (!grouping || !grouping.length) {
-        this._emitTaskEvent({ message: 'No sizes in stock!' });
+        this._emitTaskEvent({ message: 'No sizes in stock!', rawProxy });
         grouping = variants;
       }
     }
@@ -516,7 +510,7 @@ class TaskRunner {
       // this._logger.info(this._cookies);
 
       this._context.jar.setCookieSync(`lastid=${lastid}`, this._context.task.site.url);
-      body.cookies.map(cookie =>
+      await body.cookies.map(cookie =>
         this._context.jar.setCookieSync(`${cookie};`, this._context.task.site.url),
       );
 
@@ -525,7 +519,7 @@ class TaskRunner {
   }
 
   async _handleAddToCart() {
-    const { aborted, proxy } = this._context;
+    const { aborted, proxy, rawProxy } = this._context;
 
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
@@ -542,7 +536,7 @@ class TaskRunner {
       forceCaptcha,
     } = this._context.task;
 
-    this._emitTaskEvent({ message: 'Adding to cart' });
+    this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
 
     if (!this._pooky) {
       try {
@@ -557,7 +551,6 @@ class TaskRunner {
         }
       } catch (error) {
         this._pooky = false; // extra padding here..
-        throw error;
       }
     }
 
@@ -566,20 +559,8 @@ class TaskRunner {
         method: 'POST',
         agent: proxy,
         headers: {
-          authority: 'www.supremenewyork.com',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-          'accept-encoding': 'gzip, deflate, br',
-          'accept-language': 'en-US,en;q=0.9',
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'none',
-          'sec-fetch-user': '?1',
-          'upgrade-insecure-requests': 1,
+          ...getHeaders(),
           'content-type': 'application/x-www-form-urlencoded',
-          origin: 'https://www.supremenewyork.com',
-          referer: 'https://www.supremenewyork.com/mobile',
-          'user-agent':
-            'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
         },
         body: ATC(s, st, name),
       });
@@ -594,9 +575,10 @@ class TaskRunner {
 
       if (body && !body.length) {
         this._pooky = false;
-        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
+        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
         return States.ADD_TO_CART;
       }
 
@@ -612,7 +594,7 @@ class TaskRunner {
   }
 
   async _handleCaptcha() {
-    const { aborted } = this._context;
+    const { aborted, rawProxy } = this._context;
     // exit if abort is detected
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
@@ -625,7 +607,7 @@ class TaskRunner {
 
     // start request if it hasn't started already
     if (!this._captchaTokenRequest) {
-      this._emitTaskEvent({ message: 'Waiting for captcha' });
+      this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
       this._captchaTokenRequest = await this.getCaptcha();
     }
 
@@ -678,6 +660,7 @@ class TaskRunner {
         monitorDelay,
       },
       aborted,
+      rawProxy,
       proxy,
     } = this._context;
 
@@ -706,20 +689,8 @@ class TaskRunner {
           method: 'GET',
           agent: proxy,
           headers: {
-            authority: 'www.supremenewyork.com',
-            accept:
-              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'en-US,en;q=0.9',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'none',
-            'sec-fetch-user': '?1',
-            'upgrade-insecure-requests': 1,
+            ...getHeaders(),
             'content-type': 'application/x-www-form-urlencoded',
-            origin: 'https://www.supremenewyork.com',
-            referer: 'https://www.supremenewyork.com/mobile',
-            'user-agent':
-              'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
           },
         });
 
@@ -732,7 +703,8 @@ class TaskRunner {
         body = await res.text();
       } catch (error) {
         this._logger.debug('Unable to fetch checkout form!');
-        // fail silently...
+        // fail silently..
+        // DO NOT BUBBLE THIS ERROR UP!!!
       }
 
       if (body) {
@@ -770,42 +742,31 @@ class TaskRunner {
         }
       } catch (error) {
         this._pooky = false; // extra padding here..
-        throw error;
       }
     }
 
     const totalTimeout = checkoutDelay - this._timer.getTotalTime(0);
     if (totalTimeout && totalTimeout > 0) {
-      this._emitTaskEvent({ message: `Waiting ${checkoutDelay}ms` });
+      this._emitTaskEvent({ message: `Waiting ${checkoutDelay}ms`, rawProxy });
       this._delayer = waitForDelay(totalTimeout, this._aborter.signal);
       await this._delayer;
     }
 
-    this._emitTaskEvent({ message: 'Submitting checkout' });
+    this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
 
     try {
       const res = await this._request('/checkout.json', {
         method: 'POST',
         agent: proxy,
         headers: {
-          authority: 'www.supremenewyork.com',
+          ...getHeaders(),
           accept: 'application/json',
-          'accept-encoding': 'gzip, deflate, br',
-          'accept-language': 'en-US,en;q=0.9',
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'none',
-          'sec-fetch-user': '?1',
-          'upgrade-insecure-requests': 1,
           'content-type': 'application/x-www-form-urlencoded',
-          origin: 'https://www.supremenewyork.com',
-          referer: 'https://www.supremenewyork.com/mobile',
-          'user-agent':
-            'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
         },
         body: this._form,
       });
 
-      // no matter what, set pooky back to false
+      // no matter what, set pooky back to false to force a refetch...
       this._pooky = false;
       this._cookies = '';
 
@@ -819,7 +780,7 @@ class TaskRunner {
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
-          this._emitTaskEvent({ message: 'Invalid checkout slug' });
+          this._emitTaskEvent({ message: 'Invalid checkout slug', rawProxy });
           return States.SUBMIT_CHECKOUT;
         }
         // reset form..
@@ -830,18 +791,19 @@ class TaskRunner {
 
       if (body && body.status && /out/i.test(body.status)) {
         this._pooky = false;
-        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
+        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
+        this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
       }
 
       if (body && body.status && /dup/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Duplicate order' });
+        this._emitTaskEvent({ message: 'Duplicate order', rawProxy });
         return States.DONE;
       }
 
       if (body && body.status && /failed/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Checkout failed' });
+        this._emitTaskEvent({ message: 'Checkout failed', rawProxy });
         return States.ADD_TO_CART;
       }
 
@@ -852,34 +814,22 @@ class TaskRunner {
   }
 
   async _handleCheckStatus() {
-    const { aborted, proxy } = this._context;
+    const { aborted, proxy, rawProxy } = this._context;
 
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    this._emitTaskEvent({ message: 'Checking order status' });
+    this._emitTaskEvent({ message: 'Checking order status', rawProxy });
 
     try {
       const res = await this._request(`/checkout/${this._slug}/status.json`, {
         method: 'GET',
         agent: proxy,
         headers: {
-          authority: 'www.supremenewyork.com',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-          'accept-encoding': 'gzip, deflate, br',
-          'accept-language': 'en-US,en;q=0.9',
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'none',
-          'sec-fetch-user': '?1',
-          'upgrade-insecure-requests': 1,
+          ...getHeaders(),
           'content-type': 'application/x-www-form-urlencoded',
-          origin: 'https://www.supremenewyork.com',
-          referer: 'https://www.supremenewyork.com/mobile',
-          'user-agent':
-            'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
         },
       });
 
@@ -891,8 +841,10 @@ class TaskRunner {
 
       const body = await res.json();
 
+      console.log(body);
+
       if (body && body.status && /failed|out/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Checkout failed' });
+        this._emitTaskEvent({ message: 'Checkout failed', rawProxy });
 
         const {
           task: {
@@ -931,11 +883,18 @@ class TaskRunner {
         this._cookies = '';
         this.captchaToken = '';
         this._context.task.checkoutDelay = 0;
+
+        if (/US/i.test(siteName)) {
+          this._emitTaskEvent({ message: `Delaying ${this._context.task.monitorDelay}ms`, rawProxy });
+          this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+          await this._delayer;
+        }
+
         return /US/i.test(siteName) ? States.SUBMIT_CHECKOUT : States.CAPTCHA;
       }
 
       if (body && body.status && /paid/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Payment successful!' });
+        this._emitTaskEvent({ message: 'Payment successful', rawProxy });
 
         const {
           task: {
@@ -971,6 +930,8 @@ class TaskRunner {
 
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
+
+      this._emitTaskEvent({ message: 'Checking order status', rawProxy });
 
       return States.CHECK_STATUS;
     } catch (error) {
@@ -1035,6 +996,7 @@ class TaskRunner {
     let nextState = this._state;
 
     if (this._context.aborted) {
+      nextState = States.ABORT;
       return true;
     }
 
@@ -1050,7 +1012,7 @@ class TaskRunner {
     this._logger.silly('Run Loop finished, state transitioned to: %s', nextState);
 
     if (this._state !== nextState) {
-      this._history.push(this._state);
+      // this._history.push(this._state);
       this._prevState = this._state;
       this._state = nextState;
     }
@@ -1075,7 +1037,7 @@ class TaskRunner {
   }
 }
 
-TaskRunner.Events = Events;
-TaskRunner.States = States;
+TaskRunnerPrimitive.Events = Events;
+TaskRunnerPrimitive.States = States;
 
-module.exports = TaskRunner;
+module.exports = TaskRunnerPrimitive;

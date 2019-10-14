@@ -728,6 +728,17 @@ const sites = [
       },
     ],
   },
+  {
+    label: 'Others',
+    supported: true,
+    options: [
+      {
+        label: 'Sacai JP',
+        value: 'https://store.sacai.jp',
+        supported: true,
+      }
+    ]
+  }
 ];
 
 module.exports = sites;

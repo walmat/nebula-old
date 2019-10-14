@@ -305,7 +305,14 @@ class CaptchaWindowManager {
       return null;
     }
 
-    const session = Object.values(this._sessions).find(s => !s.inUse);
+    let session = {};
+    for (const s of Object.values(this._sessions)) {
+      if (s && !s.inUse) {
+        session = s;
+        break;
+      }
+    }
+
     if (session) {
       session.inUse = true;
     }
@@ -317,7 +324,7 @@ class CaptchaWindowManager {
     console.log(`[DEBUG]: Session for captcha window: %j`, session);
     const win = createCaptchaWindow(
       { ...options, ...this._captchaThemeOpts },
-      { session: Session.fromPartition(session.session) },
+      { session: session ? Session.fromPartition(session.session) : {} },
     );
 
     CaptchaWindowManager.setupIntercept(win);
@@ -451,15 +458,50 @@ class CaptchaWindowManager {
       };
     }
 
+    console.log(this._sessions);
     this._store.set('captchaSessions', JSON.stringify(this._sessions));
   }
 
-  generateSessions(persist = true) {
+  async generateSessions(persist = true) {
     // get sessions store
     let sessions = this._store.get('captchaSessions');
     if (sessions) {
-      sessions = JSON.parse(sessions);
-      this._sessions = sessions;
+      try {
+        sessions = JSON.parse(sessions);
+      } catch (err) {
+        // if we have trouble parsing out the sessions, recreate them...
+        this._store.delete('captchaSessions');
+        for (let i = 0; i < 5; i += 1) {
+          this._sessions[i] = {
+            id: i,
+            proxy: '',
+            window: '',
+            session: persist ? `persist:${i}` : i,
+            inUse: false,
+          };
+        }
+  
+        this._store.set('captchaSessions', JSON.stringify(this._sessions));
+      }
+
+      if (sessions && Object.values(sessions).length === 5) {
+        this._sessions = sessions;
+        await this.freeAllSessions();
+      } else {
+        // if we have improper length of elements, recreate them...
+        this._store.delete('captchaSessions');
+        for (let i = 0; i < 5; i += 1) {
+          this._sessions[i] = {
+            id: i,
+            proxy: '',
+            window: '',
+            session: persist ? `persist:${i}` : i,
+            inUse: false,
+          };
+        }
+  
+        this._store.set('captchaSessions', JSON.stringify(this._sessions));
+      }
     } else {
       for (let i = 0; i < 5; i += 1) {
         this._sessions[i] = {

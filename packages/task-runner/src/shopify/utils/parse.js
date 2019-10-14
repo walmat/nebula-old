@@ -1,10 +1,11 @@
-const { sortBy, map, find, flatten, filter, every, some } = require('lodash');
-const { parseString } = require('xml2js');
-const { isSpecialSite } = require('./siteOptions');
-const { ParseType } = require('./constants').Monitor;
-const { Platforms } = require('../../constants');
+import { sortBy, map, find, flatten, filter, every, some } from 'lodash';
+import { parseString } from 'xml2js';
 
-module.exports = {};
+import { isSpecialSite } from './siteOptions';
+import { Platforms } from '../../constants';
+import { Monitor } from './constants';
+
+const { ParseType } = Monitor;
 
 /**
  * Determine the type of parsing we need to
@@ -63,7 +64,6 @@ function getParseType(product, site, platform = Platforms.Shopify) {
 
   return ParseType.Unknown;
 }
-module.exports.getParseType = getParseType;
 
 /**
  * Filter a list using a sorter and limit
@@ -112,7 +112,6 @@ function filterAndLimit(list, sorter, limit, logger) {
   // slice, then reverse elements to get the proper order
   return sorted.slice(0, _limit).reverse();
 }
-module.exports.filterAndLimit = filterAndLimit;
 
 /**
  * Match a variant id to a product
@@ -181,7 +180,6 @@ function matchVariant(products, variantId, logger) {
   );
   return null;
 }
-module.exports.matchVariant = matchVariant;
 
 /**
  * Match a set of keywords to a product
@@ -311,7 +309,6 @@ function matchKeywords(products, keywords, _filter, logger, returnAll, random) {
   );
   return returnAll ? matches : matches[0];
 }
-module.exports.matchKeywords = matchKeywords;
 
 /**
  * Convert an XML String to JSON
@@ -331,4 +328,11 @@ function convertToJson(xml) {
     });
   });
 }
-module.exports.convertToJson = convertToJson;
+
+module.exports = {
+  getParseType,
+  filterAndLimit,
+  matchVariant,
+  matchKeywords,
+  convertToJson,
+}

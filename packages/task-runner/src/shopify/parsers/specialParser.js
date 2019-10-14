@@ -1,12 +1,9 @@
 /* eslint-disable class-methods-use-this */
-
-const cheerio = require('cheerio');
-const Parser = require('./parser');
-const {
-  ErrorCodes,
-  Monitor: { ParseType },
-} = require('../utils/constants');
-const { userAgent } = require('../../common');
+import cheerio from 'cheerio';
+import Parser from './parser';
+import { userAgent } from '../../common';
+import { ErrorCodes, Monitor } from '../utils/constants';
+const { ParseType } = Monitor;
 
 class SpecialParser extends Parser {
   constructor(request, type, task, proxy, aborter, logger, random, name) {

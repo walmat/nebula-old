@@ -5,30 +5,36 @@ import { isEqual } from 'lodash';
 import { CookieJar } from 'tough-cookie';
 
 // global includes
-const ProxyManager = require('./common/proxyManager');
-const WebhookManager = require('./common/webhookManager');
-const { createLogger } = require('./common/logger');
-const {
+import ProxyManager from './common/proxyManager';
+import WebhookManager from './common/webhookManager';
+import { createLogger } from './common/logger';
+import {
   Platforms,
-  Manager: { Events },
-  Runner: { Events: RunnerEvents },
-} = require('./constants');
+  Manager,
+  Runner
+} from './constants';
+
+const { Events } = Manager;
+const { Events: RunnerEvents } = Runner;
 
 // shopify includes
-const ShopifyRunner = require('./shopify/runners/taskRunner');
-const ShopifyMonitor = require('./shopify/runners/monitor');
-const RateFetcher = require('./shopify/runners/rateFetcher');
-const { getParseType } = require('./shopify/utils/parse');
-const { ParseType } = require('./shopify/utils/constants').Monitor;
-const { HookTypes, Types: RunnerTypes } = require('./shopify/utils/constants').TaskRunner;
-const Discord = require('./shopify/hooks/discord');
-const Slack = require('./shopify/hooks/slack');
+import {
+  Monitor as ShopifyMonitor,
+  TaskRunner as ShopifyRunner,
+  RateFetcher,
+} from './shopify';
+import { getParseType } from './shopify/utils/parse';
+import { Monitor, TaskRunner } from './shopify/utils/constants';
+import Discord from './shopify/hooks/discord';
+import Slack from './shopify/hooks/slack';
 
+const { ParseType } = Monitor;
+const { HookTypes, Types: RunnerTypes } = TaskRunner;
 // TODO: footsites includes
 
 // supreme includes
-const SupremeRunner = require('./supreme/runners/taskRunner');
-const SupremeMonitor = require('./supreme/runners/monitor');
+import SupremeRunner from './supreme/runners/taskRunner';
+import SupremeMonitor from './supreme/runners/monitor';
 
 // TODO: mesh includes
 

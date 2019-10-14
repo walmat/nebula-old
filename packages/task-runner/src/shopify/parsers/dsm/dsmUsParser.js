@@ -1,4 +1,4 @@
-const DsmParser = require('./dsmParser');
+import DsmParser from './dsmParser';
 
 class DsmUsParser extends DsmParser {
   constructor(request, type, task, proxy, aborter, logger) {

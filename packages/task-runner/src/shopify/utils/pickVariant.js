@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable array-callback-return */
-const { getRandomIntInclusive } = require('../../common');
-const { urlToTitleSegment, urlToVariantOption } = require('./urlVariantMaps');
+import { getRandomIntInclusive } from '../../common';
+import { urlToTitleSegment, urlToVariantOption } from './urlVariantMaps';
 
 async function pickVariant(variants, size, url, logger = { log: () => {} }, randomInStock = false) {
   let variantGroup = variants;

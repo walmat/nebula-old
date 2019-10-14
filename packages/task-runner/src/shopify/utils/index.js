@@ -1,5 +1,6 @@
-const { userAgent } = require('../../common');
-const { States } = require('./constants').TaskRunner;
+import { userAgent } from '../../common';
+import { TaskRunner } from './constants';
+const { States } = TaskRunner;
 
 const stateForError = ({ status, name, errno }, { message, nextState }) => {
   // Look for errors in cause

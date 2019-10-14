@@ -1,45 +1,48 @@
-const Parser = require('./parser');
-const { ParseType } = require('../utils/constants').Monitor;
-const { userAgent } = require('../../common');
+import Parser from '../parser';
+import { ErrorCodes } from '../../utils/constants';
+import { userAgent, getRandomIntInclusive } from '../../../common';
 
-class AtomParser extends Parser {
+class JsonParser extends Parser {
   /**
-   * Construct a new AtomParser
+   * Construct a new JsonParser
    *
    * @param {Task} task the task we want to parse and match
    * @param {Proxy} the proxy to use when making requests
-   * @param {Logger} (optional) A logger to log messages to
    */
   constructor(request, type, task, proxy, aborter, logger, random) {
-    super(request, type, task, proxy, aborter, logger, random, 'AtomParser');
+    super(request, type, task, proxy, aborter, logger, random, 'JsonParser');
   }
 
   async run() {
-    this._logger.silly('%s: starting run...', this._name);
+    this._logger.silly('%s: Starting run...', this._name);
     const { url, name } = this._task.site;
-    if (this._type !== ParseType.Keywords) {
-      throw new Error('Atom parsing is only supported for keyword searching');
-    }
     let products;
     let res;
     try {
-      this._logger.silly(
-        '%s: Making request for %s/collections/all.atom ...',
-        this._name,
-        this._task.site.url,
-      );
-      res = await this._request('/collections/all.atom', {
-        method: 'GET',
-        compress: true,
-        headers: {
-          'User-Agent': userAgent,
-        },
-        agent: this._proxy,
-      });
+      this._logger.silly(`%s: Making request for %s/products.json ...`, this._name, url);
 
-      if (!/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(res.status)) {
+      res = await this._request(
+        `/products.json?page=-${getRandomIntInclusive(500000000000, 900000000000)}`,
+        {
+          method: 'GET',
+          compress: true,
+          headers: {
+            'X-Shopify-Api-Features': getRandomIntInclusive(30000, 90000),
+            'User-Agent': userAgent,
+          },
+          agent: this._proxy,
+        },
+      );
+
+      if (/429|430/.test(res.status)) {
         const error = new Error('Proxy banned!');
         error.status = res.status;
+        throw error;
+      }
+
+      if (/401/.test(res.status)) {
+        const error = new Error('Password page');
+        error.status = ErrorCodes.PasswordPage;
         throw error;
       }
 
@@ -50,14 +53,12 @@ class AtomParser extends Parser {
         rethrow.status = error.code;
         throw rethrow;
       }
-
       this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
       const rethrow = new Error('unable to make request');
       rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given
       rethrow.name = error.name;
       throw rethrow;
     }
-
     this._logger.silly(
       '%s: Received %d products, Attempting to match...',
       this._name,
@@ -117,4 +118,5 @@ class AtomParser extends Parser {
     };
   }
 }
-module.exports = AtomParser;
+
+module.exports = JsonParser;

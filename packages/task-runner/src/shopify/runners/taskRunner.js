@@ -1961,9 +1961,9 @@ class TaskRunnerPrimitive {
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
           'user-agent': userAgent,
-          accept: /dsm/i.test(name) ? 'application/json,text/javascript,*/*;q=0.01' : '*/*',
+          accept: /dsm|funko/i.test(name) ? 'application/json,text/javascript,*/*;q=0.01' : '*/*',
           referer: restockUrl,
-          'Content-Type': /dsm/i.test(name)
+          'Content-Type': /dsm|funko/i.test(name)
             ? 'application/x-www-form-urlencoded; charset=UTF-8'
             : 'application/json',
         },
@@ -5708,7 +5708,7 @@ class TaskRunnerPrimitive {
     }
 
     if (this._state !== nextState) {
-      this._history.push(this._state);
+      // this._history.push(this._state);
       this._prevState = this._state;
       this._state = nextState;
     }

@@ -269,7 +269,7 @@ class WindowManager {
           }
         });
         // generate captcha window sessions
-        this._captchaWindowManager.generateSessions();
+        await this._captchaWindowManager.generateSessions();
       }
     };
   }

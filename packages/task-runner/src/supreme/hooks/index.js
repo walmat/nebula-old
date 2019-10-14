@@ -1,5 +1,5 @@
-const isDev = require('electron-is-dev');
-const Discord = require('./discord');
+import isDev from 'electron-is-dev';
+import Discord from './discord';
 
 const notification = async (slack, discord, payload) => {
   const webhook = isDev

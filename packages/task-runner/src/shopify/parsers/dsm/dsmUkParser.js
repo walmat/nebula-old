@@ -1,7 +1,6 @@
 import cheerio from 'cheerio';
-
-const DsmParser = require('./dsmParser');
-const { userAgent } = require('../../../common');
+import DsmParser from './dsmParser';
+import { userAgent } from '../../../common';
 
 class DsmUkParser extends DsmParser {
   constructor(request, type, task, proxy, aborter, logger) {

@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
-const { URLSearchParams } = require('url');
-const { States } = require('./constants').TaskRunner;
+import { TaskRunner } from './constants';
+const { States } = TaskRunner;
 
 const patchCheckoutForm = (
   billingMatchesShipping,
@@ -100,20 +100,15 @@ const patchCheckoutForm = (
 };
 
 const addToCart = (variant, name, hash, props = {}) => {
-  const params = new URLSearchParams();
-  params.append('id', variant);
-  params.append('quantity', 1);
   switch (name) {
     case 'DSM US': {
       return `id=${variant}&quantity=1&properties%5B_HASH%5D=${hash}`;
     }
     case 'DSM UK': {
-      params.append('properties[_hash]', hash || 'ee3e8f7a9322eaa382e04f8539a7474c11555');
-      return params;
+      return `id=${variant}&quantity=1&properties%5B_hash%5D=${hash || 'ee3e8f7a9322eaa382e04f8539a7474c11555'}`
     }
     case 'Funko Shop': {
-      params.append('properties[_sELerAVIcKmA_aRCesTiVanDl_]', 'Zfq3N1cDdi1');
-      return params;
+      return `id=${variant}&quantity=1&properties%5B_sELerAVIcKmA_aRCesTiVanDl_%5D=Zfq3N1cDdi1`;
     }
     case 'Yeezy Supply': {
       return JSON.stringify({

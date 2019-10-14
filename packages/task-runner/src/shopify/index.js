@@ -1,9 +1,8 @@
-const TaskRunner = require('./runners/taskRunner');
-const Monitor = require('./runners/monitor');
-const RateFetcher = require('./runners/rateFetcher');
-const {
-  TaskRunner: { Types: TaskRunnerTypes },
-} = require('./classes/utils/constants');
+import TaskRunner from './runners/taskRunner';
+import Monitor from './runners/monitor';
+import RateFetcher from './runners/rateFetcher';
+import { TaskRunner as TR } from './utils/constants';
+const { Types: TaskRunnerTypes } = TR;
 
 module.exports = {
   TaskRunner,

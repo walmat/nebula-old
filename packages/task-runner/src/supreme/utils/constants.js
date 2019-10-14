@@ -1,5 +1,6 @@
 const MonitorStates = {
   PARSE: 'PARSE',
+  STOCK: 'STOCK',
   DONE: 'DONE',
   ERROR: 'ERROR',
   SWAP: 'SWAP',

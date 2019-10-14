@@ -3,21 +3,20 @@ import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { pick } from 'lodash';
-import { getParseType } from '../utils/parse';
 
-const TaskManagerEvents = require('../../constants').Manager.Events;
-const { Events } = require('../../constants').Runner;
-const { Platforms } = require('../../constants');
-const { Parser, getSpecialParser, getParsers } = require('../parsers');
-const { rfrl, capitalizeFirstLetter, waitForDelay } = require('../../common');
-const {
-  Monitor: { States, DelayTypes, ParseType },
-  TaskRunner: { Types, Modes },
-} = require('../utils/constants');
-const { ErrorCodes } = require('../utils/constants');
+import { Manager, Runner, Platforms } from '../../constants';
+import { getParseType } from '../utils/parse';
+import { Parser, getSpecialParser, getParsers } from '../parsers';
+import { rfrl, capitalizeFirstLetter, waitForDelay } from '../../common';
+import { Monitor, TaskRunner, ErrorCodes } from '../utils/constants';
+
+const { Events: TaskManagerEvents } = Manager;
+const { States, DelayTypes, ParseType } = Monitor;
+const { Types, Modes } = TaskRunner;
+const { Events } = Runner;
 
 // SHOPIFY
-class Monitor {
+class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Unknown) {
     this.ids = [context.id];
     this._task = context.task;
@@ -91,11 +90,15 @@ class Monitor {
   }
 
   _handleAbort(id) {
-    if (id === this._context.id) {
-      this._context.aborted = true;
-      this._aborter.abort();
-      if (this._delayer) {
-        this._delayer.clear();
+    if (this.ids.some(i => i === id)) {
+      this.ids = this.ids.filter(i => i !== id);
+
+      if (!this.ids.length) {
+        this._context.aborted = true;
+        this._aborter.abort();
+        if (this._delayer) {
+          this._delayer.clear();
+        }
       }
     }
   }
@@ -647,7 +650,7 @@ class Monitor {
     this._logger.debug('Monitor Loop finished, state transitioned to: %s', nextState);
 
     if (this._state !== nextState) {
-      this._history.push(this._state);
+      // this._history.push(this._state);
       this._prevState = this._state;
       this._state = nextState;
     }
@@ -671,4 +674,4 @@ class Monitor {
   }
 }
 
-module.exports = Monitor;
+module.exports = MonitorPrimitive;

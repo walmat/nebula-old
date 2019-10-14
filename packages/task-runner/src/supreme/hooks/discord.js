@@ -1,4 +1,4 @@
-const { RichEmbed, WebhookClient } = require('discord.js');
+import { RichEmbed, WebhookClient } from 'discord.js';
 
 class Discord {
   constructor(hook) {

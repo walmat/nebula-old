@@ -1,8 +1,7 @@
-const logger = require('./common/logger');
-const TaskManager = require('./taskManager');
-const {
-  TaskRunner: { Types: TaskRunnerTypes },
-} = require('./shopify/utils/constants');
+import logger from './common/logger';
+import TaskManager from './taskManager';
+import { TaskRunner } from './shopify/utils/constants';
+const { Types: TaskRunnerTypes } = TaskRunner;
 
 module.exports = {
   logger,

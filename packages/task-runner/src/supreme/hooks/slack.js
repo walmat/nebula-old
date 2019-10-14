@@ -1,9 +1,9 @@
-const Webhook = require('slack-webhook');
+import SlackWebhook from 'slack-webhook';
 
 class Slack {
   constructor(hook) {
     if (hook) {
-      this.hook = new Webhook(hook);
+      this.hook = new SlackWebhook(hook);
     }
   }
 

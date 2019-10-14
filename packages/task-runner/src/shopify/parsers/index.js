@@ -1,13 +1,13 @@
 // Top Level Export for parsers
-const Parser = require('./parser');
-const AtomParser = require('./atomParser');
-const JsonParser = require('./jsonParser');
-const XmlParser = require('./xmlParser');
+import Parser from './parser';
+import AtomParser from './standard/atomParser';
+import JsonParser from './standard/jsonParser';
+import XmlParser from './standard/xmlParser';
 
 // Special Parsers
-const TravissParser = require('./travis');
-const { DsmParser, DsmUsParser, DsmUkParser } = require('./dsm');
-const YeezyParser = require('./yeezyParser');
+import TravisParser from './travis';
+import YeezyParser from './yeezysupply';
+import { DsmParser, DsmUkParser, DsmUsParser } from './dsm';
 
 function getSpecialParser({ name }) {
   // TODO: Figure out a better way to do this!
@@ -28,7 +28,7 @@ function getSpecialParser({ name }) {
   }
 
   if (/traviss/i.test(name)) {
-    return (...params) => new TravissParser(...params);
+    return (...params) => new TravisParser(...params);
   }
 
   return (...params) => new YeezyParser(...params);

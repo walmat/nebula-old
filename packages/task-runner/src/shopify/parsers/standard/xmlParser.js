@@ -1,7 +1,8 @@
-const Parser = require('./parser');
-const { convertToJson } = require('../utils/parse');
-const { ParseType } = require('../utils/constants').Monitor;
-const { userAgent } = require('../../common');
+import Parser from '../parser';
+import { userAgent } from '../../../common';
+import { convertToJson } from '../../utils/parse';
+import { Monitor } from '../../utils/constants';
+const { ParseType } = Monitor;
 
 class XmlParser extends Parser {
   /**

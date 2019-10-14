@@ -1,10 +1,8 @@
 /* eslint-disable class-methods-use-this */
-const { rfrl, userAgent } = require('../../common');
-const { matchVariant, matchKeywords } = require('../utils/parse');
-const {
-  ErrorCodes,
-  Monitor: { ParseType },
-} = require('../utils/constants');
+import { rfrl, userAgent } from '../../common';
+import { matchVariant, matchKeywords } from '../utils/parse';
+import { ErrorCodes, Monitor } from '../utils/constants';
+const { ParseType } = Monitor;
 
 class Parser {
   /**

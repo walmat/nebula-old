@@ -1,6 +1,6 @@
-const DsmParser = require('./dsmParser');
-const DsmUkParser = require('./dsmUkParser');
-const DsmUsParser = require('./dsmUsParser');
+import DsmParser from './dsmParser';
+import DsmUkParser from './dsmUkParser';
+import DsmUsParser from './dsmUsParser';
 
 module.exports = {
   DsmParser,

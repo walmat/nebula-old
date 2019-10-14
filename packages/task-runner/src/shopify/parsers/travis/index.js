@@ -1,9 +1,7 @@
-const SpecialParser = require('../specialParser');
-const { matchKeywords } = require('../../utils/parse');
-const {
-  ErrorCodes,
-  Monitor: { ParseType },
-} = require('../../utils/constants');
+import SpecialParser from '../specialParser';
+import { matchKeywords } from '../../utils/parse';
+import { ErrorCodes, Monitor } from '../../utils/constants';
+const { ParseType } = Monitor;
 
 class TravissParser extends SpecialParser {
   constructor(request, type, task, proxy, aborter, logger, name = 'TravisParser') {
