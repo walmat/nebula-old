@@ -58,45 +58,4 @@ if (!appLock) {
 
     app.onWindowAllClosed();
   });
-
-  /**
-   * Handle certificate error event
-   */
-  _app.on('certificate-error', app.onCertificateErrorHandler);
-
-  /**
-   * Check web contents when they are created
-   */
-  // _app.on('web-contents-created', (evt1, contents) => {
-  //   /**
-  //    * Ensure webview options are valid before creation
-  //    */
-  //   contents.on('will-attach-webview', (evt2, webPreferences, params) => {
-  //     /* eslint no-param-reassign: ["error", { "props": false }] */
-  //     webPreferences.nodeIntegration = true;
-  //     webPreferences.webSecurity = true;
-  //     webPreferences.allowRunningInsecureContent = true;
-  //     webPreferences.experimentalCanvasFeatures = true;
-  //     webPreferences.experimentalFeatures = true;
-  //     webPreferences.blinkFeatures = '';
-
-  //     if (
-  //       !params.src.startsWith('file:///') &&
-  //       !params.src.startsWith('https://localhost') &&
-  //       !params.src.startsWith('https://accounts.google.com')
-  //     ) {
-  //       evt2.preventDefault();
-  //     }
-  //   });
-
-  //   contents.on('will-navigate', (evt2, navigationUrl) => {
-  //     if (
-  //       !navigationUrl.startsWith('file:///') &&
-  //       !navigationUrl.startsWith('https://localhost') &&
-  //       !navigationUrl.startsWith('https://accounts.google.com')
-  //     ) {
-  //       evt2.preventDefault();
-  //     }
-  //   });
-  // });
 }

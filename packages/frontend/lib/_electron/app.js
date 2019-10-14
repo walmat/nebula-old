@@ -1,7 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const Electron = require('electron');
 const RPC = require('./rpc');
-const CaptchaServerManager = require('./captchaServerManager');
 const MainMenu = require('./mainMenu');
 const SecurityManager = require('./securityManager');
 const DialogManager = require('./dialogManager');
@@ -68,14 +67,6 @@ class App {
     this._taskLauncher = new TaskLauncher(this);
 
     /**
-     * Manage the captcha server
-     * @type {CaptchaServerManager}
-     */
-    this._captchaServerManager = new CaptchaServerManager(this);
-
-    this.onCertificateErrorHandler = this.onCertificateErrorHandler.bind(this);
-
-    /**
      * Debug call to see if app was initialized..
      */
     if (nebulaEnv.isDevelopment()) {
@@ -127,15 +118,6 @@ class App {
    */
   get authManager() {
     return this._authManager;
-  }
-
-  /**
-   * Get the captcha server manager.
-   *
-   * @return {CaptchaServerManager} Instance of the captcha server manager
-   */
-  get captchaServerManager() {
-    return this._captchaServerManager;
   }
 
   /**
@@ -228,17 +210,6 @@ class App {
 
     await this.onBeforeQuit();
     Electron.app.quit();
-  }
-
-  onCertificateErrorHandler(event, webContents, url, error, certificate, callback) {
-    const serverPort = this._captchaServerManager.port;
-    if (serverPort && url.startsWith(`https://127.0.0.1:${serverPort}`)) {
-      event.preventDefault();
-      callback(true);
-    } else {
-      event.preventDefault();
-      callback(false);
-    }
   }
 
   /**

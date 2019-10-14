@@ -582,13 +582,7 @@
           resetChallenge();
         }
       }
-
-      async function _showProxy(proxy) {
-        console.log(proxy);
-        const proxyInput = document.getElementById('captcha-proxy');
-        proxyInput.innerHTML = proxy;
-      }
-
+      
       function _onSaveProxy() {
         const proxy = document.getElementById('captcha-proxy').value;
         window.Bridge.saveProxyForCaptchaWindow(proxy);
