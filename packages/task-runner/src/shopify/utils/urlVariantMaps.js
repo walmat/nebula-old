@@ -1,4 +1,4 @@
-const urlToOptionIndex = {
+export const urlToOptionIndex = {
   'https://12amrun.com': 1,
   'https://a-ma-maniere.com': 1,
   'https://apbstore.com': 1,
@@ -150,11 +150,10 @@ const urlToOptionIndex = {
   'http://usgstore.com.au': 2,
   'https://nebulabots.com': 1,
   'https://diamondsupplyco.com': 1,
-  // 'http://localhost:9000': 1, // TEMPORARY for testing purposes only...
 };
 
 // Generate the correct "option<index>" from the optionIndex map
-const urlToVariantOption = (function generateUTVO() {
+export const urlToVariantOption = (function generateUTVO() {
   const utvs = {};
   Object.keys(urlToOptionIndex).forEach(key => {
     utvs[key] = urlToOptionIndex[key] ? `option${urlToOptionIndex[key]}` : 'option1';
@@ -163,7 +162,7 @@ const urlToVariantOption = (function generateUTVO() {
 })();
 
 // Generate the correct title segment test from the optionIndex map
-const urlToTitleSegment = (function generateUTTS() {
+export const urlToTitleSegment = (function generateUTTS() {
   const utts = {};
   Object.keys(urlToOptionIndex).forEach(key => {
     // attach a function for each url
@@ -186,11 +185,11 @@ const urlToTitleSegment = (function generateUTTS() {
   return utts;
 })();
 
-const validateVariantSize = (variant, expectedSize, url) =>
+export const validateVariantSize = (variant, expectedSize, url) =>
   variant[urlToVariantOption[url]].trim().includes(expectedSize.trim()) ||
   urlToVariantOption[url].trim().includes(expectedSize.trim());
 
-const clothingRegexMap = {
+export const clothingRegexMap = {
   XXS: 'xxs|xxsm|xxsml|xx-small|extra extra small',
   XS: 'xs|xsm|xsml|x-small|extra small',
   S: 's|sm|sml|small',
@@ -198,12 +197,4 @@ const clothingRegexMap = {
   L: 'l|lg|lrg|large',
   XL: 'xl|xlg|xlrg|x-large|extra large',
   XXL: 'xxl|xxlg|xxlrg|xx-large|extra extra large',
-};
-
-module.exports = {
-  urlToOptionIndex,
-  urlToTitleSegment,
-  urlToVariantOption,
-  validateVariantSize,
-  clothingRegexMap,
 };

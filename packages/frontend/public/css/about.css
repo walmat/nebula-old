@@ -201,6 +201,7 @@ body, html {
   right: 5px;
   height: 11px;
   width: 11px;
+  z-index: 9999;
 }
 #body-text {
   font-family: AvenirNext-Medium;

@@ -97,6 +97,7 @@ export const _waitUntilRunning = async (options, instances, credentials) =>
 
 export const _waitUntilTerminated = async (options, instances, credentials) =>
   new Promise(async (resolve, reject) => {
+    console.log(options, instances, credentials);
     const { AWSAccessKey: accessKeyId, AWSSecretKey: secretAccessKey } = credentials;
 
     const {
@@ -114,9 +115,14 @@ export const _waitUntilTerminated = async (options, instances, credentials) =>
     const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
     let proxyInstances = null;
     try {
+      const existingInstances = await ec2.describeInstances({ InstanceIds }).promise();
+
+      if (!existingInstances || (existingInstances && !existingInstances.Reservations.length)) {
+        return resolve(instances);
+      }
       proxyInstances = await ec2.waitFor('instanceTerminated', { InstanceIds }).promise();
     } catch (error) {
-      if (/not in state/i.test(error)) {
+      if (/not in state|does not exist/i.test(error)) {
         return resolve(instances);
       }
     }

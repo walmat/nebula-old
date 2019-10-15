@@ -8,9 +8,7 @@ import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
 import Timer from '../../common/timer';
-import { notification } from '../hooks';
-import Discord from '../hooks/discord';
-import Slack from '../hooks/slack';
+import notification, { Discord, Slack } from '../hooks';
 import AsyncQueue from '../../common/asyncQueue';
 import { waitForDelay, userAgent, currencyWithSymbol } from '../../common';
 import { Runner, Manager, Platforms, SiteKeyForPlatform } from '../../constants';
@@ -24,7 +22,7 @@ const { Events: TaskManagerEvents } = Manager;
 const { States, Types, DelayTypes, HookTypes, Modes, StateMap, HarvestStates } = TaskRunner;
 const { ParseType } = Monitor;
 
-class TaskRunnerPrimitive {
+export default class TaskRunnerPrimitive {
   get state() {
     return this._state;
   }
@@ -5268,7 +5266,17 @@ class TaskRunnerPrimitive {
         const bodyString = JSON.stringify(payments[0]);
         const [payment] = payments;
 
-        const { currency, payment_due: paymentDue, web_url: webUrl } = payment.checkout;
+        const {
+          currency,
+          payment_due: paymentDue,
+          web_url: webUrl,
+          line_items: lineItems,
+        } = payment.checkout;
+
+        let productImage = image;
+        if (!productImage) {
+          productImage = lineItems[0].image_url;
+        }
 
         this._logger.silly('CHECKOUT: Payment object: %j', payment);
         if (/thank_you/i.test(bodyString)) {
@@ -5292,7 +5300,7 @@ class TaskRunnerPrimitive {
             },
             profile: profileName,
             size,
-            image: `${image}`.startsWith('http') ? image : `https:${image}`,
+            image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
           });
 
           this._events.emit(TaskManagerEvents.Webhook, hooks);
@@ -5326,7 +5334,7 @@ class TaskRunnerPrimitive {
               order: null,
               profile: profileName,
               size,
-              image: `${image}`.startsWith('http') ? image : `https:${image}`,
+              image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
             });
 
             this._events.emit(TaskManagerEvents.Webhook, hooks);
@@ -5360,7 +5368,9 @@ class TaskRunnerPrimitive {
                 order: null,
                 profile: profileName,
                 size,
-                image: `${image}`.startsWith('http') ? image : `https:${image}`,
+                image: `${productImage}`.startsWith('http')
+                  ? productImage
+                  : `https:${productImage}`,
               });
 
               this._events.emit(TaskManagerEvents.Webhook, hooks);
@@ -5391,7 +5401,7 @@ class TaskRunnerPrimitive {
               order: null,
               profile: profileName,
               size,
-              image: `${image}`.startsWith('http') ? image : `https:${image}`,
+              image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
             });
 
             this._events.emit(TaskManagerEvents.Webhook, hooks);
@@ -5743,5 +5753,3 @@ class TaskRunnerPrimitive {
 
 TaskRunnerPrimitive.Events = Events;
 TaskRunnerPrimitive.States = States;
-
-module.exports = TaskRunnerPrimitive;

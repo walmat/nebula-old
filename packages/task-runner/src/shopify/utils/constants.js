@@ -227,21 +227,21 @@ const ParseType = {
 
 const CheckoutRefreshTimeout = 98000;
 
-module.exports = {
-  TaskRunner: {
-    Types: TaskRunnerTypes,
-    Modes,
-    States: CheckoutStates,
-    StateMap: QueueNextState,
-    CheckoutRefresh: CheckoutRefreshTimeout,
-    DelayTypes: TaskRunnerDelayTypes,
-    HookTypes: TaskRunnerHookTypes,
-    HarvestStates: TaskRunnerHarvestStates,
-  },
-  Monitor: {
-    States: MonitorStates,
-    DelayTypes: TaskRunnerDelayTypes,
-    ParseType,
-  },
-  ErrorCodes,
+const TaskRunner = {
+  Types: TaskRunnerTypes,
+  Modes,
+  States: CheckoutStates,
+  StateMap: QueueNextState,
+  CheckoutRefresh: CheckoutRefreshTimeout,
+  DelayTypes: TaskRunnerDelayTypes,
+  HookTypes: TaskRunnerHookTypes,
+  HarvestStates: TaskRunnerHarvestStates,
 };
+
+const Monitor = {
+  States: MonitorStates,
+  DelayTypes: TaskRunnerDelayTypes,
+  ParseType,
+};
+
+export { TaskRunner, Monitor, ErrorCodes };

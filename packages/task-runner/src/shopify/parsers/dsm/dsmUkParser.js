@@ -2,7 +2,7 @@ import cheerio from 'cheerio';
 import DsmParser from './dsmParser';
 import { userAgent } from '../../../common';
 
-class DsmUkParser extends DsmParser {
+export default class DsmUkParser extends DsmParser {
   constructor(request, type, task, proxy, aborter, logger) {
     super(request, type, task, proxy, aborter, logger, 'DsmUkParser');
   }
@@ -130,5 +130,3 @@ class DsmUkParser extends DsmParser {
     }
   }
 }
-
-module.exports = DsmUkParser;

@@ -1,9 +1,10 @@
 import Parser from '../parser';
 import { userAgent } from '../../../common';
 import { Monitor } from '../../utils/constants';
+
 const { ParseType } = Monitor;
 
-class AtomParser extends Parser {
+export default class AtomParser extends Parser {
   /**
    * Construct a new AtomParser
    *
@@ -17,7 +18,7 @@ class AtomParser extends Parser {
 
   async run() {
     this._logger.silly('%s: starting run...', this._name);
-    const { url, name } = this._task.site;
+    const { url } = this._task.site;
     if (this._type !== ParseType.Keywords) {
       throw new Error('Atom parsing is only supported for keyword searching');
     }
@@ -25,11 +26,11 @@ class AtomParser extends Parser {
     let res;
     try {
       this._logger.silly(
-        '%s: Making request for %s/collections/all.atom ...',
+        '%s: Making request for %s/collections/all/products.json ...',
         this._name,
         this._task.site.url,
       );
-      res = await this._request('/collections/all.atom', {
+      res = await this._request('/collections/all/products.json', {
         method: 'GET',
         compress: true,
         headers: {
@@ -38,7 +39,7 @@ class AtomParser extends Parser {
         agent: this._proxy,
       });
 
-      if (!/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(res.status)) {
+      if (/429|430|ECONNREFUSED|ECONNRESET|ENOTFOUND/.test(res.status)) {
         const error = new Error('Proxy banned!');
         error.status = res.status;
         throw error;
@@ -72,50 +73,11 @@ class AtomParser extends Parser {
     }
     this._logger.silly('%s: Product Found!', this._name);
 
-    // if we're monitoring on dsm us, also grab the hash from the page...
-    let hash;
-    if (/dsm us/i.test(name)) {
-      const regex = /\$\(\s*atob\(\s*'PGlucHV0IHR5cGU9ImhpZGRlbiIgbmFtZT0icHJvcGVydGllc1tfSEFTSF0iIC8\+'\s*\)\s*\)\s*\.val\(\s*'(.+)'\s*\)/;
-      try {
-        res = await this._request(`${url}/products/${matchedProduct.handle}`, {
-          method: 'GET',
-          compress: true,
-          headers: {
-            'User-Agent': userAgent,
-          },
-          agent: this._proxy,
-        });
-
-        const body = await res.text();
-
-        const match = body.match(regex);
-
-        if (match && match.length) {
-          [, hash] = match;
-        }
-      } catch (error) {
-        if (error && error.type && /system/i.test(error.type)) {
-          const rethrow = new Error(error.errno);
-          rethrow.status = error.code;
-          throw rethrow;
-        }
-        this._logger.silly('%s: ERROR making request! %s %d', this._name, error.name, error.status);
-        const rethrow = new Error('unable to make request');
-        rethrow.status = error.status || 404; // Use the status code, or a 404 if no code is given
-        rethrow.name = error.name;
-        throw rethrow;
-      }
-    } else if (/dsm uk/i.test(name)) {
-      hash = 'ee3e8f7a9322eaa382e04f8539a7474c11555';
-    }
-
     this._aborter.abort();
     return {
       ...matchedProduct,
-      hash,
       // insert generated product url (for restocking purposes)
       url: `${url}/products/${matchedProduct.handle}`,
     };
   }
 }
-module.exports = AtomParser;

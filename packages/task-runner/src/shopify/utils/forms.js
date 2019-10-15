@@ -1,8 +1,9 @@
 /* eslint-disable no-nested-ternary */
 import { TaskRunner } from './constants';
+
 const { States } = TaskRunner;
 
-const patchCheckoutForm = (
+export const patchCheckoutForm = (
   billingMatchesShipping,
   shipping,
   billing,
@@ -99,13 +100,14 @@ const patchCheckoutForm = (
   return data;
 };
 
-const addToCart = (variant, name, hash, props = {}) => {
+export const addToCart = (variant, name, hash, props = {}) => {
   switch (name) {
     case 'DSM US': {
       return `id=${variant}&quantity=1&properties%5B_HASH%5D=${hash}`;
     }
     case 'DSM UK': {
-      return `id=${variant}&quantity=1&properties%5B_hash%5D=${hash || 'ee3e8f7a9322eaa382e04f8539a7474c11555'}`
+      return `id=${variant}&quantity=1&properties%5B_hash%5D=${hash ||
+        'ee3e8f7a9322eaa382e04f8539a7474c11555'}`;
     }
     case 'Funko Shop': {
       return `id=${variant}&quantity=1&properties%5B_sELerAVIcKmA_aRCesTiVanDl_%5D=Zfq3N1cDdi1`;
@@ -134,7 +136,7 @@ const addToCart = (variant, name, hash, props = {}) => {
   }
 };
 
-const patchToCart = variant => ({
+export const patchToCart = variant => ({
   checkout: {
     line_items: [
       {
@@ -146,7 +148,7 @@ const patchToCart = variant => ({
   },
 });
 
-const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => {
+export const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => {
   let count = 0;
   const data = [];
   await $(formName).each((i, form) => {
@@ -285,13 +287,5 @@ const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => 
     return `${encodeURI(name)}=${val}&`;
   });
 
-  console.log(formValues);
   return formValues.join('').slice(0, -1);
-};
-
-module.exports = {
-  patchCheckoutForm,
-  addToCart,
-  patchToCart,
-  parseForm,
 };

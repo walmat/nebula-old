@@ -2,7 +2,7 @@ import Parser from '../parser';
 import { ErrorCodes } from '../../utils/constants';
 import { userAgent, getRandomIntInclusive } from '../../../common';
 
-class JsonParser extends Parser {
+export default class JsonParser extends Parser {
   /**
    * Construct a new JsonParser
    *
@@ -118,5 +118,3 @@ class JsonParser extends Parser {
     };
   }
 }
-
-module.exports = JsonParser;

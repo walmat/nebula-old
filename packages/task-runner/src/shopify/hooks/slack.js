@@ -1,9 +1,9 @@
-const Webhook = require('slack-webhook');
+import SlackWebhook from 'slack-webhook';
 
 class Slack {
   constructor(hook) {
     if (hook) {
-      this.hook = new Webhook(hook);
+      this.hook = new SlackWebhook(hook);
     }
   }
 
@@ -39,39 +39,7 @@ class Slack {
             fallback,
             title,
             color: success ? '#46ADB4' : '#EF415E',
-            fields: [
-              {
-                title: 'Product',
-                value: `<${product.url}|${product.name}>`,
-                short: true,
-              },
-              {
-                title: 'Price',
-                value: price,
-                short: true,
-              },
-              {
-                title: 'Store',
-                value: `<${site.url}|${site.name}>`,
-                short: true,
-              },
-              {
-                title: 'Order #',
-                value: order ? `<${order.url}|${order.number}>` : 'None',
-                short: true,
-              },
-              {
-                title: 'Billing Profile',
-                value: profile,
-                short: true,
-              },
-              {
-                title: 'Size',
-                value: size,
-                short: true,
-              },
-            ],
-            thumb_url: image,
+            fields: [],
             footer: 'Nebula Orion @ 2019',
             footer_icon:
               'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
@@ -79,6 +47,82 @@ class Slack {
           },
         ],
       };
+
+      if (image) {
+        embed.attachments[0].thumb_url = image;
+      }
+
+      if (product) {
+        if (product.url) {
+          embed.attachments[0].fields.push({
+            title: 'Product',
+            value: `<${product.url}|${product.name}>`,
+            short: true,
+          });
+        } else if (product.name) {
+          embed.attachments[0].fields.push({
+            title: 'Product',
+            value: product.name,
+            short: true,
+          });
+        }
+      }
+
+      if (price) {
+        embed.attachments[0].fields.push({
+          title: 'Price',
+          value: price,
+          short: true,
+        });
+      }
+
+      if (site) {
+        if (site.url) {
+          embed.attachments[0].fields.push({
+            title: 'Store',
+            value: `<${site.url}|${site.name}>`,
+            short: true,
+          });
+        } else if (site.name) {
+          embed.attachments[0].fields.push({
+            title: 'Store',
+            value: site.name,
+            short: true,
+          });
+        }
+      }
+
+      if (order) {
+        if (order.url) {
+          embed.attachments[0].fields.push({
+            title: 'Order #',
+            value: `<${order.url}|${order.number}>`,
+            short: true,
+          });
+        } else if (order.number) {
+          embed.attachments[0].fields.push({
+            title: 'Order #',
+            value: order.number,
+            short: true,
+          });
+        }
+      }
+
+      if (profile) {
+        embed.attachments[0].fields.push({
+          title: 'Billing Profile',
+          value: profile,
+          short: true,
+        });
+      }
+
+      if (size) {
+        embed.attachments[0].fields.push({
+          title: 'Size',
+          value: size,
+          short: true,
+        });
+      }
 
       return { embed, client: this.hook };
     }

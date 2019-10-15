@@ -1,5 +1,5 @@
 // Split out into separate file for clarity
-const { forEach } = require('lodash');
+import { forEach } from 'lodash';
 
 /**
  * Resolve the first Promise, Reject when all have failed
@@ -17,7 +17,7 @@ const { forEach } = require('lodash');
  * @param {List<Promise>} promises list of promises to run
  * @param {String} tag optional tag to attach to log statements
  */
-function resolveFirstRejectLast(promises, tag, logger) {
+export default (promises, tag, logger) => {
   const _logger = logger || { log: () => {} };
   const tagStr = tag ? ` - ${tag}` : '';
   return new Promise((resolve, reject) => {
@@ -65,6 +65,4 @@ function resolveFirstRejectLast(promises, tag, logger) {
     });
     _logger.log('silly', 'RFRL%s: Sync work done, waiting on promises...', tagStr);
   });
-}
-
-module.exports = resolveFirstRejectLast;
+};

@@ -21,7 +21,7 @@ const { Events } = Runner;
 
 const request = require('fetch-cookie')(fetch, new CookieJar());
 
-class ShippingRatesRunner {
+export default class ShippingRatesRunner {
   constructor(id, task, proxy, loggerPath, type = Types.ShippingRates) {
     this.id = id;
     this.task = task;

@@ -52,18 +52,19 @@ const ErrorCodes = {
   ProductNotFound: 'PRODUCT_NOT_FOUND',
 };
 
-module.exports = {
-  TaskRunner: {
-    States: CheckoutStates,
-    Types: { Normal: 'normal' },
-    DelayTypes: TaskRunnerDelayTypes,
-    HookTypes: TaskRunnerHookTypes,
-    HarvestStates: TaskRunnerHarvestStates,
-  },
-  Monitor: {
-    States: MonitorStates,
-    DelayTypes: TaskRunnerDelayTypes,
-    ParseType,
-    ErrorCodes,
-  },
+const TaskRunner = {
+  States: CheckoutStates,
+  Types: { Normal: 'normal' },
+  DelayTypes: TaskRunnerDelayTypes,
+  HookTypes: TaskRunnerHookTypes,
+  HarvestStates: TaskRunnerHarvestStates,
 };
+
+const Monitor = {
+  States: MonitorStates,
+  DelayTypes: TaskRunnerDelayTypes,
+  ParseType,
+  ErrorCodes,
+};
+
+export { TaskRunner, Monitor };

@@ -3,7 +3,7 @@ const Electron = require('electron');
 const nebulaEnv = require('./env');
 
 const APP_NAME = 'Nebula Orion';
-const HELP_URL = 'https://nebulabots.com';
+const HELP_URL = 'https://twitter.com/nebulabots';
 
 nebulaEnv.setUpEnvironment();
 

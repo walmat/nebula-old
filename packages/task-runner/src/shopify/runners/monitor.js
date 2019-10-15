@@ -16,7 +16,7 @@ const { Types, Modes } = TaskRunner;
 const { Events } = Runner;
 
 // SHOPIFY
-class MonitorPrimitive {
+export default class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Unknown) {
     this.ids = [context.id];
     this._task = context.task;
@@ -673,5 +673,3 @@ class MonitorPrimitive {
     this._cleanup();
   }
 }
-
-module.exports = MonitorPrimitive;

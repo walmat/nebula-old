@@ -4,7 +4,7 @@ import hash from 'object-hash';
 import shortid from 'shortid';
 import { Manager } from '../constants';
 
-class ProxyManager {
+export default class ProxyManager {
   get proxies() {
     return this._proxies;
   }
@@ -270,5 +270,3 @@ class ProxyManager {
     proxies.forEach(p => this.deregister(p));
   }
 }
-
-module.exports = ProxyManager;

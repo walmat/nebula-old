@@ -135,9 +135,7 @@ export class ProxyListPrimitive extends Component {
     return proxies
       .map(
         (proxy, idx) =>
-          `<div${
-            errors.includes(idx) ? ' class="invalidProxy"' : ''
-          } style="overflow-x: scroll; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ProxyListPrimitive.sanitize(
+          `<div${errors.includes(idx) ? ' class="invalidProxy"' : ''}>${ProxyListPrimitive.sanitize(
             proxy,
           )}</div>`,
       )
@@ -165,7 +163,7 @@ export class ProxyListPrimitive extends Component {
       <>
         <div className="row row--start row--gutter">
           <div className="col col--start col--expand col--no-gutter-left">
-            <p className="row row--start row--expand body-text section-header proxy-list__section-header">
+            <p className="row row--start row--expand body-text proxy-list__section-header">
               Proxy List
             </p>
           </div>

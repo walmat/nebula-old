@@ -1,12 +1,13 @@
 import SpecialParser from '../specialParser';
 import { matchKeywords } from '../../utils/parse';
 import { ErrorCodes, Monitor } from '../../utils/constants';
+
 const { ParseType } = Monitor;
 
 /**
  * Base Special Parser for all DSM Sites
  */
-class DsmParser extends SpecialParser {
+export default class DsmParser extends SpecialParser {
   constructor(request, type, task, proxy, aborter, logger, name = 'DsmParser') {
     super(request, type, task, proxy, aborter, logger, name);
 
@@ -144,5 +145,3 @@ class DsmParser extends SpecialParser {
     return matchedProduct;
   }
 }
-
-module.exports = DsmParser;

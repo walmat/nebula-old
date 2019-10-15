@@ -9,13 +9,11 @@ import defaults from 'fetch-defaults';
 
 import { Manager, Runner, Platforms, SiteKeyForPlatform } from '../../constants';
 import { TaskRunner, Monitor } from '../utils/constants';
-import { notification } from '../hooks';
-import Discord from '../hooks/discord';
-import Slack from '../hooks/slack';
+import notification, { Discord, Slack } from '../hooks';
 import AsyncQueue from '../../common/asyncQueue';
 import Timer from '../../common/timer';
 import { ATC, backupForm, parseForm } from '../utils/forms';
-import { getHeaders } from '../utils';
+import getHeaders from '../utils';
 import { waitForDelay, getRandomIntInclusive } from '../../common';
 
 const { Events: TaskManagerEvents } = Manager;
@@ -24,7 +22,7 @@ const { States, Types, DelayTypes, HookTypes, HarvestStates } = TaskRunner;
 const { ParseType } = Monitor;
 
 // SUPREME
-class TaskRunnerPrimitive {
+export default class TaskRunnerPrimitive {
   constructor(context, proxy, type, platform = Platforms.Supreme) {
     this.id = context.id;
     this._task = context.task;
@@ -408,6 +406,7 @@ class TaskRunnerPrimitive {
     const {
       product: { variants, randomInStock },
       size,
+      rawProxy,
     } = this._context.task;
 
     let grouping = variants;
@@ -886,7 +885,10 @@ class TaskRunnerPrimitive {
         this._context.task.checkoutDelay = 0;
 
         if (/US/i.test(siteName)) {
-          this._emitTaskEvent({ message: `Delaying ${this._context.task.monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({
+            message: `Delaying ${this._context.task.monitorDelay}ms`,
+            rawProxy,
+          });
           this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
           await this._delayer;
         }
@@ -1040,5 +1042,3 @@ class TaskRunnerPrimitive {
 
 TaskRunnerPrimitive.Events = Events;
 TaskRunnerPrimitive.States = States;
-
-module.exports = TaskRunnerPrimitive;

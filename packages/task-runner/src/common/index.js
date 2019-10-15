@@ -1,6 +1,6 @@
-const now = require('performance-now');
-const delay = require('delay');
-const rfrl = require('./rfrl');
+import now from 'performance-now';
+import delay from 'delay';
+import rfrl from './rfrl';
 
 const waitForDelay = (time, signal) => delay(time, { signal });
 const reflect = p => p.then(v => ({ v, status: 'fulfilled' }), e => ({ e, status: 'rejected' }));
@@ -62,7 +62,7 @@ const currencyWithSymbol = (price, name) => {
   }
 };
 
-module.exports = {
+export {
   now,
   rfrl,
   waitForDelay,

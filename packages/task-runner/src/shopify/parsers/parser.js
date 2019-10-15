@@ -2,9 +2,10 @@
 import { rfrl, userAgent } from '../../common';
 import { matchVariant, matchKeywords } from '../utils/parse';
 import { ErrorCodes, Monitor } from '../utils/constants';
+
 const { ParseType } = Monitor;
 
-class Parser {
+export default class Parser {
   /**
    * Retrieve the full product info for a given product
    *
@@ -175,5 +176,3 @@ class Parser {
     }
   }
 }
-
-module.exports = Parser;

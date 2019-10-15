@@ -1,9 +1,10 @@
 import SpecialParser from '../specialParser';
 import { matchKeywords } from '../../utils/parse';
 import { ErrorCodes, Monitor } from '../../utils/constants';
+
 const { ParseType } = Monitor;
 
-class TravissParser extends SpecialParser {
+export default class TravisParser extends SpecialParser {
   constructor(request, type, task, proxy, aborter, logger, name = 'TravisParser') {
     super(request, type, task, proxy, aborter, logger, name);
   }
@@ -131,5 +132,3 @@ class TravissParser extends SpecialParser {
     return transformedProduct;
   }
 }
-
-module.exports = TravissParser;

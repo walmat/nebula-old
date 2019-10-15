@@ -1,7 +1,6 @@
+/* eslint-disable global-require */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer, shell } = require('electron');
-const axios = require('axios');
-const HttpsProxyAgent = require('https-proxy-agent');
 const { TaskRunnerTypes } = require('@nebula/task-runner-built');
 
 const { IPCKeys } = require('../constants');
@@ -209,16 +208,17 @@ const _setTheme = opts => {
 };
 
 const _testProxy = async (url, proxy) => {
+  const fetch = require('node-fetch');
+  const HttpsProxyAgent = require('https-proxy-agent');
   let start;
   let stop;
   const [host, port, username, password] = proxy.split(':');
   const agent = new HttpsProxyAgent(`http://${username}:${password}@${host}:${port}`);
   try {
     start = performance.now();
-    await axios.get(url, {
-      withCredentials: true,
-      httpsAgent: agent,
-      httpAgent: agent,
+    await fetch(url, {
+      method: 'GET',
+      agent,
     });
     stop = performance.now();
     return (stop - start).toFixed(0);

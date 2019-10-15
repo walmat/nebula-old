@@ -1,6 +1,6 @@
 import { sortBy } from 'lodash';
 
-const sites = [
+export const sites = [
   {
     name: '12AM Run',
     url: 'https://12amrun.com',
@@ -767,27 +767,20 @@ const sites = [
   },
 ];
 
-function getAllSupportedSites() {
+export function getAllSupportedSites() {
   return sites.filter(val => val.supported);
 }
 
-function getAllSupportedSitesSorted() {
+export function getAllSupportedSitesSorted() {
   const supported = sites.filter(val => val.supported);
   return sortBy(supported, 'name');
 }
 
-function getAllSpecialSites() {
+export function getAllSpecialSites() {
   return sites.filter(val => val.special);
 }
 
-function isSpecialSite({ name, url }) {
+export function isSpecialSite({ name, url }) {
   const specialSites = getAllSpecialSites();
   return !!specialSites.find(s => s.name === name || s.url === url);
 }
-
-module.exports = {
-  getAllSupportedSites,
-  getAllSupportedSitesSorted,
-  getAllSpecialSites,
-  isSpecialSite,
-};

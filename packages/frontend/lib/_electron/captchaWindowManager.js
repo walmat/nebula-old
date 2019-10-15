@@ -458,7 +458,6 @@ class CaptchaWindowManager {
       };
     }
 
-    console.log(this._sessions);
     this._store.set('captchaSessions', JSON.stringify(this._sessions));
   }
 
@@ -480,7 +479,7 @@ class CaptchaWindowManager {
             inUse: false,
           };
         }
-  
+
         this._store.set('captchaSessions', JSON.stringify(this._sessions));
       }
 
@@ -499,7 +498,7 @@ class CaptchaWindowManager {
             inUse: false,
           };
         }
-  
+
         this._store.set('captchaSessions', JSON.stringify(this._sessions));
       }
     } else {

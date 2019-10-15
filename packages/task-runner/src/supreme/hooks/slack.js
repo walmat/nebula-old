@@ -1,6 +1,6 @@
 import SlackWebhook from 'slack-webhook';
 
-class Slack {
+export default class Slack {
   constructor(hook) {
     if (hook) {
       this.hook = new SlackWebhook(hook);
@@ -17,24 +17,7 @@ class Slack {
             fallback,
             title: success ? 'Successful checkout!' : 'Payment failed!',
             color: success ? '#46ADB4' : '#EF415E',
-            fields: [
-              {
-                title: 'Product',
-                value: product,
-                short: true,
-              },
-              {
-                title: 'Price',
-                value: price,
-                short: true,
-              },
-              {
-                title: 'Store',
-                value: `<${site.url}|${site.name}>`,
-                short: true,
-              },
-            ],
-            thumb_url: image,
+            fields: [],
             footer: 'Nebula Orion @ 2019',
             footer_icon:
               'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
@@ -42,6 +25,42 @@ class Slack {
           },
         ],
       };
+
+      if (image) {
+        embed.attachments[0].thumb_url = image;
+      }
+
+      if (product) {
+        embed.attachments[0].fields.push({
+          title: 'Product',
+          value: product,
+          short: true,
+        });
+      }
+
+      if (price) {
+        embed.attachments[0].fields.push({
+          title: 'Price',
+          value: price,
+          short: true,
+        });
+      }
+
+      if (site) {
+        if (site.url) {
+          embed.attachments[0].fields.push({
+            title: 'Store',
+            value: `<${site.url}|${site.name}>`,
+            short: true,
+          });
+        } else if (site.name) {
+          embed.attachments[0].fields.push({
+            title: 'Store',
+            value: site.name,
+            short: true,
+          });
+        }
+      }
 
       if (profile) {
         embed.attachments.push({
@@ -62,4 +81,3 @@ class Slack {
     return null;
   }
 }
-module.exports = Slack;

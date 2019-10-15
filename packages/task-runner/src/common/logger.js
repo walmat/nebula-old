@@ -1,8 +1,8 @@
-const fs = require('fs');
-const winston = require('winston');
-const path = require('path');
-// Require DRF to add it to the list of transports
-require('winston-daily-rotate-file');
+import fs from 'fs';
+import winston from 'winston';
+import path from 'path';
+
+import 'winston-daily-rotate-file';
 
 // TODO: Generalize Env Code and Include it in this project
 // For now we will assume that the nebula env gets loaded before
@@ -27,7 +27,7 @@ let _levels = null;
  * settings will override the 'all' key if both
  * are passed.
  */
-function _setLevels(levels, name) {
+function setLevels(levels, name) {
   if (!levels) {
     return; // if no levels are given, don't do anything...
   }
@@ -53,7 +53,7 @@ function _setLevels(levels, name) {
   }
 }
 
-function _createLogger({ dir, name, prefix }) {
+function createLogger({ dir, name, prefix }) {
   // disable logger
   if (process.env.NEBULA_DISABLE_LOGGER) {
     return {
@@ -149,11 +149,8 @@ function _createLogger({ dir, name, prefix }) {
     ),
   });
   // Update levels to the global state
-  _setLevels(_levels, name);
+  setLevels(_levels, name);
   return winston.loggers.get(name);
 }
 
-module.exports = {
-  createLogger: _createLogger,
-  setLevels: _setLevels,
-};
+export { createLogger, setLevels };

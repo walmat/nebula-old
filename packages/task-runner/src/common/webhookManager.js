@@ -1,4 +1,4 @@
-class WebhookManager {
+export default class WebhookManager {
   constructor(logger) {
     this._logger = logger;
     this._queue = [];
@@ -30,5 +30,3 @@ class WebhookManager {
     }
   }
 }
-
-module.exports = WebhookManager;

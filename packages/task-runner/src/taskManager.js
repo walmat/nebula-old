@@ -1,5 +1,4 @@
 import EventEmitter from 'eventemitter3';
-import { globalAgent } from 'http';
 import shortid from 'shortid';
 import { isEqual } from 'lodash';
 import { CookieJar } from 'tough-cookie';
@@ -8,40 +7,27 @@ import { CookieJar } from 'tough-cookie';
 import ProxyManager from './common/proxyManager';
 import WebhookManager from './common/webhookManager';
 import { createLogger } from './common/logger';
-import {
-  Platforms,
-  Manager,
-  Runner
-} from './constants';
-
-const { Events } = Manager;
-const { Events: RunnerEvents } = Runner;
+import { Platforms, Manager, Runner } from './constants';
 
 // shopify includes
-import {
-  Monitor as ShopifyMonitor,
-  TaskRunner as ShopifyRunner,
-  RateFetcher,
-} from './shopify';
+import { Monitor as ShopifyMonitor, TaskRunner as ShopifyRunner, RateFetcher } from './shopify';
 import { getParseType } from './shopify/utils/parse';
 import { Monitor, TaskRunner } from './shopify/utils/constants';
 import Discord from './shopify/hooks/discord';
 import Slack from './shopify/hooks/slack';
-
-const { ParseType } = Monitor;
-const { HookTypes, Types: RunnerTypes } = TaskRunner;
 // TODO: footsites includes
 
 // supreme includes
-import SupremeRunner from './supreme/runners/taskRunner';
-import SupremeMonitor from './supreme/runners/monitor';
+import { Monitor as SupremeMonitor, TaskRunner as SupremeRunner } from './supreme';
+
+const { Events } = Manager;
+const { Events: RunnerEvents } = Runner;
+const { ParseType } = Monitor;
+const { HookTypes, Types: RunnerTypes } = TaskRunner;
 
 // TODO: mesh includes
 
-// OVERRIDES
-globalAgent.maxSockets = Infinity;
-
-class TaskManager {
+export default class TaskManager {
   get loggerPath() {
     return this._loggerPath;
   }
@@ -848,5 +834,3 @@ class TaskManager {
 }
 
 TaskManager.Events = Events;
-
-module.exports = TaskManager;

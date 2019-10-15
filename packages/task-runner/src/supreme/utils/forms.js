@@ -1,7 +1,7 @@
 import validator from 'card-validator';
 import phoneFormatter from 'phone-formatter';
 
-const ATC = (size, style, siteName) => {
+export const ATC = (size, style, siteName) => {
   if (/eu/i.test(siteName)) {
     return `size=${size}&style=${style}&qty=1`;
   }
@@ -11,7 +11,7 @@ const ATC = (size, style, siteName) => {
   return `s=${size}&st=${style}&qty=1`;
 };
 
-const parseForm = async ($, formName, wanted, billing, payment, size) => {
+export const parseForm = async ($, formName, wanted, billing, payment, size) => {
   const data = [];
 
   await $(`${formName} ${wanted}`).each((_, el) => {
@@ -131,7 +131,7 @@ const parseForm = async ($, formName, wanted, billing, payment, size) => {
   return fv;
 };
 
-const backupForm = (region, billing, payment, size) => {
+export const backupForm = (region, billing, payment, size) => {
   let form = '';
   const fullName = `${billing.firstName.replace(/\s/g, '+')}+${billing.lastName.replace(
     /\s/g,
@@ -230,10 +230,4 @@ const backupForm = (region, billing, payment, size) => {
       break;
   }
   return form;
-};
-
-module.exports = {
-  ATC,
-  parseForm,
-  backupForm,
 };

@@ -7,16 +7,17 @@ import defaults from 'fetch-defaults';
 import { filter, every, some, sortBy } from 'lodash';
 
 import { capitalizeFirstLetter, waitForDelay, getRandomIntInclusive } from '../../common';
-import { getHeaders } from '../utils'
+import getHeaders from '../utils';
 import { Manager, Runner } from '../../constants';
 import { Monitor, TaskRunner } from '../utils/constants';
+
 const { Events: TaskManagerEvents } = Manager;
 const { Events } = Runner;
 const { Types } = TaskRunner;
 const { States, DelayTypes, ParseType, ErrorCodes } = Monitor;
 
 // SUPREME
-class MonitorPrimitive {
+export default class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Keywords) {
     this.ids = [context.id];
     this._task = context.task;
@@ -127,7 +128,10 @@ class MonitorPrimitive {
       return States.SWAP;
     }
 
-    this._emitMonitorEvent({ message: `No product found. Delaying ${monitorDelay}ms`, rawProxy: this._context.rawProxy });
+    this._emitMonitorEvent({
+      message: `No product found. Delaying ${monitorDelay}ms`,
+      rawProxy: this._context.rawProxy,
+    });
     this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
     await this._delayer;
     return this._prevState;
@@ -310,7 +314,12 @@ class MonitorPrimitive {
           _logger.log('silly', "Overriding filter's limit and returning all products...");
           limit = 0;
         }
-        filtered = await MonitorPrimitive.filterAndLimit(matches, _filter.sorter, limit, this._logger);
+        filtered = await MonitorPrimitive.filterAndLimit(
+          matches,
+          _filter.sorter,
+          limit,
+          this._logger,
+        );
         if (!returnAll) {
           _logger.log('silly', 'Returning Matched Product: %s', filtered[0].name);
           return filtered[0];
@@ -481,7 +490,7 @@ class MonitorPrimitive {
       };
 
       const matchedProduct = await this.matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter at this point...
-      
+
       if (!matchedProduct) {
         this._logger.silly('Supreme Monitor: Unable to find matching product!');
         const error = new Error('Product Not Found');
@@ -503,7 +512,9 @@ class MonitorPrimitive {
 
   async _handleStock() {
     const { aborted, task, proxy, rawProxy, logger } = this._context;
-    const { product: { variation, style } } = task;
+    const {
+      product: { variation, style },
+    } = task;
 
     if (aborted) {
       this._logger.silly('Abort Detected, Stopping...');
@@ -541,7 +552,7 @@ class MonitorPrimitive {
         this._emitMonitorEvent({ message: 'No variation matched!', rawProxy });
         return States.ERROR;
       }
-      
+
       this._context.task.product.id = matchedVariation.id;
       this._context.task.product.variants = matchedVariation.sizes;
       this._context.task.product.currency = matchedVariation.currency;
@@ -657,5 +668,3 @@ class MonitorPrimitive {
     this._cleanup();
   }
 }
-
-module.exports = MonitorPrimitive;

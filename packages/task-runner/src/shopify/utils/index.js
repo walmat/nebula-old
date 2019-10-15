@@ -1,8 +1,9 @@
 import { userAgent } from '../../common';
 import { TaskRunner } from './constants';
+
 const { States } = TaskRunner;
 
-const stateForError = ({ status, name, errno }, { message, nextState }) => {
+export const stateForError = ({ status, name, errno }, { message, nextState }) => {
   // Look for errors in cause
   const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED)/.exec(errno);
 
@@ -58,7 +59,7 @@ const stateForError = ({ status, name, errno }, { message, nextState }) => {
   }
 };
 
-const getHeaders = ({ url, apiKey }) => ({
+export const getHeaders = ({ url, apiKey }) => ({
   'X-Shopify-Checkout-Version': '2019-10-06',
   'X-Shopify-Access-Token': apiKey,
   'x-barba': 'yes',
@@ -67,8 +68,3 @@ const getHeaders = ({ url, apiKey }) => ({
   host: `${url.split('/')[2]}`,
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
 });
-
-module.exports = {
-  stateForError,
-  getHeaders,
-};

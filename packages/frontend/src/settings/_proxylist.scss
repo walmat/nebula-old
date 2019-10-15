@@ -14,6 +14,11 @@
     border: 1px solid #f0405e;
     border-radius: 3px;
 
+    &__section-header {
+      max-height: 32px;
+      margin: 8px 0 6px 0;
+    }
+
     &__input-group {
       &--text {
         @include settings-font();

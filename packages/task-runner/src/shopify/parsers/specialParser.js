@@ -3,9 +3,10 @@ import cheerio from 'cheerio';
 import Parser from './parser';
 import { userAgent } from '../../common';
 import { ErrorCodes, Monitor } from '../utils/constants';
+
 const { ParseType } = Monitor;
 
-class SpecialParser extends Parser {
+export default class SpecialParser extends Parser {
   constructor(request, type, task, proxy, aborter, logger, random, name) {
     super(request, type, task, proxy, aborter, logger, random, name || 'SpecialParser');
   }
@@ -322,5 +323,3 @@ class SpecialParser extends Parser {
     }
   }
 }
-
-module.exports = SpecialParser;

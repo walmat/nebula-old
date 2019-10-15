@@ -281,7 +281,7 @@
   color: #8aa27d;
 }
 .tasks .tasks-create__input--type-CART {
-  color: #C7B8EA;
+  color: #c7b8ea;
 }
 .tasks .tasks-create__submit-row {
   align-self: flex-end;
@@ -884,7 +884,7 @@
   flex-grow: 0;
   margin-left: 14px !important;
   text-align: center;
-  color: #C7B8EA;
+  color: #c7b8ea;
 }
 .tasks .tasks-table .tasks-row-container .tasks-row__id--SAFE {
   width: 26px;

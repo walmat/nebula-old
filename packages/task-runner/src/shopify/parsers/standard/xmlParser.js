@@ -2,9 +2,10 @@ import Parser from '../parser';
 import { userAgent } from '../../../common';
 import { convertToJson } from '../../utils/parse';
 import { Monitor } from '../../utils/constants';
+
 const { ParseType } = Monitor;
 
-class XmlParser extends Parser {
+export default class XmlParser extends Parser {
   /**
    * Construct a new XmlParser
    *
@@ -95,4 +96,3 @@ class XmlParser extends Parser {
     }
   }
 }
-module.exports = XmlParser;

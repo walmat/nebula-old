@@ -117,6 +117,7 @@ const _terminateProxyRequest = async (options, proxy, credentials) =>
     } catch (error) {
       console.log(error);
       if (/not exist/i.test(error)) {
+        console.log('resolving proxy!');
         return resolve(proxy);
       }
       return reject(new Error('Unable to terminate proxy'));

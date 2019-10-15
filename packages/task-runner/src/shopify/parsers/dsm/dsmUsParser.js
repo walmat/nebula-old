@@ -1,6 +1,6 @@
 import DsmParser from './dsmParser';
 
-class DsmUsParser extends DsmParser {
+export default class DsmUsParser extends DsmParser {
   constructor(request, type, task, proxy, aborter, logger) {
     super(request, type, task, proxy, aborter, logger, 'DsmUsParser');
   }
@@ -63,5 +63,3 @@ class DsmUsParser extends DsmParser {
     }
   }
 }
-
-module.exports = DsmUsParser;

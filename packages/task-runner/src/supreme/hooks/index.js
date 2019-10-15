@@ -1,7 +1,8 @@
 import isDev from 'electron-is-dev';
 import Discord from './discord';
+import Slack from './slack';
 
-const notification = async (slack, discord, payload) => {
+export default async (slack, discord, payload) => {
   const webhook = isDev
     ? 'https://discordapp.com/api/webhooks/492205269942796298/H0giZl0oansmwORuW4ifx-fwKWbcVPXR23FMoWkgrBfIqQErIKBiNQznQIHQuj-EPXic'
     : 'https://discordapp.com/api/webhooks/542618948634542101/U2W9S028eFVJxm40doq4DxMZo1EaLMRZMgrp2nOQoryzG_ysif8fltjhbsPbZSCfzx2J';
@@ -31,6 +32,4 @@ const notification = async (slack, discord, payload) => {
   return hooks;
 };
 
-module.exports = {
-  notification,
-};
+export { Slack, Discord };

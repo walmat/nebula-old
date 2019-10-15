@@ -13,6 +13,10 @@
   border: 1px solid #f0405e;
   border-radius: 3px;
 }
+.settings .proxy-list__section-header {
+  max-height: 32px;
+  margin: 8px 0 6px 0;
+}
 .settings .proxy-list__input-group--text {
   font-family: AvenirNext-Medium;
   font-size: 9.5px;

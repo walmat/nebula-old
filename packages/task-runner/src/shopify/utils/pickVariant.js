@@ -3,7 +3,7 @@
 import { getRandomIntInclusive } from '../../common';
 import { urlToTitleSegment, urlToVariantOption } from './urlVariantMaps';
 
-async function pickVariant(variants, size, url, logger = { log: () => {} }, randomInStock = false) {
+export default async (variants, size, url, logger = { log: () => {} }, randomInStock = false) => {
   let variantGroup = variants;
 
   if (randomInStock) {
@@ -66,6 +66,4 @@ async function pickVariant(variants, size, url, logger = { log: () => {} }, rand
   const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
 
   return { id: variant.id, option };
-}
-
-module.exports = pickVariant;
+};

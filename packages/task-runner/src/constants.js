@@ -35,13 +35,12 @@ const SiteKeyForPlatform = {
   [Platforms.Mesh]: '',
 };
 
-module.exports = {
-  Manager: {
-    Events: TaskManagerEvents,
-  },
-  Runner: {
-    Events: TaskRunnerEvents,
-  },
-  Platforms,
-  SiteKeyForPlatform,
+const Manager = {
+  Events: TaskManagerEvents,
 };
+
+const Runner = {
+  Events: TaskRunnerEvents,
+};
+
+export { Manager, Runner, Platforms, SiteKeyForPlatform };

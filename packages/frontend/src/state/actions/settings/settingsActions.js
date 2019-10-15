@@ -79,7 +79,6 @@ const fetchShipping = task => dispatch => {
   dispatch(_setupShipping());
   return _fetchShippingRequest(task)
     .then(({ rates, selectedRate }) => {
-      console.log(rates, selectedRate);
       dispatch(
         _saveShippingRates({
           id: task.profile.id,

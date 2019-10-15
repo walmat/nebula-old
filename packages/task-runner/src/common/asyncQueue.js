@@ -5,7 +5,7 @@
  * asynchronous returns. If there is a backlog, the
  * returns are synchronous
  */
-class AsyncQueue {
+export default class AsyncQueue {
   constructor() {
     this._backlog = [];
     this._waitQueue = [];
@@ -89,5 +89,3 @@ class AsyncQueue {
     this.clear();
   }
 }
-
-module.exports = AsyncQueue;

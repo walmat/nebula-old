@@ -1,6 +1,6 @@
-const now = require('performance-now');
+import now from 'performance-now';
 
-class Timer {
+export default class Timer {
   constructor() {
     this._total = 0;
     this._start = null;
@@ -58,5 +58,3 @@ class Timer {
     return this._total.toFixed(fixed);
   }
 }
-
-module.exports = Timer;

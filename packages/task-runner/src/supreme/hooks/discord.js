@@ -1,6 +1,6 @@
 import { RichEmbed, WebhookClient } from 'discord.js';
 
-class Discord {
+export default class Discord {
   constructor(hook) {
     if (hook) {
       const [, , , , , id, token] = hook.split('/');
@@ -13,15 +13,31 @@ class Discord {
       const embed = new RichEmbed()
         .setTitle(success ? 'Successful checkout!' : 'Payment failed!')
         .setColor(success ? 4631988 : 15679838)
-        .setThumbnail(image)
         .setTimestamp(new Date())
-        .addField('Product', product, false)
-        .addField('Price', price, true)
-        .addField('Store', `[${site.name}](${site.url})`, true)
         .setFooter(
           'Nebula Orion © 2019',
           'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
         );
+
+      if (image) {
+        embed.setThumbnail(image);
+      }
+
+      if (product) {
+        embed.addField('Product', product, false);
+      }
+
+      if (price) {
+        embed.addField('Price', price, true);
+      }
+
+      if (site) {
+        if (site.url) {
+          embed.addField('Store', `[${site.name}](${site.url})`, true);
+        } else if (site.name) {
+          embed.addField('Store', site.name, true);
+        }
+      }
 
       if (profile) {
         embed.addField('Billing Profile', `${profile}`, true);
@@ -34,4 +50,3 @@ class Discord {
     return null;
   }
 }
-module.exports = Discord;

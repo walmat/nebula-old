@@ -32,11 +32,10 @@ function getSpecialParser({ name }) {
   }
 
   return (...params) => new YeezyParser(...params);
-
 }
 
 function getParsers(url) {
-  if (/yeezysupply|eflash|traviss/i.test(url)) {
+  if (/yeezysupply|eflash|travis/i.test(url)) {
     return (...params) => [new JsonParser(...params)];
   }
 
@@ -51,11 +50,4 @@ function getParsers(url) {
   ];
 }
 
-module.exports = {
-  Parser,
-  AtomParser,
-  JsonParser,
-  XmlParser,
-  getSpecialParser,
-  getParsers,
-};
+export { Parser, AtomParser, JsonParser, XmlParser, getSpecialParser, getParsers };

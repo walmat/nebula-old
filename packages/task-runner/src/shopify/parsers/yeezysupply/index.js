@@ -1,7 +1,7 @@
 import SpecialParser from '../specialParser';
 import { ErrorCodes } from '../../utils/constants';
 
-class YeezyParser extends SpecialParser {
+export default class YeezyParser extends SpecialParser {
   constructor(request, type, task, proxy, aborter, logger, random) {
     super(request, type, task, proxy, aborter, logger, random, 'YeezyParser');
   }
@@ -96,5 +96,3 @@ class YeezyParser extends SpecialParser {
     return matchedProduct;
   }
 }
-
-module.exports = YeezyParser;

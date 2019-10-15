@@ -14,7 +14,7 @@ const { ParseType } = Monitor;
  *
  * @param {TaskProduct} product
  */
-function getParseType(product, site, platform = Platforms.Shopify) {
+export function getParseType(product, site, platform = Platforms.Shopify) {
   if (!product) {
     return ParseType.Unknown;
   }
@@ -85,7 +85,7 @@ function getParseType(product, site, platform = Platforms.Shopify) {
  * @param {Sorter} sorter the method of sorting
  * @param {num} limit the limit to use
  */
-function filterAndLimit(list, sorter, limit, logger) {
+export function filterAndLimit(list, sorter, limit, logger) {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
   if (!list) {
@@ -130,7 +130,7 @@ function filterAndLimit(list, sorter, limit, logger) {
  * @param {List} products list of products to search
  * @param {String} variantId the variant id to match
  */
-function matchVariant(products, variantId, logger) {
+export function matchVariant(products, variantId, logger) {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Starting variant matching for variant: %s', variantId);
   if (!products) {
@@ -201,7 +201,7 @@ function matchVariant(products, variantId, logger) {
  * @param {Object} keywords an object containing two arrays of strings (`pos` and `neg`)
  * @see filterAndLimit
  */
-function matchKeywords(products, keywords, _filter, logger, returnAll, random) {
+export function matchKeywords(products, keywords, _filter, logger, returnAll, random) {
   if (random) {
     return products[0];
   }
@@ -318,7 +318,7 @@ function matchKeywords(products, keywords, _filter, logger, returnAll, random) {
  *
  * @param {String} xml
  */
-function convertToJson(xml) {
+export function convertToJson(xml) {
   return new Promise((resolve, reject) => {
     parseString(xml, (err, result) => {
       if (err) {
@@ -327,12 +327,4 @@ function convertToJson(xml) {
       resolve(result);
     });
   });
-}
-
-module.exports = {
-  getParseType,
-  filterAndLimit,
-  matchVariant,
-  matchKeywords,
-  convertToJson,
 }
