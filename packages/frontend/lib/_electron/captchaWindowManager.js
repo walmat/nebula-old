@@ -196,13 +196,7 @@ class CaptchaWindowManager {
           const newDomain = new URL(host).hostname;
           if (currentDomain !== newDomain) {
             CaptchaWindowManager.setupIntercept(win);
-
-            win.loadURL('https://accounts.google.com');
-
-            win.webContents.session.webRequest.onBeforeRequest({urls: ['https://myaccount.google.com/*']}, (details, callback) => {
-              callback({redirectURL: host })
-            })
-            // win.loadURL(host);
+            win.loadURL(host);
 
             win.webContents.on('dom-ready', () => {
               win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
@@ -244,9 +238,9 @@ class CaptchaWindowManager {
   stopHarvesting(runnerId, siteKey, host) {
     this._harvestStatus = {
       state: HARVEST_STATES.IDLE,
-      runnerId: null,
-      siteKey: null,
-      host: null,
+      runnerId,
+      siteKey,
+      host,
     };
     this._captchaWindows.forEach(win => {
       win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, siteKey, host);
@@ -312,6 +306,7 @@ class CaptchaWindowManager {
     }
 
     let session = {};
+    // eslint-disable-next-line no-restricted-syntax
     for (const s of Object.values(this._sessions)) {
       if (s && !s.inUse) {
         session = s;
@@ -348,11 +343,7 @@ class CaptchaWindowManager {
     this._store.set('captchaSessions', JSON.stringify(this._sessions));
     console.log(`[DEBUG]: Session for window set %j`, this._sessions[session.id]);
 
-    win.loadURL('https://accounts.google.com');
-
-    win.webContents.session.webRequest.onBeforeRequest({urls: ['https://myaccount.google.com/*']}, (details, callback) => {
-      callback({redirectURL: host || 'http://checkout.shopify.com' })
-    })
+    win.loadURL(host || 'http://checkout.shopify.com');
 
     this._captchaWindows.push(win);
     win.on('ready-to-show', () => {
@@ -364,19 +355,19 @@ class CaptchaWindowManager {
       win.show();
     });
 
-    win.webContents.session.webRequest.onBeforeSendHeaders(
-      { urls: ['https://*.google.com, https://*.gstatic.com'] },
-      (details, callback) =>
-        callback({
-          requestHeaders: {
-            ...details.requestHeaders,
-            DNT: 1,
-            'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
-            'Content-Language': 'en-US,en;q=0.9',
-          },
-        }),
-    );
+    // win.webContents.session.webRequest.onBeforeSendHeaders(
+    //   { urls: ['https://*.google.com, https://*.gstatic.com'] },
+    //   (details, callback) =>
+    //     callback({
+    //       requestHeaders: {
+    //         ...details.requestHeaders,
+    //         DNT: 1,
+    //         'User-Agent':
+    //           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+    //         'Content-Language': 'en-US,en;q=0.9',
+    //       },
+    //     }),
+    // );
 
     win.webContents.once('did-finish-load', () => {
       const { id: sessionId, proxy } = session;
@@ -618,7 +609,10 @@ class CaptchaWindowManager {
    */
   _handleTokenExpirationUpdate() {
     const { state, runnerId, siteKey, host } = this._harvestStatus;
-    if (this._tokenQueue.backlogLength === 0 && state === HARVEST_STATES.SUSPEND) {
+    if (
+      this._tokenQueue.backlogLength < MAX_HARVEST_CAPTCHA_COUNT &&
+      state === HARVEST_STATES.SUSPEND
+    ) {
       console.log('[DEBUG]: Resuming harvesters...');
       this.startHarvesting(runnerId, siteKey, host);
     }
@@ -648,7 +642,7 @@ class CaptchaWindowManager {
 
     if (this._tokenQueue.backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {
       console.log('[DEBUG]: Token Queue is greater than max, suspending...');
-      this.suspendHarvesting(runnerId, siteKey);
+      this.suspendHarvesting(runnerId, siteKey, host);
     }
   }
 

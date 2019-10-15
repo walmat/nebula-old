@@ -3,7 +3,7 @@
   <head>
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http: https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;"/>
     <title>Harvester</title>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
     <style>
       @font-face {
         font-family: 'AvenirNext-Bold';
@@ -351,7 +351,7 @@
       async function autoClick() {
         // Wait for iframe load
         if (/supreme/i.test(_host)) {
-          window.grecaptcha.execute();
+          grecaptcha.execute();
         } else {
           const captchaInterval = setInterval(() => {
             const challengeFrame = document.querySelector('iframe[role="presentation"]');
@@ -368,14 +368,15 @@
 
       function resetChallenge() {
         // Guard against too many reset calls
-        if (_resetting) {
+        console.log('resetting captcha!');
+        if (_resetting || !_initialized) {
           return;
         }
         _resetting = true;
-        if (window.grecaptcha) {
-          window.grecaptcha.reset();
+        if (grecaptcha) {
+          grecaptcha.reset();
         }
-        if (_started) {
+        if (_started && _initialized) {
           autoClick();
         } else {
           const form = document.getElementById('captchaForm');
@@ -394,7 +395,7 @@
         _submitting = true;
 
         if (/supreme/i.test(_host)) {
-          const token = window.grecaptcha.getResponse();
+          const token = grecaptcha.getResponse();
           window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey, _host);
         } else {
           const captchaResponse = document.getElementById('g-recaptcha-response');
@@ -425,16 +426,27 @@
 
         // hide the loader..
         const loader = document.getElementById('waiting');
-        loader.setAttribute('style', 'visibility:hidden;')
+        loader.setAttribute('style', 'visibility:hidden;');
+
+        console.log(_host, _initialized);
 
         if (!_initialized) {
           const dataSize = /supreme/i.test(_host) ? 'invisible' : 'normal';
+          console.log('rendering captcha!');
+          grecaptcha.render('captchaContainer', {
+            sitekey: siteKey,
+            size: dataSize,
+            // badge: 'inline',
+            callback: submitCaptcha,
+          });
+          console.log(dataSize);
           const container = document.getElementById('captchaContainer');
           container.setAttribute('data-sitekey', `${siteKey}`);
           container.setAttribute('data-theme', 'dark');
-          container.setAttribute('data-size', dataSize);
-          form.appendChild(container);
+          container.setAttribute('data-size', `${dataSize}`);
+          console.log(container);
           _initialized = true;
+          console.log('done initializing!');
         }
 
         // If recaptcha has been previously loaded, reset it
@@ -531,7 +543,7 @@
     </div>
     <div id="captcha">
       <form id="captchaForm" action="/submit" method="post" style="visibility: hidden;">
-        <div class="g-recaptcha" id="captchaContainer" data-callback="submitCaptcha" data-sitekey="6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF" data-size="normal"></div>
+        <div class="g-recaptcha" id="captchaContainer" data-badge="inline"></div>
       </form>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>

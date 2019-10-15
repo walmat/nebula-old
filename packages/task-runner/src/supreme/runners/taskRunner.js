@@ -841,8 +841,6 @@ export default class TaskRunnerPrimitive {
 
       const body = await res.json();
 
-      console.log(body);
-
       if (body && body.status && /failed|out/i.test(body.status)) {
         this._emitTaskEvent({ message: 'Checkout failed', rawProxy });
 
