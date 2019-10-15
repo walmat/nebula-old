@@ -184,7 +184,7 @@
         @extend %tasks-log__header__field;
         width: 110px;
         padding-left: 15px;
-        flex-grow: 1;
+        flex-grow: 0;
       }
 
       &--product {
@@ -194,6 +194,7 @@
           @extend %tasks-log__header__field;
           width: 110px;
           padding-left: 15px;
+          flex-grow: 2;
         }
       }
 
@@ -210,6 +211,7 @@
           display: unset;
           @extend %tasks-log__header__field;
           width: 65px;
+          flex-grow: 1;
         }
       }
 
@@ -222,7 +224,6 @@
           width: 20px;
           padding-left: 80px;
         }
-
         flex-grow: 10;
       }
     }
@@ -297,11 +298,11 @@
             &--fullscreen {
               width: 113px;
               padding-left: 12px;
-              flex-grow: 1;
+              flex-grow: 0;
             }
             width: 113px;
             padding-left: 12px;
-            flex-grow: 1;
+            flex-grow: 0;
           }
 
           &--product {
@@ -312,6 +313,7 @@
               visibility: visible;
               width: 111px;
               padding-left: 15px;
+              flex-grow: 2;
             }
           }
 
@@ -335,6 +337,7 @@
               visibility: visible;
               padding-left: 10px;
               width: 118px;
+              flex-grow: 1;
             }
           }
 

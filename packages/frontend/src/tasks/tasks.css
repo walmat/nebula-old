@@ -507,7 +507,7 @@
 .tasks .tasks-log__header--store {
   width: 110px;
   padding-left: 15px;
-  flex-grow: 1;
+  flex-grow: 0;
 }
 .tasks .tasks-log__header--product {
   display: none;
@@ -516,6 +516,7 @@
   display: unset;
   width: 110px;
   padding-left: 15px;
+  flex-grow: 2;
 }
 .tasks .tasks-log__header--size {
   width: 65px;
@@ -528,6 +529,7 @@
 .tasks .tasks-log__header--proxy--fullscreen {
   display: unset;
   width: 65px;
+  flex-grow: 1;
 }
 .tasks .tasks-log__header--output {
   width: 20px;
@@ -600,12 +602,12 @@
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store {
   width: 113px;
   padding-left: 12px;
-  flex-grow: 1;
+  flex-grow: 0;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--store--fullscreen {
   width: 113px;
   padding-left: 12px;
-  flex-grow: 1;
+  flex-grow: 0;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--product {
   visibility: hidden;
@@ -615,6 +617,7 @@
   visibility: visible;
   width: 111px;
   padding-left: 15px;
+  flex-grow: 2;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--size {
   width: 65px;
@@ -634,6 +637,7 @@
   visibility: visible;
   padding-left: 10px;
   width: 118px;
+  flex-grow: 1;
 }
 .tasks .tasks-log .tasks-row-container .tasks-row__log--output {
   width: 50px;
