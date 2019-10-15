@@ -3,6 +3,7 @@
   <head>
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https: wss:; font-src 'self' https: https://fonts.gstatic.com data:; script-src 'self' http: https: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; media-src 'self' blob:; manifest-src 'self' data:;"/>
     <title>Harvester</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
       @font-face {
         font-family: 'AvenirNext-Bold';
@@ -338,43 +339,6 @@
       let _submitting = false;
       let _waitingForLoad = false;
       let _iframe = null;
-      const _defaultEvtOptions = {
-        altKey: false,
-        bubbles: true,
-        button: 0,
-        cancelable: true,
-        clientX: 0,
-        clientY: 0,
-        ctrlKey: false,
-        detail: 0,
-        metaKey: false,
-        relatedTarget: null,
-        screenX: 0,
-        screenY: 0,
-        shiftKey: false,
-        type: null,
-        view: window,
-      };
-
-      function evtOptionsToArgs(options) {
-        return [
-          'type',
-          'bubbles',
-          'cancelable',
-          'view',
-          'detail',
-          'screenX',
-          'screenY',
-          'clientX',
-          'clientY',
-          'ctrlKey',
-          'altKey',
-          'shiftKey',
-          'metaKey',
-          'button',
-          'relatedTarget',
-        ].map(key => options[key] || _defaultEvtOptions[key]);
-      }
 
       function rand(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
@@ -384,109 +348,21 @@
         return new Promise(resolve => setTimeout(resolve, ms));
       }
 
-      async function waitForLoad() {
-        if (_iframe || _waitingForLoad) {
-          return;
-        }
-        _waitingForLoad = true; // Set waiting flag so we don't unnecessary poll multiple times
-        await waitFor(150); // Wait a base amount of time before polling for iframe
-
-        let iframe;
-        if (/supreme/i.test(_host)) {
-          iframe = document.querySelector('iframe[title="recaptcha challenge"]');
-          while (!iframe) {
-            // eslint-disable-next-line no-await-in-loop
-            await waitFor(25); // Poll every 25 ms for iframe
-            iframe = document.querySelector('iframe[title="recaptcha challenge"]');
-          }
-        } else {
-          iframe = document.querySelector('iframe[role=presentation]');
-          while (!iframe) {
-            // eslint-disable-next-line no-await-in-loop
-            await waitFor(25); // Poll every 25 ms for iframe
-            iframe = document.querySelector('iframe[role=presentation]');
-          }
-          let content = iframe.contentDocument || iframe.contentWindow.document;
-          while (!content.getElementsByClassName('recaptcha-checkbox-checkmark').length) {
-            // eslint-disable-next-line no-await-in-loop
-            await waitFor(25);
-            content = iframe.contentDocument || iframe.contentWindow.document;
-          }
-        }
-
-        _waitingForLoad = false;
-        _iframe = iframe;
-      }
-
-      function simulateEvent(target, evt, destPt, sourcePt, options) {
-        const opts = {
-          type: evt,
-          clientX: destPt.x,
-          clientY: destPt.y,
-          screenX: sourcePt.x,
-          screenY: sourcePt.y,
-          ...options, // Use given options to override any default options
-        };
-        const event = target.ownerDocument.createEvent('MouseEvents');
-        event.initMouseEvent(...evtOptionsToArgs(opts));
-        target.dispatchEvent(event);
-      }
-
-      async function simulateClick(sourcePt) {
-        if (!_iframe) {
-          // iframe isn't loaded yet, so we can't simulate click...
-          return;
-        }
-        const content = _iframe.contentDocument || _iframe.contentWindow.document;
-
-        // Create helper functions
-        const randPoint = ({ width, height }) => ({
-          x: rand(0, width),
-          y: rand(0, height),
-        });
-        const getByClassName = className => content.getElementsByClassName(className)[0];
-        const getRect = el => el.getBoundingClientRect();
-
-        // Get elements and generate points
-        const [check, ...anchors] = [
-          'recaptcha-checkbox-checkmark',
-          'rc-anchor rc-anchor-normal',
-          'rc-anchor-center-container',
-          'rc-anchor-center-item',
-          'recaptcha-checkbox',
-        ].map(className => {
-          const el = getByClassName(className);
-          const pt = randPoint(getRect(el));
-          return { el, pt };
-        });
-        // Simulate Events
-        await Promise.all(
-          anchors.map(async ({ el, pt }, idx) => {
-            simulateEvent(el, 'mousemove', pt, sourcePt);
-            await waitFor(idx * rand(20, 50));
-          }),
-        );
-        await Promise.all(
-          ['mousedown', 'mouseup', 'click'].map(async (evt, idx) => {
-            await waitFor(idx * rand(30, 50));
-            simulateEvent(check.el, evt, check.pt, sourcePt);
-          }),
-        );
-      }
-
       async function autoClick() {
         // Wait for iframe load
-        await waitForLoad();
         if (/supreme/i.test(_host)) {
           window.grecaptcha.execute();
         } else {
-          // Get position and simulate click
-          const [x, y] = window.Bridge.Captcha.getPosition();
-          const sourcePt = {
-            x: x + rand(100, 300),
-            y: y + rand(100, 550),
-          };
-          await simulateClick(sourcePt);
+          const captchaInterval = setInterval(() => {
+            const challengeFrame = document.querySelector('iframe[role="presentation"]');
+            if (challengeFrame) {
+              const challengeButton = challengeFrame.contentDocument.getElementsByClassName('recaptcha-checkbox-checkmark')[0];
+              if (challengeButton) {
+                clearInterval(captchaInterval);
+                challengeButton.click();
+              }
+            }
+          }, rand(500, 1000));
         }
       }
 
@@ -496,7 +372,6 @@
           return;
         }
         _resetting = true;
-        _iframe = null;
         if (window.grecaptcha) {
           window.grecaptcha.reset();
         }
@@ -505,6 +380,8 @@
         } else {
           const form = document.getElementById('captchaForm');
           form.setAttribute('style', 'display: none;');
+          const loader = document.getElementById('waiting');
+          waiting.setAttribute('style', 'visibility:visible;');
         }
         _resetting = false;
       }
@@ -532,10 +409,6 @@
         _submitting = false;
       }
 
-      async function startHarvesting() {
-
-      }
-
       function _registerStartHandler(_, runnerId, siteKey, host) {
         if (_started) {
           return;
@@ -550,24 +423,17 @@
         const form = document.getElementById('captchaForm');
         form.setAttribute('style', 'visibility:visible;');
 
+        // hide the loader..
+        const loader = document.getElementById('waiting');
+        loader.setAttribute('style', 'visibility:hidden;')
+
         if (!_initialized) {
           const dataSize = /supreme/i.test(_host) ? 'invisible' : 'normal';
-          const script = document.createElement('script');
-          script.src = 'https://www.google.com/recaptcha/api.js';
-          script.async = true;
-          script.defer = true;
-          const container = document.createElement('div');
-          container.setAttribute('id', 'captchaContainer');
-          container.setAttribute('class', 'g-recaptcha');
+          const container = document.getElementById('captchaContainer');
           container.setAttribute('data-sitekey', `${siteKey}`);
           container.setAttribute('data-theme', 'dark');
           container.setAttribute('data-size', dataSize);
-          container.setAttribute('data-callback', 'submitCaptcha');
-          while (form.lastChild) {
-            form.removeChild(form.lastChild);
-          }
           form.appendChild(container);
-          form.appendChild(script);
           _initialized = true;
         }
 
@@ -635,7 +501,9 @@
 
     </script>
     <script>
-      require('electron').ipcRenderer.on('RequestShowProxy', (_, proxy) => {
+      const ipcRenderer = require('electron').ipcRenderer;
+
+      ipcRenderer.on('RequestShowProxy', (_, proxy) => {
         const proxyInput = document.getElementById('captcha-proxy');
         proxyInput.value = proxy;
       });
@@ -662,8 +530,11 @@
       </div>
     </div>
     <div id="captcha">
-      <form id="captchaForm" action="/submit" method="post" style="visibility: hidden;"></form>
+      <form id="captchaForm" action="/submit" method="post" style="visibility: hidden;">
+        <div class="g-recaptcha" id="captchaContainer" data-callback="submitCaptcha" data-sitekey="6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF" data-size="normal"></div>
+      </form>
     </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <div class="footer">
       <input id="captcha-proxy" placeholder="192.168.X.X:80"/>
       <button id="save-captcha-proxy">Save</button>

@@ -237,14 +237,9 @@ const createCaptchaWindow = (options = {}, webPreferences = {}) =>
     webPreferences: {
       ..._defaultWebPreferences,
       ...webPreferences,
-      webSecurity: false,
       nodeIntegration: true,
-      nodeIntegrationInWorker: true,
-      nodeIntegrationInSubFrames: true,
+      webSecurity: false,
       allowRunningInsecureContent: true,
-      webgl: true,
-      webaudio: true,
-      plugins: true,
       preload: Path.join(__dirname, '../common/bridge/captchaPreload.js'),
     },
   });
