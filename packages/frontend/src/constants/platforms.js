@@ -3,6 +3,7 @@ const platforms = {
   Footsites: 'Footsites',
   Supreme: 'Supreme',
   Mesh: 'Mesh',
+  Other: 'Other',
 }
 
 module.exports = platforms;

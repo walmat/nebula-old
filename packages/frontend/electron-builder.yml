@@ -40,7 +40,7 @@ mac:
   category: public.app-category.productivity
 
 linux:
-  icon: "build/assets/icons/png/"
+  icon: "build/assets/icons/"
   artifactName: 'Nebula.Orion-${version}-installer.${ext}'
   target: AppImage
   category: linux.category.productivity

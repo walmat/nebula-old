@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized';
-// import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
 import tDefns from '../utils/definitions/taskDefinitions';

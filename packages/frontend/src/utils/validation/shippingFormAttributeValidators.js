@@ -1,4 +1,4 @@
-import { every } from 'underscore';
+import { every } from 'lodash';
 import { parseURL } from 'whatwg-url';
 import regexes from '../validation';
 import { SETTINGS_FIELDS } from '../../state/actions';

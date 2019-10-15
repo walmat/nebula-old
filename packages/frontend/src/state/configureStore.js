@@ -1,5 +1,4 @@
 import { createStore, applyMiddleware, compose } from 'redux';
-import LogRocket from 'logrocket';
 import thunk from 'redux-thunk';
 import persistState from 'redux-localstorage';
 import topLevelReducer from './reducers';
@@ -11,7 +10,7 @@ import proxyAttributeValidationMiddlware from './middleware/settings/proxyAttrib
 import shippingFormAttributeValidationMiddleware from './middleware/settings/shippingFormAttributeValidationMiddleware';
 import settingsAttributeValidationMiddleware from './middleware/settings/settingsAttributeValidationMiddleware';
 
-import stateSanitizer from '../utils/state/redactState';
+// import stateSanitizer from '../utils/state/redactState';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -29,10 +28,6 @@ export default function configureStore() {
         settingsAttributeValidationMiddleware,
         shippingFormAttributeValidationMiddleware,
         thunk,
-        LogRocket.reduxMiddleware({
-          stateSanitizer,
-          actionSanitizer: ({ type }) => ({ type }),
-        }),
       ),
       persistState(),
     ),

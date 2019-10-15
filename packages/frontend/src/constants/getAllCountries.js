@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import countries from './countries.json';
 
 export default function getAllCountries() {
@@ -6,7 +5,7 @@ export default function getAllCountries() {
 }
 
 export function getProvinces(countryCode) {
-  const country = _.find(countries, c => c.code === countryCode);
+  const country = getCountry(countryCode);
   return country && country.provinces;
 }
 

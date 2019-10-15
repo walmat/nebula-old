@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { groupBy } from 'underscore';
+import { groupBy } from 'lodash';
 
 import defns from '../utils/definitions/serverDefinitions';
 import { SERVER_FIELDS, mapServerFieldToKey, serverActions } from '../state/actions';

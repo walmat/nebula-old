@@ -4,13 +4,6 @@ const errorStyle = {
   borderColor: '#EF415E',
 };
 
-/**
- * Add this in a future PR
- */
-// const neutralStyle = {
-//   borderColor: '#6D6E70',
-// };
-
 const validStyle = {
   borderColor: '#46ADB4',
 };

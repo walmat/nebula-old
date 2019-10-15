@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
+const path = require('path');
+const openAboutWindow = require('electron-about-window');
 const nebulaEnv = require('./env');
 
 const APP_NAME = 'Nebula Orion';
@@ -14,15 +16,13 @@ class MainMenu {
   /**
    * Create menu.
    *
-   * @param {App} context Application instance.
-   *
    * @return {Object[]} Menu.
    */
-  static menu(context) {
+  static menu() {
     const templates = [MainMenu._menuEdit(), MainMenu._menuWindow(), MainMenu._menuHelp()];
 
     if (process.platform === 'darwin') {
-      templates.unshift(MainMenu._menuApp(context));
+      templates.unshift(MainMenu._menuApp());
     }
 
     if (nebulaEnv.isDevelopment()) {
@@ -37,15 +37,19 @@ class MainMenu {
    *
    * @return {Object} Menu data.
    */
-  static _menuApp(context) {
+  static _menuApp() {
     return {
       label: APP_NAME,
       submenu: [
         {
           label: `About ${APP_NAME}`,
-          click: async () => {
-            await context.windowManager.createNewWindow('about');
-          },
+          click: openAboutWindow({
+            icon_path: path.resolve(__dirname, '../common/assets/icon.png'),
+            use_version_info: true,
+            show_close_button: true,
+            open_devtools: false,
+            adjust_window_size: true,
+          }),
         },
         {
           type: 'separator',
