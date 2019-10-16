@@ -1893,7 +1893,6 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    console.log(JSON.stringify(this._context.task.product));
     if (this._context.task.product.variants) {
       return States.ADD_TO_CART;
     }
@@ -2050,7 +2049,6 @@ export default class TaskRunnerPrimitive {
       }
 
       const body = await res.text();
-      console.log(body);
 
       if (/cannot find variant/i.test(body)) {
         this._emitTaskEvent({
