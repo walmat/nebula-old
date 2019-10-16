@@ -577,9 +577,6 @@ export default class MonitorPrimitive {
       this._parseType,
     );
 
-    this._delayer = waitForDelay(1000, this._aborter.signal);
-    await this._delayer;
-
     // means we matched on the first try...
     if (this._taskType === Modes.CART && !this._matchRandom) {
       this._context.task.type = Modes.SAFE;

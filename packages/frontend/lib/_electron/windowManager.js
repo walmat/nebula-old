@@ -17,8 +17,6 @@ const CaptchaWindowManager = require('./captchaWindowManager');
 
 nebulaEnv.setUpEnvironment();
 
-// const _UPDATE_EVENT_KEY = 'UpdateEventKey';
-
 /**
  * Manage the window.
  */

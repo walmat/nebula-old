@@ -141,9 +141,6 @@ class App {
     // create splash page if not in dev mode
     if (session && !nebulaEnv.isDevelopment()) {
       await this._windowManager.createNewWindow('splash');
-        // set the menu
-        const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
-        Electron.Menu.setApplicationMenu(menu);
       await this._authManager.createActiveSession();
     }
 
@@ -169,7 +166,7 @@ class App {
       // create the main window
       await this._windowManager.createNewWindow('main');
       // set the menu
-      const menu = Electron.Menu.buildFromTemplate(MainMenu.menu());
+      const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
       Electron.Menu.setApplicationMenu(menu);
       return;
     }
@@ -178,6 +175,9 @@ class App {
     setTimeout(async () => {
       // create the window
       await this._windowManager.createNewWindow('main');
+      // set the menu
+      const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
+      Electron.Menu.setApplicationMenu(menu);
     }, 3000);
   }
 
