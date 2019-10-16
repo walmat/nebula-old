@@ -57,10 +57,11 @@ export class NavbarPrimitive extends PureComponent {
     );
   }
 
-  static openHarvesterWindow(theme) {
+  static openHarvesterWindow(theme, host) {
     if (window.Bridge) {
       return window.Bridge.launchCaptchaHarvester({
         backgroundColor: mapBackgroundThemeToColor[theme],
+        host,
       });
     }
     // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
@@ -181,9 +182,18 @@ export class NavbarPrimitive extends PureComponent {
                   <button
                     type="button"
                     className="navbar__button--open-captcha"
-                    onClick={() => NavbarPrimitive.openHarvesterWindow(theme)}
+                    onClick={() => NavbarPrimitive.openHarvesterWindow(theme, 'http://supremenewyork.com')}
                   >
-                    Captcha
+                    Supreme
+                  </button>
+                </div>
+                <div className="row row--gutter">
+                  <button
+                    type="button"
+                    className="navbar__button--open-captcha"
+                    onClick={() => NavbarPrimitive.openHarvesterWindow(theme, 'http://checkout.shopify.com')}
+                  >
+                    Shopify
                   </button>
                 </div>
                 <div className="row row--gutter">

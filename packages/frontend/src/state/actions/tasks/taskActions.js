@@ -1,4 +1,3 @@
-// import _ from 'lodash';
 import makeActionCreator from '../actionCreator';
 import parseProductType from '../../../utils/parseProductType';
 

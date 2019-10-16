@@ -138,21 +138,20 @@ class CaptchaWindowManager {
     return null;
   }
 
-  static setProxy(win, { proxyRules, proxyBypassRules = '*.com' }) {
+  static async setProxy(win, { proxyRules }) {
 
-    console.log(proxyRules);
     if (win) {
       win.webContents.session.setProxy(
         {
           proxyRules,
-          proxyBypassRules,
+          proxyBypassRules: '',
         },
         () => {
-          win.webContents.session.resolveProxy('https://google.com', x => {
-            console.log('[DEBUG]: Session proxy set to: %j', x);
-          });
+          win.webContents.session.resolveProxy('https://google.com', proxy => console.log('SESSION PROXY: ', proxy));
         },
       );
+
+      // const proxy = await win.webContents.session.resolveProxy('https://google.com');
     }
   }
 
@@ -192,32 +191,26 @@ class CaptchaWindowManager {
     if (this._captchaWindows.length === 0) {
       await this.spawnCaptchaWindow();
     } else {
-      await Promise.all(
-        this._captchaWindows.map(async win => {
-          const currentDomain = new URL(win.webContents.getURL()).hostname;
-          const newDomain = new URL(host).hostname;
-          if (currentDomain !== newDomain) {
-            CaptchaWindowManager.setupIntercept(win);
 
-            win.loadURL('https://accounts.google.com');
+      // gather all the windows for that host..
+      let windows = [];
+      for (const win of this._captchaWindows) {
+        const currentDomain = new URL(win.webContents.getURL()).hostname;
+        const newDomain = new URL(host).hostname;
+        if (currentDomain === newDomain) {
+          windows.push(win);
+        }
+      }
 
-            win.webContents.session.webRequest.onBeforeRequest(
-              { urls: ['https://myaccount.google.com/*'] },
-              (_, callback) => {
-                callback({ redirectURL: host });
-              },
-            );
-
-            win.webContents.on('dom-ready', () => {
-              win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
-            });
-            return;
-          }
-
-          // await new Promise(resolve => setTimeout(resolve, (idx + 1) * 250));
+      // if we don't have any open.. spawn one!
+      if (!windows.length) {
+        await this.spawnCaptchaWindow({ host });
+      } else {
+        // otherwise, send the start harvest event to all of the open windows
+        await Promise.all(windows.map(async win => {
           win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
-        }),
-      );
+        }));
+      }
     }
   }
 
@@ -353,16 +346,16 @@ class CaptchaWindowManager {
     this._store.set('captchaSessions', JSON.stringify(this._sessions));
     console.log(`[DEBUG]: Session for window set %j`, this._sessions[session.id]);
 
-    win.loadURL('https://accounts.google.com');
+    // win.loadURL('https://accounts.google.com');
 
-    win.webContents.session.webRequest.onBeforeRequest(
-      { urls: ['https://myaccount.google.com/*'] },
-      (_, callback) => {
-        callback({ redirectURL: host || 'http://checkout.shopify.com' });
-      },
-    );
+    // win.webContents.session.webRequest.onBeforeRequest(
+    //   { urls: ['https://myaccount.google.com/*'] },
+    //   (_, callback) => {
+    //     callback({ redirectURL: host || 'http://checkout.shopify.com' });
+    //   },
+    // );
 
-    // win.loadURL(host || 'http://checkout.shopify.com');
+    win.loadURL(host || options.host);
 
     this._captchaWindows.push(win);
     win.on('ready-to-show', () => {
@@ -704,7 +697,7 @@ class CaptchaWindowManager {
       this._store.set('captchaSessions', JSON.stringify(this._sessions));
     }
 
-    CaptchaWindowManager.setProxy(win, { proxyRules: CaptchaWindowManager.formatProxy(proxy) });
+    CaptchaWindowManager.setProxy(win, { proxyRules: `${CaptchaWindowManager.formatProxy(proxy)},direct://` });
   }
 }
 

@@ -1893,6 +1893,7 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
+    console.log(JSON.stringify(this._context.task.product));
     if (this._context.task.product.variants) {
       return States.ADD_TO_CART;
     }
@@ -2049,6 +2050,7 @@ export default class TaskRunnerPrimitive {
       }
 
       const body = await res.text();
+      console.log(body);
 
       if (/cannot find variant/i.test(body)) {
         this._emitTaskEvent({
@@ -2624,31 +2626,39 @@ export default class TaskRunnerPrimitive {
 
         if (this._prevState === States.GO_TO_SHIPPING) {
           if (type === Modes.FAST) {
+            this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
             return States.PAYMENT_TOKEN;
           }
+          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
           return States.SUBMIT_SHIPPING;
         }
 
         // only happens in safe mode
         if (this._prevState === States.GO_TO_CART) {
+          this._emitTaskEvent({ message: 'Logging in', rawProxy });
           return States.LOGIN;
         }
 
         if (this._prevState === States.GO_TO_CHECKPOINT) {
+          this._emitTaskEvent({ message: 'Submitting checkpoint', rawProxy });
           return States.SUBMIT_CHECKPOINT;
         }
 
         if (this._prevState === States.GO_TO_CHECKOUT) {
           if (type === Modes.FAST) {
             if (this._selectedShippingRate.id) {
+              this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
               return States.PAYMENT_TOKEN;
             }
+            this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
             return States.GO_TO_SHIPPING;
           }
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
           return States.SUBMIT_CUSTOMER;
         }
 
         if (this._prevState === States.SUBMIT_PAYMENT) {
+          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
           return States.COMPLETE_PAYMENT;
         }
 

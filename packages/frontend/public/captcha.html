@@ -330,15 +330,15 @@
       /* eslint-disable global-require */
       /* eslint-disable import/no-extraneous-dependencies */
       /* eslint-disable no-restricted-globals */
-      let _siteKey = '';
+      let _sitekey = '';
       let _host = null;
       let _runnerId = '';
       let _started = false;
       let _resetting = false;
       let _initialized = false;
       let _submitting = false;
-      let _waitingForLoad = false;
       let _iframe = null;
+      let _waitingForLoad = false;
 
       function rand(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
@@ -349,9 +349,10 @@
       }
 
       async function autoClick() {
-        // Wait for iframe load
         if (/supreme/i.test(_host)) {
-          grecaptcha.execute();
+          if (grecaptcha) {
+            grecaptcha.execute();
+          }
         } else {
           const captchaInterval = setInterval(() => {
             const challengeFrame = document.querySelector('iframe[role="presentation"]');
@@ -362,7 +363,7 @@
                 challengeButton.click();
               }
             }
-          }, rand(500, 1000));
+          }, rand(1000, 1500));
         }
       }
 
@@ -396,27 +397,27 @@
 
         if (/supreme/i.test(_host)) {
           const token = grecaptcha.getResponse();
-          window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey, _host);
+          window.Bridge.harvestCaptchaToken(_runnerId, token, _sitekey, _host);
         } else {
           const captchaResponse = document.getElementById('g-recaptcha-response');
           // Only capture/send token if we can get it
           if (captchaResponse) {
             const token = captchaResponse.value;
-            window.Bridge.harvestCaptchaToken(_runnerId, token, _siteKey, _host);
-            await waitFor(rand(200, 500)); // wait a little bit before resetting
+            window.Bridge.harvestCaptchaToken(_runnerId, token, _sitekey, _host);
+            // await waitFor(rand(200, 500)); // wait a little bit before resetting
           }
         }
         resetChallenge();
         _submitting = false;
       }
 
-      function _registerStartHandler(_, runnerId, siteKey, host) {
+      function _registerStartHandler(_, runnerId, sitekey, host) {
         if (_started) {
           return;
         }
 
         _runnerId = runnerId;
-        _siteKey = siteKey;
+        _sitekey = sitekey;
         _host = host;
         _started = true;
 
@@ -428,24 +429,24 @@
         const loader = document.getElementById('waiting');
         loader.setAttribute('style', 'visibility:hidden;');
 
-        console.log(_host, _initialized);
-
         if (!_initialized) {
           const dataSize = /supreme/i.test(_host) ? 'invisible' : 'normal';
           console.log('rendering captcha!');
           grecaptcha.render('captchaContainer', {
-            sitekey: siteKey,
+            sitekey,
             size: dataSize,
             callback: submitCaptcha,
           });
           console.log(dataSize);
           const container = document.getElementById('captchaContainer');
-          container.setAttribute('data-sitekey', `${siteKey}`);
+          container.setAttribute('data-sitekey', `${sitekey}`);
           container.setAttribute('data-theme', 'dark');
           container.setAttribute('data-size', `${dataSize}`);
           console.log(container);
           _initialized = true;
-          console.log('done initializing!');
+          console.log('done initializing! autoclicking now...');
+          autoClick();
+          return;
         }
 
         // If recaptcha has been previously loaded, reset it
