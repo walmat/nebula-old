@@ -172,6 +172,11 @@ input,
   transition: ease all 0.5s;
 }
 
+/* TEMPORARY UNTIL I FIGURE OUT COMPONENT STYLING FOR REACT-SELECT */
+.select__indicator, .select__clear-indicator {
+  padding: 0 8px !important;
+}
+
 @media (min-width: 1250px) and (min-height: 5px) {
   input,
 button,

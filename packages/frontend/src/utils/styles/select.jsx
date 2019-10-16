@@ -71,11 +71,22 @@ export const colourStyles = (theme, provided) => ({
       backgroundColor,
     };
   },
-  DropdownIndicator: styles => {
-    console.log(styles);
-
+  Indicator: styles => {
     return {
       ...styles,
+      padding: '0 8px',
+    }
+  },
+  IndicatorsContainer: styles => {
+    return {
+      ...styles,
+      padding: '0 8px',
+    };
+  },
+  DropdownIndicator: styles => {
+    return {
+      ...styles,
+      padding: '0 8px',
       color: (provided && provided.borderColor) || '#6D6E70',
     };
   },
@@ -123,6 +134,7 @@ export const colourStyles = (theme, provided) => ({
       maxHeight: '29px',
       height: '29px',
       cursor: 'pointer',
+      position: 'static',
     };
     if (isMulti) {
       return {
