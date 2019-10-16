@@ -76,7 +76,7 @@
     "concurrently": "^4.1.0",
     "cross-env": "^5.2.0",
     "discord.js": "^11.5.1",
-    "electron": "^4.0.0",
+    "electron": "^4.2.8",
     "electron-builder": "^20.43.0",
     "electron-devtools-installer": "^2.2.4",
     "electron-icon-maker": "0.0.4",

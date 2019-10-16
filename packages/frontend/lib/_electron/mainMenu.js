@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const Electron = require('electron');
 const path = require('path');
-const openAboutWindow = require('electron-about-window');
+const openAboutWindow = require('electron-about-window').default;
 const nebulaEnv = require('./env');
 
 const APP_NAME = 'Nebula Orion';
@@ -18,11 +18,11 @@ class MainMenu {
    *
    * @return {Object[]} Menu.
    */
-  static menu() {
+  static menu(context) {
     const templates = [MainMenu._menuEdit(), MainMenu._menuWindow(), MainMenu._menuHelp()];
 
     if (process.platform === 'darwin') {
-      templates.unshift(MainMenu._menuApp());
+      templates.unshift(MainMenu._menuApp(context));
     }
 
     if (nebulaEnv.isDevelopment()) {
@@ -37,18 +37,23 @@ class MainMenu {
    *
    * @return {Object} Menu data.
    */
-  static _menuApp() {
+  static _menuApp(context) {
     return {
       label: APP_NAME,
       submenu: [
         {
           label: `About ${APP_NAME}`,
-          click: openAboutWindow({
+          click: () => openAboutWindow({
             icon_path: path.resolve(__dirname, '../common/assets/icon.png'),
-            use_version_info: true,
-            show_close_button: true,
+            product_name: APP_NAME,
+            copyright: '2019 © Nebula Automation, LLC',
+            use_version_info: false,
             open_devtools: false,
-            adjust_window_size: true,
+            win_options: {
+              parent: context._windowManager._main,
+              center: true,
+            },
+            adjust_window_size: false,
           }),
         },
         {
