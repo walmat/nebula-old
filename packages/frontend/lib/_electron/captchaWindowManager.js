@@ -139,6 +139,8 @@ class CaptchaWindowManager {
   }
 
   static setProxy(win, { proxyRules, proxyBypassRules = '*.com' }) {
+
+    console.log(proxyRules);
     if (win) {
       win.webContents.session.setProxy(
         {
@@ -196,7 +198,15 @@ class CaptchaWindowManager {
           const newDomain = new URL(host).hostname;
           if (currentDomain !== newDomain) {
             CaptchaWindowManager.setupIntercept(win);
-            win.loadURL(host);
+
+            win.loadURL('https://accounts.google.com');
+
+            win.webContents.session.webRequest.onBeforeRequest(
+              { urls: ['https://myaccount.google.com/*'] },
+              (_, callback) => {
+                callback({ redirectURL: host });
+              },
+            );
 
             win.webContents.on('dom-ready', () => {
               win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, siteKey, host);
@@ -259,7 +269,7 @@ class CaptchaWindowManager {
   static setupIntercept(win) {
     win.webContents.session.protocol.interceptBufferProtocol('http', (req, callback) => {
       if (/supreme|shopify/i.test(req.url)) {
-        const html = fs.readFileSync(urls.get('captcha'));
+        const html = fs.readFileSync(urls.get('captcha'), 'utf8');
 
         callback({
           mimeType: 'text/html',
@@ -343,7 +353,16 @@ class CaptchaWindowManager {
     this._store.set('captchaSessions', JSON.stringify(this._sessions));
     console.log(`[DEBUG]: Session for window set %j`, this._sessions[session.id]);
 
-    win.loadURL(host || 'http://checkout.shopify.com');
+    win.loadURL('https://accounts.google.com');
+
+    win.webContents.session.webRequest.onBeforeRequest(
+      { urls: ['https://myaccount.google.com/*'] },
+      (_, callback) => {
+        callback({ redirectURL: host || 'http://checkout.shopify.com' });
+      },
+    );
+
+    // win.loadURL(host || 'http://checkout.shopify.com');
 
     this._captchaWindows.push(win);
     win.on('ready-to-show', () => {
