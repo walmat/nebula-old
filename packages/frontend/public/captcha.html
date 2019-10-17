@@ -372,7 +372,6 @@
         if (_resetting || !_initialized) {
           return;
         }
-        console.log('resetting captcha!');
         _resetting = true;
         if (grecaptcha) {
           grecaptcha.reset();
@@ -431,7 +430,6 @@
 
         if (!_initialized) {
           const dataSize = /supreme/i.test(_host) ? 'invisible' : 'normal';
-          console.log('rendering captcha!');
           grecaptcha.render('captchaContainer', {
             sitekey,
             size: dataSize,
@@ -442,7 +440,6 @@
           container.setAttribute('data-theme', 'dark');
           container.setAttribute('data-size', `${dataSize}`);
           _initialized = true;
-          console.log('done initializing! solving now...');
           autoClick();
           return;
         }
