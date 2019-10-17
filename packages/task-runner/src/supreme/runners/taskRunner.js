@@ -637,6 +637,7 @@ export default class TaskRunnerPrimitive {
 
         this._timer.stop(new Date().getTime());
         // proceed to submit checkout
+        this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
         return States.SUBMIT_CHECKOUT;
       }
       case 'cancelled':
@@ -695,7 +696,7 @@ export default class TaskRunnerPrimitive {
     if (!this._form) {
       let body;
       try {
-        const res = await this._request('/mobile/checkout', {
+        const res = await this._request('/mobile/#checkout', {
           method: 'GET',
           agent: proxy,
           headers: {
@@ -736,6 +737,8 @@ export default class TaskRunnerPrimitive {
       if (this._form.indexOf('billing') === -1) {
         this._form = backupForm(region, profileInfo, payment, s);
       }
+
+      // this._form = backupForm(region, profileInfo, payment, s);
 
       // patch in the captcha token
       if (this.captchaToken) {
