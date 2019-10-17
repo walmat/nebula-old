@@ -122,7 +122,7 @@ export default class TaskManager {
         // The current container no longer exists in the captcha queue,
         // Call recursively to get the next runner
         this._logger.debug('TaskManager: Runner not found! Recursive calling next runner');
-        this.harvestCaptchaToken(runnerId, token);
+        this.harvestCaptchaToken(runnerId, token, sitekey);
       }
       // Send event to pass data to runner
       this._logger.debug('TaskManager: Sending token to %s', runnerId);

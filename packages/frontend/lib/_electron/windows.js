@@ -14,8 +14,6 @@ const _defaultWebPreferences = {
   allowRunningInsecureContent: false,
   experimentalCanvasFeatures: true,
   experimentalFeatures: false,
-  enableBlinkFeatures: '',
-  blinkFeatures: '',
 };
 
 const _createWindow = options => {
