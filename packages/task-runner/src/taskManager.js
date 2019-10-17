@@ -59,8 +59,8 @@ export default class TaskManager {
     // Captcha Map
     this._captchaQueues = new Map();
 
-    // Token Queue
-    this._tokenReserveQueue = [];
+    // Token Queues
+    this._tokenReserveQueue = {};
 
     // Logger
     this._logger = createLogger({
@@ -106,12 +106,15 @@ export default class TaskManager {
    * @param {String} runnerId the runner to update
    * @param {String} token the captcha token to harvest
    */
-  harvestCaptchaToken(_, token) {
+  harvestCaptchaToken(_, token, sitekey) {
     // Check if we have tokens to pass through
-    this._logger.debug('TaskManager: Reserve queue length: %s', this._tokenReserveQueue.length);
-    if (this._tokenReserveQueue.length) {
+    this._logger.debug(
+      'TaskManager: Reserve queue length: %s',
+      this._tokenReserveQueue[sitekey].length,
+    );
+    if (this._tokenReserveQueue[sitekey] && this._tokenReserveQueue[sitekey].length) {
       // Get the next runner to pass the token
-      const { runnerId, priority } = this._tokenReserveQueue.shift();
+      const { runnerId, priority } = this._tokenReserveQueue[sitekey].shift();
       this._logger.debug('TaskManager: Grabbed requester: %s with priority %s', runnerId, priority);
       // Use the runner id to get the container
       const container = this._captchaQueues.get(runnerId);
@@ -126,7 +129,7 @@ export default class TaskManager {
       this._events.emit(Events.Harvest, runnerId, token);
 
       // stop the harvester for that runner..
-      this.handleStopHarvest(runnerId);
+      this.handleStopHarvest(runnerId, sitekey);
     }
   }
 
@@ -256,14 +259,27 @@ export default class TaskManager {
       // Store the container on the captcha queue map
       this._captchaQueues.set(runnerId, container);
 
+      if (!this._tokenReserveQueue[sitekey]) {
+        this._tokenReserveQueue[sitekey] = [];
+        this._logger.debug('TaskManager: Pushing %s to first place in line', runnerId);
+        // Add the runner to the back of the token reserve queue
+        this._tokenReserveQueue[sitekey].push({ runnerId, host, priority });
+
+        this._events.emit(Events.StartHarvest, runnerId, sitekey, host);
+        return;
+      }
+
       let contains = false;
       // priority checks...
-      this._logger.debug('TaskManager: Reserve queue length: %s', this._tokenReserveQueue.length);
-      for (let i = 0; i < this._tokenReserveQueue.length; i += 1) {
+      this._logger.debug(
+        'TaskManager: Reserve queue length: %s',
+        this._tokenReserveQueue[sitekey].length,
+      );
+      for (let i = 0; i < this._tokenReserveQueue[sitekey].length; i += 1) {
         // if the new items priority is less than, splice it in place.
-        if (this._tokenReserveQueue[i].priority > priority) {
+        if (this._tokenReserveQueue[sitekey][i].priority > priority) {
           this._logger.debug('TaskManager: Inserting %s as: %s place in line', runnerId, i);
-          this._tokenReserveQueue.splice(i, 0, { runnerId, priority });
+          this._tokenReserveQueue[sitekey].splice(i, 0, { runnerId, priority });
           contains = true;
           break;
         }
@@ -272,7 +288,7 @@ export default class TaskManager {
       if (!contains) {
         this._logger.debug('TaskManager: Pushing %s to last place in line', runnerId);
         // Add the runner to the back of the token reserve queue
-        this._tokenReserveQueue.push({ runnerId, priority });
+        this._tokenReserveQueue[sitekey].push({ runnerId, priority });
       }
 
       // Emit an event to start harvesting
@@ -289,7 +305,7 @@ export default class TaskManager {
    * If the runner was not previously harvesting captchas, this method does
    * nothing.
    */
-  handleStopHarvest(runnerId) {
+  handleStopHarvest(runnerId, sitekey) {
     const container = this._captchaQueues.get(runnerId);
 
     // If this container was never started, there's no need to do anything further
@@ -300,8 +316,14 @@ export default class TaskManager {
     // FYI this will reject all calls currently waiting for a token
     this._captchaQueues.delete(runnerId);
 
+    if (this._tokenReserveQueue[sitekey]) {
+      this._tokenReserveQueue[sitekey] = this._tokenReserveQueue[sitekey].filter(
+        ({ runnerId: rId }) => rId !== runnerId,
+      );
+    }
+
     // Emit an event to stop harvesting
-    this._events.emit(Events.StopHarvest, runnerId);
+    this._events.emit(Events.StopHarvest, runnerId, sitekey);
   }
   // MARK: Task Runner Callback Methods
 

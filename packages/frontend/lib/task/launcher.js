@@ -312,7 +312,7 @@ class TaskLauncher {
   async _startHarvestEventHandler(
     _,
     runnerId,
-    siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
+    sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
     host = 'http://checkout.shopify.com',
   ) {
     // Bump the semaphore only if we don't already have it tracked
@@ -322,19 +322,19 @@ class TaskLauncher {
 
       // If this is the first harvest event, start harvesting
       if (this._captchaSemaphore === 1) {
-        await this._context.windowManager.startHarvestingCaptcha(runnerId, siteKey, host);
+        await this._context.windowManager.startHarvestingCaptcha(runnerId, sitekey, host);
       }
     }
 
-    const request = this._context.windowManager.getNextCaptcha();
+    const request = this._context.windowManager.getNextCaptcha(sitekey);
     if (request.value) {
       // Received a token from the backlog -- send it immediately
-      this._sendToLauncher(IPCKeys.HarvestCaptcha, runnerId, request.value.token, siteKey);
+      this._sendToLauncher(IPCKeys.HarvestCaptcha, runnerId, request.value.token, sitekey);
     } else {
       // Track request so we can handle it
       request.promise.then(
         ({ token }) => {
-          this._sendToLauncher(IPCKeys.HarvestCaptcha, runnerId, token, siteKey);
+          this._sendToLauncher(IPCKeys.HarvestCaptcha, runnerId, token, sitekey);
         },
         () => {}, // Add empty reject handler in case this gets canceled...
       );
@@ -342,7 +342,7 @@ class TaskLauncher {
     }
   }
 
-  _stopHarvestEventHandler(_, runnerId, siteKey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
+  _stopHarvestEventHandler(_, runnerId, sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
     // Decrement the semaphore only if we had previously started harvesting for this runner
     if (this._captchaRequesters[runnerId]) {
       let cancelCount = 0;
@@ -361,7 +361,7 @@ class TaskLauncher {
     // If we drop back down to 0 requesters, stop the harvesting.
     if (this._captchaSemaphore === 0) {
       console.log('[DEBUG]: No more tokens requested, stopping the harvester');
-      this._context.windowManager.stopHarvestingCaptcha(runnerId, siteKey);
+      this._context.windowManager.stopHarvestingCaptcha(runnerId, sitekey);
     }
   }
 }

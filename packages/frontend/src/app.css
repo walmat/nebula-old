@@ -169,7 +169,7 @@ input,
 .select__control,
 .select__control--menu-is-open {
   height: 29px !important;
-  transition: ease all 0.5s;
+  /* transition: ease all 0.5s; */
 }
 
 /* TEMPORARY UNTIL I FIGURE OUT COMPONENT STYLING FOR REACT-SELECT */

@@ -109,22 +109,21 @@ const _minimize = () => {
 };
 
 const _showDialog = async (message, type, buttons, title) =>
-  new Promise(resolve => {
-    dialog.showMessageBox(
-      {
-        type,
-        buttons,
-        title,
-        message,
-      },
-      response => resolve(response === 0),
-    );
+  new Promise(async resolve => {
+    const { response } = await dialog.showMessageBox({
+      type,
+      buttons,
+      title,
+      message,
+    });
+
+    return resolve(response === 0);
   });
 
 const _showSave = async state =>
-  new Promise((resolve, reject) => {
-    dialog.showSaveDialog(
-      {
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await dialog.showSaveDialog({
         title: 'Please Save State File',
         defaultPath: app.getPath('documents'),
         buttonLabel: 'Export State',
@@ -134,26 +133,25 @@ const _showSave = async state =>
             extensions: ['nebula'],
           },
         ],
-      },
-      async response => {
-        if (!response) {
-          reject({ error: new Error('Canceled') });
-        }
+      });
 
-        try {
-          await jsonfile.writeFile(response, state);
-          resolve({ success: true });
-        } catch (error) {
-          reject({ error });
-        }
-      },
-    );
+      if (!response || (response && !response.filePath) || (response && response.canceled)) {
+        throw new Error('Canceled!');
+      }
+
+      const { filePath } = response;
+
+      await jsonfile.writeFile(filePath, state);
+      return resolve({ success: true });
+    } catch (error) {
+      return reject({ error });
+    }
   });
 
 const _showOpen = async () =>
-  new Promise((resolve, reject) => {
-    dialog.showOpenDialog(
-      {
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await dialog.showOpenDialog({
         title: 'Please Select State File',
         defaultPath: app.getPath('documents'),
         buttonLabel: 'Import State',
@@ -164,32 +162,25 @@ const _showOpen = async () =>
           },
         ],
         properties: ['openFile'],
-      },
-      async response => {
-        if (!response || (response && !response.length)) {
-          return reject({ error: new Error('Canceled') });
+      });
+
+      if (!response || (response && !response.filePaths) || (response && response.canceled)) {
+        throw new Error('Canceled!');
+      }
+
+      try {
+        const data = await jsonfile.readFile(response.filePaths[0]);
+
+        if (!data) {
+          return reject({ error: new Error('Malformed state') });
         }
-
-        const [path] = response;
-
-        if (!path) {
-          return reject({ error: new Error('Unable to open file') });
-        }
-
-        let data;
-
-        try {
-          data = await jsonfile.readFile(path);
-
-          if (!data) {
-            return reject({ error: new Error('Malformed state') });
-          }
-          return resolve({ success: true, data });
-        } catch (error) {
-          return reject({ error });
-        }
-      },
-    );
+        return resolve({ success: true, data });
+      } catch (err) {
+        throw err;
+      }
+    } catch (error) {
+      return reject({ error });
+    }
   });
 
 const _sendDebugCmd = (...params) => {
