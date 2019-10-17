@@ -719,10 +719,10 @@ export default class TaskRunnerPrimitive {
 
       if (body) {
         this._logger.debug('Attempting to parse checkout fields');
-        const $ = cheerio.load(body, { xmlMode: true, normalizeWhitespace: true });
+        const $ = cheerio.load(body, { xmlMode: true });
         this._form = await parseForm(
           $,
-          'script#checkoutViewTemplate',
+          'form#mobile_checkout_form',
           'input, textarea, select, button',
           profileInfo,
           payment,
@@ -730,6 +730,10 @@ export default class TaskRunnerPrimitive {
         );
       } else {
         // fallback to static form..
+        this._form = backupForm(region, profileInfo, payment, s);
+      }
+
+      if (this._form.indexOf('billing') === -1) {
         this._form = backupForm(region, profileInfo, payment, s);
       }
 
@@ -762,6 +766,8 @@ export default class TaskRunnerPrimitive {
       await this._delayer;
     }
 
+    this._logger.info('parsed form: %j', this._form);
+
     this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
 
     try {
@@ -787,6 +793,7 @@ export default class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
+      this._logger.debug('BODY::: %j', body);
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
@@ -819,6 +826,10 @@ export default class TaskRunnerPrimitive {
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
+
+      if (/invalid json/i.test(error)) {
+        return States.ADD_TO_CART;
+      }
       return this._handleFetchErrors([error], States.SUBMIT_CHECKOUT);
     }
   }
