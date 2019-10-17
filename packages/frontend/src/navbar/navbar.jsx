@@ -57,11 +57,12 @@ export class NavbarPrimitive extends PureComponent {
     );
   }
 
-  static openHarvesterWindow(theme, host) {
+  static openHarvesterWindow(theme, host, sitekey) {
     if (window.Bridge) {
       return window.Bridge.launchCaptchaHarvester({
         backgroundColor: mapBackgroundThemeToColor[theme],
         host,
+        sitekey,
       });
     }
     // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
@@ -182,7 +183,13 @@ export class NavbarPrimitive extends PureComponent {
                   <button
                     type="button"
                     className="navbar__button--open-captcha"
-                    onClick={() => NavbarPrimitive.openHarvesterWindow(theme, 'http://supremenewyork.com')}
+                    onClick={() =>
+                      NavbarPrimitive.openHarvesterWindow(
+                        theme,
+                        'http://supremenewyork.com',
+                        '6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz',
+                      )
+                    }
                   >
                     Supreme
                   </button>
@@ -191,7 +198,13 @@ export class NavbarPrimitive extends PureComponent {
                   <button
                     type="button"
                     className="navbar__button--open-captcha"
-                    onClick={() => NavbarPrimitive.openHarvesterWindow(theme, 'http://checkout.shopify.com')}
+                    onClick={() =>
+                      NavbarPrimitive.openHarvesterWindow(
+                        theme,
+                        'http://checkout.shopify.com',
+                        '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
+                      )
+                    }
                   >
                     Shopify
                   </button>

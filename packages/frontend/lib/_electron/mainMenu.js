@@ -43,18 +43,19 @@ class MainMenu {
       submenu: [
         {
           label: `About ${APP_NAME}`,
-          click: () => openAboutWindow({
-            icon_path: path.resolve(__dirname, '../common/assets/icon.png'),
-            product_name: APP_NAME,
-            copyright: '2019 © Nebula Automation, LLC',
-            use_version_info: false,
-            open_devtools: false,
-            win_options: {
-              parent: context._windowManager._main,
-              center: true,
-            },
-            adjust_window_size: false,
-          }),
+          click: () =>
+            openAboutWindow({
+              icon_path: path.resolve(__dirname, '../common/assets/icon.png'),
+              product_name: APP_NAME,
+              copyright: '2019 © Nebula Automation, LLC',
+              use_version_info: false,
+              open_devtools: false,
+              win_options: {
+                parent: context._windowManager._main,
+                center: true,
+              },
+              adjust_window_size: false,
+            }),
         },
         {
           type: 'separator',

@@ -369,7 +369,6 @@
 
       function resetChallenge() {
         // Guard against too many reset calls
-        console.log('resetting captcha!');
         if (_resetting || !_initialized) {
           return;
         }
@@ -404,9 +403,9 @@
           if (captchaResponse) {
             const token = captchaResponse.value;
             window.Bridge.harvestCaptchaToken(_runnerId, token, _sitekey, _host);
-            // await waitFor(rand(200, 500)); // wait a little bit before resetting
           }
         }
+        await waitFor(rand(200, 500)); // wait a little bit before resetting
         resetChallenge();
         _submitting = false;
       }
@@ -431,20 +430,16 @@
 
         if (!_initialized) {
           const dataSize = /supreme/i.test(_host) ? 'invisible' : 'normal';
-          console.log('rendering captcha!');
           grecaptcha.render('captchaContainer', {
             sitekey,
             size: dataSize,
             callback: submitCaptcha,
           });
-          console.log(dataSize);
           const container = document.getElementById('captchaContainer');
           container.setAttribute('data-sitekey', `${sitekey}`);
           container.setAttribute('data-theme', 'dark');
           container.setAttribute('data-size', `${dataSize}`);
-          console.log(container);
           _initialized = true;
-          console.log('done initializing! autoclicking now...');
           autoClick();
           return;
         }

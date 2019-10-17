@@ -53,17 +53,6 @@ const _registerForTaskEvents = handler => {
   }
 };
 
-// /**
-//  * Sends a listener for task events to launcher.js
-//  */
-// const _registerForUpdateEvents = handler => {
-//   console.log('registering for update events', handler);
-//   util.sendEvent(IPCKeys.RequestCheckForUpdate);
-//   ipcRenderer.on(IPCKeys.RequestCheckForUpdate, (event, ...args) => {
-//     handler(event, ...args);
-//   });
-// };
-
 /**
  * Removes a listener for task events to launcher.js
  */

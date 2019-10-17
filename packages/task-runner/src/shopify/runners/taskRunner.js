@@ -284,7 +284,12 @@ export default class TaskRunnerPrimitive {
   suspendHarvestCaptcha() {
     if (this._context.harvestState === HarvestStates.start) {
       this._logger.silly('[DEBUG]: Suspending harvest...');
-      this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
+      this._events.emit(
+        TaskManagerEvents.StopHarvest,
+        this._context.id,
+        this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
+        'http://checkout.shopify.com'
+      );
       this._context.harvestState = HarvestStates.suspend;
     }
   }
@@ -295,7 +300,12 @@ export default class TaskRunnerPrimitive {
       this._captchaQueue.destroy();
       this._captchaQueue = null;
       this._logger.silly('[DEBUG]: Stopping harvest...');
-      this._events.emit(TaskManagerEvents.StopHarvest, this._context.id);
+      this._events.emit(
+        TaskManagerEvents.StopHarvest,
+        this._context.id,
+        this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
+        'http://checkout.shopify.com'
+      );
       this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
       this._context.harvestState = HarvestStates.stop;
     }
@@ -2587,11 +2597,11 @@ export default class TaskRunnerPrimitive {
     }
   }
 
-  // TODO: trace this!
   async _handleRequestCaptcha() {
     const {
       aborted,
       task: { type },
+      rawProxy,
     } = this._context;
     // exit if abort is detected
     if (aborted) {

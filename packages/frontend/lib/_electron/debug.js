@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcMain } = require('electron');
 const { setLevels } = require('@nebula/task-runner-built');
 const nebulaEnv = require('./env');
