@@ -1,6 +1,6 @@
 {
   "name": "@nebula/orion",
-  "version": "1.2.39",
+  "version": "1.2.40",
   "private": true,
   "main": "./dist/_electron/electron.js",
   "homepage": "./",
@@ -46,6 +46,8 @@
     "electron-store": "^3.3.0",
     "electron-updater": "^4.1.2",
     "https-proxy-agent": "^2.2.1",
+    "jest": "24.9.0",
+    "jest-enzyme": "^7.0.2",
     "jsonfile": "^5.0.0",
     "lodash": "^4.17.11",
     "node-fetch": "^2.6.0",
