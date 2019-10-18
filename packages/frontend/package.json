@@ -22,11 +22,11 @@
     "afterinstall": "electron-builder install-app-deps",
     "clean": "rimraf build dist",
     "compile": "yarn run build",
-    "pack": "electron-builder -m --publish=always",
+    "pack": "electron-builder -w --publish=always",
     "publish": "run-s clean compile pack",
     "prod": "cross-env NODE_ENV=production electron .",
     "compile-sass": "./tool/compile_css.sh",
-    "start": "yarn run prod",
+    "start": "yarn prod",
     "test": "react-app-rewired test --env=jsdom --verbose=false"
   },
   "dependencies": {
@@ -49,6 +49,7 @@
     "jsonfile": "^5.0.0",
     "lodash": "^4.17.11",
     "node-fetch": "^2.6.0",
+    "parse5": "4.0.0",
     "prop-types": "^15.6.2",
     "ps-list": "^6.3.0",
     "react": "^16.8",
