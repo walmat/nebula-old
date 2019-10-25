@@ -70,6 +70,7 @@ export class CreateTaskPrimitive extends PureComponent {
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
     this.buildAccountOptions = this.buildAccountOptions.bind(this);
     this.handleCreate = this.handleCreate.bind(this);
+    this.fetchSites = this.fetchSites.bind(this);
     this.saveTask = this.saveTask.bind(this);
 
     this.state = {
@@ -98,6 +99,22 @@ export class CreateTaskPrimitive extends PureComponent {
         password,
       },
     }));
+  }
+
+  async fetchSites() {
+    try {
+      const res = await fetch(`${process.env.NEBULA_API_URL}/sites`);
+
+      if (!res.ok) {
+        return getAllSites();
+      }
+
+      const sites = await res.json();
+
+      return sites;
+    } catch (error) {
+      return getAllSites();
+    }
   }
 
   saveTask(e) {
@@ -602,6 +619,8 @@ export class CreateTaskPrimitive extends PureComponent {
                 isClearable={false}
                 isDisabled={isLoadingSite}
                 isLoading={isLoadingSite}
+                // defaultOptions={getAllSites()}
+                // loadOptions={this.fetchSites()}
                 required
                 className="tasks-create__input tasks-create__input--field"
                 classNamePrefix="select"
@@ -620,13 +639,12 @@ export class CreateTaskPrimitive extends PureComponent {
                 )}
                 isOptionDisabled={option =>
                   !option.supported &&
-                  option.supported !== undefined &&
-                  process.env.NODE_ENV !== 'development'
+                  option.supported !== undefined
                 }
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
                 onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SITE, v)}
-                value={newTaskSiteValue}
                 options={getAllSites()}
+                value={newTaskSiteValue}
                 data-testid={addTestId('CreateTask.siteSelect')}
               />
             </div>
