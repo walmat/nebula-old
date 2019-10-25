@@ -23,6 +23,10 @@ const { ParseType } = Monitor;
 
 // SUPREME
 export default class TaskRunnerPrimitive {
+  get state() {
+    return this._state;
+  }
+
   constructor(context, proxy, type, platform = Platforms.Supreme) {
     this.id = context.id;
     this._task = context.task;
@@ -583,7 +587,7 @@ export default class TaskRunnerPrimitive {
 
       const body = await res.json();
 
-      if (body && !body.length || body && body.length && !body[0].in_stock) {
+      if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         this._pooky = false;
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
@@ -637,6 +641,7 @@ export default class TaskRunnerPrimitive {
 
         this._timer.stop(new Date().getTime());
         // proceed to submit checkout
+        this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
         return States.SUBMIT_CHECKOUT;
       }
       case 'cancelled':
@@ -695,7 +700,7 @@ export default class TaskRunnerPrimitive {
     if (!this._form) {
       let body;
       try {
-        const res = await this._request('/mobile/checkout', {
+        const res = await this._request('/mobile/#checkout', {
           method: 'GET',
           agent: proxy,
           headers: {
@@ -736,6 +741,8 @@ export default class TaskRunnerPrimitive {
       if (this._form.indexOf('billing') === -1) {
         this._form = backupForm(region, profileInfo, payment, s);
       }
+
+      // this._form = backupForm(region, profileInfo, payment, s);
 
       // patch in the captcha token
       if (this.captchaToken) {
@@ -826,7 +833,6 @@ export default class TaskRunnerPrimitive {
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
-
       if (/invalid json/i.test(error)) {
         return States.ADD_TO_CART;
       }

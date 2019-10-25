@@ -339,7 +339,7 @@ export default class TaskManager {
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(runnerId, message, event) {
-    this._logger.silly('Runner %s posted new event %s - %j', runnerId, event, message);
+    this._logger.info('Runner %s posted new event %s - %j', runnerId, event, message);
     // For now only re emit Task Status Events
     if (event === RunnerEvents.TaskStatus) {
       this._logger.silly('Reemitting this task update...');
@@ -351,7 +351,7 @@ export default class TaskManager {
       this._logger.silly('Reemitting this monitor update...');
       const { taskIds } = this._monitors[runnerId];
       for (let i = 0; i < taskIds.length; i += 1) {
-        this._events.emit('status', taskIds[i], message, event);
+        this._events.emit('status', taskIds[0], message, event);
       }
     }
   }

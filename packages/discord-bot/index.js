@@ -59,7 +59,9 @@ client.on('message', async message => {
               message.channel.send(msg);
             })
             .catch(() => {
-              message.channel.send('Unable to give permissions, please contact @sean#0002');
+              message.channel.send(
+                'Unable to give permissions, please contact @orion#0001 or any moderator',
+              );
             });
         });
         break;

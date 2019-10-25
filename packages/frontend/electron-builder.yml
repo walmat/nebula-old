@@ -6,8 +6,10 @@ compression: maximum
 extends: null
 
 publish:
-  provider: generic
-  url: 'https://nebula-deployment.herokuapp.com'
+  provider: github
+  private: true
+  owner: walmat
+  repo: nebula
 
 directories:
   buildResources: src/_assets

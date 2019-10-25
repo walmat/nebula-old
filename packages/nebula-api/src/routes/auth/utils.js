@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const moment = require('moment');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const stripe = require('stripe')(process.env.NEBULA_STRIPE_KEY);
@@ -52,6 +53,96 @@ function generateTokens(key, refreshPayload) {
 }
 module.exports.generateTokens = generateTokens;
 
+async function removeKey(keyHash) {
+  AWS.config = new AWS.Config(config);
+  const dynamodb = new AWS.DynamoDB();
+
+  const params = {
+    Key: {
+      licenseKey: {
+        S: keyHash,
+      },
+    },
+    ReturnConsumedCapacity: 'TOTAL',
+    TableName: 'Keys',
+  };
+  return dynamodb
+    .deleteItem(params)
+    .promise()
+    .then(
+      () => {
+        console.log('[SUCCESS]: Successfully deleted key');
+        return true;
+      },
+      err => {
+        console.log('[ERROR]: ', err, err.stack);
+        return false;
+      },
+    );
+}
+module.exports.removeKey = removeKey;
+
+async function removeUser(keyHash) {
+  AWS.config = new AWS.Config(config);
+  const docClient = new AWS.DynamoDB.DocumentClient({
+    endpoint: new AWS.Endpoint(config.endpoint),
+  });
+
+  const keyId = hash(algo, keyHash, salt, output);
+
+  const params = {
+    TableName: 'Users',
+    Key: {
+      keyId,
+    },
+    Exists: true,
+    ReturnConsumedCapacity: 'TOTAL',
+  };
+  await docClient
+    .delete(params)
+    .promise()
+    .then(
+      () => {
+        console.log('[SUCCESS]: Successfully deleted user');
+        return true;
+      },
+      err => {
+        console.log('[ERROR]: ', err, err.stack);
+        return false;
+      },
+    );
+}
+module.exports.removeUser = removeUser;
+
+async function removeDiscord(keyHash) {
+  AWS.config = new AWS.Config(config);
+  const dynamodb = new AWS.DynamoDB();
+
+  const params = {
+    Key: {
+      licenseKey: {
+        S: keyHash,
+      },
+    },
+    ReturnConsumedCapacity: 'TOTAL',
+    TableName: 'Discord',
+  };
+  return dynamodb
+    .deleteItem(params)
+    .promise()
+    .then(
+      () => {
+        console.log('[SUCCESS]: Successfully deleted discord');
+        return true;
+      },
+      err => {
+        console.log('[ERROR]: ', err, err.stack);
+        return false;
+      },
+    );
+}
+module.exports.removeDiscord = removeDiscord;
+
 function checkValidKey(key) {
   AWS.config = new AWS.Config(config);
   const docClient = new AWS.DynamoDB.DocumentClient({
@@ -80,18 +171,45 @@ function checkValidKey(key) {
           const { licenseKey, subscription } = data.Items[0];
 
           if (subscription) {
+            console.log('[DEBUG]: FOUND SUBSCRIPTION %s! CHECKING...', subscription);
             try {
-              const { status } = await stripe.subscriptions.retrieve(subscription);
+              const {
+                status,
+                current_period_end: currentPeriodEnd,
+              } = await stripe.subscriptions.retrieve(subscription);
+              console.log('[DEBUG]: FOUND %s SUBSCRIPTION %s! CHECKING...', status, subscription);
+              if (!/active|trailing/i.test(status)) {
+                console.log('[DEBUG]: SUBSCRIPTION %s EXPIRED! CHECKING BUFFER...', subscription);
+                const oneMonthBuffer = moment
+                  .unix(currentPeriodEnd)
+                  .add(1, 'months')
+                  .unix();
 
-              if (status !== 'active' || status !== 'trailing') {
+                // one month buffer has passed..
+                // so let's completely remove the key from the database and revoke the roles from the member
+                const diff = moment
+                  .unix(oneMonthBuffer)
+                  .diff(moment.unix(moment().unix()), 'seconds');
+
+                console.log('[DEBUG]: SUBSCRIPTION %s EXPIRES IN %s SECONDS!', subscription, diff);
+                if (diff <= 0) {
+                  console.log('[DEBUG]: SUBSCRIPTION %s EXPIRED! REMOVING...', subscription);
+                  await removeUser(keyHash);
+                  await removeKey(keyHash);
+                  await removeDiscord(keyHash);
+                  // TODO: Remove roles from user using Discord.js
+                }
                 return null;
               }
+              console.log('[DEBUG]: SUBSCRIPTION %s ACTIVE! RETURNING...', subscription);
               return licenseKey;
             } catch (error) {
+              console.error('[DEBUG]: UNABLE TO RETRIEVE SUBSCRIPTION %s!', subscription);
               // if we can't get the subscription, return null?
               return null;
             }
           }
+          console.log('[DEBUG]: NO SUBSCRIPTION! RETURNING...');
           // lifetime keys won't have this subscription field...
           return licenseKey;
         }
@@ -120,13 +238,7 @@ async function setActiveUser(keyHash) {
     },
   };
 
-  docClient.put(params, (err, data) => {
-    if (err) {
-      console.error('Unable to add item. Error JSON:', JSON.stringify(err, null, 2));
-    } else {
-      console.log('Added item:', JSON.stringify(data, null, 2));
-    }
-  });
+  await docClient.put(params).promise();
 }
 module.exports.setActiveUser = setActiveUser;
 
@@ -256,38 +368,6 @@ async function addDiscordUser(keyHash, discordIdHash) {
   await docClient.put(params).promise();
 }
 module.exports.addDiscordUser = addDiscordUser;
-
-async function removeUser(keyHash) {
-  AWS.config = new AWS.Config(config);
-  const docClient = new AWS.DynamoDB.DocumentClient({
-    endpoint: new AWS.Endpoint(config.endpoint),
-  });
-
-  const keyId = hash(algo, keyHash, salt, output);
-
-  const params = {
-    TableName: 'Users',
-    Key: {
-      keyId,
-    },
-    Exists: true,
-    ReturnConsumedCapacity: 'TOTAL',
-  };
-  await docClient
-    .delete(params)
-    .promise()
-    .then(
-      () => {
-        console.log('[SUCCESS]: Successfully deleted user');
-        return true;
-      },
-      err => {
-        console.log('[ERROR]: ', err, err.stack);
-        return false;
-      },
-    );
-}
-module.exports.removeUser = removeUser;
 
 async function checkIsInUse(key) {
   AWS.config = new AWS.Config(config);

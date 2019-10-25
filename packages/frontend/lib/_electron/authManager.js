@@ -17,15 +17,12 @@ class AuthManager {
   constructor(context) {
     this._context = context;
     this._authInterval = setInterval(async () => {
-
       const windowManager = this._context._windowManager;
-
       if (!windowManager._main) {
         return;
       }
 
       const validUser = await this.checkSession();
-
       if (!validUser) {
         clearInterval(this._authInterval);
         this._authInterval = null;
@@ -76,7 +73,7 @@ class AuthManager {
    * @return {Object} valid session or null
    */
   async getSession() {
-    if (nebulaEnv.isDevelopment()) {
+    if (nebulaEnv.isDevelopment() && !process.env.NEBULA_ENABLE_AUTH) {
       return {
         accessToken: 'DEVACCESS',
         refreshToken: 'DEVREFRESH',
@@ -121,7 +118,7 @@ class AuthManager {
    * @return {Boolean} valid user
    */
   async checkSession() {
-    if (nebulaEnv.isDevelopment()) {
+    if (nebulaEnv.isDevelopment() && !process.env.NEBULA_ENABLE_AUTH) {
       return true;
     }
 
@@ -158,7 +155,7 @@ class AuthManager {
   }
 
   async createActiveSession() {
-    if (nebulaEnv.isDevelopment()) {
+    if (nebulaEnv.isDevelopment() && !process.env.NEBULA_ENABLE_AUTH) {
       return true;
     }
 
@@ -184,7 +181,7 @@ class AuthManager {
   }
 
   async removeActiveSession() {
-    if (nebulaEnv.isDevelopment()) {
+    if (nebulaEnv.isDevelopment() && !process.env.NEBULA_ENABLE_AUTH) {
       return true;
     }
 
@@ -214,7 +211,7 @@ class AuthManager {
    * @return {Boolean} valid attempt to clear
    */
   async clearSession() {
-    if (nebulaEnv.isDevelopment()) {
+    if (nebulaEnv.isDevelopment() && !process.env.NEBULA_ENABLE_AUTH) {
       this._store.delete('session');
       return true;
     }
@@ -245,7 +242,7 @@ class AuthManager {
    * @return {Object} valid session or errors
    */
   async createSession(key) {
-    if (nebulaEnv.isDevelopment()) {
+    if (nebulaEnv.isDevelopment() && !process.env.NEBULA_ENABLE_AUTH) {
       return {
         accessToken: 'DEVACCESS',
         refreshToken: 'DEVREFRESH',
