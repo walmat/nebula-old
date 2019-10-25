@@ -73,6 +73,7 @@ export class App extends PureComponent {
       window.Bridge.setTheme({ backgroundColor });
       window.Bridge.registerForTaskEvents(this.taskHandler);
     }
+    this.fetchSites();
     this.siteInterval = setInterval(() => this.fetchSites(), 5000);
     window.addEventListener('beforeunload', this._cleanup);
   }
