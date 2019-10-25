@@ -26,11 +26,7 @@ const topLevelReducer = (startState, action) => {
     const { state: newState } = action;
 
     // boundary checks
-    if (
-      !newState ||
-      isEmpty(newState) ||
-      (newState && !newState.version)
-    ) {
+    if (!newState || isEmpty(newState) || (newState && !newState.version)) {
       return state;
     }
 
@@ -57,6 +53,11 @@ const topLevelReducer = (startState, action) => {
       };
     }
     return { ...state };
+  }
+
+  if (action.type === GLOBAL_ACTIONS.FETCH_SITES) {
+    const { sites } = action;
+    return { ...state, sites };
   }
 
   // If not a global action, handle the action with sub reducers

@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { sortBy } from 'lodash';
 import { isEmpty } from 'lodash';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
@@ -60,6 +61,8 @@ export class App extends PureComponent {
     super(props);
     this.taskHandler = this.taskHandler.bind(this);
     this._cleanup = this._cleanup.bind(this);
+
+    this.siteInterval = null;
   }
 
   componentDidMount() {
@@ -70,11 +73,14 @@ export class App extends PureComponent {
       window.Bridge.setTheme({ backgroundColor });
       window.Bridge.registerForTaskEvents(this.taskHandler);
     }
+    this.siteInterval = setInterval(() => this.fetchSites(), 5000);
     window.addEventListener('beforeunload', this._cleanup);
   }
 
   componentWillUnmount() {
     this._cleanup();
+    clearInterval(this.siteInterval);
+    this.siteInterval = null;
     window.removeEventListener('beforeunload', this._cleanup);
   }
 
@@ -114,6 +120,27 @@ export class App extends PureComponent {
   _cleanupTaskEvents() {
     if (window.Bridge) {
       window.Bridge.deregisterForTaskEvents(this.taskHandler);
+    }
+  }
+
+  async fetchSites() {
+    const { store } = this.props;
+    try {
+      const res = await fetch(`https://nebula-orion-api.herokuapp.com/sites`);
+
+      if (!res.ok) {
+        return;
+      }
+
+      const sites = await res.json();
+
+      if (sites && sites.length) {
+        const sorted = sortBy(sites, site => site.index);
+        store.dispatch(globalActions.fetchSites(sorted));
+      }
+      return;
+    } catch (error) {
+      return;
     }
   }
 

@@ -14,6 +14,7 @@ export const GLOBAL_ACTIONS = {
   RESET: '@@RESET',
   IMPORT: '@@IMPORT',
   SET_THEME: '@@SET_THEME',
+  FETCH_SITES: '@@FETCH_SITES',
   MIGRATE_STATE: '@@MIGRATE_STATE',
   INIT: '@@INIT',
 };
@@ -23,6 +24,7 @@ export const globalActions = {
   import: makeActionCreator(GLOBAL_ACTIONS.IMPORT, 'state'),
   setTheme: makeActionCreator(GLOBAL_ACTIONS.SET_THEME, 'theme'),
   migrateState: makeActionCreator(GLOBAL_ACTIONS.MIGRATE_STATE),
+  fetchSites: makeActionCreator(GLOBAL_ACTIONS.FETCH_SITES, 'sites'),
 };
 
 // Reimports

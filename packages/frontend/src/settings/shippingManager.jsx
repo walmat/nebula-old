@@ -17,8 +17,6 @@ import {
 import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../state/actions';
 import pDefns from '../utils/definitions/profileDefinitions';
 import sDefns from '../utils/definitions/settingsDefinitions';
-import getAllSupportedSitesSorted from '../constants/getAllSites';
-
 import addTestId from '../utils/addTestId';
 
 export class ShippingManagerPrimitive extends PureComponent {
@@ -206,7 +204,7 @@ export class ShippingManagerPrimitive extends PureComponent {
   }
 
   render() {
-    const { shipping, errors } = this.props;
+    const { shipping, sites, errors } = this.props;
     const { profile, site, product } = shipping;
     let shippingProfileValue = null;
     if (profile && profile.id !== null) {
@@ -271,7 +269,7 @@ export class ShippingManagerPrimitive extends PureComponent {
                       {this.renderSelect(
                         SETTINGS_FIELDS.EDIT_SHIPPING_SITE,
                         shippingSiteValue,
-                        getAllSupportedSitesSorted(),
+                        sites,
                       )}
                       <div className="col col--end" style={{ margin: '15px 0' }}>
                         {this.renderButton(SETTINGS_FIELDS.FETCH_SHIPPING_METHODS, shipping)}
@@ -309,6 +307,7 @@ ShippingManagerPrimitive.defaultProps = {
 
 export const mapStateToProps = state => ({
   profiles: state.profiles,
+  sites: (state.sites || []).filter(site => site.label === 'Shopify'),
   shipping: state.settings.shipping,
   errors: state.settings.shipping.errors,
   theme: state.theme,

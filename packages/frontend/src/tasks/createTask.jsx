@@ -10,7 +10,6 @@ import { parseURL } from 'whatwg-url';
 
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../state/actions';
 import * as getAllSizes from '../constants/getAllSizes';
-import getAllSites from '../constants/getAllSites';
 import { THEMES } from '../constants/themes';
 import PLATFORMS from '../constants/platforms';
 
@@ -70,13 +69,13 @@ export class CreateTaskPrimitive extends PureComponent {
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
     this.buildAccountOptions = this.buildAccountOptions.bind(this);
     this.handleCreate = this.handleCreate.bind(this);
-    this.fetchSites = this.fetchSites.bind(this);
     this.saveTask = this.saveTask.bind(this);
 
     this.state = {
       isLoadingSite: false,
       isLoadingSize: false,
     };
+
   }
 
   buildProfileOptions() {
@@ -99,22 +98,6 @@ export class CreateTaskPrimitive extends PureComponent {
         password,
       },
     }));
-  }
-
-  async fetchSites() {
-    try {
-      const res = await fetch(`${process.env.NEBULA_API_URL}/sites`);
-
-      if (!res.ok) {
-        return getAllSites();
-      }
-
-      const sites = await res.json();
-
-      return sites;
-    } catch (error) {
-      return getAllSites();
-    }
   }
 
   saveTask(e) {
@@ -569,7 +552,7 @@ export class CreateTaskPrimitive extends PureComponent {
   }
 
   render() {
-    const { task, errors, theme, onKeyPress } = this.props;
+    const { task, sites, errors, theme, onKeyPress } = this.props;
     const { isLoadingSite, isLoadingSize } = this.state;
     let newTaskProfileValue = null;
     if (task.profile.id) {
@@ -619,8 +602,6 @@ export class CreateTaskPrimitive extends PureComponent {
                 isClearable={false}
                 isDisabled={isLoadingSite}
                 isLoading={isLoadingSite}
-                // defaultOptions={getAllSites()}
-                // loadOptions={this.fetchSites()}
                 required
                 className="tasks-create__input tasks-create__input--field"
                 classNamePrefix="select"
@@ -643,7 +624,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 }
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
                 onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SITE, v)}
-                options={getAllSites()}
+                options={sites}
                 value={newTaskSiteValue}
                 data-testid={addTestId('CreateTask.siteSelect')}
               />
@@ -756,9 +737,10 @@ CreateTaskPrimitive.defaultProps = {
   onKeyPress: () => {},
 };
 
-export const mapStateToProps = state => ({
+export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   accounts: state.settings.accounts.list,
+  sites: state.sites,
   task: state.newTask,
   theme: state.theme,
   errors: state.newTask.errors,

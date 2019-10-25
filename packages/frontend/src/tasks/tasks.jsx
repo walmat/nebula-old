@@ -63,6 +63,8 @@ export class TasksPrimitive extends PureComponent {
     });
   }
 
+
+
   startAllTasks() {
     const { tasks, proxies, onStartAllTasks } = this.props;
     if (tasks.length && tasks.some(t => t.status !== 'running')) {

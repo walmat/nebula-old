@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 import { getAllSizesStripped } from '../constants/getAllSizes';
-import { getSitesForCategory } from '../constants/getAllSites';
 import {
   DropdownIndicator,
   Control,
@@ -183,7 +182,7 @@ export class TaskRowPrimitive extends PureComponent {
   }
 
   renderEditMenu() {
-    const { isEditing, task, onKeyPress, theme } = this.props;
+    const { isEditing, task, sites, onKeyPress, theme } = this.props;
     const { isLoadingSite, isLoadingSize } = this.state;
     if (!isEditing) {
       return null;
@@ -248,12 +247,11 @@ export class TaskRowPrimitive extends PureComponent {
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
                 isOptionDisabled={option =>
                   !option.supported &&
-                  option.supported !== undefined &&
-                  process.env.NODE_ENV !== 'development'
+                  option.supported !== undefined
                 }
                 onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
-                options={getSitesForCategory(task.platform)}
+                options={sites}
                 data-testid={addTestId(`${testIdBase}.siteSelect`)}
               />
             </div>
@@ -500,6 +498,7 @@ export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   proxies: state.settings.proxies,
   task: ownProps.task,
+  sites: (state.sites || []).filter(site => site.label === ownProps.task.platform),
   style: ownProps.style,
   edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
