@@ -18,9 +18,11 @@ app.use(express.urlencoded({ extended: true })); // to support URL-encoded bodie
 /* SETUP ROUTES */
 const auth = require('./routes/auth/auth');
 const discord = require('./routes/auth/discord');
+const sites = require('./routes/sites');
 
 // wrap the app
 auth(app);
+sites(app);
 discord(app);
 
 app.listen(port, () => console.log(`Nebula API started on port ${port}`));

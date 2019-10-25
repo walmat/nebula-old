@@ -177,8 +177,8 @@ function checkValidKey(key) {
                 status,
                 current_period_end: currentPeriodEnd,
               } = await stripe.subscriptions.retrieve(subscription);
-
-              if (status !== 'active' || status !== 'trailing') {
+              console.log('[DEBUG]: FOUND %s SUBSCRIPTION %s! CHECKING...', status, subscription);
+              if (!/active|trailing/i.test(status)) {
                 console.log('[DEBUG]: SUBSCRIPTION %s EXPIRED! CHECKING BUFFER...', subscription);
                 const oneMonthBuffer = moment
                   .unix(currentPeriodEnd)

@@ -10,7 +10,7 @@ AWS.config.update(config);
 const dynamodb = new AWS.DynamoDB();
 
 const keys = [
-  'd2ce126d-bc8f-4dfe-a415-b78dab7b0d5e',
+  // 'd-d507e41c-0abb-4c5c-976d-e24f5eb0e0ba',
   // '7d2bf729-bba7-4c2d-8d91-64891aa72e85',
   // 'dd1579e8-5e27-4057-8ab1-41fac6f45561',
   // '02edf1f2-59ab-40e4-8a98-c15158c39c2e',
@@ -142,7 +142,7 @@ const keys = [
   // '68bdc587-e3c6-42f9-b800-0ee98f95bbaa',
 ];
 
-function storeKey(key) {
+function storeKey(key, subscription) {
   const keyHash = hash(algo, key, salt, output);
   console.log(key, keyHash);
 
@@ -152,7 +152,7 @@ function storeKey(key) {
         S: keyHash,
       },
       subscription: {
-        S: 'sub_FuFMbyOiUwO0WJ',
+        S: subscription,
       },
     },
     ReturnConsumedCapacity: 'TOTAL',
