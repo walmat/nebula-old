@@ -23,6 +23,10 @@ const { ParseType } = Monitor;
 
 // SUPREME
 export default class TaskRunnerPrimitive {
+  get state() {
+    return this._state;
+  }
+
   constructor(context, proxy, type, platform = Platforms.Supreme) {
     this.id = context.id;
     this._task = context.task;
@@ -583,7 +587,7 @@ export default class TaskRunnerPrimitive {
 
       const body = await res.json();
 
-      if (body && !body.length || body && body.length && !body[0].in_stock) {
+      if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         this._pooky = false;
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
@@ -829,7 +833,6 @@ export default class TaskRunnerPrimitive {
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
-
       if (/invalid json/i.test(error)) {
         return States.ADD_TO_CART;
       }

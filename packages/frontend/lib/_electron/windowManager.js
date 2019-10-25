@@ -302,6 +302,12 @@ class WindowManager {
         this._windows.delete(winId);
         this._splash.destroy();
         this._splash = null;
+
+        if (!this._main) {
+          this._context.taskLauncher.stop();
+          await this._captchaWindowManager.freeAllSessions();
+          Electron.BrowserWindow.getAllWindows(w => w.close());
+        }
       }
     };
   }

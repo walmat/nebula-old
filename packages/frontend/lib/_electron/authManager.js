@@ -17,15 +17,12 @@ class AuthManager {
   constructor(context) {
     this._context = context;
     this._authInterval = setInterval(async () => {
-
       const windowManager = this._context._windowManager;
-
       if (!windowManager._main) {
         return;
       }
 
       const validUser = await this.checkSession();
-
       if (!validUser) {
         clearInterval(this._authInterval);
         this._authInterval = null;

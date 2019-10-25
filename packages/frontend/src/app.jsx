@@ -105,7 +105,7 @@ export class App extends PureComponent {
     const { store } = this.props;
     const { tasks } = store.getState();
     tasks.forEach(t => {
-      if (t.status === 'running') {
+      if (t.status === 'running' || t.status === 'used') {
         store.dispatch(taskActions.stop(t));
       }
     });

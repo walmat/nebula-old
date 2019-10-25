@@ -12,6 +12,10 @@ const { bindDebugEvents } = require('./debug');
 
 nebulaEnv.setUpEnvironment();
 
+Error.stackTraceLimit = 100; // https://v8.dev/docs/stack-trace-api
+
+require('v8-compile-cache');
+
 /**
  * Application entry point.
  */
@@ -161,7 +165,7 @@ class App {
       this._rpcInterval = setInterval(() => this._rpc.setActivity().catch(console.error), 15e3);
     });
 
-    // if we're in dev mode, don't wait for splash page buffer
+    // if we're in dev mode, don't wait on splash page
     if (nebulaEnv.isDevelopment()) {
       // create the main window
       await this._windowManager.createNewWindow('main');

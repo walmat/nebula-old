@@ -5,7 +5,7 @@ const express = require('express');
 
 const nebulaenv = require('./utils/env');
 
-dotenv.load();
+dotenv.config();
 nebulaenv.setUpEnvironment();
 
 const app = express();

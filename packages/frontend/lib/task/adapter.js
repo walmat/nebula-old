@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
-
 const { TaskManager } = require('@nebula/task-runner-built');
 
 const { IPCKeys } = require('../common/constants');
@@ -23,6 +22,7 @@ class TaskManagerAdapter {
     this._taskEventHandler = (taskId, statusMessage) => {
       // grab the old messages (if they exists)..
       if (statusMessage) {
+        console.log(`Task: ${taskId} sent message: ${statusMessage}!`);
         const lastMessage = this.statusMessageBuffer[taskId];
         if (!lastMessage) {
           this.statusMessageBuffer[taskId] = statusMessage;
@@ -37,7 +37,7 @@ class TaskManagerAdapter {
 
     this._taskEventMessageSender = () => {
       if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
-        console.log('[DEBUG]: Relaying message buffer!');
+        console.info('[DEBUG]: Relaying message buffer!');
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
         this.statusMessageBuffer = {};
       }
@@ -60,8 +60,8 @@ class TaskManagerAdapter {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
         if (!this._messageInterval) {
-          // batch status updates every 1 second
-          this._messageInterval = setInterval(this._taskEventMessageSender, 250);
+          // batch status updates every .5 seconds
+          this._messageInterval = setInterval(this._taskEventMessageSender, 0);
         }
       }
     });
