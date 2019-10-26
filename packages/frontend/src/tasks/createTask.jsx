@@ -166,7 +166,7 @@ export class CreateTaskPrimitive extends PureComponent {
   }
 
   createOnChangeHandler(field, event) {
-    const { onFieldChange, profiles } = this.props;
+    const { onFieldChange, profiles, sites } = this.props;
     switch (field) {
       case TASK_FIELDS.EDIT_SITE: {
         const site = {
@@ -202,6 +202,7 @@ export class CreateTaskPrimitive extends PureComponent {
       case TASK_FIELDS.EDIT_SIZES:
         return onFieldChange({ field, value: event.value });
       case TASK_FIELDS.EDIT_PRODUCT:
+        return onFieldChange({ field, value: event.target.value, sites });
       case TASK_FIELDS.EDIT_PAIRS:
         return onFieldChange({ field, value: event.target.value });
       case TASK_FIELDS.TOGGLE_CAPTCHA:
@@ -748,7 +749,7 @@ export const mapStateToProps = (state, ownProps) => ({
 
 export const mapDispatchToProps = dispatch => ({
   onFieldChange: changes => {
-    dispatch(taskActions.edit(null, changes.field, changes.value));
+    dispatch(taskActions.edit(null, changes.field, changes.value, changes.sites));
   },
   onAddNewTask: (newTask, amount) => {
     dispatch(taskActions.add(newTask, amount));

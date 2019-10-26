@@ -29,6 +29,13 @@
   }
 }
 
+/* TEMPORARY UNTIL I FIGURE OUT COMPONENT STYLING FOR REACT-SELECT */
+.select__indicator,
+.select__clear-indicator {
+  padding: 0px 8px !important;
+  margin-top: -2px !important;
+}
+
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;

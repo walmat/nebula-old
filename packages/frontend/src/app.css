@@ -122,6 +122,12 @@
   outline: 0px solid transparent;
 }
 
+/* TEMPORARY UNTIL I FIGURE OUT COMPONENT STYLING FOR REACT-SELECT */
+.select__indicator, .select__clear-indicator {
+  padding: 0px 8px !important;
+  margin-top: -2px !important;
+}
+
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -169,12 +175,7 @@ input,
 .select__control,
 .select__control--menu-is-open {
   height: 29px !important;
-  /* transition: ease all 0.5s; */
-}
-
-/* TEMPORARY UNTIL I FIGURE OUT COMPONENT STYLING FOR REACT-SELECT */
-.select__indicator, .select__clear-indicator {
-  padding: 0 8px !important;
+  transition: ease all 0.5s;
 }
 
 @media (min-width: 1250px) and (min-height: 5px) {

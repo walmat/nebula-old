@@ -2,7 +2,6 @@ import { parseURL } from 'whatwg-url';
 import { PROFILE_ACTIONS, TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey } from '../../actions';
 import initialTaskStates from '../../initial/tasks';
 import PLATFORMS from '../../../constants/platforms';
-import getAllSites from '../../../constants/getAllSites';
 import TASK_TYPES from '../../../constants/taskTypes';
 import {
   SETTINGS_ACTIONS,
@@ -44,9 +43,9 @@ export function taskReducer(state = initialTaskStates.task, action) {
             break;
           }
           let newSite;
-          const allSites = getAllSites();
+          const { sites } = action;
 
-          allSites.forEach(category => {
+          sites.forEach(category => {
             const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
             if (exists) {
               newSite = exists;
@@ -245,9 +244,9 @@ export function taskReducer(state = initialTaskStates.task, action) {
             }
 
             let newSite;
-            const allSites = getAllSites();
+            const { sites } = action;
 
-            allSites.forEach(category => {
+            sites.forEach(category => {
               const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
               if (exists) {
                 newSite = exists;

@@ -161,7 +161,7 @@ const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
 const _stopAllTasks = makeActionCreator(TASK_ACTIONS.STOP_ALL, 'response');
 
 // Public Actions
-const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value');
+const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value', 'sites');
 const editAllTasks = makeActionCreator(TASK_ACTIONS.EDIT_ALL, 'tasks', 'edits');
 const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
 const statusTask = makeActionCreator(TASK_ACTIONS.STATUS, 'messageBuffer');

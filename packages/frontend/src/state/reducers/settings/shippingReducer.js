@@ -1,6 +1,5 @@
 import { parseURL } from 'whatwg-url';
 import { SETTINGS_ACTIONS, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../actions';
-import getAllSites from '../../../constants/getAllSites';
 import initialSettingsStates from '../../initial/settings';
 
 export default function shippingReducer(state = initialSettingsStates.shipping, action) {
@@ -24,9 +23,9 @@ export default function shippingReducer(state = initialSettingsStates.shipping, 
           break;
         }
         let newSite;
-        const allSites = getAllSites();
+        const { sites } = action;
 
-        allSites.forEach(category => {
+        sites.forEach(category => {
           const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
           if (exists) {
             newSite = exists;

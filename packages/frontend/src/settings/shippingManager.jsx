@@ -51,7 +51,7 @@ export class ShippingManagerPrimitive extends PureComponent {
         type: 'clear',
       },
       [SETTINGS_FIELDS.FETCH_SHIPPING_METHODS]: {
-        label: 'Fetch',
+        label: 'Fetch rates',
         type: 'fetch',
       },
     };
@@ -84,7 +84,7 @@ export class ShippingManagerPrimitive extends PureComponent {
   }
 
   createOnChangeHandler(field) {
-    const { onSettingsChange, profiles } = this.props;
+    const { onSettingsChange, profiles, sites } = this.props;
     switch (field) {
       case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE:
         return event => {
@@ -103,6 +103,10 @@ export class ShippingManagerPrimitive extends PureComponent {
           };
           onSettingsChange({ field, value: site });
         };
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT:
+        return event => {
+          return onSettingsChange({ field, value: event.target.value, sites });
+        }
       default:
         return event => {
           onSettingsChange({
@@ -119,7 +123,7 @@ export class ShippingManagerPrimitive extends PureComponent {
       onClearShippingFields,
       onFetchShippingMethods,
       onStopShippingMethods,
-      shipping: { status },
+      shipping: { status, message },
     } = this.props;
     const { type } = this.buttons[field];
     let { label } = this.buttons[field];
@@ -153,7 +157,7 @@ export class ShippingManagerPrimitive extends PureComponent {
         disabled={disabled}
         data-testid={addTestId(`ShippingManager.button.${type}`)}
       >
-        {disabled ? 'Fetching...' : label}
+        {field === SETTINGS_FIELDS.FETCH_SHIPPING_METHODS ? (message || label) : label}
       </button>
     );
   }
@@ -240,7 +244,7 @@ export class ShippingManagerPrimitive extends PureComponent {
                       style={{ marginTop: '15px' }}
                     >
                       <div className="col col--start col--expand col--no-gutter-right">
-                        <p className="settings--shipping-manager__input-group--label">Product</p>
+                        <p className="settings--shipping-manager__input-group--label">Product / Shipping Rate</p>
                         <input
                           className="settings--shipping-manager__input-group--product"
                           type="text"
@@ -315,7 +319,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onSettingsChange: changes => {
-    dispatch(settingsActions.edit(changes.field, changes.value));
+    dispatch(settingsActions.edit(changes.field, changes.value, changes.sites));
   },
   onFetchShippingMethods: shipping => {
     dispatch(settingsActions.fetch(shipping));

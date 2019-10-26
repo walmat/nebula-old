@@ -1,13 +1,7 @@
-import sites from './sites';
-
-export default function getAllSupportedSitesSorted() {
-  return sites;
-}
-
-export function getSitesForCategory(category) {
+export function getSitesForCategory(sites, category) {
   return sites.find(cat => cat.label === category).options;
 }
 
-export function getSite(site) {
+export function getSite(sites, site) {
   return sites.find(t => t.value === site);
 }

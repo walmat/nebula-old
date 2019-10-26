@@ -67,7 +67,7 @@ export class TaskRowPrimitive extends PureComponent {
   }
 
   createOnChangeHandler(field, event) {
-    const { onEditTask, task } = this.props;
+    const { onEditTask, task, sites } = this.props;
     switch (field) {
       case TASK_FIELDS.EDIT_SITE: {
         const site = {
@@ -91,6 +91,8 @@ export class TaskRowPrimitive extends PureComponent {
       case TASK_FIELDS.EDIT_SIZES: {
         return onEditTask(task, { field, value: event.value });
       }
+      case TASK_FIELDS.EDIT_PRODUCT:
+        return onEditTask(task, { field, value: event.target.value, sites });
       default: {
         return onEditTask(task, { field, value: event.target.value });
       }
@@ -508,7 +510,7 @@ export const mapStateToProps = (state, ownProps) => ({
 
 export const mapDispatchToProps = dispatch => ({
   onEditTask: (task, changes) => {
-    dispatch(taskActions.edit(task.id, changes.field, changes.value));
+    dispatch(taskActions.edit(task.id, changes.field, changes.value, changes.sites));
   },
   onCancelEdits: task => {
     dispatch(taskActions.clearEdits(task.id, task));

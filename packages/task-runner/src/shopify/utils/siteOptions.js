@@ -471,7 +471,7 @@ export const sites = [
     supported: true,
   },
   {
-    name: 'Senera Williams',
+    name: 'Serena Williams',
     url: 'https://www.serenawilliams.com',
     apiKey: '27a25c367f6d5ae709433e0cb07fff6c',
     auth: false,

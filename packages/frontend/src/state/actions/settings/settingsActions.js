@@ -18,6 +18,8 @@ export const SETTINGS_ACTIONS = {
   ERROR: 'SETTINGS_HANDLE_ERROR',
 };
 
+const waitFor = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 // Async handler to start the shipping rates runner
 const _fetchShippingRequest = async task => {
   const copy = JSON.parse(JSON.stringify(task));
@@ -60,11 +62,11 @@ const _fetchShippingRequest = async task => {
 const _stopShippingRequest = async () => window.Bridge.stopShippingRatesRunner();
 
 const _saveShippingRates = makeActionCreator(SETTINGS_ACTIONS.FETCH_SHIPPING, 'response');
-const _setupShipping = makeActionCreator(SETTINGS_ACTIONS.SETUP_SHIPPING);
-const _cleanupShipping = makeActionCreator(SETTINGS_ACTIONS.CLEANUP_SHIPPING, 'success');
+const _setupShipping = makeActionCreator(SETTINGS_ACTIONS.SETUP_SHIPPING, 'message');
+const _cleanupShipping = makeActionCreator(SETTINGS_ACTIONS.CLEANUP_SHIPPING, 'message');
 const _stopShipping = makeActionCreator(SETTINGS_ACTIONS.STOP_SHIPPING);
 
-const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value');
+const editSettings = makeActionCreator(SETTINGS_ACTIONS.EDIT, 'field', 'value', 'sites');
 const saveAccount = makeActionCreator(SETTINGS_ACTIONS.SAVE_ACCOUNT, 'account');
 const selectAccount = makeActionCreator(SETTINGS_ACTIONS.SELECT_ACCOUNT, 'account');
 const saveDefaults = makeActionCreator(SETTINGS_ACTIONS.SAVE, 'defaults');
@@ -76,9 +78,9 @@ const handleError = makeActionCreator(SETTINGS_ACTIONS.ERROR, 'action', 'error')
 
 const fetchShipping = task => dispatch => {
   // Perform the request and handle the response
-  dispatch(_setupShipping());
+  dispatch(_setupShipping('Fetching...'));
   return _fetchShippingRequest(task)
-    .then(({ rates, selectedRate }) => {
+    .then(async ({ rates, selectedRate }) => {
       dispatch(
         _saveShippingRates({
           id: task.profile.id,
@@ -87,18 +89,23 @@ const fetchShipping = task => dispatch => {
           selectedRate,
         }),
       );
-      dispatch(_cleanupShipping(true));
+      const isSingular = (rates.length && rates.length === 1) || false;
+      dispatch(_cleanupShipping(`Fetched ${rates.length} ${isSingular ? 'rate' : 'rates'}`));
+      await waitFor(500);
+      dispatch(_cleanupShipping(`Saved to ${task.profile.profileName}`));
+      await waitFor(1000);
+      dispatch(_cleanupShipping('Fetch rates'));
     })
     .catch(err => {
       dispatch(handleError(SETTINGS_ACTIONS.FETCH_SHIPPING, err));
-      dispatch(_cleanupShipping(false));
+      dispatch(_cleanupShipping('Error!'));
     });
 };
 
 const stopShipping = () => dispatch =>
   _stopShippingRequest().then(
     () => dispatch(_stopShipping()),
-    () => dispatch(_cleanupShipping(true)),
+    () => dispatch(_cleanupShipping('Fetch')),
   );
 
 export const settingsActions = {

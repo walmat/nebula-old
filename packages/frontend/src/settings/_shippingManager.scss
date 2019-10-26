@@ -64,6 +64,7 @@
         }
         flex-grow: 0.5;
         width: 83px !important;
+        min-width: 124px;
         &:disabled {
           opacity: 0.5;
           cursor: not-allowed !important;

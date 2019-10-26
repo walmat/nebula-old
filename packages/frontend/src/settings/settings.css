@@ -23,7 +23,6 @@
   letter-spacing: 0;
   margin-top: 10px;
   margin-bottom: 10px;
-  width: 330px;
   height: 545px;
   border-radius: 3px;
   border: none;
@@ -143,6 +142,7 @@
 .settings--shipping-manager__input-group--fetch {
   flex-grow: 0.5;
   width: 83px !important;
+  min-width: 124px;
 }
 .theme-light .settings--shipping-manager__input-group--fetch {
   background: #f0405e !important;

@@ -174,7 +174,7 @@ export class ProxyListPrimitive extends Component {
               <div className="row row--start row--expand row--gutter">
                 <div className="col col--start col--expand proxy-list__input-group">
                   <div className="row row--start row--expand row--gutter">
-                    <div className="col col--start col--no-gutter">
+                    <div className="col col--start col--expand col--no-gutter">
                       {this.renderProxyInputDiv()}
                     </div>
                   </div>

@@ -278,11 +278,13 @@ export default function settingsReducer(state = initialSettingsStates.settings, 
   } else if (action.type === SETTINGS_ACTIONS.SETUP_SHIPPING) {
     change.shipping = {
       ...state.shipping,
+      message: action.message,
       status: 'inprogress',
     };
   } else if (action.type === SETTINGS_ACTIONS.CLEANUP_SHIPPING) {
     change.shipping = {
       ...state.shipping,
+      message: action.message,
       status: 'idle',
     };
   } else if (action.type === PROFILE_ACTIONS.REMOVE) {
