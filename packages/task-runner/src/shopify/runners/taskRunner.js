@@ -135,6 +135,7 @@ export default class TaskRunnerPrimitive {
     this._cartForm = '';
     this._paymentToken = null;
     this._checkoutUrl = null;
+    this._redirectUrl = null;
     this._checkoutToken = null;
     this._checkoutKey = null;
     this._storeId = null;
@@ -288,7 +289,7 @@ export default class TaskRunnerPrimitive {
         TaskManagerEvents.StopHarvest,
         this._context.id,
         this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
-        'http://checkout.shopify.com'
+        'http://checkout.shopify.com',
       );
       this._context.harvestState = HarvestStates.suspend;
     }
@@ -304,7 +305,7 @@ export default class TaskRunnerPrimitive {
         TaskManagerEvents.StopHarvest,
         this._context.id,
         this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
-        'http://checkout.shopify.com'
+        'http://checkout.shopify.com',
       );
       this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
       this._context.harvestState = HarvestStates.stop;
@@ -722,7 +723,7 @@ export default class TaskRunnerPrimitive {
         method: 'GET',
         compress: true,
         agent: proxy,
-        redirect: 'follow',
+        redirect: 'manual',
         headers: {
           'User-Agent': userAgent,
         },
@@ -1688,8 +1689,8 @@ export default class TaskRunnerPrimitive {
         method: 'GET',
         compress: true,
         agent: proxy,
-        redirect: 'follow',
-        follow: 5,
+        redirect: 'manual',
+        follow: 0,
         headers: {
           'User-Agent': userAgent,
           Connection: 'Keep-Alive',
@@ -1702,7 +1703,7 @@ export default class TaskRunnerPrimitive {
         },
       });
 
-      const { status } = res;
+      const { status, headers } = res;
 
       this._logger.debug('Checkout: poll response %d', status);
       nextState = stateForError(
@@ -1727,7 +1728,7 @@ export default class TaskRunnerPrimitive {
 
       const body = await res.text();
 
-      let { url: redirectUrl } = res;
+      let redirectUrl = headers.get('location');
       this._logger.debug('CHECKOUT: Queue response: %j \nBody: %j', status, body);
       if (status === 302) {
         if (!redirectUrl || /throttle/i.test(redirectUrl)) {
@@ -2720,25 +2721,22 @@ export default class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(
-        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
-        {
-          method: 'GET',
-          compress: true,
-          agent: proxy,
-          redirect: 'manual',
-          follow: 0,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': apiKey,
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-          },
+      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+        method: 'GET',
+        compress: true,
+        agent: proxy,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': apiKey,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
         },
-      );
+      });
 
       const { status, headers } = res;
 
@@ -3148,31 +3146,28 @@ export default class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(
-        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
-        {
-          method: 'POST',
-          compress: true,
-          agent: proxy,
-          redirect: 'follow',
-          follow: 1,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'content-type': 'application/x-www-form-urlencoded',
-            'Upgrade-Insecure-Requests': '1',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-            accept:
-              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-          },
-          body: this._formValues,
+      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+        method: 'POST',
+        compress: true,
+        agent: proxy,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'content-type': 'application/x-www-form-urlencoded',
+          'Upgrade-Insecure-Requests': '1',
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-      );
+        body: this._formValues,
+      });
 
-      const { status, url: redirectUrl } = res;
+      const { status, headers } = res;
 
       const nextState = stateForError(
         { status },
@@ -3190,43 +3185,11 @@ export default class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
-
-      if (/captcha validation failed/i.test(body)) {
-        this._captchaToken = '';
-        this._emitTaskEvent({ message: 'Captcha failed', rawProxy });
-        return States.GO_TO_CHECKOUT;
-      }
-
-      if (match && match.length) {
-        const [, step] = match;
-        if (/stock_problems/i.test(step)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/contact_information/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/shipping_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
-          return States.GO_TO_SHIPPING;
-        }
-
-        if (/payment_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-          return States.GO_TO_PAYMENT;
-        }
-      }
-
       // if we followed a redirect at some point...
+      const redirectUrl = headers.get('location');
+      this._logger.error('SUBMIT CUSTOMER REDIRECT URL: %s', redirectUrl);
       if (redirectUrl) {
+        this._redirectUrl = redirectUrl;
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
@@ -3272,6 +3235,30 @@ export default class TaskRunnerPrimitive {
 
           this._emitTaskEvent({ message: 'Polling queue', rawProxy });
           return States.QUEUE;
+        }
+
+        if (/step=stock_problems/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          return States.GO_TO_CHECKOUT;
+        }
+
+        if (/step=shipping_method/i.test(redirectUrl)) {
+          this._captchaToken = ''; // reset captcha token
+          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+          return States.GO_TO_SHIPPING;
+        }
+
+        if (/step=contact_information/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          return States.GO_TO_CHECKOUT;
+        }
+
+        if (/step=payment_method/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          return States.GO_TO_PAYMENT;
         }
       }
 
@@ -3330,8 +3317,8 @@ export default class TaskRunnerPrimitive {
         method: 'PATCH',
         compress: true,
         agent: proxy,
-        redirect: 'follow',
-        follow: 1,
+        redirect: 'manual',
+        follow: 0,
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
@@ -3340,7 +3327,7 @@ export default class TaskRunnerPrimitive {
         body: JSON.stringify(patchCheckoutForm(billingMatchesShipping, shipping, billing, payment)),
       });
 
-      const { status, url: redirectUrl } = res;
+      const { status, headers } = res;
 
       const nextState = stateForError(
         { status },
@@ -3359,7 +3346,8 @@ export default class TaskRunnerPrimitive {
       }
 
       // if we followed a redirect at some point...
-      if (res.redirected) {
+      const redirectUrl = headers.get('location');
+      if (redirectUrl) {
         if (/throttle/i.test(redirectUrl)) {
           const queryStrings = new URL(redirectUrl).search;
           const parsed = parse(queryStrings);
@@ -3476,7 +3464,7 @@ export default class TaskRunnerPrimitive {
 
     try {
       const res = await this._request(
-        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
         {
           method: 'GET',
           compress: true,
@@ -3830,7 +3818,6 @@ export default class TaskRunnerPrimitive {
       task: {
         monitorDelay,
         site: { url, apiKey },
-        forceCaptcha,
       },
     } = this._context;
 
@@ -3841,31 +3828,28 @@ export default class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(
-        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
-        {
-          method: 'POST',
-          compress: true,
-          agent: proxy,
-          redirect: 'follow',
-          follow: 1,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'content-type': 'application/x-www-form-urlencoded',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-            accept:
-              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-          },
-          body: this._formValues,
+      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+        method: 'POST',
+        compress: true,
+        agent: proxy,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'content-type': 'application/x-www-form-urlencoded',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-      );
+        body: this._formValues,
+      });
 
-      const { status, url: redirectUrl } = res;
+      const { status, headers } = res;
 
       const nextState = stateForError(
         { status },
@@ -3883,61 +3867,11 @@ export default class TaskRunnerPrimitive {
         return erroredState;
       }
 
-      const body = await res.text();
-      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
-
-      // recaptcha sitekey parser...
-      const key = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-      if (key && key.length) {
-        [, this._context.task.site.sitekey] = key;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
-      }
-
-      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
-        return States.CAPTCHA;
-      }
-
-      if (match && match.length) {
-        const [, step] = match;
-
-        if (/stock_problems/i.test(step)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
-          return States.SUBMIT_SHIPPING;
-        }
-
-        if (/captcha validation failed/i.test(body)) {
-          this._captchaToken = '';
-          this._emitTaskEvent({ message: 'Captcha failed', rawProxy });
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/processing/i.test(step)) {
-          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
-          return States.PROCESS_PAYMENT;
-        }
-
-        if (/contact_information/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/shipping_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
-          return States.GO_TO_SHIPPING;
-        }
-
-        if (/payment_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-          return States.GO_TO_PAYMENT;
-        }
-      }
-
       // if we followed a redirect at some point...
-      if (res.redirected) {
+      const redirectUrl = headers.get('location');
+      this._logger.error('SUBMIT SHIPPING REDIRECT URL: %s', redirectUrl);
+      if (redirectUrl) {
+        this._redirectUrl = redirectUrl;
         if (/processing/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Processing payment', rawProxy });
           return States.PROCESS_PAYMENT;
@@ -3988,6 +3922,30 @@ export default class TaskRunnerPrimitive {
 
           this._emitTaskEvent({ message: 'Polling queue', rawProxy });
           return States.QUEUE;
+        }
+
+        if (/step=stock_problems/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          return States.GO_TO_PAYMENT;
+        }
+
+        if (/step=payment_method/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          return States.GO_TO_PAYMENT;
+        }
+
+        if (/step=shipping_method/i.test(redirectUrl)) {
+          this._captchaToken = ''; // reset captcha token
+          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+          return States.GO_TO_SHIPPING;
+        }
+
+        if (/step=contact_information/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          return States.GO_TO_CHECKOUT;
         }
       }
 
@@ -4044,7 +4002,7 @@ export default class TaskRunnerPrimitive {
 
     try {
       const res = await this._request(
-        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
         {
           method: 'GET',
           compress: true,
@@ -4114,6 +4072,7 @@ export default class TaskRunnerPrimitive {
 
       // check if redirected
       if (redirectUrl) {
+        this._redirectUrl = redirectUrl;
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
           this.checkpointUrl = redirectUrl;
@@ -4172,15 +4131,6 @@ export default class TaskRunnerPrimitive {
           this._emitTaskEvent({ message: 'Cart empty', rawProxy });
           return States.ADD_TO_CART;
         }
-      }
-
-      if (/stock_problems/i.test(body)) {
-        // TODO: restock mode
-        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-        await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-        return States.GO_TO_PAYMENT;
       }
 
       if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
@@ -4300,31 +4250,28 @@ export default class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(
-        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
-        {
-          method: 'POST',
-          compress: true,
-          agent: proxy,
-          redirect: 'manual',
-          follow: 0,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'content-type': 'application/x-www-form-urlencoded',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'en-US,en;q=0.9',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-            accept:
-              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-          },
-          body: this._formValues,
+      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+        method: 'POST',
+        compress: true,
+        agent: proxy,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'content-type': 'application/x-www-form-urlencoded',
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'en-US,en;q=0.9',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-      );
+        body: this._formValues,
+      });
 
       const { status, headers } = res;
 
@@ -4373,57 +4320,59 @@ export default class TaskRunnerPrimitive {
 
       // if we followed a redirect at some point...
       const redirectUrl = headers.get('location');
-
-      if (/processing/i.test(redirectUrl)) {
-        this._emitTaskEvent({ message: 'Processing payment', rawProxy });
-        return States.PROCESS_PAYMENT;
-      }
-
-      if (/stock_problems/i.test(redirectUrl)) {
-        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-        await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-        return States.SUBMIT_PAYMENT;
-      }
-
-      if (/password/i.test(redirectUrl)) {
-        this._emitTaskEvent({ message: 'Password page', rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-        await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-        return States.SUBMIT_PAYMENT;
-      }
-
-      if (/throttle/i.test(redirectUrl)) {
-        const queryStrings = new URL(redirectUrl).search;
-        const parsed = parse(queryStrings);
-
-        if (parsed && parsed._ctd) {
-          this.queueReferer = redirectUrl;
-          this._logger.info('FIRST _CTD: %j', parsed._ctd);
-          this._ctd = parsed._ctd;
+      if (redirectUrl) {
+        this._redirectUrl = redirectUrl;
+        if (/processing/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          return States.PROCESS_PAYMENT;
         }
 
-        try {
-          await this._request(redirectUrl, {
-            method: 'GET',
-            compress: true,
-            agent: proxy,
-            redirect: 'manual',
-            follow: 0,
-            headers: {
-              'Upgrade-Insecure-Requests': 1,
-              'User-Agent': userAgent,
-              Connection: 'Keep-Alive',
-            },
-          });
-        } catch (error) {
-          // fail silently...
+        if (/stock_problems/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          return States.SUBMIT_PAYMENT;
         }
 
-        this._emitTaskEvent({ message: 'Polling queue', rawProxy });
-        return States.QUEUE;
+        if (/password/i.test(redirectUrl)) {
+          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          await this._delayer;
+          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          return States.SUBMIT_PAYMENT;
+        }
+
+        if (/throttle/i.test(redirectUrl)) {
+          const queryStrings = new URL(redirectUrl).search;
+          const parsed = parse(queryStrings);
+
+          if (parsed && parsed._ctd) {
+            this.queueReferer = redirectUrl;
+            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            this._ctd = parsed._ctd;
+          }
+
+          try {
+            await this._request(redirectUrl, {
+              method: 'GET',
+              compress: true,
+              agent: proxy,
+              redirect: 'manual',
+              follow: 0,
+              headers: {
+                'Upgrade-Insecure-Requests': 1,
+                'User-Agent': userAgent,
+                Connection: 'Keep-Alive',
+              },
+            });
+          } catch (error) {
+            // fail silently...
+          }
+
+          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          return States.QUEUE;
+        }
       }
 
       // step tests
@@ -4728,31 +4677,28 @@ export default class TaskRunnerPrimitive {
     }
 
     try {
-      const res = await this._request(
-        this._checkoutUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
-        {
-          method: 'POST',
-          compress: true,
-          agent: proxy,
-          redirect: 'follow',
-          follow: 5,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'content-type': 'application/x-www-form-urlencoded',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-            accept:
-              'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-          },
-          body: this._formValues,
+      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+        method: 'POST',
+        compress: true,
+        agent: proxy,
+        redirect: 'manual',
+        follow: 0,
+        headers: {
+          ...getHeaders({ url, apiKey }),
+          Connection: 'Keep-Alive',
+          'content-type': 'application/x-www-form-urlencoded',
+          'Upgrade-Insecure-Requests': '1',
+          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'sec-fetch-mode': 'navigate',
+          'sec-fetch-site': 'same-origin',
+          'sec-fetch-user': '?1',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-      );
+        body: this._formValues,
+      });
 
-      const { status, url: redirectUrl } = res;
+      const { status, headers } = res;
 
       const nextState = stateForError(
         { status },
@@ -4773,6 +4719,7 @@ export default class TaskRunnerPrimitive {
       const body = await res.text();
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
+      const redirectUrl = headers.get('location');
       if (match && match.length) {
         const [, step] = match;
 
@@ -4996,8 +4943,8 @@ export default class TaskRunnerPrimitive {
         method: 'PATCH',
         compress: true,
         agent: proxy,
-        follow: 5,
-        redirect: 'follow',
+        follow: 0,
+        redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
           'Content-Type': 'application/json',
@@ -5007,7 +4954,7 @@ export default class TaskRunnerPrimitive {
         body: JSON.stringify(form),
       });
 
-      const { status, url: redirectUrl } = res;
+      const { status, headers } = res;
 
       const nextState = stateForError(
         { status },
@@ -5046,6 +4993,7 @@ export default class TaskRunnerPrimitive {
         this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
       }
 
+      const redirectUrl = headers.get('location');
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Processing payment', rawProxy });
