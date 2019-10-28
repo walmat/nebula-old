@@ -3,7 +3,7 @@
 @import 'fonts';
 
 * {
-  @extend %font-base;
+  @include font-base;
   font-size: 9.5px;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -14,7 +14,7 @@
   text-rendering: optimizeLegibility;
 
   @media (min-width: 1250px) and (min-height: 745px) {
-    @extend %font-base;
+    @include font-base;
     font-size: 11px;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -98,10 +98,10 @@ input,
 }
 
 td {
-  @extend %font-base;
+  @include font-base;
   font-size: 12px;
   @media (min-width: 1250px) and (min-height: 745px) {
-    @extend %font-base;
+    @include font-base;
     transition: ease all 0.5s;
     font-size: 14px;
   }
@@ -317,11 +317,11 @@ input:focus {
   @include themify($themes) {
     color: themed('sectionHeaderColor');
   }
-  @extend %font-base;
+  @include font-base;
   font-size: 12px;
 
   @media screen and (min-width: 1250px) and (min-height: 745px) {
-    @extend %font-base;
+    @include font-base;
     font-size: 14px;
   }
 }

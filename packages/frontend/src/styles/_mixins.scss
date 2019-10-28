@@ -1,4 +1,4 @@
-%font-base {
+@mixin font-base {
   font-family: Lato, sans-serif;
   font-size: 9.5px;
   @include themify($themes) {
@@ -7,8 +7,8 @@
   letter-spacing: 0;
 }
 
-%button-base {
-  @extend %font-base;
+@mixin button-base {
+  @include font-base;
   font-weight: 500;
   font-size: 12px;
   width: 83px;
@@ -31,7 +31,7 @@
   }
 }
 
-@mixin input-group() {
+@mixin input-group {
   @include themify($themes) {
     border-color: themed('tableBorderColor');
   }
@@ -41,38 +41,54 @@
   border-radius: 3px;
 }
 
-@mixin input-field() {
+@mixin input-base {
+  height: 29px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 3px;
+}
+
+@mixin input-field {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;
   vertical-align: middle;
 }
 
-@mixin header-field() {
+@mixin header-field {
   margin: 0;
 
   & > p {
     @include themify($themes) {
       color: themed('textColor');
     }
-    @extend %font-base;
+    @include font-base;
     font-size: 12px !important;
     letter-spacing: 0;
     margin: 5px 0;
   }
 }
 
-@mixin select-font() {
-  @extend %font-base;
+@mixin select-font {
+  @include font-base;
   font-weight: 500;
 }
 
-@mixin image() {
+@mixin image {
   cursor: pointer;
   vertical-align: middle;
 }
 
-@mixin button-font() {
-  @extend %button-base;
+@mixin button-font {
+  @include font-base;
   font-size: 12px;
+}
+
+@mixin button-base {
+  @include button-font;
+  width: 83px;
+  height: 29px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
 }

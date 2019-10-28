@@ -51,14 +51,14 @@
       }
 
       &--id {
-        @include header-field();
+        @include header-field;
         width: 15px;
         margin-left: 15px !important;
         flex-grow: 0;
       }
 
       &--store {
-        @include header-field();
+        @include header-field;
         width: 115px;
         padding-left: 18px !important;
         margin-left: -6px !important;
@@ -75,7 +75,7 @@
         display: none;
         &--fullscreen {
           display: flex;
-          @include header-field();
+          @include header-field;
           width: 129px;
           padding-left: 10px;
           flex-grow: 2;
@@ -83,7 +83,7 @@
       }
 
       &--size {
-        @include header-field();
+        @include header-field;
         width: 60px;
         padding-left: 10px;
         flex-grow: 1;
@@ -93,7 +93,7 @@
         display: none;
         &--fullscreen {
           display: flex;
-          @include header-field();
+          @include header-field;
           padding-left: 10px;
           width: 118px;
           flex-grow: 1;
@@ -101,11 +101,11 @@
       }
 
       &--output {
-        @include header-field();
+        @include header-field;
         width: 20px;
         padding-left: 10px;
         &--fullscreen {
-          @include header-field();
+          @include header-field;
           width: 130px;
           padding-left: 10px;
         }
@@ -172,14 +172,14 @@
           }
 
           &--id {
-            @include input-field();
+            @include input-field;
             width: 15px;
             margin-left: 15px !important;
             flex-grow: 0;
           }
 
           &--store {
-            @include input-field();
+            @include input-field;
             &--fullscreen {
               width: 115px;
               padding-left: 17px;
@@ -192,7 +192,7 @@
           }
 
           &--product {
-            @include input-field();
+            @include input-field;
             visibility: hidden;
             width: 0;
             &--fullscreen {
@@ -204,7 +204,7 @@
           }
 
           &--size {
-            @include input-field();
+            @include input-field;
             width: 65px;
             padding-left: 10px;
             flex-grow: 1;
@@ -216,7 +216,7 @@
           }
 
           &--proxy {
-            @include input-field();
+            @include input-field;
             visibility: hidden;
             width: 0;
             &--fullscreen {
@@ -228,7 +228,7 @@
           }
 
           &--output {
-            @include input-field();
+            @include input-field;
             width: 50px;
             padding-left: 10px;
             flex-grow: 10;

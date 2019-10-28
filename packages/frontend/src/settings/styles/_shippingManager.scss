@@ -21,7 +21,7 @@
       border-radius: 3px;
 
       &--product {
-        @include select-font();
+        @include select-font;
         border-width: 1px;
         flex-grow: 2;
         border-style: solid;
@@ -30,18 +30,18 @@
       }
 
       &--profile {
-        @include select-font();
+        @include select-font;
         border-radius: 3px;
       }
 
       &--site {
-        @include select-font();
+        @include select-font;
         flex-grow: 2;
         border-radius: 3px;
       }
 
       &--label {
-        @include select-font();
+        @include select-font;
         @include themify($themes) {
           color: themed('tableHeaderColor');
         }
@@ -50,7 +50,7 @@
       }
 
       &--fetch {
-        @extend %button-base;
+        @include button-base;
         @include themify($themes) {
           background: themed('buttonColorPrimary') !important;
           color: themed('buttonPrimaryText') !important;
@@ -65,7 +65,7 @@
       }
 
       &--clear {
-        @extend %button-base;
+        @include button-base;
         @include themify($themes) {
           background: themed('buttonColorSecondary') !important;
           color: themed('buttonPrimaryText') !important;

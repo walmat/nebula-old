@@ -17,7 +17,7 @@
     }
 
     &__label {
-      @include select-font();
+      @include select-font;
       @include themify($themes) {
         color: themed('tableHeaderColor');
       }
@@ -37,7 +37,7 @@
       }
 
       &--delete {
-        @include button-font();
+        @include button-font;
         @include themify($themes) {
           background: themed('buttonColorSecondary');
           color: themed('buttonPrimaryText');
@@ -52,7 +52,7 @@
       }
 
       &--load {
-        @include button-font();
+        @include button-font;
         @include themify($themes) {
           background: themed('buttonColorPrimary');
           color: themed('buttonPrimaryText');

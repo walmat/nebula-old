@@ -27,12 +27,12 @@
       min-height: 26px;
 
       .tasks-table__header__edit {
-        @include header-field();
+        @include header-field;
         flex-grow: 0;
       }
 
       .tasks-table__header__id {
-        @include header-field();
+        @include header-field;
         width: 26px;
         flex-grow: 0;
         margin-left: 15px;
@@ -43,40 +43,40 @@
       }
 
       .tasks-table__header__product {
-        @include header-field();
+        @include header-field;
         flex-grow: 5;
         margin-left: 11px;
         width: 200px;
       }
 
       .tasks-table__header__sites {
-        @include header-field();
+        @include header-field;
         width: 125px;
         flex-grow: 2;
         margin-left: 8px;
       }
 
       .tasks-table__header__profile {
-        @include header-field();
+        @include header-field;
         width: 125px;
         flex-grow: 1;
       }
 
       .tasks-table__header__sizes {
-        @include header-field();
+        @include header-field;
         width: 65px;
         flex-grow: 1;
         margin-left: 5px;
       }
 
       .tasks-table__header__account {
-        @include header-field();
+        @include header-field;
         width: 42px;
         flex-grow: 1;
       }
 
       .tasks-table__header__actions {
-        @include header-field();
+        @include header-field;
         margin: 0 15px;
         width: 50px;
         flex-grow: 2;
@@ -141,11 +141,11 @@
 
             &__label {
               margin: 0;
-              @include select-font();
+              @include select-font;
             }
 
             &__select {
-              @include select-font();
+              @include select-font;
             }
 
             &__input {
@@ -161,7 +161,7 @@
             margin: 11px 7px 0 7px;
 
             &__button {
-              @include button-font();
+              @include button-font;
               letter-spacing: 0;
 
               &--cancel {
@@ -180,7 +180,7 @@
         }
 
         img {
-          @include image();
+          @include image;
         }
 
         &__edit {
@@ -221,7 +221,7 @@
         }
 
         &__product {
-          @include input-field();
+          @include input-field;
           width: 190px;
           white-space: nowrap;
           text-overflow: ellipsis;
@@ -231,7 +231,7 @@
           overflow: hidden;
 
           &--checkout-ready-light {
-            @include input-field();
+            @include input-field;
             flex-grow: 5;
             margin-left: 11px !important;
             width: 188px;
@@ -243,7 +243,7 @@
           }
 
           &--checkout-ready-dark {
-            @include input-field();
+            @include input-field;
             flex-grow: 5;
             margin-left: 11px !important;
             width: 188px;
@@ -256,14 +256,14 @@
         }
 
         &__sites {
-          @include input-field();
+          @include input-field;
           text-overflow: ellipsis;
           width: 125px;
           margin-left: 11px !important;
           flex-grow: 2;
 
           &--checkout-ready-light {
-            @include input-field();
+            @include input-field;
             text-overflow: ellipsis;
             width: 125px;
             flex-grow: 2;
@@ -271,7 +271,7 @@
           }
 
           &--checkout-ready-dark {
-            @include input-field();
+            @include input-field;
             text-overflow: ellipsis;
             width: 125px;
             flex-grow: 2;
@@ -280,19 +280,19 @@
         }
 
         &__profile {
-          @include input-field();
+          @include input-field;
           width: 127px;
           flex-grow: 1;
 
           &--checkout-ready-light {
-            @include input-field();
+            @include input-field;
             width: 127px;
             flex-grow: 1;
             color: #f68e5f;
           }
 
           &--checkout-ready-dark {
-            @include input-field();
+            @include input-field;
             width: 127px;
             flex-grow: 1;
             color: #f5dd90;
@@ -304,19 +304,19 @@
         }
 
         &__sizes {
-          @include input-field();
+          @include input-field;
           width: 65px;
           flex-grow: 1;
 
           &--checkout-ready-light {
-            @include input-field();
+            @include input-field;
             width: 65px;
             flex-grow: 1;
             color: #f68e5f;
           }
 
           &--checkout-ready-dark {
-            @include input-field();
+            @include input-field;
             width: 65px;
             flex-grow: 1;
             color: #f5dd90;
@@ -324,19 +324,19 @@
         }
 
         &__account {
-          @include input-field();
+          @include input-field;
           width: 45px;
           flex-grow: 1;
 
           &--checkout-ready-light {
-            @include input-field();
+            @include input-field;
             width: 45px;
             flex-grow: 1;
             color: #f68e5f;
           }
 
           &--checkout-ready-dark {
-            @include input-field();
+            @include input-field;
             width: 45px;
             flex-grow: 1;
             color: #f5dd90;
@@ -344,7 +344,7 @@
         }
 
         &__actions {
-          @include input-field();
+          @include input-field;
           width: 75px;
           flex-grow: 2;
 

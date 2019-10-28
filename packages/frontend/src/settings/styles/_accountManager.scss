@@ -11,10 +11,10 @@
     }
 
     &__input-group {
-      @include input-group();
+      @include input-group;
 
       &--username {
-        @extend %font-base;
+        @include font-base;
         border-width: 1px;
         border-style: solid;
         flex-grow: 1;
@@ -23,7 +23,7 @@
       }
 
       &--password {
-        @extend %font-base;
+        @include font-base;
         border-width: 1px;
         border-style: solid;
         flex-grow: 1;
@@ -32,12 +32,12 @@
       }
 
       &--account {
-        @extend %font-base;
+        @include font-base;
         border-radius: 3px;
       }
 
       &--label {
-        @extend %font-base;
+        @include font-base;
         @include themify($themes) {
           color: themed('tableHeaderColor');
         }
@@ -46,7 +46,7 @@
       }
 
       &--save {
-        @extend %button-base;
+        @include font-base;
         @include themify($themes) {
           background: themed('buttonColorPrimary') !important;
           color: themed('buttonPrimaryText') !important;
@@ -59,7 +59,7 @@
       }
 
       &--delete {
-        @extend %button-base;
+        @include font-base;
         @include themify($themes) {
           background: themed('buttonColorSecondary') !important;
           color: themed('buttonPrimaryText') !important;

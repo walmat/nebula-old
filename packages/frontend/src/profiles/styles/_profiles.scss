@@ -40,7 +40,7 @@
     }
 
     &--save {
-      @include button-font();
+      @include button-font;
       @include themify($themes) {
         background: themed('buttonColorPrimary');
         color: themed('buttonPrimaryText');

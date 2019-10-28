@@ -45,28 +45,28 @@
       min-height: 26px;
 
       &--account {
-        @include header-field();
+        @include header-field;
         margin-left: 20px;
         flex-grow: 1;
       }
 
       &--region {
-        @include header-field();
+        @include header-field;
         flex-grow: 1;
       }
 
       &--ip {
-        @include header-field();
+        @include header-field;
         flex-grow: 2;
       }
 
       &--speed {
-        @include header-field();
+        @include header-field;
         flex-grow: 1;
       }
 
       &--actions {
-        @include header-field();
+        @include header-field;
         margin-right: 15px;
         flex-grow: 0;
       }
@@ -100,7 +100,7 @@
           margin-top: -2px;
           padding-bottom: 2px;
           &--status {
-            @include input-field();
+            @include input-field;
             flex-grow: 0;
             margin-right: 5px !important;
             & > svg,
@@ -110,31 +110,31 @@
           }
 
           &--account {
-            @include input-field();
+            @include input-field;
             flex-grow: 1;
             width: 50px;
             margin-right: 27px !important;
           }
 
           &--region {
-            @include input-field();
+            @include input-field;
             flex-grow: 1;
             margin-right: 22px !important;
           }
 
           &--ip {
-            @include input-field();
+            @include input-field;
             flex-grow: 2;
           }
 
           &--speed {
-            @include input-field();
+            @include input-field;
             flex-grow: 1;
             margin-right: 25px !important;
           }
 
           &--actions {
-            @include input-field();
+            @include input-field;
             flex-grow: 0;
 
             &__margin {

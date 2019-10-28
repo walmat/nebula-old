@@ -99,7 +99,7 @@
     "redux-mock-store": "^1.5.3",
     "replace": "^1.1.0",
     "rimraf": "^2.6.3",
-    "sass": "^1.21.0"
+    "sass": "1.23.1"
   },
   "browserslist": [
     ">0.2%",

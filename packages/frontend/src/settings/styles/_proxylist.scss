@@ -21,7 +21,7 @@
 
     &__input-group {
       &--text {
-        @include select-font();
+        @include select-font;
         margin-top: 10px;
         margin-bottom: 10px;
         @include themify($themes) {

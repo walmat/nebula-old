@@ -19,7 +19,7 @@
     margin-bottom: 28px;
 
     &--delete {
-      @include button-font();
+      @include button-font;
       @include themify($themes) {
         background: themed('buttonColorPrimary');
         color: themed('buttonPrimaryText');
@@ -33,7 +33,7 @@
     }
 
     &--clear {
-      @include button-font();
+      @include button-font;
       @include themify($themes) {
         background: themed('buttonColorSecondary');
         color: themed('buttonPrimaryText');

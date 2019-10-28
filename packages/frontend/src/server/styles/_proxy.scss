@@ -13,7 +13,7 @@
     }
 
     &__label {
-      @include select-font();
+      @include select-font;
       height: 12px;
       margin-bottom: 3px;
       margin-top: 9px;
@@ -26,7 +26,7 @@
     }
 
     &__input {
-      @include select-font();
+      @include select-font;
 
       &--bordered {
         border: 1px solid #f0405e;
@@ -67,14 +67,14 @@
     }
 
     &__generate {
-      @include button-font();
+      @include button-font;
       background: #f0405e;
       color: #efefef;
       letter-spacing: 0;
     }
 
     &__destroy {
-      @include button-font();
+      @include button-font;
       background: #46adb4;
       color: #efefef;
       letter-spacing: 0;

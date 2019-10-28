@@ -1,23 +1,6 @@
 @import '../../styles/mixins';
 @import '../../styles/themes';
 
-%input-base {
-  height: 29px;
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 3px;
-}
-
-%button-base {
-  @include select-font();
-  font-size: 12px;
-  width: 83px;
-  height: 29px;
-  cursor: pointer;
-  border: none;
-  border-radius: 3px;
-}
-
 .settings-defaults {
   margin-bottom: 10px;
   &__section-header {
@@ -37,19 +20,19 @@
 
     &--select {
       &__profile {
-        @include select-font();
+        @include select-font;
         width: 170px;
         border-radius: 3px;
       }
       &__sizes {
-        @include select-font();
+        @include select-font;
         width: 170px;
         border-radius: 3px;
       }
     }
 
     &--label {
-      @include select-font();
+      @include select-font;
       @include themify($themes) {
         color: themed('tableHeaderColor');
       }
@@ -58,7 +41,7 @@
     }
 
     &--save {
-      @extend %button-base;
+      @include button-base;
       @include themify($themes) {
         background: themed('buttonColorPrimary');
         color: themed('buttonPrimaryText');
@@ -67,7 +50,7 @@
     }
 
     &--clear {
-      @extend %button-base;
+      @include button-base;
       @include themify($themes) {
         background: themed('buttonColorSecondary');
         color: themed('buttonPrimaryText');
@@ -80,7 +63,7 @@
 
 .settings {
   &__label {
-    @include select-font();
+    @include select-font;
     @include themify($themes) {
       color: themed('tableHeaderColor');
     }
@@ -91,7 +74,7 @@
   }
 
   &--export {
-    @extend %button-base;
+    @include button-base;
     @include themify($themes) {
       background: themed('buttonColorPrimary');
       color: themed('buttonPrimaryText');
@@ -101,7 +84,7 @@
   }
 
   &--import {
-    @extend %button-base;
+    @include button-base;
     @include themify($themes) {
       background: themed('buttonColorSecondary');
       color: themed('buttonPrimaryText');
@@ -112,7 +95,7 @@
 
   &__button {
     &--open-captcha {
-      @extend %button-base;
+      @include button-base;
       @include themify($themes) {
         background: themed('buttonColorPrimary');
         color: themed('buttonPrimaryText');
@@ -121,7 +104,7 @@
       width: 205px;
     }
     &--close-captcha {
-      @extend %button-base;
+      @include button-base;
       @include themify($themes) {
         background: themed('buttonColorSecondary');
         color: themed('buttonPrimaryText');
@@ -132,33 +115,33 @@
   }
 
   &__input {
-    @include select-font();
+    @include select-font;
   }
 
   &__input-group {
     &--webhook {
       &__discord {
-        @extend %input-base;
+        @include input-base;
         width: 344px;
       }
       &__slack {
-        @extend %input-base;
+        @include input-base;
         width: 344px;
       }
     }
 
     &--monitor-delay {
-      @extend %input-base;
+      @include input-base;
       width: 205px;
     }
     &--error-delay {
-      @extend %input-base;
+      @include input-base;
       width: 205px;
     }
 
     &--button {
       &__slack {
-        @extend %button-base;
+        @include button-base;
         @include themify($themes) {
           background: themed('buttonColorPrimary');
           color: themed('buttonPrimaryText');
@@ -166,7 +149,7 @@
       }
 
       &__discord {
-        @extend %button-base;
+        @include button-base;
         @include themify($themes) {
           background: themed('buttonColorPrimary');
           color: themed('buttonPrimaryText');
