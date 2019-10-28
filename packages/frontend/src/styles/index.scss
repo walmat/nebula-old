@@ -314,14 +314,17 @@ input:focus {
 }
 
 .body-text {
+  @include font-base;
   @include themify($themes) {
     color: themed('sectionHeaderColor');
   }
-  @include font-base;
   font-size: 12px;
 
   @media screen and (min-width: 1250px) and (min-height: 745px) {
     @include font-base;
+    @include themify($themes) {
+      color: themed('sectionHeaderColor');
+    }
     font-size: 14px;
   }
 }

@@ -46,7 +46,7 @@
       }
 
       &--save {
-        @include font-base;
+        @include button-base;
         @include themify($themes) {
           background: themed('buttonColorPrimary') !important;
           color: themed('buttonPrimaryText') !important;
@@ -59,7 +59,7 @@
       }
 
       &--delete {
-        @include font-base;
+        @include button-base;
         @include themify($themes) {
           background: themed('buttonColorSecondary') !important;
           color: themed('buttonPrimaryText') !important;

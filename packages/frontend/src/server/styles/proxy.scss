@@ -67,14 +67,14 @@
     }
 
     &__generate {
-      @include button-font;
+      @include button-base;
       background: #f0405e;
       color: #efefef;
       letter-spacing: 0;
     }
 
     &__destroy {
-      @include button-font;
+      @include button-base;
       background: #46adb4;
       color: #efefef;
       letter-spacing: 0;

@@ -48,7 +48,7 @@
     }
 
     &__submit {
-      @include button-font;
+      @include button-base;
       width: 112px !important;
       background: #f0405e;
       color: #efefef;
