@@ -4357,7 +4357,6 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    console.log(this._isRestocking);
 
     if (this._isRestocking) {
       const billingInfo = billingMatchesShipping ? shipping : billing;
