@@ -5,20 +5,17 @@
   "private": true,
   "scripts": {
     "build": "yarn workspaces run build",
-    "ship": "concurrently 'yarn run build:task' 'yarn run pack'",
-    "build:task": "yarn workspace @nebula/task-runner run build",
-    "pack": "yarn workspace @nebula/orion run publish",
-    "start:dev": "concurrently 'yarn start:frontend:dev' 'yarn start:dev-server'",
-    "start:dev:api": "yarn workspace @nebula/api run:dev",
-    "start:dev:db": "cd ./dynamodb_local && java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb -port 8100",
-    "start:dev-server": "yarn workspace @nebula/orion run dev-server",
-    "start:frontend:dev": "wait-on tcp:3000 && yarn workspace @nebula/orion run dev",
-    "start:frontend:prod": "yarn workspace @nebula/orion run prod",
-    "start:prod": "concurrently 'yarn start:frontend:prod'",
+    "ship": "concurrently 'yarn build:task' 'yarn pack'",
+    "build:frontend": "yarn workspace @nebula/orion build",
+    "build:task": "yarn workspace @nebula/task-runner build",
+    "pack": "yarn workspace @nebula/orion publish",
+    "start:dev-server": "yarn workspace @nebula/orion dev-server",
+    "start:dev": "wait-on tcp:3000 && yarn workspace @nebula/orion dev",
+    "start:prod": "yarn workspace @nebula/orion prod",
     "ci": "yarn workspaces run ci",
     "lint": "yarn workspaces run lint",
     "test": "yarn workspaces run test",
-    "postinstall": "yarn workspace @nebula/orion run afterinstall"
+    "postinstall": "yarn workspace @nebula/orion afterinstall"
   },
   "workspaces": [
     "packages/*"
@@ -55,7 +52,7 @@
     "rimraf": "^2.6.3",
     "sass": "^1.21.0",
     "wait-on": "^3.2.0",
-    "yarn": "^1.16.0"
+    "yarn": "^1.19.0"
   },
   "husky": {
     "hooks": {
