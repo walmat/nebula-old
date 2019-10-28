@@ -11,6 +11,7 @@ publish:
   private: true
   owner: walmat
   repo: nebula
+  token: 190a0253b622ae55db8ea4008879b9e83534bbdd
 
 directories:
   output: orion/
