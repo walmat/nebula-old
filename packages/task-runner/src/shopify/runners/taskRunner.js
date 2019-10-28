@@ -4387,7 +4387,6 @@ export default class TaskRunnerPrimitive {
       }
     }
 
-    console.log(this._formValues);
 
     try {
       const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
