@@ -1,0 +1,84 @@
+// Proxy Options Specific Rules
+@import '../../styles/themes';
+@import '../../styles/mixins';
+
+.server {
+  .proxy-options {
+    margin-left: -10px;
+    border: 1px solid #f0405e;
+    border-radius: 3px;
+
+    &__section-header {
+      padding-top: 21px;
+    }
+
+    &__label {
+      @include select-font();
+      height: 12px;
+      margin-bottom: 3px;
+      margin-top: 9px;
+      padding-left: 0.5px;
+    }
+
+    &__input-group {
+      margin: 0 11.5px !important;
+      padding-bottom: 2px;
+    }
+
+    &__input {
+      @include select-font();
+
+      &--bordered {
+        border: 1px solid #f0405e;
+      }
+
+      &--number {
+        width: 60px;
+        height: 29px;
+      }
+
+      &--credentials {
+        width: 176px;
+        height: 29px;
+      }
+
+      &--location {
+        width: 252px;
+        height: 29px;
+      }
+
+      &--field {
+        width: 118.3px;
+        height: 29px;
+        @include themify($themes) {
+          background: themed('inputBackground');
+        }
+        &:disabled {
+          @include themify($themes) {
+            background: themed('inputBackgroundDisabled');
+          }
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    &__submit-row {
+      align-self: flex-end;
+    }
+
+    &__generate {
+      @include button-font();
+      background: #f0405e;
+      color: #efefef;
+      letter-spacing: 0;
+    }
+
+    &__destroy {
+      @include button-font();
+      background: #46adb4;
+      color: #efefef;
+      letter-spacing: 0;
+      letter-spacing: 0;
+    }
+  }
+}

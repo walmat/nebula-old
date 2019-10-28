@@ -1,0 +1,65 @@
+// Tasks Page Specific Rules
+
+.view-line {
+  margin: 0;
+  border: 1px solid #edbcc6;
+  flex: 1 1 100%;
+}
+
+.section-header {
+  max-height: 32px;
+  margin: 6px 0;
+
+  &.section-header--no-top {
+    margin-top: 0;
+  }
+}
+
+.tasks__title {
+  padding-top: 1px !important;
+  padding-bottom: 3px !important;
+}
+
+.tasks__label {
+  height: 12px;
+  text-align: center;
+  margin-bottom: 3px;
+  margin-top: 0px;
+  padding-left: 0.5px;
+}
+
+.tasks__delay {
+  &--gutter-bottom {
+    margin-bottom: 15px !important;
+  }
+}
+
+.bulk-action-sidebar {
+  &__button {
+    width: 40px;
+    padding-bottom: 15px;
+    cursor: pointer;
+    &:hover {
+      opacity: 0.6333;
+    }
+  }
+
+  &__monitor-delay {
+    width: 51px;
+    height: 29px;
+    padding-left: 3.5px;
+    text-align: center;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+  }
+  &__error-delay {
+    width: 51px;
+    height: 29px;
+    padding-left: 3.5px;
+    text-align: center;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+  }
+}

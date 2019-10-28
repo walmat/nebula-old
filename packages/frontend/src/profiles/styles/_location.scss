@@ -1,0 +1,101 @@
+@import '../../styles/themes';
+@import '../../styles/mixins';
+
+%input_field {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
+}
+
+.profiles {
+  .billing-profiles-location {
+    &__section-header {
+      margin: 0;
+      margin-top: 25px;
+    }
+
+    &__input-group {
+      border-radius: 3px;
+
+      &--first-name {
+        @extend %input_field;
+      }
+
+      &--last-name {
+        @extend %input_field;
+      }
+
+      &--address-one {
+        @extend %input_field;
+      }
+
+      &--address-two {
+        @extend %input_field;
+      }
+
+      &--city {
+        @extend %input_field;
+      }
+
+      &--province {
+      }
+
+      &--zip-code {
+        @extend %input_field;
+      }
+
+      &--country {
+      }
+
+      &--phone {
+        @extend %input_field;
+      }
+    }
+  }
+
+  .shipping-profiles-location {
+    &__section-header {
+      margin: 0;
+      margin-top: 25px;
+    }
+
+    &__input-group {
+      border-radius: 3px;
+
+      &--first-name {
+        @extend %input_field;
+      }
+
+      &--last-name {
+        @extend %input_field;
+      }
+
+      &--address-one {
+        @extend %input_field;
+      }
+
+      &--address-two {
+        @extend %input_field;
+      }
+
+      &--city {
+        @extend %input_field;
+      }
+
+      &--province {
+      }
+
+      &--zip-code {
+        @extend %input_field;
+      }
+
+      &--country {
+      }
+
+      &--phone {
+        @extend %input_field;
+      }
+    }
+  }
+}

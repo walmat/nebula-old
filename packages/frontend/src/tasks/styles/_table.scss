@@ -1,0 +1,363 @@
+// Tasks Table Specific Rules
+@import '../../styles/themes';
+@import '../../styles/mixins';
+
+.tasks {
+  .tasks-table-container {
+    flex-grow: 5;
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+    }
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 3px;
+    margin: 0 16px 0 0 !important;
+
+    .tasks-table__wrapper {
+      min-width: 0;
+      width: 100%;
+      overflow: hidden;
+      display: block;
+    }
+
+    .tasks-table__header {
+      margin: 0;
+      padding-bottom: 1px;
+      height: 26px;
+      min-height: 26px;
+
+      .tasks-table__header__edit {
+        @include header-field();
+        flex-grow: 0;
+      }
+
+      .tasks-table__header__id {
+        @include header-field();
+        width: 26px;
+        flex-grow: 0;
+        margin-left: 15px;
+
+        & > p {
+          text-align: center;
+        }
+      }
+
+      .tasks-table__header__product {
+        @include header-field();
+        flex-grow: 5;
+        margin-left: 11px;
+        width: 200px;
+      }
+
+      .tasks-table__header__sites {
+        @include header-field();
+        width: 125px;
+        flex-grow: 2;
+        margin-left: 8px;
+      }
+
+      .tasks-table__header__profile {
+        @include header-field();
+        width: 125px;
+        flex-grow: 1;
+      }
+
+      .tasks-table__header__sizes {
+        @include header-field();
+        width: 65px;
+        flex-grow: 1;
+        margin-left: 5px;
+      }
+
+      .tasks-table__header__account {
+        @include header-field();
+        width: 42px;
+        flex-grow: 1;
+      }
+
+      .tasks-table__header__actions {
+        @include header-field();
+        margin: 0 15px;
+        width: 50px;
+        flex-grow: 2;
+        & > p {
+          text-align: center;
+        }
+      }
+    }
+  }
+
+  .tasks-table {
+    border-collapse: collapse;
+    border-spacing: 0 10px;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+
+    &__section-header {
+      padding-top: 1px;
+    }
+
+    .blank {
+      padding-left: 10px;
+    }
+
+    .extend {
+      padding-right: 4px;
+    }
+
+    .pad-left {
+      padding-left: 5px;
+      padding-bottom: 0;
+    }
+
+    .tasks-row-container {
+      @include themify($themes) {
+        border-bottom-color: themed('tableRowBottomBorderColow');
+      }
+      border-bottom-style: solid;
+      border-bottom-width: 1px;
+
+      .tasks-row {
+        display: flex;
+        height: 31px;
+
+        &.tasks-row--edit {
+          padding: 10px;
+          height: 80px;
+          align-items: flex-start;
+          @include themify($themes) {
+            border-color: themed('tableEditBorderColor');
+          }
+          border-width: 1px;
+          border-style: solid;
+          margin: 0 15px 5px 15px !important;
+          border-radius: 3px;
+
+          .edit-field {
+            vertical-align: middle;
+            margin: 0 7px !important;
+            width: 100px;
+
+            &__label {
+              margin: 0;
+              @include select-font();
+            }
+
+            &__select {
+              @include select-font();
+            }
+
+            &__input {
+              vertical-align: middle;
+              height: 29px;
+              border-width: 1px;
+              border-style: solid;
+              border-radius: 3px;
+            }
+          }
+
+          .action {
+            margin: 11px 7px 0 7px;
+
+            &__button {
+              @include button-font();
+              letter-spacing: 0;
+
+              &--cancel {
+                @include themify($themes) {
+                  background: themed('buttonColorSecondary');
+                }
+              }
+
+              &--save {
+                @include themify($themes) {
+                  background: themed('buttonColorPrimary');
+                }
+              }
+            }
+          }
+        }
+
+        img {
+          @include image();
+        }
+
+        &__edit {
+          width: 20px;
+          flex-grow: 0;
+        }
+
+        &__id {
+          width: 26px;
+          text-align: center;
+          margin-left: -5px !important;
+          width: 26px;
+          flex-grow: 0;
+
+          &--FAST {
+            width: 26px;
+            margin-left: -5px !important;
+            flex-grow: 0;
+            text-align: center;
+            color: #858dbb;
+          }
+
+          &--CART {
+            width: 26px;
+            margin-left: -5px !important;
+            flex-grow: 0;
+            text-align: center;
+            color: #c7b8ea;
+          }
+
+          &--SAFE {
+            width: 26px;
+            margin-left: -5px !important;
+            flex-grow: 0;
+            text-align: center;
+            color: #8aa27d;
+          }
+        }
+
+        &__product {
+          @include input-field();
+          width: 190px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          vertical-align: middle;
+          flex-grow: 5;
+          margin-left: 11px !important;
+          overflow: hidden;
+
+          &--checkout-ready-light {
+            @include input-field();
+            flex-grow: 5;
+            margin-left: 11px !important;
+            width: 188px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            overflow: hidden;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            @include input-field();
+            flex-grow: 5;
+            margin-left: 11px !important;
+            width: 188px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            overflow: hidden;
+            color: #f5dd90;
+          }
+        }
+
+        &__sites {
+          @include input-field();
+          text-overflow: ellipsis;
+          width: 125px;
+          margin-left: 11px !important;
+          flex-grow: 2;
+
+          &--checkout-ready-light {
+            @include input-field();
+            text-overflow: ellipsis;
+            width: 125px;
+            flex-grow: 2;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            @include input-field();
+            text-overflow: ellipsis;
+            width: 125px;
+            flex-grow: 2;
+            color: #f5dd90;
+          }
+        }
+
+        &__profile {
+          @include input-field();
+          width: 127px;
+          flex-grow: 1;
+
+          &--checkout-ready-light {
+            @include input-field();
+            width: 127px;
+            flex-grow: 1;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            @include input-field();
+            width: 127px;
+            flex-grow: 1;
+            color: #f5dd90;
+          }
+
+          & > p {
+            text-overflow: ellipsis;
+          }
+        }
+
+        &__sizes {
+          @include input-field();
+          width: 65px;
+          flex-grow: 1;
+
+          &--checkout-ready-light {
+            @include input-field();
+            width: 65px;
+            flex-grow: 1;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            @include input-field();
+            width: 65px;
+            flex-grow: 1;
+            color: #f5dd90;
+          }
+        }
+
+        &__account {
+          @include input-field();
+          width: 45px;
+          flex-grow: 1;
+
+          &--checkout-ready-light {
+            @include input-field();
+            width: 45px;
+            flex-grow: 1;
+            color: #f68e5f;
+          }
+
+          &--checkout-ready-dark {
+            @include input-field();
+            width: 45px;
+            flex-grow: 1;
+            color: #f5dd90;
+          }
+        }
+
+        &__actions {
+          @include input-field();
+          width: 75px;
+          flex-grow: 2;
+
+          &__button {
+            width: 16px;
+          }
+
+          &__button:nth-child(2) {
+            width: 16px;
+            margin-right: -5px !important;
+          }
+        }
+      }
+    }
+  }
+}

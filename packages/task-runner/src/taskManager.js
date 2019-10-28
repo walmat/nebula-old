@@ -344,15 +344,13 @@ export default class TaskManager {
     if (event === RunnerEvents.TaskStatus) {
       this._logger.silly('Reemitting this task update...');
       const { taskId } = this._runners[runnerId];
-      this._events.emit('status', taskId, message, event);
+      this._events.emit('status', [taskId], message, event);
     }
 
     if (event === RunnerEvents.MonitorStatus) {
       this._logger.silly('Reemitting this monitor update...');
       const { taskIds } = this._monitors[runnerId];
-      for (let i = 0; i < taskIds.length; i += 1) {
-        this._events.emit('status', taskIds[0], message, event);
-      }
+      this._events.emit('status', taskIds, message, event);
     }
   }
 

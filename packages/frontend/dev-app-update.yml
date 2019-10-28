@@ -1,4 +1,4 @@
-provider: generic
-url: 'https://nebula-deployment.herokuapp.com'
-channel: latest
-updaterCacheDirName: '@nebula-updater'
+provider: github
+private: true
+owner: walmat
+repo: nebula

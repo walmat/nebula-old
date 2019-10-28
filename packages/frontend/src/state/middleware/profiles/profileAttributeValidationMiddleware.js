@@ -4,7 +4,7 @@ import {
   profileActions,
   mapProfileFieldToKey,
 } from '../../actions';
-import profileAttributeValidatorMap from '../../../utils/validation/profileAttributeValidators';
+import profileAttributeValidatorMap from '../../validation/profileAttributeValidators';
 
 const profileAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing a profile

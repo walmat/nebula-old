@@ -20,6 +20,7 @@ const { States, DelayTypes, ParseType, ErrorCodes } = Monitor;
 export default class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Keywords) {
     this.ids = [context.id];
+    this._idReserve = [];
     this._task = context.task;
     this.taskIds = [context.taskId];
     this.proxy = proxy;

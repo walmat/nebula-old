@@ -1,5 +1,5 @@
 import { TASK_ACTIONS, mapTaskFieldsToKey, taskActions } from '../../actions';
-import taskAttributeValidatorMap from '../../../utils/validation/taskAttributeValidators';
+import taskAttributeValidatorMap from '../../validation/taskAttributeValidators';
 import { TASK_FIELDS } from '../../actions/tasks/taskActions';
 import PLATFORMS from '../../../constants/platforms';
 

@@ -57,9 +57,6 @@
     "wait-on": "^3.2.0",
     "yarn": "^1.16.0"
   },
-  "resolutions": {
-    "parse5": "4.0.0"
-  },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"

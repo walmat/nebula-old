@@ -19,19 +19,21 @@ class TaskManagerAdapter {
 
     this._taskManager = new TaskManager(logPath);
 
-    this._taskEventHandler = (taskId, statusMessage) => {
+    this._taskEventHandler = (taskIds, statusMessage) => {
       // grab the old messages (if they exists)..
       if (statusMessage) {
-        console.log(`Task: ${taskId} sent message: ${statusMessage}!`);
-        const lastMessage = this.statusMessageBuffer[taskId];
-        if (!lastMessage) {
-          this.statusMessageBuffer[taskId] = statusMessage;
-        } else {
-          this.statusMessageBuffer[taskId] = {
-            ...lastMessage,
-            ...statusMessage,
-          };
-        }
+        // eslint-disable-next-line no-return-assign
+        [...taskIds].forEach(taskId => (this.statusMessageBuffer[taskId] = statusMessage));
+        // console.log(`Task: ${taskId} sent message: ${statusMessage}!`);
+        // const lastMessage = this.statusMessageBuffer[taskId];
+        // if (!lastMessage) {
+        //   this.statusMessageBuffer[taskId] = statusMessage;
+        // } else {
+        //   this.statusMessageBuffer[taskId] = {
+        //     ...lastMessage,
+        //     ...statusMessage,
+        //   };
+        // }
       }
     };
 

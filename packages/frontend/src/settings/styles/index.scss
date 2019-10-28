@@ -1,0 +1,11 @@
+// Settings Page Rules
+
+@import 'proxylist';
+@import 'shippingManager';
+@import 'accountManager';
+@import 'settings';
+
+/* Temporary */
+.temp-debug {
+  background-color: gray;
+}

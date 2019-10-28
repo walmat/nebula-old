@@ -2,7 +2,7 @@
 import shortId from 'shortid';
 
 import PLATFORMS from '../../../constants/platforms';
-import parseProductType from '../../../utils/parseProductType';
+import parseProductType from '../../utils/parseProductType';
 import {
   TASK_ACTIONS,
   SERVER_ACTIONS,
@@ -350,7 +350,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
                 },
               };
             }
-            
+
             nextState[idx] = newTask;
           }
         });

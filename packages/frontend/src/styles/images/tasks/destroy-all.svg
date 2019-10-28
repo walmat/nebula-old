@@ -1,0 +1,6 @@
+<svg id="Component_3_1" data-name="Component 3 – 1" xmlns="http://www.w3.org/2000/svg" width="51" height="51" viewBox="0 0 51 51">
+  <g id="Delete_All_Icon" data-name="Delete All Icon">
+    <rect id="Rectangle_8" data-name="Rectangle 8" width="51" height="51" rx="3" fill="#b8d9d2"/>
+  </g>
+  <path id="destroy" d="M98.608,84.9c0,1.433,1.564,2.606,3.477,2.606h13.907c1.912,0,3.477-1.172,3.477-2.606V69.876H98.608Zm23.468-18.94h-6.519L113.374,64H104.7l-2.183,1.959H96v1.959h26.076Z" transform="translate(-83.626 -50)" fill="#efefef"/>
+</svg>

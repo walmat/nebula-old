@@ -1,7 +1,7 @@
 import AWS from 'aws-sdk';
 
 import makeActionCreator from '../actionCreator';
-import regexes from '../../../utils/validation';
+import regexes from '../../utils/regexes';
 import {
   _getSecurityGroup,
   wait,
@@ -115,9 +115,7 @@ const _terminateProxyRequest = async (options, proxy, credentials) =>
       await ec2.terminateInstances({ InstanceIds: [proxy.id] }).promise();
       return resolve(proxy);
     } catch (error) {
-      console.log(error);
       if (/not exist/i.test(error)) {
-        console.log('resolving proxy!');
         return resolve(proxy);
       }
       return reject(new Error('Unable to terminate proxy'));
@@ -129,15 +127,15 @@ const _validateAwsRequest = async awsCredentials =>
     const { AWSAccessKey, AWSSecretKey, name } = awsCredentials;
 
     if (!regexes.aws_access_key.test(AWSAccessKey)) {
-      return reject(new Error('Invalid Access Key'));
+      return reject(new Error('Invalid Keys'));
     }
 
     if (!regexes.aws_secret_key.test(AWSSecretKey)) {
-      return reject(new Error('Invalid Secret Key'));
+      return reject(new Error('Invalid Keys'));
     }
 
     if (!name) {
-      return reject(new Error('Please specify a pairing name'));
+      return reject(new Error('Invalid Name'));
     }
 
     return resolve({ AWSAccessKey, AWSSecretKey, name });

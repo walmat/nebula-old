@@ -1,0 +1,78 @@
+%font-base {
+  font-family: Lato, sans-serif;
+  font-size: 9.5px;
+  @include themify($themes) {
+    color: themed('textColor');
+  }
+  letter-spacing: 0;
+}
+
+%button-base {
+  @extend %font-base;
+  font-weight: 500;
+  font-size: 12px;
+  width: 83px;
+  height: 29px;
+  opacity: 1;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
+  @include themify($themes) {
+    color: themed('buttonPrimaryText');
+  }
+
+  &:hover {
+    opacity: 0.8333;
+  }
+
+  &:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5;
+  }
+}
+
+@mixin input-group() {
+  @include themify($themes) {
+    border-color: themed('tableBorderColor');
+  }
+  border-width: 1px;
+  border-style: solid;
+  padding-bottom: 3px;
+  border-radius: 3px;
+}
+
+@mixin input-field() {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  vertical-align: middle;
+}
+
+@mixin header-field() {
+  margin: 0;
+
+  & > p {
+    @include themify($themes) {
+      color: themed('textColor');
+    }
+    @extend %font-base;
+    font-size: 12px !important;
+    letter-spacing: 0;
+    margin: 5px 0;
+  }
+}
+
+@mixin select-font() {
+  @extend %font-base;
+  font-weight: 500;
+}
+
+@mixin image() {
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+@mixin button-font() {
+  @extend %button-base;
+  font-size: 12px;
+}
