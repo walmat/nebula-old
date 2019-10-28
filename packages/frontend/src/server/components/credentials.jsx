@@ -353,7 +353,6 @@ export class AWSCredentialsPrimitive extends PureComponent {
                 </button>
               </div>
             </div>
-            {/* {this.renderStatusRow()} */}
           </div>
         </div>
       </div>
