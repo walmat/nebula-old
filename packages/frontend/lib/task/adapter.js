@@ -19,10 +19,13 @@ class TaskManagerAdapter {
 
     this._taskManager = new TaskManager(logPath);
 
+    /**
+     * @Param taskIds {List<String>} - List of task ids
+     * @Param statusMessage {Object} - Incoming status message object for that task
+     */
     this._taskEventHandler = (taskIds, statusMessage) => {
-      // grab the old messages (if they exists)..
+      // incoming status {}
       if (statusMessage) {
-        // eslint-disable-next-line no-return-assign
         [...taskIds].forEach(taskId => {
           const lastMessage = this.statusMessageBuffer[taskId];
           this.statusMessageBuffer[taskId] = {
