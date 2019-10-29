@@ -19,6 +19,7 @@ const { Events } = Runner;
 export default class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Unknown) {
     this.ids = [context.id];
+    this.idReserve = [];
     this._task = context.task;
     this.taskIds = [context.taskId];
     this.proxy = proxy;
@@ -90,15 +91,17 @@ export default class MonitorPrimitive {
   }
 
   _handleAbort(id) {
-    if (this.ids.some(i => i === id)) {
+    if (this.idReserve.some(i => i === id)) {
+      this.idReserve = this.idReserve.filter(i => i !== id);
+    } else if (this.ids.some(i => i === id)) {
       this.ids = this.ids.filter(i => i !== id);
+    }
 
-      if (!this.ids.length) {
-        this._context.aborted = true;
-        this._aborter.abort();
-        if (this._delayer) {
-          this._delayer.clear();
-        }
+    if (!this.idReserve.length && !this.ids.length) {
+      this._context.aborted = true;
+      this._aborter.abort();
+      if (this._delayer) {
+        this._delayer.clear();
       }
     }
   }
@@ -111,10 +114,11 @@ export default class MonitorPrimitive {
     // emit the swap event
 
     // index 0 will always be the origination task.. so let's use that to swap
-    this._events.emit(Events.SwapMonitorProxy, this.ids[0], this.proxy);
+    const id = this.ids[0] || this.idReserve[0];
+    this._events.emit(Events.SwapMonitorProxy, id, this.proxy);
     return new Promise((resolve, reject) => {
       let timeout;
-      const proxyHandler = (id, proxy) => {
+      const proxyHandler = (_, proxy) => {
         this._logger.silly('Reached Proxy Handler, resolving');
         // clear the timeout interval
         clearTimeout(timeout);
@@ -570,12 +574,16 @@ export default class MonitorPrimitive {
       return States.ABORT;
     }
 
-    this._events.emit(
-      TaskManagerEvents.ProductFound,
-      this.ids,
-      this._context.task.product,
-      this._parseType,
-    );
+    if (this.ids.length) {
+      this._events.emit(
+        TaskManagerEvents.ProductFound,
+        this.ids,
+        this._context.task.product,
+        this._parseType,
+      );
+      this.idReserve.push(...this.ids);
+      this.ids = [];
+    }
 
     // means we matched on the first try...
     if (this._taskType === Modes.CART && !this._matchRandom) {

@@ -14,7 +14,14 @@ import { waitForDelay, userAgent, currencyWithSymbol } from '../../common';
 import { Runner, Manager, Platforms, SiteKeyForPlatform } from '../../constants';
 import { TaskRunner, Monitor } from '../utils/constants';
 import { stateForError, getHeaders } from '../utils';
-import { addToCart, parseForm, patchCheckoutForm } from '../utils/forms';
+import {
+  addToCart,
+  parseForm,
+  patchCheckoutForm,
+  backupContactForm,
+  backupShippingForm,
+  backupPaymentForm,
+} from '../utils/forms';
 import pickVariant from '../utils/pickVariant';
 
 const { Events } = Runner;
@@ -2701,10 +2708,10 @@ export default class TaskRunnerPrimitive {
       aborted,
       rawProxy,
       task: {
-        site: { url, name, apiKey },
+        site: { url, apiKey },
+        profile: { payment, shipping },
         monitorDelay,
         forceCaptcha,
-        restockMode,
         type,
       },
       proxy,
@@ -2843,16 +2850,10 @@ export default class TaskRunnerPrimitive {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          if (/dsm sg|dsm uk|dsm jp/i.test(name) && restockMode) {
-            this._emitTaskEvent({ message: `Creating checkout`, rawProxy });
-            this._isRestocking = true;
-            return States.CREATE_CHECKOUT;
-          }
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
-          return States.GO_TO_CHECKOUT;
+          this._isRestocking = true;
+          this._formValues = backupContactForm(payment, shipping);
+          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          return States.SUBMIT_CUSTOMER;
         }
 
         if (/cart/i.test(redirectUrl)) {
@@ -3127,7 +3128,7 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (this._isRestocking || type === Modes.FAST) {
+    if (type === Modes.FAST) {
       return this._handleBackupSubmitCustomer();
     }
 
@@ -3191,11 +3192,12 @@ export default class TaskRunnerPrimitive {
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
-          return States.GO_TO_CHECKOUT;
+          if (this._selectedShippingRate.id) {
+            this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+            return States.SUBMIT_SHIPPING;
+          }
+          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+          return States.GO_TO_SHIPPING;
         }
 
         if (/password/i.test(redirectUrl)) {
@@ -3439,6 +3441,145 @@ export default class TaskRunnerPrimitive {
     }
   }
 
+  async _handleBackupFetchRates() {
+    const {
+      aborted,
+      proxy,
+      rawProxy,
+      task: {
+        site: { url, apiKey },
+        profile: { shipping },
+      },
+    } = this._context;
+
+    // exit if abort is detected
+    if (aborted) {
+      this._logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
+    try {
+      const res = await this._request(
+        `/cart/shipping_rates.json?shipping_address%5Bzip%5D=${shipping.zipCode.replace(
+          /\s/g,
+          '+',
+        )}&shipping_address%5Bcountry%5D=${shipping.country.label.replace(
+          /\s/g,
+          '+',
+        )}&shipping_address%5Bprovince%5D=${
+          shipping.province ? shipping.province.label.replace(/\s/g, '+') : ''
+        }`,
+        {
+          method: 'GET',
+          compress: true,
+          agent: proxy,
+          headers: getHeaders({ url, apiKey }),
+        },
+      );
+      const { status } = res;
+
+      const nextState = stateForError(
+        { status },
+        {
+          message: 'Fetching rates',
+          nextState: States.GO_TO_SHIPPING,
+        },
+      );
+
+      if (nextState) {
+        const { message, nextState: erroredState } = nextState;
+        if (message) {
+          this._emitTaskEvent({ message, rawProxy });
+        }
+        return erroredState;
+      }
+
+      if (status === 422) {
+        this._emitTaskEvent({ message: 'Country not supported', rawProxy });
+        return States.ERROR;
+      }
+
+      const body = await res.json();
+      if (body && body.errors) {
+        this._logger.silly('CHECKOUT: Error getting shipping rates: %j', body.errors);
+        const { checkout } = body.errors;
+        if (checkout) {
+          const errorMessage = JSON.stringify(checkout);
+
+          if (errorMessage.indexOf("can't be blank") > -1) {
+            this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+            return States.SUBMIT_CUSTOMER;
+          }
+        }
+        this._emitTaskEvent({ message: 'Polling rates', rawProxy });
+        this._delayer = waitForDelay(1000, this._aborter.signal);
+        await this._delayer;
+        this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+        return States.GO_TO_SHIPPING;
+      }
+
+      if (body && body.shipping_rates && body.shipping_rates.length > 0) {
+        const { shipping_rates: shippingRates } = body;
+        shippingRates.forEach(rate => {
+          this._shippingMethods.push({
+            id: `${rate.source}-${encodeURIComponent(rate.code)}-${rate.price}`,
+            title: rate.name,
+            price: rate.price,
+          });
+        });
+
+        const cheapest = min(this._shippingMethods, rate => rate.price);
+        // Store cheapest shipping rate
+        const { id, title } = cheapest;
+        this._selectedShippingRate = { id, name: title };
+        this._logger.silly('CHECKOUT: Using shipping method: %s', title);
+
+        // set shipping price for cart
+        this._prices.shipping = parseFloat(cheapest.price).toFixed(2);
+        this._prices.total = (
+          parseFloat(this._prices.cart) + parseFloat(this._prices.shipping)
+        ).toFixed(2);
+        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+        this._formValues = backupShippingForm(id);
+
+        return States.SUBMIT_SHIPPING;
+      }
+      this._emitTaskEvent({ message: 'Polling rates', rawProxy });
+      this._delayer = waitForDelay(1000, this._aborter.signal);
+      await this._delayer;
+      this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+      return States.GO_TO_SHIPPING;
+    } catch (err) {
+      this._logger.error(
+        'CHECKOUT: %s Request Error..\n Step: Shipping Rates.\n\n %j %j',
+        err.status || err.errno,
+        err.message,
+        err.stack,
+      );
+
+      const nextState = stateForError(err, {
+        message: 'Fetching rates',
+        nextState: States.GO_TO_SHIPPING,
+      });
+
+      if (nextState) {
+        const { message, nextState: erroredState } = nextState;
+        if (message) {
+          this._emitTaskEvent({ message, rawProxy });
+        }
+        return erroredState;
+      }
+
+      const message =
+        err.status || err.errno
+          ? `Fetching rates - (${err.status || err.errno})`
+          : 'Fetching rates';
+
+      this._emitTaskEvent({ message, rawProxy });
+      return States.GO_TO_SHIPPING;
+    }
+  }
+
   async _handleGetShipping() {
     const {
       aborted,
@@ -3458,7 +3599,11 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (this._isRestocking || type === Modes.FAST) {
+    if (this._isRestocking) {
+      return this._handleBackupFetchRates();
+    }
+
+    if (type === Modes.FAST) {
       return this._handleBackupGetShipping();
     }
 
@@ -3578,12 +3723,9 @@ export default class TaskRunnerPrimitive {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          // TODO: restock mode
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
-          return States.GO_TO_SHIPPING;
+          const { id } = this._selectedShippingRate;
+          this._formValues = backupShippingForm(id);
+          return States.SUBMIT_SHIPPING;
         }
 
         if (/cart/i.test(redirectUrl)) {
@@ -3593,12 +3735,9 @@ export default class TaskRunnerPrimitive {
       }
 
       if (/stock_problems/i.test(body)) {
-        // TODO: restock mode
-        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-        await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
-        return States.GO_TO_SHIPPING;
+        const { id } = this._selectedShippingRate;
+        this._formValues = backupShippingForm(id);
+        return States.SUBMIT_SHIPPING;
       }
 
       if (/Getting available shipping rates/i.test(body)) {
@@ -3878,11 +4017,7 @@ export default class TaskRunnerPrimitive {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
-          return States.SUBMIT_SHIPPING;
+          return States.PAYMENT_TOKEN;
         }
 
         if (/password/i.test(redirectUrl)) {
@@ -3925,11 +4060,7 @@ export default class TaskRunnerPrimitive {
         }
 
         if (/step=stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
-          return States.GO_TO_PAYMENT;
+          return States.PAYMENT_TOKEN;
         }
 
         if (/step=payment_method/i.test(redirectUrl)) {
@@ -3990,6 +4121,7 @@ export default class TaskRunnerPrimitive {
       task: {
         monitorDelay,
         site: { url, apiKey },
+        profile: { billingMatchesShipping, shipping, billing },
         forceCaptcha,
       },
     } = this._context;
@@ -4119,12 +4251,7 @@ export default class TaskRunnerPrimitive {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          // TODO: restock mode
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-          return States.GO_TO_PAYMENT;
+          return States.PAYMENT_TOKEN;
         }
 
         if (/cart/i.test(redirectUrl)) {
@@ -4209,6 +4336,7 @@ export default class TaskRunnerPrimitive {
       proxy,
       task: {
         monitorDelay,
+        profile: { billingMatchesShipping, shipping, billing },
         site: { url, apiKey },
         type,
       },
@@ -4224,7 +4352,10 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    if (this._isFreeCheckout) {
+    if (this._isRestocking) {
+      const billingInfo = billingMatchesShipping ? shipping : billing;
+      this._formValues = backupPaymentForm(billingMatchesShipping, billingInfo, this._paymentToken);
+    } else if (this._isFreeCheckout) {
       const parts = this._formValues.split('&');
 
       if (parts && parts.length) {
@@ -4235,7 +4366,7 @@ export default class TaskRunnerPrimitive {
           }
         });
       }
-    } else if (this._formValues.indexOf(this._paymentToken) === -1) {
+    } else if (this._formValues.indexOf(this._paymentToken) < 0) {
       const parts = this._formValues.split('s=');
       if (parts && parts.length) {
         this._formValues = '';
@@ -4295,14 +4426,20 @@ export default class TaskRunnerPrimitive {
       this._paymentToken = '';
 
       const body = await res.text();
-      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+
+      if (/calculating taxes/i.test(body)) {
+        this._emitTaskEvent({ message: 'Calculating taxes', rawProxy });
+        this._delayer = waitForDelay(1000, this._aborter.signal);
+        await this._delayer;
+        return States.COMPLETE_PAYMENT;
+      }
 
       if (/stock_problems/i.test(body)) {
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-        return States.SUBMIT_PAYMENT;
+        return States.PAYMENT_TOKEN;
       }
 
       if (/Your payment can’t be processed/i.test(body)) {
@@ -4310,7 +4447,7 @@ export default class TaskRunnerPrimitive {
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
         this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-        return States.SUBMIT_PAYMENT;
+        return States.PAYMENT_TOKEN;
       }
 
       if (/captcha/i.test(body)) {
@@ -4318,6 +4455,7 @@ export default class TaskRunnerPrimitive {
         return States.CAPTCHA;
       }
 
+      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
       // if we followed a redirect at some point...
       const redirectUrl = headers.get('location');
       if (redirectUrl) {
@@ -4332,7 +4470,7 @@ export default class TaskRunnerPrimitive {
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-          return States.SUBMIT_PAYMENT;
+          return States.PAYMENT_TOKEN;
         }
 
         if (/password/i.test(redirectUrl)) {
@@ -4340,7 +4478,7 @@ export default class TaskRunnerPrimitive {
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-          return States.SUBMIT_PAYMENT;
+          return States.PAYMENT_TOKEN;
         }
 
         if (/throttle/i.test(redirectUrl)) {
@@ -4396,17 +4534,17 @@ export default class TaskRunnerPrimitive {
 
         if (/payment_method/i.test(step)) {
           this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-          return States.GO_TO_PAYMENT;
+          return States.PAYMENT_TOKEN;
         }
 
         if (/review/i.test(step)) {
           this._emitTaskEvent({ message: 'Completing payment', rawProxy });
-          return States.GO_TO_PAYMENT;
+          return States.PAYMENT_TOKEN;
         }
       }
 
       this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-      return States.GO_TO_PAYMENT;
+      return States.PAYMENT_TOKEN;
     } catch (err) {
       this._logger.error(
         'CHECKOUT: %s Request Error..\n Step: Submit shipping information .\n\n %j %j',
@@ -4590,7 +4728,7 @@ export default class TaskRunnerPrimitive {
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           this._emitTaskEvent({ message: 'Completing payment', rawProxy });
-          return States.COMPLETE_PAYMENT;
+          return States.PAYMENT_TOKEN;
         }
       }
 
@@ -4602,12 +4740,12 @@ export default class TaskRunnerPrimitive {
       const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
       if (match && /review/i.test(match)) {
         this._emitTaskEvent({ message: 'Completing payment', rawProxy });
-        return States.COMPLETE_PAYMENT;
+        return States.PAYMENT_TOKEN;
       }
 
       if (match && /payment/i.test(match)) {
         this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
-        return States.SUBMIT_PAYMENT;
+        return States.PAYMENT_TOKEN;
       }
 
       if (match && /shipping/i.test(match)) {
@@ -5698,6 +5836,7 @@ export default class TaskRunnerPrimitive {
     this._logger.silly('Run Loop finished, state transitioned to: %s', this._state);
 
     if (nextState === States.ABORT) {
+      this._state = States.DONE;
       return true;
     }
 

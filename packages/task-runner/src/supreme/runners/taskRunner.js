@@ -724,21 +724,25 @@ export default class TaskRunnerPrimitive {
 
       if (body) {
         this._logger.debug('Attempting to parse checkout fields');
-        const $ = cheerio.load(body, { xmlMode: true });
-        this._form = await parseForm(
-          $,
-          'form#mobile_checkout_form',
-          'input, textarea, select, button',
-          profileInfo,
-          payment,
-          s,
-        );
+        try {
+          const $ = cheerio.load(body, { xmlMode: true });
+          this._form = await parseForm(
+            $,
+            'form#mobile_checkout_form',
+            'input, textarea, select, button',
+            profileInfo,
+            payment,
+            s,
+          );
+        } catch (e) {
+          this._form = backupForm(region, profileInfo, payment, s);
+        }
       } else {
         // fallback to static form..
         this._form = backupForm(region, profileInfo, payment, s);
       }
 
-      if (this._form.indexOf('billing') === -1) {
+      if (this._form.indexOf('billing') < 0) {
         this._form = backupForm(region, profileInfo, payment, s);
       }
 
