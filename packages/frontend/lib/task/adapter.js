@@ -23,17 +23,13 @@ class TaskManagerAdapter {
       // grab the old messages (if they exists)..
       if (statusMessage) {
         // eslint-disable-next-line no-return-assign
-        [...taskIds].forEach(taskId => (this.statusMessageBuffer[taskId] = statusMessage));
-        // console.log(`Task: ${taskId} sent message: ${statusMessage}!`);
-        // const lastMessage = this.statusMessageBuffer[taskId];
-        // if (!lastMessage) {
-        //   this.statusMessageBuffer[taskId] = statusMessage;
-        // } else {
-        //   this.statusMessageBuffer[taskId] = {
-        //     ...lastMessage,
-        //     ...statusMessage,
-        //   };
-        // }
+        [...taskIds].forEach(taskId => {
+          const lastMessage = this.statusMessageBuffer[taskId];
+          this.statusMessageBuffer[taskId] = {
+            ...lastMessage,
+            ...statusMessage,
+          };
+        });
       }
     };
 
