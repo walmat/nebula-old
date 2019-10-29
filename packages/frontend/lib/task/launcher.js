@@ -242,47 +242,47 @@ class TaskLauncher {
   //   }
   // }
 
-  _onRegisterEventRequest(event) {
-    let authorized = true;
-    // If the sender is already listening, they can't listen again...
-    if (this._eventListeners.includes(event.sender)) {
-      authorized = false;
-    }
+  // _onRegisterEventRequest(event) {
+  //   let authorized = true;
+  //   // If the sender is already listening, they can't listen again...
+  //   if (this._eventListeners.includes(event.sender)) {
+  //     authorized = false;
+  //   }
 
-    if (authorized) {
-      // Bump the number of listeners
-      this._addEventListener(event.sender);
+  //   if (authorized) {
+  //     // Bump the number of listeners
+  //     this._addEventListener(event.sender);
 
-      // Send a response with the key to listen on...
-      event.sender.send(IPCKeys.RequestRegisterTaskEventHandler, _TASK_EVENT_KEY);
-    } else {
-      // Send a response with no key, reporting an error...
-      event.sender.send(IPCKeys.RequestRegisterTaskEventHandler, null);
-    }
-  }
+  //     // Send a response with the key to listen on...
+  //     event.sender.send(IPCKeys.RequestRegisterTaskEventHandler, _TASK_EVENT_KEY);
+  //   } else {
+  //     // Send a response with no key, reporting an error...
+  //     event.sender.send(IPCKeys.RequestRegisterTaskEventHandler, null);
+  //   }
+  // }
 
-  _onDeregisterEventRequest(event) {
-    let authorized = true;
-    // If we aren't listening for events, we can't deregister from listening to events!
-    if (this._eventListeners.length === 0) {
-      authorized = false;
-    }
-    // If the sender isn't listening, they can't deregister from listening
-    if (!this._eventListeners.includes(event.sender)) {
-      authorized = false;
-    }
+  // _onDeregisterEventRequest(event) {
+  //   let authorized = true;
+  //   // If we aren't listening for events, we can't deregister from listening to events!
+  //   if (this._eventListeners.length === 0) {
+  //     authorized = false;
+  //   }
+  //   // If the sender isn't listening, they can't deregister from listening
+  //   if (!this._eventListeners.includes(event.sender)) {
+  //     authorized = false;
+  //   }
 
-    if (authorized) {
-      // Dock the number of listeners, then check if we still need the event handler
-      this._removeEventListener(event.sender);
+  //   if (authorized) {
+  //     // Dock the number of listeners, then check if we still need the event handler
+  //     this._removeEventListener(event.sender);
 
-      // Send a response with the key to notify of success
-      event.sender.send(IPCKeys.RequestDeregisterTaskEventHandler, _TASK_EVENT_KEY);
-    } else {
-      // Send a response with no key to notify an error
-      event.sender.send(IPCKeys.RequestDeregisterTaskEventHandler, null);
-    }
-  }
+  //     // Send a response with the key to notify of success
+  //     event.sender.send(IPCKeys.RequestDeregisterTaskEventHandler, _TASK_EVENT_KEY);
+  //   } else {
+  //     // Send a response with no key to notify an error
+  //     event.sender.send(IPCKeys.RequestDeregisterTaskEventHandler, null);
+  //   }
+  // }
 
   _addEventListener(listener) {
     // Don't do anything if we haven't launched yet

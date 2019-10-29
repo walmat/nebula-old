@@ -7,7 +7,7 @@ const nebulaEnv = require('../_electron/env');
 
 nebulaEnv.setUpEnvironment();
 
-const _TASK_EVENT_KEY = 'TaskEventKey';
+// const _TASK_EVENT_KEY = 'TaskEventKey';
 
 class TaskManagerAdapter {
   constructor(logPath) {

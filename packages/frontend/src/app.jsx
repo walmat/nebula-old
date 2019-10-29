@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import WebSocket from 'ws';
+import WS from 'ws';
 import { sortBy } from 'lodash';
 import { isEmpty } from 'lodash';
 import PropTypes from 'prop-types';
@@ -124,13 +124,15 @@ export class App extends PureComponent {
   }
 
   _cleanupWSS() {
-    this.wss.removeAllListeners();
-    this.wss.close();
+    if (this.wss) {
+      this.wss.removeAllListeners();
+      this.wss.close();
+    }
   }
 
-  async initWSS() {
+  initWSS() {
     const { store } = this.props;
-    this.wss = WebSocket.Server({ port: 4040 });
+    this.wss = new WS.Server({ port: 4040 });
     
     this.wss.addListener('connection', ws => {
       console.log(`Socket server connected on port 4040`);
