@@ -1,6 +1,7 @@
 /* eslint-disable global-require */
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { ipcRenderer, shell } = require('electron');
+const { shell } = require('electron');
+const { Server } = require('ws');
 const { TaskRunnerTypes } = require('@nebula/task-runner-built');
 
 const { IPCKeys } = require('../constants');
@@ -10,10 +11,10 @@ const { base, util } = require('./index');
 nebulaEnv.setUpEnvironment();
 
 let srrRequest = null;
-let handlers = [];
+// let handlers = [];
 const SRR_ID = 1000;
 
-const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
+// const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
 /**
  * Sends the deactivate trigger to authManager.js
@@ -33,44 +34,44 @@ const _launchCaptchaHarvester = opts => {
   util.sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha', opts);
 };
 
-/**
- * Sends a listener for task events to launcher.js
- */
-const _registerForTaskEvents = handler => {
-  if (handlers.length > 0) {
-    handlers.push(handler);
-  } else {
-    util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
-    ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
-      // Check and make sure we have a key to listen on
-      if (eventKey) {
-        handlers.push(handler);
-        util.handleEvent(eventKey, taskEventHandler);
-      } else {
-        console.error('Unable to Register for Task Events!');
-      }
-    });
-  }
-};
+// /**
+//  * Sends a listener for task events to launcher.js
+//  */
+// const _registerForTaskEvents = handler => {
+//   if (handlers.length > 0) {
+//     handlers.push(handler);
+//   } else {
+//     util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
+//     ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
+//       // Check and make sure we have a key to listen on
+//       if (eventKey) {
+//         handlers.push(handler);
+//         util.handleEvent(eventKey, taskEventHandler);
+//       } else {
+//         console.error('Unable to Register for Task Events!');
+//       }
+//     });
+//   }
+// };
 
-/**
- * Removes a listener for task events to launcher.js
- */
-const _deregisterForTaskEvents = handler => {
-  if (handlers.length === 1) {
-    util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
-    ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
-      // Check and make sure we have a key to deregister from
-      if (eventKey) {
-        util.removeEvent(eventKey, taskEventHandler);
-        handlers = [];
-      } else {
-        console.error('Unable to Deregister from Task Events!');
-      }
-    });
-  }
-  handlers = handlers.filter(h => h !== handler);
-};
+// /**
+//  * Removes a listener for task events to launcher.js
+//  */
+// const _deregisterForTaskEvents = handler => {
+//   if (handlers.length === 1) {
+//     util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
+//     ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
+//       // Check and make sure we have a key to deregister from
+//       if (eventKey) {
+//         util.removeEvent(eventKey, taskEventHandler);
+//         handlers = [];
+//       } else {
+//         console.error('Unable to Deregister from Task Events!');
+//       }
+//     });
+//   }
+//   handlers = handlers.filter(h => h !== handler);
+// };
 
 /**
  * Removes all listeners if the window was closed
@@ -222,6 +223,7 @@ const _testProxy = async (url, proxy) => {
 process.once('loaded', () => {
   window.Bridge = window.Bridge || {
     ...base,
+    server: new Server({ port: 4040 }),
     /* PRIVATE EVENTS */
     launchCaptchaHarvester: _launchCaptchaHarvester,
     setTheme: _setTheme,
@@ -229,9 +231,8 @@ process.once('loaded', () => {
     stopShippingRatesRunner: _stopShippingRatesRunner,
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
-    registerForTaskEvents: _registerForTaskEvents,
-    // registerForUpdateEvents: _registerForUpdateEvents,
-    deregisterForTaskEvents: _deregisterForTaskEvents,
+    // registerForTaskEvents: _registerForTaskEvents,
+    // deregisterForTaskEvents: _deregisterForTaskEvents,
     startTasks: _startTasks,
     restartTasks: _restartTasks,
     stopTasks: _stopTasks,

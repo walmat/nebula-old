@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import WS from 'ws';
 import { sortBy } from 'lodash';
 import { isEmpty } from 'lodash';
 import PropTypes from 'prop-types';
@@ -60,7 +59,7 @@ export class App extends PureComponent {
 
   constructor(props) {
     super(props);
-    this.taskHandler = this.taskHandler.bind(this);
+    // this.taskHandler = this.taskHandler.bind(this);
     this._cleanup = this._cleanup.bind(this);
 
     this.wss = null;
@@ -73,10 +72,10 @@ export class App extends PureComponent {
       const { theme } = store.getState();
       const backgroundColor = mapBackgroundThemeToColor[theme];
       window.Bridge.setTheme({ backgroundColor });
+      this.initWSS();
       // window.Bridge.registerForTaskEvents(this.taskHandler);
     }
 
-    this.initWSS();
     this.fetchSites();
     this.siteInterval = setInterval(() => this.fetchSites(), 5000);
     window.addEventListener('beforeunload', this._cleanup);
@@ -100,13 +99,13 @@ export class App extends PureComponent {
     this.forceUpdate();
   }
 
-  taskHandler(_, statusMessageBuffer) {
-    const { store } = this.props;
-    if (!isEmpty(statusMessageBuffer)) {
-      console.error('dispatching status event!');
-      store.dispatch(taskActions.status(statusMessageBuffer));
-    }
-  }
+  // taskHandler(_, statusMessageBuffer) {
+  //   const { store } = this.props;
+  //   if (!isEmpty(statusMessageBuffer)) {
+  //     console.error('dispatching status event!');
+  //     store.dispatch(taskActions.status(statusMessageBuffer));
+  //   }
+  // }
 
   _cleanup() {
     this._cleanupTaskLog();
@@ -132,7 +131,7 @@ export class App extends PureComponent {
 
   initWSS() {
     const { store } = this.props;
-    this.wss = new WS.Server({ port: 4040 });
+    this.wss = window.Bridge.server;
     
     this.wss.addListener('connection', ws => {
       console.log(`Socket server connected on port 4040`);

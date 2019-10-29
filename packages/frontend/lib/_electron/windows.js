@@ -7,7 +7,7 @@ nebulaEnv.setUpEnvironment();
 
 const _defaultWebPreferences = {
   backgroundThrottling: false,
-  nodeIntegration: false,
+  nodeIntegration: true,
   contextIsolation: false,
   nodeIntegrationInWorker: false,
   webSecurity: true,
