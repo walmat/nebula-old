@@ -229,46 +229,51 @@ export default class TaskRunnerPrimitive {
     }
   }
 
-  async _handleFetchErrors(errors, state) {
+  async _handleFetchErrors(error, state) {
     if (this._context.aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    errors.forEach(({ status }) => {
-      if (!status) {
-        return;
-      }
+    const { status } = error;
+    console.log(status);
 
-      if (/aborterror/i.test(status)) {
-        return States.ABORT;
-      }
+    if (!status) {
+      return state;
+    }
 
-      const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED|EPROTO)/.exec(
-        status,
-      );
+    if (/aborterror/i.test(status)) {
+      return States.ABORT;
+    }
 
-      if (match) {
-        // Check capturing group
-        switch (match[1]) {
-          // connection reset
-          case 'ENOTFOUND':
-          case 'EPROTO':
-          case 'ECONNREFUSED':
-          case 'ECONNRESET': {
-            return {
-              message: 'Proxy banned!',
-              nextState: States.SWAP,
-            };
-          }
-          default:
-            break;
+    const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED|EPROTO)/.exec(
+      status,
+    );
+
+    if (match) {
+      // Check capturing group
+      switch (match[1]) {
+        // connection reset
+        case 'ENOTFOUND':
+        case 'EPROTO':
+        case 'ECONNREFUSED':
+        case 'ECONNRESET': {
+          return {
+            message: 'Proxy banned!',
+            nextState: States.SWAP,
+          };
         }
+        default:
+          break;
       }
-    });
+    }
 
-    this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
-    await this._delayer;
+    if (/(?!([23][0-9]))\d{3}/g.test(status)) {
+      this._emitTaskEvent({ message: `Error - ${status}`, rawProxy: this._context.rawProxy });
+      this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
+      await this._delayer;
+    }
+
     return state;
   }
 
@@ -579,6 +584,8 @@ export default class TaskRunnerPrimitive {
         body: ATC(s, st, name),
       });
 
+      console.log(res.status, res.ok);
+
       if (!res.ok) {
         const error = new Error('Failed add to cart');
         error.status = res.status || res.errno;
@@ -586,7 +593,7 @@ export default class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
-
+      console.log(body);
       if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         this._pooky = false;
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
@@ -603,7 +610,8 @@ export default class TaskRunnerPrimitive {
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
-      return this._handleFetchErrors([error], States.ADD_TO_CART);
+      console.log(error);
+      return this._handleFetchErrors(error, States.ADD_TO_CART);
     }
   }
 
@@ -836,7 +844,7 @@ export default class TaskRunnerPrimitive {
       if (/invalid json/i.test(error)) {
         return States.ADD_TO_CART;
       }
-      return this._handleFetchErrors([error], States.SUBMIT_CHECKOUT);
+      return this._handleFetchErrors(error, States.SUBMIT_CHECKOUT);
     }
   }
 
@@ -963,7 +971,7 @@ export default class TaskRunnerPrimitive {
 
       return States.CHECK_STATUS;
     } catch (error) {
-      return this._handleFetchErrors([error], States.CHECK_STATUS);
+      return this._handleFetchErrors(error, States.CHECK_STATUS);
     }
   }
 

@@ -23,22 +23,27 @@ class TaskManagerAdapter {
      * @Param taskIds {List<String>} - List of task ids
      * @Param statusMessage {Object} - Incoming status message object for that task
      */
-    this._taskEventHandler = (taskIds, statusMessage) => {
+    this._taskEventHandler = async (taskIds, statusMessage) => {
       // incoming status {}
+      console.log(statusMessage);
       if (statusMessage) {
-        [...taskIds].forEach(taskId => {
-          const lastMessage = this.statusMessageBuffer[taskId];
-          this.statusMessageBuffer[taskId] = {
-            ...lastMessage,
-            ...statusMessage,
-          };
-        });
+        Promise.all(
+          [...taskIds].map(taskId => {
+            const lastMessage = this.statusMessageBuffer[taskId];
+            this.statusMessageBuffer[taskId] = {
+              ...lastMessage,
+              ...statusMessage,
+            };
+          }),
+        );
+
+        console.log(this.statusMessageBuffer);
       }
     };
 
-    this._taskEventMessageSender = () => {
+    this._taskEventMessageSender = async () => {
       if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
-        console.info('[DEBUG]: Relaying message buffer!');
+        console.error('[DEBUG]: SENDING BUFFER! %s', Object.keys(this.statusMessageBuffer).length);
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
         this.statusMessageBuffer = {};
       }

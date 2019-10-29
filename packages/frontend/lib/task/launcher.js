@@ -235,9 +235,10 @@ class TaskLauncher {
   }
 
   _taskEventHandler(_, statusMessageBuffer) {
+    console.error('HANDLING EVENT IN LAUNCHER!');
     // forward event if we have listeners
     if (this._eventListeners.length > 0) {
-      this._eventListeners.forEach(listener => listener.send(_TASK_EVENT_KEY, statusMessageBuffer));
+      Promise.all(this._eventListeners.map(l => l.send(_TASK_EVENT_KEY, statusMessageBuffer)));
     }
   }
 

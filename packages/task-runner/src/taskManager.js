@@ -150,7 +150,7 @@ export default class TaskManager {
 
   async handleProduct(runnerIds, product, parseType) {
     const interval = setInterval(() => {
-      [runnerIds].forEach(id => {
+      [...runnerIds].forEach(id => {
         const runner = Object.values(this._runners).find(r => r.id === id);
 
         if (!runner || (runner && runner._aborted)) {
@@ -163,7 +163,8 @@ export default class TaskManager {
   }
 
   async handleDeregisterProxy(runnerIds) {
-    Object.values(runnerIds).forEach(id => {
+    // eslint-disable-next-line array-callback-return
+    return Object.values(runnerIds).map(id => {
       const runner = this._runners[id];
       // const monitor = this._monitors[id];
 
@@ -216,7 +217,8 @@ export default class TaskManager {
 
   // only called when oneCheckout is enabled for that task that checks out
   async handleSuccess(task) {
-    Object.values(this._runners).forEach(r => {
+    // eslint-disable-next-line array-callback-return
+    return Object.values(this._runners).map(r => {
       // if we are using the same profile, emit the abort event
       this._logger.debug(
         'ONE CHECKOUT: Same profile?: %j, Same site?: %j, Same product?: %j',
@@ -344,15 +346,13 @@ export default class TaskManager {
     if (event === RunnerEvents.TaskStatus) {
       this._logger.silly('Reemitting this task update...');
       const { taskId } = this._runners[runnerId];
-      this._events.emit('status', taskId, message, event);
+      this._events.emit('status', [taskId], message, event);
     }
 
     if (event === RunnerEvents.MonitorStatus) {
       this._logger.silly('Reemitting this monitor update...');
       const { taskIds } = this._monitors[runnerId];
-      for (let i = 0; i < taskIds.length; i += 1) {
-        this._events.emit('status', taskIds[0], message, event);
-      }
+      this._events.emit('status', taskIds, message, event);
     }
   }
 
@@ -454,7 +454,7 @@ export default class TaskManager {
    *   - type - The runner type to start
    */
   startAll(tasks, options) {
-    [...tasks].forEach(t => this.start(t, options));
+    Promise.all([...tasks].map(t => this.start(t, options)));
   }
 
   /**
@@ -485,7 +485,7 @@ export default class TaskManager {
   }
 
   restartAll(tasks, options) {
-    [...tasks].forEach(t => this.restart(t, options));
+    Promise.all([...tasks].map(t => this.restart(t, options)));
   }
 
   /**
@@ -535,7 +535,7 @@ export default class TaskManager {
         this._logger.silly('Force Stopping %d tasks', tasksToStop.length, tasksToStop);
       }
     }
-    return [...tasksToStop].map(t => this.stop(t, { wait }));
+    return Promise.all([...tasksToStop].map(t => this.stop(t, { wait })));
   }
 
   /**
@@ -579,6 +579,7 @@ export default class TaskManager {
           ];
 
     // Generate Handlers for each event
+    // eslint-disable-next-line array-callback-return
     emissions.forEach(event => {
       let handler;
       switch (event) {
