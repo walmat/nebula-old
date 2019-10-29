@@ -3149,7 +3149,6 @@ export default class TaskRunnerPrimitive {
       }
     }
 
-    console.log(this._formValues);
 
     try {
       const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
@@ -4357,7 +4356,6 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    console.log(this._isRestocking);
 
     if (this._isRestocking) {
       const billingInfo = billingMatchesShipping ? shipping : billing;
@@ -4387,7 +4385,6 @@ export default class TaskRunnerPrimitive {
       }
     }
 
-    console.log(this._formValues);
 
     try {
       const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {

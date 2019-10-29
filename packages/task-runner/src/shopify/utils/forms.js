@@ -287,7 +287,6 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
     return `${encodeURI(name)}=${val}&`;
   });
 
-  console.log(formValues);
 
   return formValues.join('').slice(0, -1);
 };
