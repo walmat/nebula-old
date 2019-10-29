@@ -1,4 +1,4 @@
-window.onload = async () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const animData = {
     wrapper: document.getElementById('bodymovin'),
     animType: 'html',
@@ -32,4 +32,4 @@ window.onload = async () => {
     // eslint-disable-next-line no-await-in-loop
     await sleep(getRandomIntInclusive(500, 1500));
   }
-};
+});

@@ -1,7 +1,7 @@
 @import './grid.css';
 
 * {
-  font-family: Lato, sans-serif;
+  font-family: 'Lato', sans-serif;
   font-weight: 500;
   letter-spacing: 0;
   animation: fadein 0.5s;

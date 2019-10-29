@@ -27,7 +27,8 @@ export default class TaskRunnerPrimitive {
     return this._state;
   }
 
-  constructor(context, proxy, type, platform = Platforms.Supreme) {
+  constructor(socket, context, proxy, type, platform = Platforms.Supreme) {
+    this.socket = socket;
     this.id = context.id;
     this._task = context.task;
     this.taskId = context.taskId;
@@ -236,7 +237,6 @@ export default class TaskRunnerPrimitive {
     }
 
     const { status } = error;
-    console.log(status);
 
     if (!status) {
       return state;
@@ -268,8 +268,11 @@ export default class TaskRunnerPrimitive {
       }
     }
 
-    if (/(?!([23][0-9]))\d{3}/g.test(status)) {
-      this._emitTaskEvent({ message: `Error - ${status}`, rawProxy: this._context.rawProxy });
+    if (/(?!([235][0-9]))\d{3}/g.test(status)) {
+      this._emitTaskEvent({
+        message: `Delaying ${this._context.task.errorDelay}ms (${status})`,
+        rawProxy: this._context.rawProxy,
+      });
       this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
       await this._delayer;
     }
@@ -334,7 +337,8 @@ export default class TaskRunnerPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
-        this._events.emit(event, this._context.id, payload, event);
+        this.socket.send(JSON.stringify({ taskIds: [this.taskId], message: payload }));
+        // this._events.emit(event, this._context.id, payload, event);
         break;
       }
       default: {
@@ -584,8 +588,6 @@ export default class TaskRunnerPrimitive {
         body: ATC(s, st, name),
       });
 
-      console.log(res.status, res.ok);
-
       if (!res.ok) {
         const error = new Error('Failed add to cart');
         error.status = res.status || res.errno;
@@ -593,7 +595,6 @@ export default class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
-      console.log(body);
       if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         this._pooky = false;
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
@@ -610,7 +611,6 @@ export default class TaskRunnerPrimitive {
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
-      console.log(error);
       return this._handleFetchErrors(error, States.ADD_TO_CART);
     }
   }
@@ -1062,6 +1062,8 @@ export default class TaskRunnerPrimitive {
 
   async start() {
     this._prevState = States.STARTED;
+
+    this._emitTaskEvent({ message: 'Waiting for product', rawProxy: this._context.rawProxy });
 
     let shouldStop = false;
     while (this._state !== States.DONE && !shouldStop) {

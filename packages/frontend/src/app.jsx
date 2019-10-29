@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { sortBy } from 'lodash';
-import { isEmpty } from 'lodash';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
@@ -61,7 +60,7 @@ export class App extends PureComponent {
     super(props);
     // this.taskHandler = this.taskHandler.bind(this);
     this._cleanup = this._cleanup.bind(this);
-
+    this.initWSS = this.initWSS.bind(this);
     this.wss = null;
     this.siteInterval = null;
   }
@@ -73,7 +72,6 @@ export class App extends PureComponent {
       const backgroundColor = mapBackgroundThemeToColor[theme];
       window.Bridge.setTheme({ backgroundColor });
       this.initWSS();
-      // window.Bridge.registerForTaskEvents(this.taskHandler);
     }
 
     this.fetchSites();
@@ -99,14 +97,6 @@ export class App extends PureComponent {
     this.forceUpdate();
   }
 
-  // taskHandler(_, statusMessageBuffer) {
-  //   const { store } = this.props;
-  //   if (!isEmpty(statusMessageBuffer)) {
-  //     console.error('dispatching status event!');
-  //     store.dispatch(taskActions.status(statusMessageBuffer));
-  //   }
-  // }
-
   _cleanup() {
     this._cleanupTaskLog();
     this._cleanupWSS();
@@ -123,6 +113,11 @@ export class App extends PureComponent {
   }
 
   _cleanupWSS() {
+
+    if (window.Bridge) {
+      window.Bridge.deregisterForTaskEvents();
+    }
+
     if (this.wss) {
       this.wss.removeAllListeners();
       this.wss.close();
@@ -132,16 +127,25 @@ export class App extends PureComponent {
   initWSS() {
     const { store } = this.props;
     this.wss = window.Bridge.server;
-    
-    this.wss.addListener('connection', ws => {
-      console.log(`Socket server connected on port 4040`);
+    if (this.wss) {
+      window.Bridge.registerForTaskEvents();
+      console.log(this.wss);
+      this.wss.addListener('connection', ws => {
+        console.log(`Socket server connected on port 4040`);
 
-      ws.on('message', message => {
-        console.log(message);
-        console.log(`[SERVER]: Received message for: ${JSON.parse(message).taskIds}`);
-        store.dispatch(taskActions.status(JSON.parse(message)));
+        ws.on('message', m => {
+          const { taskIds, message } = JSON.parse(m);
+          console.log(`[SERVER]: Received message for: ${taskIds}`);
+
+          const buffer = {};
+          // eslint-disable-next-line
+          [...taskIds].map(taskId => {
+            buffer[taskId] = message;
+          });
+          store.dispatch(taskActions.status(buffer));
+        });
       });
-    });
+    }
   }
 
   async fetchSites() {

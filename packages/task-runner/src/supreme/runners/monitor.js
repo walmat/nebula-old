@@ -18,7 +18,8 @@ const { States, DelayTypes, ParseType, ErrorCodes } = Monitor;
 
 // SUPREME
 export default class MonitorPrimitive {
-  constructor(context, proxy, type = ParseType.Keywords) {
+  constructor(socket, context, proxy, type = ParseType.Keywords) {
+    this.socket = socket;
     this.ids = [context.id];
     this._task = context.task;
     this.taskIds = [context.taskId];
@@ -74,7 +75,7 @@ export default class MonitorPrimitive {
   _handleAbort(id) {
     if (this.ids.some(i => i === id)) {
       this.ids = this.ids.filter(i => i !== id);
-
+      console.error('remaining ids: %j', this.ids);
       if (!this.ids.length) {
         this._context.aborted = true;
         this._aborter.abort();
@@ -138,6 +139,7 @@ export default class MonitorPrimitive {
   }
 
   _cleanup() {
+    console.log()
     console.log(this._history);
   }
 
@@ -197,7 +199,8 @@ export default class MonitorPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        this._events.emit(event, this.ids[0], payload, event);
+        this.socket.send(JSON.stringify({ taskIds: this.taskIds, message: payload }));
+        // this._events.emit(event, this.ids[0], payload, event);
         break;
       }
       default: {
@@ -550,7 +553,7 @@ export default class MonitorPrimitive {
 
       if (!matchedVariation) {
         this._emitMonitorEvent({ message: 'No variation matched!', rawProxy });
-        return States.ERROR;
+        return States.ABORT;
       }
 
       this._context.task.product.id = matchedVariation.id;
@@ -629,7 +632,7 @@ export default class MonitorPrimitive {
   async run() {
     let nextState = this._state;
 
-    if (this._context.aborted || this._context.productFound) {
+    if (this._context.aborted) {
       nextState = States.ABORT;
       return true;
     }
@@ -639,7 +642,7 @@ export default class MonitorPrimitive {
     } catch (e) {
       if (!/aborterror/i.test(e.name)) {
         this._logger.verbose('Monitor loop errored out! %s', e);
-        nextState = States.ERROR;
+        nextState = States.ABORT;
       }
     }
     this._logger.debug('Monitor Loop finished, state transitioned to: %s', nextState);

@@ -13,24 +13,6 @@ class TaskManagerAdapter {
   constructor(logPath) {
     this._taskManager = new TaskManager(logPath);
 
-    /**
-     * @Param taskIds {List<String>} - List of task ids
-     * @Param statusMessage {Object} - Incoming status message object for that task
-     */
-    // this._taskEventHandler = async (taskIds, statusMessage) => {
-    //   console.error('HANDLING EVENT - TASK ADAPTER!');
-    //   if (statusMessage) {
-    //     const buffer = {};
-    //     Promise.all(
-    //       // eslint-disable-next-line array-callback-return
-    //       [...taskIds].map(taskId => {
-    //         buffer[taskId] = statusMessage;
-    //       }),
-    //     );
-    //     ipcRenderer.send(_TASK_EVENT_KEY, buffer);
-    //   }
-    // };
-
     // TODO: Research if this should always listened to, or if we can dynamically
     //       Start/Stop listening like we with task events
     this._taskManager._events.on(TaskManager.Events.StartHarvest, (...args) =>
@@ -44,16 +26,16 @@ class TaskManagerAdapter {
       await this.abortAllTasks();
       ipcRenderer.send(IPCKeys.RequestAbortAllTasksForClose);
     });
-    // ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
-    //   if (this._taskManager) {
-    //     this._taskManager.registerForTaskEvents(this._taskEventHandler);
-    //   }
-    // });
-    // ipcRenderer.on(IPCKeys.DeregisterTaskEventHandler, () => {
-    //   if (this._taskManager) {
-    //     this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
-    //   }
-    // });
+    ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
+      if (this._taskManager) {
+        this._taskManager.registerForTaskEvents();
+      }
+    });
+    ipcRenderer.on(IPCKeys.DeregisterTaskEventHandler, () => {
+      if (this._taskManager) {
+        this._taskManager.deregisterForTaskEvents();
+      }
+    });
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestRestartTasks, this._onRestartTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestStopTasks, this._onStopTasksRequest.bind(this));

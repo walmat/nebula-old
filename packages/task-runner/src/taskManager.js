@@ -45,7 +45,8 @@ export default class TaskManager {
     // Event Emitter for this manager
     this._events = new EventEmitter();
 
-    this.socket = new WebSocket('ws://127.0.0.1:4040/');
+    this.socket = null;
+
     // Logger file path
     this._loggerPath = loggerPath;
 
@@ -87,8 +88,10 @@ export default class TaskManager {
    *
    * @param {Callback} callback
    */
-  registerForTaskEvents(callback) {
-    this._events.on('status', callback);
+  registerForTaskEvents() {
+    if (!this.socket) {
+      this.socket = new WebSocket('ws://127.0.0.1:4040/');
+    }
   }
 
   /**
@@ -96,8 +99,12 @@ export default class TaskManager {
    *
    * @param {Callback} callback
    */
-  deregisterForTaskEvents(callback) {
-    this._events.removeListener('status', callback);
+  deregisterForTaskEvents() {
+    if (!this.socket) {
+      return;
+    }
+    this.socket.removeAllListeners();
+    this.socket.close();
   }
 
   /**
@@ -343,21 +350,18 @@ export default class TaskManager {
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(runnerId, message, event) {
-    console.error('EMITTING STATUS EVENT - TASK MANAGER!');
-    // this._logger.error('Runner %s posted new event %s - %j', runnerId, event, message);
+    this._logger.silly('Runner %s posted new event %s - %j', runnerId, event, message);
     // For now only re emit Task Status Events
     if (event === RunnerEvents.TaskStatus) {
       this._logger.silly('Reemitting this task update...');
       const { taskId } = this._runners[runnerId];
       this.socket.send(JSON.stringify({ taskIds: [taskId], message }));
-      // this._events.emit('status', [taskId], message, event);
     }
 
     if (event === RunnerEvents.MonitorStatus) {
       this._logger.silly('Reemitting this monitor update...');
       const { taskIds } = this._monitors[runnerId];
       this.socket.send(JSON.stringify({ taskIds, message }));
-      // this._events.emit('status', taskIds, message, event);
     }
   }
 
@@ -414,6 +418,7 @@ export default class TaskManager {
     const { proxy, site, platform } = this._runners[runnerId];
     delete this._runners[runnerId];
     delete this._monitors[runnerId];
+
     if (proxy) {
       this._proxyManager.release(runnerId, site, platform, proxy.id);
     }
@@ -647,15 +652,12 @@ export default class TaskManager {
     this._handlers[runner.id] = handlers;
 
     if (runner.type === RunnerTypes.ShippingRates) {
-      runner.registerForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
       return;
     }
     if (monitor) {
-      monitor.registerForEvent(RunnerEvents.MonitorStatus, this.mergeStatusUpdates);
       monitor._events.on(Events.ProductFound, this.handleProduct, this);
       monitor._events.on(RunnerEvents.SwapMonitorProxy, this.handleSwapProxy, this);
     }
-    runner.registerForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
     runner._events.on(Events.Webhook, this.handleWebhook, this);
     runner._events.on(Events.Success, this.handleSuccess, this);
     runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
@@ -667,9 +669,9 @@ export default class TaskManager {
     const handlers = this._handlers[runner.id];
     delete this._handlers[runner.id];
     // Cleanup manager handlers
-    runner.deregisterForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
+    // runner.deregisterForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
     if (monitor) {
-      monitor.deregisterForEvent(RunnerEvents.MonitorStatus, this.mergeStatusUpdates);
+      // monitor.deregisterForEvent(RunnerEvents.MonitorStatus, this.mergeStatusUpdates);
       monitor._events.removeAllListeners();
     }
     // TODO: Respect the scope of the _events variable (issue #137)
@@ -703,7 +705,6 @@ export default class TaskManager {
         if (type === RunnerTypes.Normal) {
           const parseType = getParseType(task.product, null, platform);
 
-          // shared context between monitor/checkout
           const context = {
             id: runnerId,
             taskId: task.id,
@@ -721,10 +722,12 @@ export default class TaskManager {
             aborted: false,
           };
 
-          runner = new ShopifyRunner(context, openProxy, parseType);
+          // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
+          runner = new ShopifyRunner(this.socket, context, openProxy, parseType);
           runner.parseType = parseType;
 
           // prevent multiple monitors on same site with same data
+          let found;
           // eslint-disable-next-line no-restricted-syntax
           for (const m of Object.values(this._monitors)) {
             if (m.platform === platform) {
@@ -738,7 +741,7 @@ export default class TaskManager {
               this._logger.debug('Same product data?: %j', isSameProduct);
 
               if (isSameProduct && m._task.site.url === context.task.site.url) {
-                monitor = m;
+                found = m;
                 break;
               }
             }
@@ -746,17 +749,19 @@ export default class TaskManager {
 
           this._logger.debug('Existing monitor? %j', monitor);
 
-          if (monitor) {
+          if (found) {
             this._logger.debug('Existing monitor found! Just adding ids');
-            monitor.ids.push(context.id);
-            monitor.taskIds.push(context.taskId);
+            found.ids.push(context.id);
+            found.taskIds.push(context.taskId);
           } else {
-            monitor = new ShopifyMonitor(context, openProxy, parseType);
+            // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
+            monitor = new ShopifyMonitor(this.socket, context, openProxy, parseType);
             monitor.platform = platform;
             monitor.site = task.site.url;
             monitor.type = parseType;
           }
         } else if (type === RunnerTypes.ShippingRates) {
+          // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
           runner = new RateFetcher(runnerId, task, openProxy, this._loggerPath);
         }
         break;
@@ -779,9 +784,11 @@ export default class TaskManager {
           aborted: false,
         };
 
-        runner = new SupremeRunner(context, openProxy, ParseType.Keywords);
+        // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
+        runner = new SupremeRunner(this.socket, context, openProxy, ParseType.Keywords);
         runner.parseType = ParseType.Keywords;
 
+        let found;
         // eslint-disable-next-line no-restricted-syntax
         for (const m of Object.values(this._monitors)) {
           if (m.platform === platform) {
@@ -799,7 +806,7 @@ export default class TaskManager {
               m._task.category === context.task.category &&
               m._task.site.url === context.task.site.url
             ) {
-              monitor = m;
+              found = m;
               break;
             }
           }
@@ -809,11 +816,12 @@ export default class TaskManager {
 
         if (monitor) {
           this._logger.debug('Existing monitor found! Just adding ids');
-          monitor.ids.push(context.id);
-          monitor.taskIds.push(context.taskId);
+          found.ids.push(context.id);
+          found.taskIds.push(context.taskId);
         } else {
           this._logger.debug('No monitor found! Creating a new monitor');
-          monitor = new SupremeMonitor(context, openProxy);
+          // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
+          monitor = new SupremeMonitor(this.socket, context, openProxy);
           monitor.platform = platform;
           monitor.site = task.site.url;
           monitor.type = ParseType.Keywords;
@@ -833,7 +841,9 @@ export default class TaskManager {
     runner.task = task;
     runner.platform = platform;
     runner.type = type;
-    this._monitors[runnerId] = monitor;
+    if (monitor) {
+      this._monitors[runnerId] = monitor;
+    }
     this._runners[runnerId] = runner;
     this._logger.silly('Wiring up Events ...');
     this._setup(runner, monitor);
