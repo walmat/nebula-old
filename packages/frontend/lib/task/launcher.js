@@ -20,17 +20,17 @@ class TaskLauncher {
     this._captchaSemaphore = 0;
     this._stopInitiated = false;
 
-    this._taskEventHandler = this._taskEventHandler.bind(this);
+    // this._taskEventHandler = this._taskEventHandler.bind(this);
 
     // handle event listening requests
-    context.ipc.on(
-      IPCKeys.RequestRegisterTaskEventHandler,
-      this._onRegisterEventRequest.bind(this),
-    );
-    context.ipc.on(
-      IPCKeys.RequestDeregisterTaskEventHandler,
-      this._onDeregisterEventRequest.bind(this),
-    );
+    // context.ipc.on(
+    //   IPCKeys.RequestRegisterTaskEventHandler,
+    //   this._onRegisterEventRequest.bind(this),
+    // );
+    // context.ipc.on(
+    //   IPCKeys.RequestDeregisterTaskEventHandler,
+    //   this._onDeregisterEventRequest.bind(this),
+    // );
     context.ipc.on(IPCKeys.RequestStartHarvestCaptcha, this._startHarvestEventHandler.bind(this));
     context.ipc.on(IPCKeys.RequestStopHarvestCaptcha, this._stopHarvestEventHandler.bind(this));
 
@@ -148,8 +148,8 @@ class TaskLauncher {
       }
 
       // Start listening for events since we have at least one listener
-      this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
-      this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
+      // this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
+      // this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
     });
 
     if (this._launcherWindow) {
@@ -162,7 +162,7 @@ class TaskLauncher {
         this._launcherWindow = null;
 
         // Remove the handler for listening to task event statuses
-        this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
+        // this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
       });
 
       this._launcherWindow.webContents.on('crashed', async (event, killed) => {
@@ -234,13 +234,13 @@ class TaskLauncher {
     }
   }
 
-  _taskEventHandler(_, statusMessageBuffer) {
-    console.error('HANDLING EVENT IN LAUNCHER!');
-    // forward event if we have listeners
-    if (this._eventListeners.length > 0) {
-      Promise.all(this._eventListeners.map(l => l.send(_TASK_EVENT_KEY, statusMessageBuffer)));
-    }
-  }
+  // _taskEventHandler(_, statusMessageBuffer) {
+  //   console.error('HANDLING EVENT - TASK LAUNCHER!');
+  //   // forward event if we have listeners
+  //   if (this._eventListeners.length > 0) {
+  //     Promise.all(this._eventListeners.map(l => l.send(_TASK_EVENT_KEY, statusMessageBuffer)));
+  //   }
+  // }
 
   _onRegisterEventRequest(event) {
     let authorized = true;

@@ -1,4 +1,5 @@
 import EventEmitter from 'eventemitter3';
+import WebSocket from 'ws';
 import shortid from 'shortid';
 import { isEqual } from 'lodash';
 import { CookieJar } from 'tough-cookie';
@@ -44,6 +45,7 @@ export default class TaskManager {
     // Event Emitter for this manager
     this._events = new EventEmitter();
 
+    this.socket = new WebSocket('ws://127.0.0.1:4040/');
     // Logger file path
     this._loggerPath = loggerPath;
 
@@ -341,18 +343,21 @@ export default class TaskManager {
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(runnerId, message, event) {
-    this._logger.info('Runner %s posted new event %s - %j', runnerId, event, message);
+    console.error('EMITTING STATUS EVENT - TASK MANAGER!');
+    // this._logger.error('Runner %s posted new event %s - %j', runnerId, event, message);
     // For now only re emit Task Status Events
     if (event === RunnerEvents.TaskStatus) {
       this._logger.silly('Reemitting this task update...');
       const { taskId } = this._runners[runnerId];
-      this._events.emit('status', [taskId], message, event);
+      this.socket.send(JSON.stringify({ taskIds: [taskId], message }));
+      // this._events.emit('status', [taskId], message, event);
     }
 
     if (event === RunnerEvents.MonitorStatus) {
       this._logger.silly('Reemitting this monitor update...');
       const { taskIds } = this._monitors[runnerId];
-      this._events.emit('status', taskIds, message, event);
+      this.socket.send(JSON.stringify({ taskIds, message }));
+      // this._events.emit('status', taskIds, message, event);
     }
   }
 

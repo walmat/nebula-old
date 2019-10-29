@@ -11,36 +11,23 @@ const _TASK_EVENT_KEY = 'TaskEventKey';
 
 class TaskManagerAdapter {
   constructor(logPath) {
-    /**
-     * :: taskId, [statusMessages]
-     */
-    this.statusMessageBuffer = {};
-    this._messageInterval = null;
-
     this._taskManager = new TaskManager(logPath);
 
     /**
      * @Param taskIds {List<String>} - List of task ids
      * @Param statusMessage {Object} - Incoming status message object for that task
      */
-    this._taskEventHandler = async (taskIds, statusMessage) => {
-      if (statusMessage) {
-        Promise.all(
-          // eslint-disable-next-line array-callback-return
-          [...taskIds].map(taskId => {
-            this.statusMessageBuffer[taskId] = statusMessage;
-          }),
-        );
-        ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
-        this.statusMessageBuffer = {};
-      }
-    };
-
-    // this._taskEventMessageSender = async (taskIds, statusMessage) => {
-    //   if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
-    //     console.error('[DEBUG]: SENDING BUFFER! %s', Object.keys(this.statusMessageBuffer).length);
-    //     ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
-    //     this.statusMessageBuffer = {};
+    // this._taskEventHandler = async (taskIds, statusMessage) => {
+    //   console.error('HANDLING EVENT - TASK ADAPTER!');
+    //   if (statusMessage) {
+    //     const buffer = {};
+    //     Promise.all(
+    //       // eslint-disable-next-line array-callback-return
+    //       [...taskIds].map(taskId => {
+    //         buffer[taskId] = statusMessage;
+    //       }),
+    //     );
+    //     ipcRenderer.send(_TASK_EVENT_KEY, buffer);
     //   }
     // };
 
@@ -57,23 +44,16 @@ class TaskManagerAdapter {
       await this.abortAllTasks();
       ipcRenderer.send(IPCKeys.RequestAbortAllTasksForClose);
     });
-    ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
-      if (this._taskManager) {
-        this._taskManager.registerForTaskEvents(this._taskEventHandler);
-        // if (!this._messageInterval) {
-        //   // batch status updates every .5 seconds
-        //   this._messageInterval = setInterval(this._taskEventMessageSender, 0);
-        // }
-      }
-    });
-    ipcRenderer.on(IPCKeys.DeregisterTaskEventHandler, () => {
-      if (this._taskManager) {
-        this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
-        // if (this._messageInterval) {
-        //   clearInterval(this._messageInterval);
-        // }
-      }
-    });
+    // ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
+    //   if (this._taskManager) {
+    //     this._taskManager.registerForTaskEvents(this._taskEventHandler);
+    //   }
+    // });
+    // ipcRenderer.on(IPCKeys.DeregisterTaskEventHandler, () => {
+    //   if (this._taskManager) {
+    //     this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
+    //   }
+    // });
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestRestartTasks, this._onRestartTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestStopTasks, this._onStopTasksRequest.bind(this));
