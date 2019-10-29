@@ -20,7 +20,6 @@ export default class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Unknown) {
     this.ids = [context.id];
     this._task = context.task;
-    this._idReserve = [];
     this.taskIds = [context.taskId];
     this.proxy = proxy;
     this._jar = context.jar;
@@ -91,17 +90,15 @@ export default class MonitorPrimitive {
   }
 
   _handleAbort(id) {
-    if (this._idReserve.some(i => i === id)) {
-      this._idReserve = this._idReserve.filter(i => i !== id);
-    } else if (this.ids.some(i => i === id)) {
+    if (this.ids.some(i => i === id)) {
       this.ids = this.ids.filter(i => i !== id);
-    }
 
-    if (!this._idReserve.length && !this.ids.length) {
-      this._context.aborted = true;
-      this._aborter.abort();
-      if (this._delayer) {
-        this._delayer.clear();
+      if (!this.ids.length) {
+        this._context.aborted = true;
+        this._aborter.abort();
+        if (this._delayer) {
+          this._delayer.clear();
+        }
       }
     }
   }
@@ -573,17 +570,12 @@ export default class MonitorPrimitive {
       return States.ABORT;
     }
 
-    if (this.ids.length) {
-      this._events.emit(
-        TaskManagerEvents.ProductFound,
-        this.ids,
-        this._context.task.product,
-        this._parseType,
-      );
-    }
-
-    this._idReserve.push(...this.ids);
-    this.ids = [];
+    this._events.emit(
+      TaskManagerEvents.ProductFound,
+      this.ids,
+      this._context.task.product,
+      this._parseType,
+    );
 
     // means we matched on the first try...
     if (this._taskType === Modes.CART && !this._matchRandom) {

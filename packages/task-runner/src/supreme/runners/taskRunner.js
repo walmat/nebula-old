@@ -27,10 +27,6 @@ export default class TaskRunnerPrimitive {
     return this._state;
   }
 
-  get context() {
-    return this._context;
-  }
-
   constructor(context, proxy, type, platform = Platforms.Supreme) {
     this.id = context.id;
     this._task = context.task;
@@ -358,6 +354,11 @@ export default class TaskRunnerPrimitive {
       this._logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
+      this._logger.debug(
+        'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
+        proxy,
+        this.shouldBanProxy,
+      );
       // Proxy is fine, update the references
       if ((proxy || proxy === null) && this._previousProxy !== null) {
         if (proxy === null) {
@@ -393,6 +394,7 @@ export default class TaskRunnerPrimitive {
             proxy: proxy.raw,
           });
         }
+        this._logger.debug('Rewinding to state: %s', this._prevState);
         return this._prevState;
       }
 
@@ -449,7 +451,7 @@ export default class TaskRunnerPrimitive {
       }
 
       if (sizeMatcher(v.name)) {
-        this._logger.silly('Choosing variant: %j', v);
+        this._logger.debug('Choosing variant: %j', v);
         return v;
       }
     });
@@ -519,7 +521,7 @@ export default class TaskRunnerPrimitive {
       }
 
       this._cookies = body.cookies;
-      this._logger.info(this._cookies);
+      // this._logger.info(this._cookies);
 
       this._context.jar.setCookieSync(`lastid=${lastid}`, this._context.task.site.url);
       await body.cookies.map(cookie =>
@@ -584,6 +586,7 @@ export default class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
+
       if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         this._pooky = false;
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
@@ -681,8 +684,6 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
-
     const {
       variant: { id: s },
     } = this._context.task.product;
@@ -702,7 +703,10 @@ export default class TaskRunnerPrimitive {
         const res = await this._request('/mobile/#checkout', {
           method: 'GET',
           agent: proxy,
-          headers: getHeaders(),
+          headers: {
+            ...getHeaders(),
+            'content-type': 'application/x-www-form-urlencoded',
+          },
         });
 
         if (!res.ok) {
@@ -713,36 +717,32 @@ export default class TaskRunnerPrimitive {
 
         body = await res.text();
       } catch (error) {
-        this._logger.silly('Unable to fetch checkout form!');
+        this._logger.debug('Unable to fetch checkout form!');
         // fail silently..
         // DO NOT BUBBLE THIS ERROR UP!!!
       }
 
       if (body) {
-        this._logger.silly('Attempting to parse checkout fields');
-        let $;
-        try {
-          $ = cheerio.load(body, { xmlMode: true });
-          this._form = await parseForm(
-            $,
-            'form#mobile_checkout_form',
-            'input, textarea, select, button',
-            profileInfo,
-            payment,
-            s,
-          );
-        } catch (e) {
-          // fallback to static form..
-          this._form = backupForm(region, profileInfo, payment, s);
-        }
+        this._logger.debug('Attempting to parse checkout fields');
+        const $ = cheerio.load(body, { xmlMode: true });
+        this._form = await parseForm(
+          $,
+          'form#mobile_checkout_form',
+          'input, textarea, select, button',
+          profileInfo,
+          payment,
+          s,
+        );
       } else {
         // fallback to static form..
         this._form = backupForm(region, profileInfo, payment, s);
       }
 
-      if (this._form.indexOf('billing') < 0) {
+      if (this._form.indexOf('billing') === -1) {
         this._form = backupForm(region, profileInfo, payment, s);
       }
+
+      // this._form = backupForm(region, profileInfo, payment, s);
 
       // patch in the captcha token
       if (this.captchaToken) {
@@ -775,6 +775,8 @@ export default class TaskRunnerPrimitive {
 
     this._logger.info('parsed form: %j', this._form);
 
+    this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
+
     try {
       const res = await this._request('/checkout.json', {
         method: 'POST',
@@ -798,6 +800,7 @@ export default class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
+      this._logger.debug('BODY::: %j', body);
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
