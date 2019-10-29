@@ -24,30 +24,25 @@ class TaskManagerAdapter {
      * @Param statusMessage {Object} - Incoming status message object for that task
      */
     this._taskEventHandler = async (taskIds, statusMessage) => {
-      // incoming status {}
-      console.log(statusMessage);
       if (statusMessage) {
         Promise.all(
+          // eslint-disable-next-line array-callback-return
           [...taskIds].map(taskId => {
-            const lastMessage = this.statusMessageBuffer[taskId];
-            this.statusMessageBuffer[taskId] = {
-              ...lastMessage,
-              ...statusMessage,
-            };
+            this.statusMessageBuffer[taskId] = statusMessage;
           }),
         );
-
-        console.log(this.statusMessageBuffer);
-      }
-    };
-
-    this._taskEventMessageSender = async () => {
-      if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
-        console.error('[DEBUG]: SENDING BUFFER! %s', Object.keys(this.statusMessageBuffer).length);
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
         this.statusMessageBuffer = {};
       }
     };
+
+    // this._taskEventMessageSender = async (taskIds, statusMessage) => {
+    //   if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
+    //     console.error('[DEBUG]: SENDING BUFFER! %s', Object.keys(this.statusMessageBuffer).length);
+    //     ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
+    //     this.statusMessageBuffer = {};
+    //   }
+    // };
 
     // TODO: Research if this should always listened to, or if we can dynamically
     //       Start/Stop listening like we with task events
@@ -65,18 +60,18 @@ class TaskManagerAdapter {
     ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
-        if (!this._messageInterval) {
-          // batch status updates every .5 seconds
-          this._messageInterval = setInterval(this._taskEventMessageSender, 0);
-        }
+        // if (!this._messageInterval) {
+        //   // batch status updates every .5 seconds
+        //   this._messageInterval = setInterval(this._taskEventMessageSender, 0);
+        // }
       }
     });
     ipcRenderer.on(IPCKeys.DeregisterTaskEventHandler, () => {
       if (this._taskManager) {
         this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
-        if (this._messageInterval) {
-          clearInterval(this._messageInterval);
-        }
+        // if (this._messageInterval) {
+        //   clearInterval(this._messageInterval);
+        // }
       }
     });
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));
