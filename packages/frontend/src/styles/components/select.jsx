@@ -71,25 +71,19 @@ export const colourStyles = (theme, provided) => ({
       backgroundColor,
     };
   },
-  Indicator: styles => {
-    return {
-      ...styles,
-      padding: '0 8px',
-    }
-  },
-  IndicatorsContainer: styles => {
-    return {
-      ...styles,
-      padding: '0 8px',
-    };
-  },
-  DropdownIndicator: styles => {
-    return {
-      ...styles,
-      padding: '0 8px',
-      color: (provided && provided.borderColor) || '#6D6E70',
-    };
-  },
+  Indicator: styles => ({
+    ...styles,
+    padding: '0 8px',
+  }),
+  IndicatorsContainer: styles => ({
+    ...styles,
+    padding: '0 8px',
+  }),
+  DropdownIndicator: styles => ({
+    ...styles,
+    padding: '0 8px',
+    color: (provided && provided.borderColor) || '#6D6E70',
+  }),
   option: (styles, { isDisabled, isFocused, isSelected }) => {
     if (isDisabled) {
       return {

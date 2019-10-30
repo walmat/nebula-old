@@ -139,7 +139,6 @@ export default class MonitorPrimitive {
   }
 
   _cleanup() {
-    console.log()
     console.log(this._history);
   }
 
@@ -199,6 +198,7 @@ export default class MonitorPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
+        console.error('SENDING MONITOR EVER!');
         this.socket.send(JSON.stringify({ taskIds: this.taskIds, message: payload }));
         // this._events.emit(event, this.ids[0], payload, event);
         break;

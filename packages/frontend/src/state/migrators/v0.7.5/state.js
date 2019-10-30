@@ -9,7 +9,7 @@ const updateTask = task => {
   newTask.account = null;
 
   return newTask;
-}
+};
 
 export default {
   ...prevState,

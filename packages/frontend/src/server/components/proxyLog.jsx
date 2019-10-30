@@ -33,7 +33,9 @@ export class ProxyLogPrimitive extends PureComponent {
         <div className="row row--start row--expand row--gutter">
           <div className="col col--start col--expand">
             <div className="row row--start">
-              <p className="row row--start row--expand body-text section-header server-table__section-header">Log</p>
+              <p className="row row--start row--expand body-text section-header server-table__section-header">
+                Log
+              </p>
             </div>
             <div className="row row--start row--expand">
               <div className="col col--start col--expand server-table-container">

@@ -163,9 +163,7 @@ export class ProxyListPrimitive extends Component {
       <>
         <div className="row row--start row--gutter">
           <div className="col col--start col--expand col--no-gutter-left">
-            <p className="body-text section-header proxy-list__section-header">
-              Proxy List
-            </p>
+            <p className="body-text section-header proxy-list__section-header">Proxy List</p>
           </div>
         </div>
         <div className="row row--start row--expand row--gutter">

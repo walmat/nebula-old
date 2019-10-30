@@ -113,7 +113,6 @@ export class App extends PureComponent {
   }
 
   _cleanupWSS() {
-
     if (window.Bridge) {
       window.Bridge.deregisterForTaskEvents();
     }
@@ -163,10 +162,7 @@ export class App extends PureComponent {
         const sorted = sortBy(sites, site => site.index);
         store.dispatch(globalActions.fetchSites(sorted));
       }
-      return;
-    } catch (error) {
-      return;
-    }
+    } catch (error) {}
   }
 
   render() {
@@ -277,6 +273,11 @@ App.propTypes = {
 App.defaultProps = {
   onKeyPress: () => {},
 };
+
+if (process.env.NODE_ENV !== 'production') {
+  const whyDidYouRender = require('@welldone-software/why-did-you-render');
+  whyDidYouRender(React, { trackHooks: false });
+}
 
 const createApp = (store, props) => <App store={store} {...props} />;
 

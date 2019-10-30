@@ -3,7 +3,11 @@ import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { DropdownIndicator, IndicatorSeparator, colourStyles } from '../../styles/components/select';
+import {
+  DropdownIndicator,
+  IndicatorSeparator,
+  colourStyles,
+} from '../../styles/components/select';
 import addTestId from '../../utils/addTestId';
 import validationStatus from '../../utils/validationStatus';
 import defns from '../../state/definitions/profileDefinitions';

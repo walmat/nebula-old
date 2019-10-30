@@ -2,6 +2,8 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
+
+import PLATFORMS from '../constants/platforms';
 import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../state/actions';
 
 import { renderSvgIcon } from '../utils';
@@ -45,19 +47,6 @@ export class NavbarPrimitive extends PureComponent {
     );
   }
 
-  static openHarvesterWindow(theme, host, sitekey) {
-    if (window.Bridge) {
-      return window.Bridge.launchCaptchaHarvester({
-        backgroundColor: mapBackgroundThemeToColor[theme],
-        host,
-        sitekey,
-      });
-    }
-    // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
-    console.error('Unable to launch harvester!');
-    return null;
-  }
-
   static closeAllCaptchaWindows() {
     if (window.Bridge) {
       return window.Bridge.closeAllCaptchaWindows();
@@ -94,11 +83,58 @@ export class NavbarPrimitive extends PureComponent {
         classNameGenerator: classNameCalc(ROUTES.SETTINGS),
       },
     };
+
+    this.defaultHarvesterOptions = {
+      [PLATFORMS.Supreme]: {
+        sitekey: '6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz',
+        host: 'http://supremenewyork.com',
+      },
+      [PLATFORMS.Shopify]: {
+        sitekey: '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
+        host: 'http://checkout.shopify.com',
+      },
+    }
+
+    this.renderCaptchaHarvesterRow = this.renderCaptchaHarvesterRow.bind(this);
+    this.openHarvesterWindow = this.openHarvesterWindow.bind(this);
+  }
+
+  openHarvesterWindow(host, sitekey) {
+    const { theme } = this.props;
+    if (window.Bridge) {
+      return window.Bridge.launchCaptchaHarvester({
+        backgroundColor: mapBackgroundThemeToColor[theme],
+        host,
+        sitekey,
+      });
+    }
+    // TODO - Show notification #77: https://github.com/walmat/nebula/issues/77
+    console.error('Unable to launch harvester!');
+    return null;
+  }
+
+  renderCaptchaHarvesterRow(platform, label) {
+    const { sitekey, host } = this.defaultHarvesterOptions[platform];
+    return (
+      <div className="row row--gutter">
+        <button
+          type="button"
+          className="navbar__button--open-captcha"
+          onClick={() => this.openHarvesterWindow(
+              host,
+              sitekey,
+            )
+          }
+        >
+          {label}
+        </button>
+      </div>
+    );
   }
 
   renderNavbarIconRow(route, { Icon, iconName, classNameGenerator }) {
-    const { onKeyPress, onRoute, navbar, history } = this.props;
-    const className = classNameGenerator(navbar.location);
+    const { onKeyPress, onRoute, location, history } = this.props;
+    const className = classNameGenerator(location);
     const props = {
       Icon,
       iconName,
@@ -119,8 +155,8 @@ export class NavbarPrimitive extends PureComponent {
   }
 
   render() {
+    console.log('rendering navbar!');
     const { name, version } = NavbarPrimitive._getAppData();
-    const { theme } = this.props;
     return (
       <div className="container navbar">
         <div className="row">
@@ -133,36 +169,8 @@ export class NavbarPrimitive extends PureComponent {
                 <div className="col col--expand col--no-gutter navbar__icons">
                   {this.renderNavbarIconRows()}
                 </div>
-                <div className="row row--gutter">
-                  <button
-                    type="button"
-                    className="navbar__button--open-captcha"
-                    onClick={() =>
-                      NavbarPrimitive.openHarvesterWindow(
-                        theme,
-                        'http://supremenewyork.com',
-                        '6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz',
-                      )
-                    }
-                  >
-                    Supreme
-                  </button>
-                </div>
-                <div className="row row--gutter">
-                  <button
-                    type="button"
-                    className="navbar__button--open-captcha"
-                    onClick={() =>
-                      NavbarPrimitive.openHarvesterWindow(
-                        theme,
-                        'http://checkout.shopify.com',
-                        '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
-                      )
-                    }
-                  >
-                    Shopify
-                  </button>
-                </div>
+                {this.renderCaptchaHarvesterRow(PLATFORMS.Supreme, 'Supreme')}
+                {this.renderCaptchaHarvesterRow(PLATFORMS.Shopify, 'Shopify')}
                 <div className="row row--gutter">
                   <button
                     type="button"
@@ -200,7 +208,7 @@ export class NavbarPrimitive extends PureComponent {
 
 NavbarPrimitive.propTypes = {
   history: PropTypes.objectOf(PropTypes.any).isRequired,
-  navbar: PropTypes.objectOf(PropTypes.any).isRequired,
+  location: PropTypes.string.isRequired,
   theme: PropTypes.string.isRequired,
   onRoute: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
@@ -211,7 +219,7 @@ NavbarPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  navbar: state.navbar,
+  location: state.navbar.location,
   theme: state.theme,
 });
 

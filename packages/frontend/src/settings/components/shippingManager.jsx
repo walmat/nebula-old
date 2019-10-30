@@ -104,9 +104,7 @@ export class ShippingManagerPrimitive extends PureComponent {
           onSettingsChange({ field, value: site });
         };
       case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT:
-        return event => {
-          return onSettingsChange({ field, value: event.target.value, sites });
-        }
+        return event => onSettingsChange({ field, value: event.target.value, sites });
       default:
         return event => {
           onSettingsChange({
@@ -157,7 +155,7 @@ export class ShippingManagerPrimitive extends PureComponent {
         disabled={disabled}
         data-testid={addTestId(`ShippingManager.button.${type}`)}
       >
-        {field === SETTINGS_FIELDS.FETCH_SHIPPING_METHODS ? (message || label) : label}
+        {field === SETTINGS_FIELDS.FETCH_SHIPPING_METHODS ? message || label : label}
       </button>
     );
   }
@@ -244,7 +242,9 @@ export class ShippingManagerPrimitive extends PureComponent {
                       style={{ marginTop: '15px' }}
                     >
                       <div className="col col--start col--expand col--no-gutter-right">
-                        <p className="settings--shipping-manager__input-group--label">Product / Shipping Rate</p>
+                        <p className="settings--shipping-manager__input-group--label">
+                          Product / Shipping Rate
+                        </p>
                         <input
                           className="settings--shipping-manager__input-group--product"
                           type="text"

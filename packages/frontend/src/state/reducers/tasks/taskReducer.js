@@ -109,6 +109,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
               };
               break;
             }
+            // TODO: Once pre-cart mode gets finished
             // case TASK_TYPES.FAST: {
             //   change = {
             //     type: TASK_TYPES.CART,

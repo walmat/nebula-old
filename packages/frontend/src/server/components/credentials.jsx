@@ -339,7 +339,9 @@ export class AWSCredentialsPrimitive extends PureComponent {
         <div className="row row--end row--gutter">
           <div className="col col--start col--expand server-credentials__input-group">
             <div className="row row--start row--expand row--gutter">
-              <div className="col col--start col--expand col--no-gutter-left">{this.renderNameInput()}</div>
+              <div className="col col--start col--expand col--no-gutter-left">
+                {this.renderNameInput()}
+              </div>
               <div className="col col--start col--expand col--no-gutter">
                 <button
                   type="button"
@@ -349,7 +351,7 @@ export class AWSCredentialsPrimitive extends PureComponent {
                   onClick={loggedIn ? this.logoutAws : this.validateAws}
                   data-testid={addTestId('AWSCredentials.submitButton')}
                 >
-                  {loggedIn ? 'Log out' : (status || 'Validate') }
+                  {loggedIn ? 'Log out' : status || 'Validate'}
                 </button>
               </div>
             </div>

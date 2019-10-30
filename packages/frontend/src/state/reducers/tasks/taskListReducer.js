@@ -309,13 +309,16 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
-      const { tasks, edits: { url, password } } = action;
+      const {
+        tasks,
+        edits: { url, password },
+      } = action;
 
       if (window.Bridge) {
         tasks.forEach(t => {
           const idx = nextState.findIndex(task => task.id === t.id);
 
-          if (idx > -1) {
+          if (idx >= 0) {
             let newTask;
             if (url) {
               newTask = {
@@ -346,7 +349,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
                   site: {
                     ...t.edits.site,
                     password,
-                  }
+                  },
                 },
               };
             }
@@ -459,11 +462,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
-      const found = nextState.find(t => t.id === action.response.task.id);
-      if (found === undefined) {
+      const idx = nextState.findIndex(t => t.id === action.response.task.id);
+      if (idx < 0) {
         break;
       }
-      const idx = nextState.indexOf(found);
 
       // do nothing if the task is already running..
       if (nextState[idx].status === 'running') {
@@ -506,11 +508,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
-      const found = nextState.find(t => t.id === action.response.task.id);
-      if (found === undefined) {
+      const idx = nextState.findIndex(t => t.id === action.response.task.id);
+      if (idx < 0) {
         break;
       }
-      const idx = nextState.indexOf(found);
 
       // do nothing if the status is already stopped or idle
       if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {

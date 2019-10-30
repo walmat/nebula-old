@@ -25,7 +25,9 @@ export class PaymentFieldsPrimitive extends PureComponent {
     return (
       <div className="col col--gutter col--start col--expand">
         <div className="row row--start">
-          <p className="row row--start row--expand body-text section-header profiles-payment__section-header">Payment</p>
+          <p className="row row--start row--expand body-text section-header profiles-payment__section-header">
+            Payment
+          </p>
         </div>
         <div className="row row--start row--expand">
           <div className="profiles-payment col col--start col--expand col--no-gutter">

@@ -337,6 +337,7 @@ export default class TaskRunnerPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
+        console.error('SENDING TASK EVENT!');
         this.socket.send(JSON.stringify({ taskIds: [this.taskId], message: payload }));
         // this._events.emit(event, this._context.id, payload, event);
         break;

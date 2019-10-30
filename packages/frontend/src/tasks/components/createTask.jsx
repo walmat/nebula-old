@@ -24,7 +24,11 @@ import { ReactComponent as Restocks } from '../../styles/images/tasks/restocks.s
 import { ReactComponent as NotOneCheckout } from '../../styles/images/tasks/one-checkout-off.svg';
 import { ReactComponent as OneCheckout } from '../../styles/images/tasks/one-checkout.svg';
 
-import { DropdownIndicator, IndicatorSeparator, colourStyles } from '../../styles/components/select';
+import {
+  DropdownIndicator,
+  IndicatorSeparator,
+  colourStyles,
+} from '../../styles/components/select';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { buildStyle } from '../../styles';
 
@@ -75,7 +79,6 @@ export class CreateTaskPrimitive extends PureComponent {
       isLoadingSite: false,
       isLoadingSize: false,
     };
-
   }
 
   buildProfileOptions() {
@@ -619,10 +622,7 @@ export class CreateTaskPrimitive extends PureComponent {
                   theme,
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                 )}
-                isOptionDisabled={option =>
-                  !option.supported &&
-                  option.supported !== undefined
-                }
+                isOptionDisabled={option => !option.supported && option.supported !== undefined}
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
                 onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SITE, v)}
                 options={sites}
@@ -749,6 +749,7 @@ export const mapStateToProps = (state, ownProps) => ({
 
 export const mapDispatchToProps = dispatch => ({
   onFieldChange: changes => {
+    console.log('field changed: %s', changes.field);
     dispatch(taskActions.edit(null, changes.field, changes.value, changes.sites));
   },
   onAddNewTask: (newTask, amount) => {

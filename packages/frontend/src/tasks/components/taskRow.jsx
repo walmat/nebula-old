@@ -246,10 +246,7 @@ export class TaskRowPrimitive extends PureComponent {
                   buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
                 )}
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
-                isOptionDisabled={option =>
-                  !option.supported &&
-                  option.supported !== undefined
-                }
+                isOptionDisabled={option => !option.supported && option.supported !== undefined}
                 onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SITE)}
                 value={editSite}
                 options={sites}
