@@ -7,11 +7,38 @@ const nebulaEnv = require('../_electron/env');
 
 nebulaEnv.setUpEnvironment();
 
-// const _TASK_EVENT_KEY = 'TaskEventKey';
+const _TASK_EVENT_KEY = 'TaskEventKey';
 
 class TaskManagerAdapter {
   constructor(logPath) {
+    /**
+     * :: taskId, [statusMessages]
+     */
+    this.statusMessageBuffer = {};
+    this._messageInterval = null;
+
     this._taskManager = new TaskManager(logPath);
+
+    /**
+     * @Param taskIds {List<String>} - List of task ids
+     * @Param statusMessage {Object} - Incoming status message object for that task
+     */
+    this._taskEventHandler = async (taskIds, statusMessage) => {
+      if (statusMessage) {
+        Promise.all(
+          // eslint-disable-next-line array-callback-return
+          [...taskIds].map(taskId => {
+            const previous = this.statusMessageBuffer[taskId];
+            this.statusMessageBuffer[taskId] = {
+              ...previous,
+              ...statusMessage,
+            };
+          }),
+        );
+        ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
+        this.statusMessageBuffer = {};
+      }
+    };
 
     // TODO: Research if this should always listened to, or if we can dynamically
     //       Start/Stop listening like we with task events
@@ -28,12 +55,12 @@ class TaskManagerAdapter {
     });
     ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
       if (this._taskManager) {
-        this._taskManager.registerForTaskEvents();
+        this._taskManager.registerForTaskEvents(this._taskEventHandler);
       }
     });
     ipcRenderer.on(IPCKeys.DeregisterTaskEventHandler, () => {
       if (this._taskManager) {
-        this._taskManager.deregisterForTaskEvents();
+        this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
       }
     });
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));

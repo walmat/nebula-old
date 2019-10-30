@@ -7,15 +7,20 @@ const nebulaEnv = require('../_electron/env');
 
 nebulaEnv.setUpEnvironment();
 
+const _TASK_EVENT_KEY = 'TaskEventKey';
+
 const _LOG_PATH = Electron.app.getPath('documents');
 
 class TaskLauncher {
   constructor(context) {
     this._context = context;
     this._launcherWindow = null;
+    this._eventListeners = [];
     this._captchaRequesters = {};
     this._captchaSemaphore = 0;
     this._stopInitiated = false;
+
+    this._taskEventHandler = this._taskEventHandler.bind(this);
 
     // handle event listening requests
     context.ipc.on(
@@ -143,8 +148,8 @@ class TaskLauncher {
       }
 
       // Start listening for events since we have at least one listener
-      // this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
-      // this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
+      this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
+      this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
     });
 
     if (this._launcherWindow) {
@@ -157,7 +162,7 @@ class TaskLauncher {
         this._launcherWindow = null;
 
         // Remove the handler for listening to task event statuses
-        // this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
+        this._context.ipc.removeListener(_TASK_EVENT_KEY, this._taskEventHandler);
       });
 
       this._launcherWindow.webContents.on('crashed', async (event, killed) => {
@@ -229,13 +234,70 @@ class TaskLauncher {
     }
   }
 
-  _onRegisterEventRequest() {
-    console.log('in launcher register!');
-    this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
+  _taskEventHandler(_, statusMessageBuffer) {
+    console.error('HANDLING EVENT IN LAUNCHER!');
+    // forward event if we have listeners
+    if (this._eventListeners.length > 0) {
+      Promise.all(this._eventListeners.map(l => l.send(_TASK_EVENT_KEY, statusMessageBuffer)));
+    }
   }
 
-  _onDeregisterEventRequest() {
-    this._sendToLauncher(IPCKeys.DeregisterTaskEventHandler);
+  _onRegisterEventRequest(event) {
+    let authorized = true;
+    // If the sender is already listening, they can't listen again...
+    if (this._eventListeners.includes(event.sender)) {
+      authorized = false;
+    }
+
+    if (authorized) {
+      // Bump the number of listeners
+      this._addEventListener(event.sender);
+
+      // Send a response with the key to listen on...
+      event.sender.send(IPCKeys.RequestRegisterTaskEventHandler, _TASK_EVENT_KEY);
+    } else {
+      // Send a response with no key, reporting an error...
+      event.sender.send(IPCKeys.RequestRegisterTaskEventHandler, null);
+    }
+  }
+
+  _onDeregisterEventRequest(event) {
+    let authorized = true;
+    // If we aren't listening for events, we can't deregister from listening to events!
+    if (this._eventListeners.length === 0) {
+      authorized = false;
+    }
+    // If the sender isn't listening, they can't deregister from listening
+    if (!this._eventListeners.includes(event.sender)) {
+      authorized = false;
+    }
+
+    if (authorized) {
+      // Dock the number of listeners, then check if we still need the event handler
+      this._removeEventListener(event.sender);
+
+      // Send a response with the key to notify of success
+      event.sender.send(IPCKeys.RequestDeregisterTaskEventHandler, _TASK_EVENT_KEY);
+    } else {
+      // Send a response with no key to notify an error
+      event.sender.send(IPCKeys.RequestDeregisterTaskEventHandler, null);
+    }
+  }
+
+  _addEventListener(listener) {
+    // Don't do anything if we haven't launched yet
+    if (!this._launcherWindow) {
+      return;
+    }
+    this._eventListeners.push(listener);
+  }
+
+  _removeEventListener(listener) {
+    // Don't do anything if we haven't launched yet
+    if (!this._launcherWindow) {
+      return;
+    }
+    this._eventListeners = this._eventListeners.filter(l => l !== listener);
   }
 
   async _startHarvestEventHandler(

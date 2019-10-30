@@ -27,9 +27,8 @@ export default class TaskRunnerPrimitive {
     return this._state;
   }
 
-  constructor(socket, context, proxy, type, platform = Platforms.Shopify) {
+  constructor(context, proxy, type, platform = Platforms.Shopify) {
     // Add Ids to object
-    this.socket = socket;
     this.id = context.id;
     this._task = context.task;
     this.taskId = context.taskId;
@@ -370,8 +369,7 @@ export default class TaskRunnerPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
-        this.socket.send(JSON.stringify({ taskIds: [this.taskId], message: payload }));
-        // this._events.emit(event, this._context.id, payload, event);
+        this._events.emit(event, this._context.id, payload, event);
         break;
       }
       default: {

@@ -18,8 +18,7 @@ const { States, DelayTypes, ParseType, ErrorCodes } = Monitor;
 
 // SUPREME
 export default class MonitorPrimitive {
-  constructor(socket, context, proxy, type = ParseType.Keywords) {
-    this.socket = socket;
+  constructor(context, proxy, type = ParseType.Keywords) {
     this.ids = [context.id];
     this._task = context.task;
     this.taskIds = [context.taskId];
@@ -198,9 +197,7 @@ export default class MonitorPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        console.error('SENDING MONITOR EVER!');
-        this.socket.send(JSON.stringify({ taskIds: this.taskIds, message: payload }));
-        // this._events.emit(event, this.ids[0], payload, event);
+        this._events.emit(event, this.ids, payload, event);
         break;
       }
       default: {

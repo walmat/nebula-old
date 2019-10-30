@@ -17,8 +17,7 @@ const { Events } = Runner;
 
 // SHOPIFY
 export default class MonitorPrimitive {
-  constructor(socket, context, proxy, type = ParseType.Unknown) {
-    this.socket = socket;
+  constructor(context, proxy, type = ParseType.Unknown) {
     this.ids = [context.id];
     this._task = context.task;
     this.taskIds = [context.taskId];
@@ -164,8 +163,7 @@ export default class MonitorPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        this.socket.send(JSON.stringify({ taskIds: this.taskIds, message: payload }));
-        // this._events.emit(event, this.ids[0], payload, event);
+        this._events.emit(event, this.ids, payload, event);
         break;
       }
       default: {

@@ -34,6 +34,7 @@
   "dependencies": {
     "@babel/runtime": "^7.4.5",
     "@nebula/task-runner-built": "*",
+    "@welldone-software/why-did-you-render": "3.3.8",
     "aws-sdk": "^2.477.0",
     "body-parser": "^1.19.0",
     "bodymovin": "^4.13.0",

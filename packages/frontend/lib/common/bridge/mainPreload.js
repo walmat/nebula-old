@@ -1,7 +1,6 @@
 /* eslint-disable global-require */
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { shell } = require('electron');
-const { Server } = require('ws');
+const { ipcRenderer, shell } = require('electron');
 const { TaskRunnerTypes } = require('@nebula/task-runner-built');
 
 const { IPCKeys } = require('../constants');
@@ -11,12 +10,10 @@ const { base, util } = require('./index');
 nebulaEnv.setUpEnvironment();
 
 let srrRequest = null;
-// let handlers = [];
+let handlers = [];
 const SRR_ID = 1000;
-// const _server = new Server({ address: 'ws+unix:///tmp/nebula.sock' });
-const _server = new Server({ port: 4040 });
 
-// const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
+const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
 /**
  * Sends the deactivate trigger to authManager.js
@@ -36,26 +33,51 @@ const _launchCaptchaHarvester = opts => {
   util.sendEvent(IPCKeys.RequestCreateNewWindow, 'captcha', opts);
 };
 
-// /**
-//  * Sends a listener for task events to launcher.js
-//  */
-const _registerForTaskEvents = () => {
-  util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
+/**
+ * Sends a listener for task events to launcher.js
+ */
+const _registerForTaskEvents = handler => {
+  if (handlers.length > 0) {
+    handlers.push(handler);
+  } else {
+    util.sendEvent(IPCKeys.RequestRegisterTaskEventHandler);
+    ipcRenderer.once(IPCKeys.RequestRegisterTaskEventHandler, (event, eventKey) => {
+      // Check and make sure we have a key to listen on
+      if (eventKey) {
+        handlers.push(handler);
+        util.handleEvent(eventKey, taskEventHandler);
+      } else {
+        console.error('Unable to Register for Task Events!');
+      }
+    });
+  }
 };
 
 /**
  * Removes a listener for task events to launcher.js
  */
-const _deregisterForTaskEvents = () => {
-  util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
+const _deregisterForTaskEvents = handler => {
+  if (handlers.length === 1) {
+    util.sendEvent(IPCKeys.RequestDeregisterTaskEventHandler);
+    ipcRenderer.once(IPCKeys.RequestDeregisterTaskEventHandler, (event, eventKey) => {
+      // Check and make sure we have a key to deregister from
+      if (eventKey) {
+        util.removeEvent(eventKey, taskEventHandler);
+        handlers = [];
+      } else {
+        console.error('Unable to Deregister from Task Events!');
+      }
+    });
+  }
+  handlers = handlers.filter(h => h !== handler);
 };
 
 /**
  * Removes all listeners if the window was closed
  */
-// window.onbeforeunload = () => {
-//   handlers.forEach(h => _deregisterForTaskEvents(h));
-// };
+window.onbeforeunload = () => {
+  handlers.forEach(h => _deregisterForTaskEvents(h));
+};
 
 const _openInDefaultBrowser = url => {
   if (!url) {
@@ -106,7 +128,7 @@ const _startShippingRatesRunner = task => {
         response.selectedRate = payload[SRR_ID].selected || response.selectedRate; // update selected if it exists
         if (payload[SRR_ID].done) {
           // SRR is done
-          // _deregisterForTaskEvents(srrMessageHandler);
+          _deregisterForTaskEvents(srrMessageHandler);
           if (!response.rates || !response.selectedRate) {
             // Reject since we don't have the required data
             reject(new Error('Data was not provided!'));
@@ -121,14 +143,14 @@ const _startShippingRatesRunner = task => {
 
     // Define cancel method for request
     request.cancel = () => {
-      // _deregisterForTaskEvents(srrMessageHandler);
+      _deregisterForTaskEvents(srrMessageHandler);
       _stopTasks(request.task);
       srrRequest = null;
       reject(new Error('Runner was cancelled'));
     };
 
     srrRequest = request;
-    // _registerForTaskEvents(srrMessageHandler);
+    _registerForTaskEvents(srrMessageHandler);
     _startTasks(request.task, { type: TaskRunnerTypes.ShippingRates });
   });
 
@@ -219,8 +241,5 @@ process.once('loaded', () => {
     updateHook: _updateHook,
     testProxy: _testProxy,
     sendWebhookTestMessage: _sendWebhookTestMessage,
-
-    /** Objects */
-    server: _server,
   };
 });

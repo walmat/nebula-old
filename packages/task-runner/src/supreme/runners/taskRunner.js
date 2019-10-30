@@ -27,8 +27,7 @@ export default class TaskRunnerPrimitive {
     return this._state;
   }
 
-  constructor(socket, context, proxy, type, platform = Platforms.Supreme) {
-    this.socket = socket;
+  constructor(context, proxy, type, platform = Platforms.Supreme) {
     this.id = context.id;
     this._task = context.task;
     this.taskId = context.taskId;
@@ -337,9 +336,7 @@ export default class TaskRunnerPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
-        console.error('SENDING TASK EVENT!');
-        this.socket.send(JSON.stringify({ taskIds: [this.taskId], message: payload }));
-        // this._events.emit(event, this._context.id, payload, event);
+        this._events.emit(event, this._context.id, payload, event);
         break;
       }
       default: {
@@ -509,10 +506,10 @@ export default class TaskRunnerPrimitive {
   }
 
   async generatePooky(region = 'US') {
-    return new Promise(async (resolve, reject) => {
-      const lastid = Date.now();
+    const lastid = Date.now();
+    const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
 
-      const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
+    try {
       const res = await this._request(
         `${NEBULA_API_BASE}/${region}?auth=nebula-${NEBULA_API_UUID}`,
       );
@@ -520,26 +517,28 @@ export default class TaskRunnerPrimitive {
       if (!res.ok) {
         const error = new Error('Unable to fetch cookies');
         error.status = res.status || res.errno;
-        reject(error);
+        throw error;
       }
 
       const body = await res.json();
       if (!body || (body && !body.cookies)) {
         const error = new Error('Unable to parse cookies');
         error.status = res.status || res.errno;
-        reject(error);
+        throw error;
       }
 
       this._cookies = body.cookies;
-      // this._logger.info(this._cookies);
+      this._logger.info(this._cookies);
 
       this._context.jar.setCookieSync(`lastid=${lastid}`, this._context.task.site.url);
       await body.cookies.map(cookie =>
         this._context.jar.setCookieSync(`${cookie};`, this._context.task.site.url),
       );
 
-      resolve(true);
-    });
+      return true;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async _handleAddToCart() {

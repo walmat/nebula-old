@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import { sortBy } from 'lodash';
+import { isEmpty } from 'lodash';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
@@ -58,10 +59,9 @@ export class App extends PureComponent {
 
   constructor(props) {
     super(props);
-    // this.taskHandler = this.taskHandler.bind(this);
+    this.taskHandler = this.taskHandler.bind(this);
     this._cleanup = this._cleanup.bind(this);
-    this.initWSS = this.initWSS.bind(this);
-    this.wss = null;
+
     this.siteInterval = null;
   }
 
@@ -71,9 +71,8 @@ export class App extends PureComponent {
       const { theme } = store.getState();
       const backgroundColor = mapBackgroundThemeToColor[theme];
       window.Bridge.setTheme({ backgroundColor });
-      this.initWSS();
+      window.Bridge.registerForTaskEvents(this.taskHandler);
     }
-
     this.fetchSites();
     this.siteInterval = setInterval(() => this.fetchSites(), 5000);
     window.addEventListener('beforeunload', this._cleanup);
@@ -97,9 +96,17 @@ export class App extends PureComponent {
     this.forceUpdate();
   }
 
+  taskHandler(_, statusMessageBuffer) {
+    const { store } = this.props;
+    if (!isEmpty(statusMessageBuffer)) {
+      console.error('dispatching status event!');
+      store.dispatch(taskActions.status(statusMessageBuffer));
+    }
+  }
+
   _cleanup() {
     this._cleanupTaskLog();
-    this._cleanupWSS();
+    this._cleanupTaskEvents();
   }
 
   _cleanupTaskLog() {
@@ -112,38 +119,9 @@ export class App extends PureComponent {
     });
   }
 
-  _cleanupWSS() {
+  _cleanupTaskEvents() {
     if (window.Bridge) {
-      window.Bridge.deregisterForTaskEvents();
-    }
-
-    if (this.wss) {
-      this.wss.removeAllListeners();
-      this.wss.close();
-    }
-  }
-
-  initWSS() {
-    const { store } = this.props;
-    this.wss = window.Bridge.server;
-    if (this.wss) {
-      window.Bridge.registerForTaskEvents();
-      console.log(this.wss);
-      this.wss.addListener('connection', ws => {
-        console.log(`Socket server connected on port 4040`);
-
-        ws.on('message', m => {
-          const { taskIds, message } = JSON.parse(m);
-          console.log(`[SERVER]: Received message for: ${taskIds}`);
-
-          const buffer = {};
-          // eslint-disable-next-line
-          [...taskIds].map(taskId => {
-            buffer[taskId] = message;
-          });
-          store.dispatch(taskActions.status(buffer));
-        });
-      });
+      window.Bridge.deregisterForTaskEvents(this.taskHandler);
     }
   }
 
@@ -162,7 +140,10 @@ export class App extends PureComponent {
         const sorted = sortBy(sites, site => site.index);
         store.dispatch(globalActions.fetchSites(sorted));
       }
-    } catch (error) {}
+      return;
+    } catch (error) {
+      return;
+    }
   }
 
   render() {
@@ -273,11 +254,6 @@ App.propTypes = {
 App.defaultProps = {
   onKeyPress: () => {},
 };
-
-if (process.env.NODE_ENV !== 'production') {
-  const whyDidYouRender = require('@welldone-software/why-did-you-render');
-  whyDidYouRender(React, { trackHooks: false });
-}
 
 const createApp = (store, props) => <App store={store} {...props} />;
 
