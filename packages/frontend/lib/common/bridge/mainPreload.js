@@ -216,6 +216,10 @@ const _testProxy = async (url, proxy) => {
   }
 };
 
+if (process.env.NODE_ENV !== 'production') {
+  window.__devtron = { require, process };
+}
+
 /**
  * On process load, create the Bridge
  */

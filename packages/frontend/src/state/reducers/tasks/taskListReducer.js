@@ -362,6 +362,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       }
       break;
     }
+    // TODO: OPTIMIZE THIS!!!
     case TASK_ACTIONS.STATUS: {
       if (!action.messageBuffer) {
         break;
