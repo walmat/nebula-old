@@ -155,7 +155,6 @@ export class NavbarPrimitive extends PureComponent {
   }
 
   render() {
-    console.log('rendering navbar!');
     const { name, version } = NavbarPrimitive._getAppData();
     return (
       <div className="container navbar">
