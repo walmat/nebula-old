@@ -1,5 +1,4 @@
 import { createStore, applyMiddleware, compose } from 'redux';
-import { createLogger } from 'redux-logger'
 import thunk from 'redux-thunk';
 import persistState from 'redux-localstorage';
 import topLevelReducer from './reducers';
