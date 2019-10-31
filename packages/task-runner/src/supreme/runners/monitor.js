@@ -197,7 +197,7 @@ export default class MonitorPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        this._events.emit(event, this.ids, payload, event);
+        this._events.emit(event, this.taskIds, payload, event);
         break;
       }
       default: {

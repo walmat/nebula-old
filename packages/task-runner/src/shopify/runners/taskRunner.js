@@ -369,7 +369,7 @@ export default class TaskRunnerPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
-        this._events.emit(event, this._context.id, payload, event);
+        this._events.emit(event, [this.taskId], payload, event);
         break;
       }
       default: {

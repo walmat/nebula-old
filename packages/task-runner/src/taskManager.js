@@ -340,18 +340,16 @@ export default class TaskManager {
    * @param {String} message the status message
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
-  mergeStatusUpdates(runnerId, message, event) {
-    this._logger.silly('Runner %s posted new event %s - %j', runnerId, event, message);
+  mergeStatusUpdates(taskIds, message, event) {
+    this._logger.silly('Tasks: %j posted new event %s - %j', taskIds, event, message);
     // For now only re emit Task Status Events
     if (event === RunnerEvents.TaskStatus) {
       this._logger.silly('Reemitting this task update...');
-      const { taskId } = this._runners[runnerId];
-      this._events.emit('status', [taskId], message, event);
+      this._events.emit('status', taskIds, message, event);
     }
 
     if (event === RunnerEvents.MonitorStatus) {
       this._logger.silly('Reemitting this monitor update...');
-      const { taskIds } = this._monitors[runnerId];
       this._events.emit('status', taskIds, message, event);
     }
   }
@@ -587,13 +585,28 @@ export default class TaskManager {
         case Events.Abort: {
           // Abort handler has a special function so use that instead of default handler
           handler = id => {
-            if (id === runner.id || id === 'ALL') {
-              // TODO: Respect the scope of the runner's methods (issue #137)
-              if (monitor) {
-                monitor._handleAbort(runner.id);
+            // TODO: Respect the scope of the runner's methods (issue #137)
+            console.log('Abort signal sent for runner:', id);
+            console.log('BASE MONITOR w/ IDS:', monitor ? monitor.ids : null);
+            if (monitor) {
+              monitor._handleAbort(id);
+            } else {
+              let found;
+              // eslint-disable-next-line no-restricted-syntax
+              for (const m of Object.values(this._monitors)) {
+                if (m.ids.some(i => i === id)) {
+                  found = m;
+                  break;
+                }
               }
-              runner._handleAbort(runner.id);
+
+              console.log('FOUND PARENT MONITOR w/ IDS: ', found ? found.ids : null);
+              if (found) {
+                found._handleAbort(id);
+              }
             }
+
+            runner._handleAbort(runner.id);
           };
           break;
         }
@@ -732,7 +745,11 @@ export default class TaskManager {
                 parseType,
               );
 
-              this._logger.debug('Same product data?: %j', isSameProduct);
+              this._logger.debug(
+                'Same product data?: %j Same URL?: %j',
+                isSameProduct,
+                m._task.site.url === context.task.site.url,
+              );
 
               if (isSameProduct && m._task.site.url === context.task.site.url) {
                 found = m;
@@ -741,7 +758,7 @@ export default class TaskManager {
             }
           }
 
-          this._logger.debug('Existing monitor? %j', monitor);
+          this._logger.debug('Existing monitor? %j', found || false);
 
           if (found) {
             this._logger.debug('Existing monitor found! Just adding ids');
@@ -793,7 +810,12 @@ export default class TaskManager {
               ParseType.Keywords,
             );
 
-            this._logger.debug('Same product data?: %j', isSameProduct);
+            this._logger.debug(
+              'Same product?: %j Same category?: %j Same URL?: %j',
+              isSameProduct,
+              m._task.category === context.task.category,
+              m._task.site.url === context.task.site.url,
+            );
 
             if (
               isSameProduct &&
@@ -806,9 +828,9 @@ export default class TaskManager {
           }
         }
 
-        this._logger.debug('Existing monitor? %j', monitor || false);
+        this._logger.debug('Existing monitor? %j', found || false);
 
-        if (monitor) {
+        if (found) {
           this._logger.debug('Existing monitor found! Just adding ids');
           found.ids.push(context.id);
           found.taskIds.push(context.taskId);
