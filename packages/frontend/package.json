@@ -74,7 +74,6 @@
     "uuid": "^3.3.2",
     "v8-compile-cache": "2.1.0",
     "whatwg-url": "^7.0.0",
-    "ws": "^7.2.0"
   },
   "devDependencies": {
     "babel-jest": "24.9.0",
