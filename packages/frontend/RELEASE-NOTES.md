@@ -1,5 +1,5 @@
 Version 1.2.40:
 
-- App performance improvements
+- Small performance improvements
 - App UI tweaks/fixes
-- Improved restock mode globally
+- Supreme Desktop/Mobile concurrency

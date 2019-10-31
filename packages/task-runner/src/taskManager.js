@@ -588,6 +588,7 @@ export default class TaskManager {
             if (id === runner.id || id === 'ALL') {
               // TODO: Respect the scope of the runner's methods (issue #137)
               if (monitor && monitor.ids.some(i => i === id)) {
+                // TODO: Also remove the task id somehow in the handle abort
                 monitor._handleAbort(id);
               } else {
                 let found;
