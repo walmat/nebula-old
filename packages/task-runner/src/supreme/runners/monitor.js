@@ -112,7 +112,7 @@ export default class MonitorPrimitive {
       }
 
       if (
-        (/(?!([23][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) &&
+        (/(?!([235][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) &&
         status !== ErrorCodes.ProductNotFound &&
         ErrorCodes.NoStylesFound &&
         ErrorCodes.VariantNotFound
