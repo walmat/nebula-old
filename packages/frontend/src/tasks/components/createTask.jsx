@@ -749,7 +749,6 @@ export const mapStateToProps = (state, ownProps) => ({
 
 export const mapDispatchToProps = dispatch => ({
   onFieldChange: changes => {
-    console.log('field changed: %s', changes.field);
     dispatch(taskActions.edit(null, changes.field, changes.value, changes.sites));
   },
   onAddNewTask: (newTask, amount) => {
