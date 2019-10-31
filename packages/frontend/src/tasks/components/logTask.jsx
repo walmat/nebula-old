@@ -84,7 +84,6 @@ export class LogTaskPrimitive extends PureComponent {
   renderRow({ key, style, isVisible, task }) {
     const { fullscreen } = this.state;
 
-    console.log(isVisible);
     if (!isVisible) {
       return;
     }
