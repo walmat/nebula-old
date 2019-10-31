@@ -30,7 +30,6 @@ export default function configureStore() {
         settingsAttributeValidationMiddleware,
         shippingFormAttributeValidationMiddleware,
         thunk,
-        logger,
       ),
       persistState(),
     ),
