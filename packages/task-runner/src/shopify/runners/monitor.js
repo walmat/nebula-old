@@ -103,8 +103,9 @@ export default class MonitorPrimitive {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   _cleanup() {
-    console.log(this._history);
+    // console.log(this._history);
   }
 
   async swapProxies() {

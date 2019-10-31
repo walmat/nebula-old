@@ -252,7 +252,7 @@ export default class TaskRunnerPrimitive {
   }
 
   _cleanup() {
-    console.log(this._history);
+    // console.log(this._history);
     this.stopHarvestCaptcha();
   }
 

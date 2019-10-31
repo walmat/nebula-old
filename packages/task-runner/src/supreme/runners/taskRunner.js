@@ -169,7 +169,7 @@ export default class TaskRunnerPrimitive {
   }
 
   _cleanup() {
-    console.log(this._history);
+    // console.log(this._history);
     this.stopHarvestCaptcha();
   }
 
@@ -245,7 +245,7 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED|EPROTO)/.exec(
+    const match = /(429|ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED|EPROTO)/.exec(
       status,
     );
 
@@ -253,6 +253,7 @@ export default class TaskRunnerPrimitive {
       // Check capturing group
       switch (match[1]) {
         // connection reset
+        case 429:
         case 'ENOTFOUND':
         case 'EPROTO':
         case 'ECONNREFUSED':
