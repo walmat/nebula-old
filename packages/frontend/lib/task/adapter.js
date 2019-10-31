@@ -34,6 +34,11 @@ class TaskManagerAdapter {
             ...statusMessage,
           };
         });
+      }
+    };
+
+    this._taskEventMessageSender = () => {
+      if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
         this.statusMessageBuffer = {};
       }
@@ -55,11 +60,18 @@ class TaskManagerAdapter {
     ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
+        if (!this._messageInterval) {
+          // batch status updates every 1 second
+          this._messageInterval = setInterval(this._taskEventMessageSender, 1000);
+        }
       }
     });
     ipcRenderer.on(IPCKeys.DeregisterTaskEventHandler, () => {
       if (this._taskManager) {
         this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
+        if (this._messageInterval) {
+          clearInterval(this._messageInterval);
+        }
       }
     });
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));
