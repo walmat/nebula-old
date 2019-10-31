@@ -43,37 +43,35 @@ export class LogTaskPrimitive extends PureComponent {
     };
   }
 
-  isRowLoaded({ index }) {
-    const { tasks } = this.props;
+  isRowLoaded({ index, tasks }) {
     return !!tasks[index];
   }
 
-  loadMoreRows({ start, stop }) {
-    const { tasks } = this.props;
-    return tasks.slice(start, stop);
+  loadMoreRows({ startIndex, stopIndex, tasks }) {
+    return tasks.slice(startIndex, stopIndex);
   }
 
   createTable() {
     const { tasks } = this.props;
+    const runningTasks = tasks.filter(t => t.status !== 'stopped' && t.status !== 'idle');
 
     return (
       <InfiniteLoader
-        isRowLoaded={this.isRowLoaded}
-        loadMoreRows={this.loadMoreRows}
-        rowCount={tasks.length}
+        isRowLoaded={({ index }) => this.isRowLoaded({ index, tasks: runningTasks })}
+        loadMoreRows={({ startIndex, stopIndex }) => this.loadMoreRows({ startIndex, stopIndex, tasks: runningTasks })}
+        rowCount={runningTasks.length}
       >
         {({ onRowsRendered, registerChild }) => (
           <AutoSizer>
             {({ width, height }) => (
               <List
-                tasks={tasks}
                 width={width}
                 height={height}
                 onRowsRendered={onRowsRendered}
                 ref={registerChild}
                 rowHeight={30}
-                rowRenderer={this.renderRow}
-                rowCount={tasks.length}
+                rowRenderer={({ index, key, style, isVisible }) => this.renderRow(({ key, style, isVisible, task: runningTasks[index] }))}
+                rowCount={runningTasks.length}
                 overscanRowCount={0}
               />
             )}
@@ -83,11 +81,13 @@ export class LogTaskPrimitive extends PureComponent {
     );
   }
 
-  renderRow({ index, key, style }) {
-    const { tasks } = this.props;
-    const task = tasks[index];
+  renderRow({ key, style, isVisible, task }) {
     const { fullscreen } = this.state;
 
+    console.log(isVisible);
+    if (!isVisible) {
+      return;
+    }
     return (
       <LogTaskRow key={key} style={style} task={task} fullscreen={fullscreen} selected={false} />
     );
@@ -203,9 +203,7 @@ LogTaskPrimitive.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  tasks: state.tasks.filter(
-    t => t.status === 'running' || t.status === 'success' || t.status === 'used',
-  ),
+  tasks: state.tasks,
 });
 
 export default connect(mapStateToProps)(LogTaskPrimitive);

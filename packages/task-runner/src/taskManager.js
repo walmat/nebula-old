@@ -585,28 +585,27 @@ export default class TaskManager {
         case Events.Abort: {
           // Abort handler has a special function so use that instead of default handler
           handler = id => {
-            // TODO: Respect the scope of the runner's methods (issue #137)
-            console.log('Abort signal sent for runner:', id);
-            console.log('BASE MONITOR w/ IDS:', monitor ? monitor.ids : null);
-            if (monitor) {
-              monitor._handleAbort(id);
-            } else {
-              let found;
-              // eslint-disable-next-line no-restricted-syntax
-              for (const m of Object.values(this._monitors)) {
-                if (m.ids.some(i => i === id)) {
-                  found = m;
-                  break;
+            if (id === runner.id || id === 'ALL') {
+              // TODO: Respect the scope of the runner's methods (issue #137)
+              if (monitor && monitor.ids.some(i => i === id)) {
+                monitor._handleAbort(id);
+              } else {
+                let found;
+                // eslint-disable-next-line no-restricted-syntax
+                for (const m of Object.values(this._monitors)) {
+                  if (m.ids.some(i => i === id)) {
+                    found = m;
+                    break;
+                  }
+                }
+
+                if (found) {
+                  found._handleAbort(id);
                 }
               }
 
-              console.log('FOUND PARENT MONITOR w/ IDS: ', found ? found.ids : null);
-              if (found) {
-                found._handleAbort(id);
-              }
+              runner._handleAbort(runner.id);
             }
-
-            runner._handleAbort(runner.id);
           };
           break;
         }

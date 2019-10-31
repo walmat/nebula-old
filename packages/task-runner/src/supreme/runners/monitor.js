@@ -74,7 +74,7 @@ export default class MonitorPrimitive {
   _handleAbort(id) {
     if (this.ids.some(i => i === id)) {
       this.ids = this.ids.filter(i => i !== id);
-      console.error('remaining ids: %j', this.ids);
+
       if (!this.ids.length) {
         this._context.aborted = true;
         this._aborter.abort();

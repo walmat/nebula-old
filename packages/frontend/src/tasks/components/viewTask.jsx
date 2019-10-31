@@ -213,14 +213,13 @@ export class ViewTaskPrimitive extends PureComponent {
             <AutoSizer>
               {({ width, height }) => (
                 <List
-                  tasks={tasks}
                   width={width}
                   height={height}
                   onRowsRendered={onRowsRendered}
                   ref={this._setListRef}
                   deferredMeasurementCache={this.cache}
                   rowHeight={this.cache.rowHeight}
-                  rowRenderer={this.renderRow}
+                  rowRenderer={({ index, key, style, parent, isVisible }) => this.renderRow({ index, key, style, parent, isVisible, task: tasks[index] })}
                   rowCount={tasks.length}
                   overscanRowCount={50}
                 />
@@ -237,8 +236,11 @@ export class ViewTaskPrimitive extends PureComponent {
     this._registerList(ref);
   }
 
-  renderRow({ index, key, style, parent }) {
-    const { tasks } = this.props;
+  renderRow({ index, key, style, parent, isVisible, task }) {
+    if (!isVisible) {
+      return;
+    }
+
     return (
       <CellMeasurer
         key={key}
@@ -248,7 +250,7 @@ export class ViewTaskPrimitive extends PureComponent {
         columnIndex={0}
         rowIndex={index}
       >
-        <TaskRow key={key} task={tasks[index]} style={style} />
+        <TaskRow key={key} task={task} style={style} />
       </CellMeasurer>
     );
   }

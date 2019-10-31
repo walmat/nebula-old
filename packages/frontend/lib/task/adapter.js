@@ -19,22 +19,21 @@ class TaskManagerAdapter {
 
     this._taskManager = new TaskManager(logPath);
 
+    ipcRenderer.setMaxListeners(0);
+
     /**
      * @Param taskIds {List<String>} - List of task ids
      * @Param statusMessage {Object} - Incoming status message object for that task
      */
     this._taskEventHandler = async (taskIds, statusMessage) => {
       if (statusMessage) {
-        Promise.all(
-          // eslint-disable-next-line array-callback-return
-          [...taskIds].map(taskId => {
-            const previous = this.statusMessageBuffer[taskId];
-            this.statusMessageBuffer[taskId] = {
-              ...previous,
-              ...statusMessage,
-            };
-          }),
-        );
+        [...taskIds].forEach(taskId => {
+          const previous = this.statusMessageBuffer[taskId];
+          this.statusMessageBuffer[taskId] = {
+            ...previous,
+            ...statusMessage,
+          };
+        });
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
         this.statusMessageBuffer = {};
       }

@@ -73,6 +73,7 @@
     "url-loader": "2.1.0",
     "uuid": "^3.3.2",
     "v8-compile-cache": "2.1.0",
+    "why-did-you-update": "0.1.1",
     "whatwg-url": "^7.0.0",
     "ws": "^7.2.0"
   },
