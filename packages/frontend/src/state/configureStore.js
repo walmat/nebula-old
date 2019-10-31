@@ -16,7 +16,6 @@ import settingsAttributeValidationMiddleware from './middleware/settings/setting
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
-const logger = createLogger({ diff: true });
 
 export default function configureStore() {
   return createStore(
