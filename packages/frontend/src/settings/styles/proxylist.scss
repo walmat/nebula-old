@@ -1,0 +1,39 @@
+@import '../../styles/themes';
+@import '../../styles/mixins';
+
+.invalidProxy {
+  color: #f0405e;
+}
+
+.settings {
+  &__title {
+    padding-top: 1px;
+    padding-bottom: 3px;
+  }
+
+  .proxy-list {
+    border: 1px solid #f0405e;
+    border-radius: 3px;
+
+    &__section-header {
+      padding-bottom: 1px;
+    }
+
+    &__input-group {
+      &--text {
+        @include select-font;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        @include themify($themes) {
+          background: themed('background');
+          color: themed('placerholderColor');
+        }
+        height: 545px;
+        border-radius: 3px;
+        border: none;
+        overflow-y: scroll;
+        overflow-x: hidden;
+      }
+    }
+  }
+}

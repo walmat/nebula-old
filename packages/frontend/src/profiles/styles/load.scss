@@ -1,0 +1,69 @@
+// Load Task Specific Rules
+@import '../../styles/themes';
+@import '../../styles/mixins';
+
+.profiles {
+  .profiles-load {
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+    }
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+
+    &__section-header {
+      margin-top: 10px;
+      padding-bottom: 1px;
+    }
+
+    &__label {
+      @include select-font;
+      @include themify($themes) {
+        color: themed('tableHeaderColor');
+      }
+      height: 12px;
+      margin-top: 0;
+      margin-bottom: 3px;
+      padding-left: 0.5px;
+    }
+
+    &__input-group {
+      margin: 11.5px !important;
+      padding-bottom: 2px;
+
+      &--select {
+        width: 252px;
+        height: 29px;
+      }
+
+      &--delete {
+        @include button-font;
+        @include themify($themes) {
+          background: themed('buttonColorSecondary');
+          color: themed('buttonPrimaryText');
+        }
+        border-radius: 3px;
+        border: none;
+        width: 83px;
+        height: 29px;
+        cursor: pointer;
+        margin-top: 14px;
+        margin-right: 14px;
+      }
+
+      &--load {
+        @include button-font;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary');
+          color: themed('buttonPrimaryText');
+        }
+        border-radius: 3px;
+        border: none;
+        width: 83px;
+        height: 29px;
+        cursor: pointer;
+        margin-top: 14px;
+      }
+    }
+  }
+}

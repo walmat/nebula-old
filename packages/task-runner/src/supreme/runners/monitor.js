@@ -112,7 +112,7 @@ export default class MonitorPrimitive {
       }
 
       if (
-        (!/(?!([235][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) &&
+        (/(?!([235][0-9]))\d{3}/g.test(status) || /ECONNRESET|ENOTFOUND/.test(status)) &&
         status !== ErrorCodes.ProductNotFound &&
         ErrorCodes.NoStylesFound &&
         ErrorCodes.VariantNotFound
@@ -137,8 +137,9 @@ export default class MonitorPrimitive {
     return this._prevState;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   _cleanup() {
-    console.log(this._history);
+    // console.log(this._history);
   }
 
   async swapProxies() {
@@ -197,7 +198,7 @@ export default class MonitorPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        this._events.emit(event, this.ids[0], payload, event);
+        this._events.emit(event, this.taskIds, payload, event);
         break;
       }
       default: {
@@ -550,7 +551,7 @@ export default class MonitorPrimitive {
 
       if (!matchedVariation) {
         this._emitMonitorEvent({ message: 'No variation matched!', rawProxy });
-        return States.ERROR;
+        return States.ABORT;
       }
 
       this._context.task.product.id = matchedVariation.id;
@@ -629,7 +630,7 @@ export default class MonitorPrimitive {
   async run() {
     let nextState = this._state;
 
-    if (this._context.aborted || this._context.productFound) {
+    if (this._context.aborted) {
       nextState = States.ABORT;
       return true;
     }
@@ -639,7 +640,7 @@ export default class MonitorPrimitive {
     } catch (e) {
       if (!/aborterror/i.test(e.name)) {
         this._logger.verbose('Monitor loop errored out! %s', e);
-        nextState = States.ERROR;
+        nextState = States.ABORT;
       }
     }
     this._logger.debug('Monitor Loop finished, state transitioned to: %s', nextState);

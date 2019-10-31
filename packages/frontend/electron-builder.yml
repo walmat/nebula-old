@@ -1,6 +1,7 @@
 appId: com.nebula.orion
 copyright: 2019 © Nebula Automation, LLC
 productName: Nebula Orion
+readonly: true
 asar: true
 compression: maximum
 extends: null
@@ -10,17 +11,20 @@ publish:
   private: true
   owner: walmat
   repo: nebula
+  token: 190a0253b622ae55db8ea4008879b9e83534bbdd
 
 directories:
-  buildResources: src/_assets
   output: orion/
 
 files:
-  - package.json
   - dist/
   - build/
-  - .env.prod
   - node_modules/
+  - .env.prod
+  - package.json
+
+releaseInfo:
+  releaseNotesFile: ./RELEASE-NOTES.md
 
 dmg:
   backgroundColor: "#46adb4"

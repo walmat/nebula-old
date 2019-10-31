@@ -6,7 +6,7 @@ import {
   mapProfileFieldToKey,
   LOCATION_FIELDS,
 } from '../../actions';
-import profileAttributeValidatorMap from '../../../utils/validation/profileAttributeValidators';
+import profileAttributeValidatorMap from '../../validation/profileAttributeValidators';
 
 const profileFormValidationMiddleware = store => next => action => {
   switch (action.type) {

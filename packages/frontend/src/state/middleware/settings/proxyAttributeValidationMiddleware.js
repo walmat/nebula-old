@@ -1,5 +1,5 @@
 import { SETTINGS_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
-import proxyAttributeValidatorMap from '../../../utils/validation/proxyAttributeValidators';
+import proxyAttributeValidatorMap from '../../validation/proxyAttributeValidators';
 
 const proxyAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing settings

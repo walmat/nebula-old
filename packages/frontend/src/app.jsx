@@ -4,25 +4,25 @@ import { isEmpty } from 'lodash';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
-import Navbar from './navbar/navbar';
-import Tasks from './tasks/tasks';
-import Profiles from './profiles/profiles';
-import Server from './server/server';
-import Settings from './settings/settings';
+import Navbar from './navbar';
+import Tasks from './tasks';
+import Profiles from './profiles';
+import Server from './server';
+import Settings from './settings';
 import { ROUTES, taskActions, globalActions } from './state/actions';
 import { THEMES, mapBackgroundThemeToColor, mapToNextTheme } from './constants/themes';
 
 import { addTestId, renderSvgIcon } from './utils';
 
 /* SVGS */
-import { ReactComponent as CloseIcon } from './_assets/close.svg';
-import { ReactComponent as DeactivateIcon } from './_assets/logout.svg';
-import { ReactComponent as MinimizeIcon } from './_assets/minimize.svg';
-import { ReactComponent as NightModeIcon } from './_assets/moon.svg';
-import { ReactComponent as LightModeIcon } from './_assets/sun.svg';
+import { ReactComponent as CloseIcon } from './styles/images/app/close.svg';
+import { ReactComponent as DeactivateIcon } from './styles/images/app/logout.svg';
+import { ReactComponent as MinimizeIcon } from './styles/images/app/minimize.svg';
+import { ReactComponent as NightModeIcon } from './styles/images/app/moon.svg';
+import { ReactComponent as LightModeIcon } from './styles/images/app/sun.svg';
 
 /* CSS */
-import './app.css';
+import './styles/index.scss';
 
 export class App extends PureComponent {
   static close(e) {

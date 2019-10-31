@@ -1,0 +1,246 @@
+// Tasks Log Specific Rules
+@import '../../styles/themes';
+@import '../../styles/mixins';
+
+.tasks {
+  .tasks-log-container {
+    flex-grow: 5;
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+    }
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+
+    &--fullscreen {
+      z-index: 999;
+      position: absolute;
+      @include themify($themes) {
+        background-color: themed('background');
+      }
+      top: 30px;
+      left: 125px;
+      height: calc(100% - 62px);
+      width: calc(100% - 234px);
+    }
+  }
+
+  .tasks-table__wrapper {
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+    display: block;
+  }
+
+  .tasks-log {
+    border-collapse: collapse;
+    border-spacing: 0 10px;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+
+    &__header {
+      margin: 0;
+      padding-bottom: 1px;
+      height: 26px;
+      min-height: 26px;
+      cursor: sw-resize;
+
+      &--fullscreen {
+        cursor: ne-resize;
+      }
+
+      &--id {
+        @include header-field;
+        width: 15px;
+        margin-left: 15px !important;
+        flex-grow: 0;
+      }
+
+      &--store {
+        @include header-field;
+        width: 115px;
+        padding-left: 18px !important;
+        margin-left: -6px !important;
+        flex-grow: 0;
+        &--fullscreen {
+          width: 115px;
+          padding-left: 12px !important;
+          margin-left: -6px !important;
+          flex-grow: 0;
+        }
+      }
+
+      &--product {
+        display: none;
+        &--fullscreen {
+          display: flex;
+          @include header-field;
+          width: 129px;
+          padding-left: 10px;
+          flex-grow: 2;
+        }
+      }
+
+      &--size {
+        @include header-field;
+        width: 60px;
+        padding-left: 10px;
+        flex-grow: 1;
+      }
+
+      &--proxy {
+        display: none;
+        &--fullscreen {
+          display: flex;
+          @include header-field;
+          padding-left: 10px;
+          width: 118px;
+          flex-grow: 1;
+        }
+      }
+
+      &--output {
+        @include header-field;
+        width: 20px;
+        padding-left: 10px;
+        &--fullscreen {
+          @include header-field;
+          width: 130px;
+          padding-left: 10px;
+        }
+        flex-grow: 10;
+      }
+    }
+
+    &__section-header {
+      padding-top: 1px;
+      &--fullscreen {
+        display: none;
+      }
+    }
+
+    .blank {
+      padding-left: 10px;
+    }
+
+    .extend {
+      padding-right: 4px;
+    }
+
+    .pad-left {
+      padding-left: 5px;
+      padding-bottom: 0;
+    }
+
+    .checkout-ready {
+      color: #91a8d0;
+    }
+
+    .tasks-row-container {
+      @include themify($themes) {
+        border-bottom-color: themed('tableRowBottomBorderColow');
+      }
+      border-bottom-style: solid;
+      border-bottom-width: 1px;
+
+      .tasks-row {
+        width: 100% !important;
+        display: flex;
+        height: 30px;
+
+        &--selected {
+          @include themify($themes) {
+            background-color: themed('liveLogtableRowSelected');
+          }
+          width: 100% !important;
+          display: flex;
+          height: 30px;
+        }
+
+        &__log {
+          &--success {
+            color: #46adb4;
+          }
+
+          &--failed {
+            color: #ef415e;
+          }
+
+          &--warning {
+            color: #d8973c;
+          }
+
+          &--id {
+            @include input-field;
+            width: 15px;
+            margin-left: 15px !important;
+            flex-grow: 0;
+          }
+
+          &--store {
+            @include input-field;
+            &--fullscreen {
+              width: 115px;
+              padding-left: 17px;
+              margin-left: -6px !important;
+              flex-grow: 0;
+            }
+            width: 115px;
+            padding-left: 12px;
+            flex-grow: 0;
+          }
+
+          &--product {
+            @include input-field;
+            visibility: hidden;
+            width: 0;
+            &--fullscreen {
+              visibility: visible;
+              width: 129px;
+              padding-left: 10px;
+              flex-grow: 2;
+            }
+          }
+
+          &--size {
+            @include input-field;
+            width: 65px;
+            padding-left: 10px;
+            flex-grow: 1;
+            &--fullscreen {
+              width: 60px;
+              padding-left: 10px;
+              flex-grow: 1;
+            }
+          }
+
+          &--proxy {
+            @include input-field;
+            visibility: hidden;
+            width: 0;
+            &--fullscreen {
+              visibility: visible;
+              padding-left: 10px;
+              width: 118px;
+              flex-grow: 1;
+            }
+          }
+
+          &--output {
+            @include input-field;
+            width: 50px;
+            padding-left: 10px;
+            flex-grow: 10;
+            &--fullscreen {
+              width: 130px;
+              padding-left: 10px;
+              flex-grow: 10;
+            }
+            transition: ease all 0.35s;
+          }
+        }
+      }
+    }
+  }
+}

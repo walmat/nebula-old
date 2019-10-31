@@ -1,0 +1,131 @@
+// Barebones Flexbox Grid Styling
+
+.container {
+  margin: 0 15px;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+@mixin segment_base() {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+
+  &--start {
+    justify-content: flex-start;
+  }
+
+  &--end {
+    justify-content: flex-end;
+  }
+
+  &--evenly {
+    justify-content: space-evenly;
+  }
+
+  &--center {
+    justify-content: center;
+  }
+
+  &--between {
+    justify-content: space-between;
+  }
+
+  &--expand {
+    flex: 1 1 auto;
+  }
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-around;
+  margin: 0 -15px;
+
+  &--start {
+    justify-content: flex-start;
+  }
+
+  &--end {
+    justify-content: flex-end;
+  }
+
+  &--evenly {
+    justify-content: space-evenly;
+  }
+
+  &--center {
+    justify-content: center;
+  }
+
+  &--between {
+    justify-content: space-between;
+  }
+
+  &--expand {
+    flex: 1 1 auto;
+  }
+
+  &--gutter-left {
+    margin-left: 0 !important;
+  }
+
+  &--gutter-right {
+    margin-right: 0 !important;
+  }
+
+  &--gutter {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-around;
+  margin: 0 15px;
+
+  &--start {
+    justify-content: flex-start;
+  }
+
+  &--end {
+    justify-content: flex-end;
+  }
+
+  &--evenly {
+    justify-content: space-evenly;
+  }
+
+  &--between {
+    justify-content: space-between;
+  }
+
+  &--center {
+    justify-content: center;
+  }
+
+  &--expand {
+    flex: 1 1 auto;
+  }
+
+  &--no-gutter-left {
+    margin-left: 0 !important;
+  }
+
+  &--no-gutter-right {
+    margin-right: 0 !important;
+  }
+
+  &--no-gutter {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}

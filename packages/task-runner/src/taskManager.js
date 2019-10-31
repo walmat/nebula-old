@@ -150,7 +150,7 @@ export default class TaskManager {
 
   async handleProduct(runnerIds, product, parseType) {
     const interval = setInterval(() => {
-      [runnerIds].forEach(id => {
+      [...runnerIds].forEach(id => {
         const runner = Object.values(this._runners).find(r => r.id === id);
 
         if (!runner || (runner && runner._aborted)) {
@@ -163,7 +163,8 @@ export default class TaskManager {
   }
 
   async handleDeregisterProxy(runnerIds) {
-    Object.values(runnerIds).forEach(id => {
+    // eslint-disable-next-line array-callback-return
+    return Object.values(runnerIds).map(id => {
       const runner = this._runners[id];
       // const monitor = this._monitors[id];
 
@@ -216,7 +217,8 @@ export default class TaskManager {
 
   // only called when oneCheckout is enabled for that task that checks out
   async handleSuccess(task) {
-    Object.values(this._runners).forEach(r => {
+    // eslint-disable-next-line array-callback-return
+    return Object.values(this._runners).map(r => {
       // if we are using the same profile, emit the abort event
       this._logger.debug(
         'ONE CHECKOUT: Same profile?: %j, Same site?: %j, Same product?: %j',
@@ -338,21 +340,17 @@ export default class TaskManager {
    * @param {String} message the status message
    * @param {TaskRunner.Event} event the type of event that was emitted
    */
-  mergeStatusUpdates(runnerId, message, event) {
-    this._logger.info('Runner %s posted new event %s - %j', runnerId, event, message);
+  mergeStatusUpdates(taskIds, message, event) {
+    this._logger.silly('Tasks: %j posted new event %s - %j', taskIds, event, message);
     // For now only re emit Task Status Events
     if (event === RunnerEvents.TaskStatus) {
       this._logger.silly('Reemitting this task update...');
-      const { taskId } = this._runners[runnerId];
-      this._events.emit('status', taskId, message, event);
+      this._events.emit('status', taskIds, message, event);
     }
 
     if (event === RunnerEvents.MonitorStatus) {
       this._logger.silly('Reemitting this monitor update...');
-      const { taskIds } = this._monitors[runnerId];
-      for (let i = 0; i < taskIds.length; i += 1) {
-        this._events.emit('status', taskIds[0], message, event);
-      }
+      this._events.emit('status', taskIds, message, event);
     }
   }
 
@@ -409,6 +407,7 @@ export default class TaskManager {
     const { proxy, site, platform } = this._runners[runnerId];
     delete this._runners[runnerId];
     delete this._monitors[runnerId];
+
     if (proxy) {
       this._proxyManager.release(runnerId, site, platform, proxy.id);
     }
@@ -454,7 +453,7 @@ export default class TaskManager {
    *   - type - The runner type to start
    */
   startAll(tasks, options) {
-    [...tasks].forEach(t => this.start(t, options));
+    Promise.all([...tasks].map(t => this.start(t, options)));
   }
 
   /**
@@ -485,7 +484,7 @@ export default class TaskManager {
   }
 
   restartAll(tasks, options) {
-    [...tasks].forEach(t => this.restart(t, options));
+    Promise.all([...tasks].map(t => this.restart(t, options)));
   }
 
   /**
@@ -535,7 +534,7 @@ export default class TaskManager {
         this._logger.silly('Force Stopping %d tasks', tasksToStop.length, tasksToStop);
       }
     }
-    return [...tasksToStop].map(t => this.stop(t, { wait }));
+    return Promise.all([...tasksToStop].map(t => this.stop(t, { wait })));
   }
 
   /**
@@ -579,6 +578,7 @@ export default class TaskManager {
           ];
 
     // Generate Handlers for each event
+    // eslint-disable-next-line array-callback-return
     emissions.forEach(event => {
       let handler;
       switch (event) {
@@ -587,9 +587,23 @@ export default class TaskManager {
           handler = id => {
             if (id === runner.id || id === 'ALL') {
               // TODO: Respect the scope of the runner's methods (issue #137)
-              if (monitor) {
-                monitor._handleAbort(runner.id);
+              if (monitor && monitor.ids.some(i => i === id)) {
+                monitor._handleAbort(id);
+              } else {
+                let found;
+                // eslint-disable-next-line no-restricted-syntax
+                for (const m of Object.values(this._monitors)) {
+                  if (m.ids.some(i => i === id)) {
+                    found = m;
+                    break;
+                  }
+                }
+
+                if (found) {
+                  found._handleAbort(id);
+                }
               }
+
               runner._handleAbort(runner.id);
             }
           };
@@ -697,7 +711,6 @@ export default class TaskManager {
         if (type === RunnerTypes.Normal) {
           const parseType = getParseType(task.product, null, platform);
 
-          // shared context between monitor/checkout
           const context = {
             id: runnerId,
             taskId: task.id,
@@ -715,10 +728,12 @@ export default class TaskManager {
             aborted: false,
           };
 
+          // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
           runner = new ShopifyRunner(context, openProxy, parseType);
           runner.parseType = parseType;
 
           // prevent multiple monitors on same site with same data
+          let found;
           // eslint-disable-next-line no-restricted-syntax
           for (const m of Object.values(this._monitors)) {
             if (m.platform === platform) {
@@ -729,28 +744,34 @@ export default class TaskManager {
                 parseType,
               );
 
-              this._logger.debug('Same product data?: %j', isSameProduct);
+              this._logger.debug(
+                'Same product data?: %j Same URL?: %j',
+                isSameProduct,
+                m._task.site.url === context.task.site.url,
+              );
 
               if (isSameProduct && m._task.site.url === context.task.site.url) {
-                monitor = m;
+                found = m;
                 break;
               }
             }
           }
 
-          this._logger.debug('Existing monitor? %j', monitor);
+          this._logger.debug('Existing monitor? %j', found || false);
 
-          if (monitor) {
+          if (found) {
             this._logger.debug('Existing monitor found! Just adding ids');
-            monitor.ids.push(context.id);
-            monitor.taskIds.push(context.taskId);
+            found.ids.push(context.id);
+            found.taskIds.push(context.taskId);
           } else {
+            // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
             monitor = new ShopifyMonitor(context, openProxy, parseType);
             monitor.platform = platform;
             monitor.site = task.site.url;
             monitor.type = parseType;
           }
         } else if (type === RunnerTypes.ShippingRates) {
+          // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
           runner = new RateFetcher(runnerId, task, openProxy, this._loggerPath);
         }
         break;
@@ -773,9 +794,11 @@ export default class TaskManager {
           aborted: false,
         };
 
+        // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
         runner = new SupremeRunner(context, openProxy, ParseType.Keywords);
         runner.parseType = ParseType.Keywords;
 
+        let found;
         // eslint-disable-next-line no-restricted-syntax
         for (const m of Object.values(this._monitors)) {
           if (m.platform === platform) {
@@ -786,27 +809,33 @@ export default class TaskManager {
               ParseType.Keywords,
             );
 
-            this._logger.debug('Same product data?: %j', isSameProduct);
+            this._logger.debug(
+              'Same product?: %j Same category?: %j Same URL?: %j',
+              isSameProduct,
+              m._task.category === context.task.category,
+              m._task.site.url === context.task.site.url,
+            );
 
             if (
               isSameProduct &&
               m._task.category === context.task.category &&
               m._task.site.url === context.task.site.url
             ) {
-              monitor = m;
+              found = m;
               break;
             }
           }
         }
 
-        this._logger.debug('Existing monitor? %j', monitor || false);
+        this._logger.debug('Existing monitor? %j', found || false);
 
-        if (monitor) {
+        if (found) {
           this._logger.debug('Existing monitor found! Just adding ids');
-          monitor.ids.push(context.id);
-          monitor.taskIds.push(context.taskId);
+          found.ids.push(context.id);
+          found.taskIds.push(context.taskId);
         } else {
           this._logger.debug('No monitor found! Creating a new monitor');
+          // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
           monitor = new SupremeMonitor(context, openProxy);
           monitor.platform = platform;
           monitor.site = task.site.url;
@@ -827,7 +856,9 @@ export default class TaskManager {
     runner.task = task;
     runner.platform = platform;
     runner.type = type;
-    this._monitors[runnerId] = monitor;
+    if (monitor) {
+      this._monitors[runnerId] = monitor;
+    }
     this._runners[runnerId] = runner;
     this._logger.silly('Wiring up Events ...');
     this._setup(runner, monitor);

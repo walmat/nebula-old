@@ -169,7 +169,7 @@ export default class TaskRunnerPrimitive {
   }
 
   _cleanup() {
-    console.log(this._history);
+    // console.log(this._history);
     this.stopHarvestCaptcha();
   }
 
@@ -229,46 +229,54 @@ export default class TaskRunnerPrimitive {
     }
   }
 
-  async _handleFetchErrors(errors, state) {
+  async _handleFetchErrors(error, state) {
     if (this._context.aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    errors.forEach(({ status }) => {
-      if (!status) {
-        return;
-      }
+    const { status } = error;
 
-      if (/aborterror/i.test(status)) {
-        return States.ABORT;
-      }
+    if (!status) {
+      return state;
+    }
 
-      const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED|EPROTO)/.exec(
-        status,
-      );
+    if (/aborterror/i.test(status)) {
+      return States.ABORT;
+    }
 
-      if (match) {
-        // Check capturing group
-        switch (match[1]) {
-          // connection reset
-          case 'ENOTFOUND':
-          case 'EPROTO':
-          case 'ECONNREFUSED':
-          case 'ECONNRESET': {
-            return {
-              message: 'Proxy banned!',
-              nextState: States.SWAP,
-            };
-          }
-          default:
-            break;
+    const match = /(429|ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED|EPROTO)/.exec(
+      status,
+    );
+
+    if (match) {
+      // Check capturing group
+      switch (match[1]) {
+        // connection reset
+        case 429:
+        case 'ENOTFOUND':
+        case 'EPROTO':
+        case 'ECONNREFUSED':
+        case 'ECONNRESET': {
+          return {
+            message: 'Proxy banned!',
+            nextState: States.SWAP,
+          };
         }
+        default:
+          break;
       }
-    });
+    }
 
-    this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
-    await this._delayer;
+    if (/(?!([235][0-9]))\d{3}/g.test(status)) {
+      this._emitTaskEvent({
+        message: `Delaying ${this._context.task.errorDelay}ms (${status})`,
+        rawProxy: this._context.rawProxy,
+      });
+      this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
+      await this._delayer;
+    }
+
     return state;
   }
 
@@ -329,7 +337,7 @@ export default class TaskRunnerPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
-        this._events.emit(event, this._context.id, payload, event);
+        this._events.emit(event, [this.taskId], payload, event);
         break;
       }
       default: {
@@ -499,10 +507,10 @@ export default class TaskRunnerPrimitive {
   }
 
   async generatePooky(region = 'US') {
-    return new Promise(async (resolve, reject) => {
-      const lastid = Date.now();
+    const lastid = Date.now();
+    const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
 
-      const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
+    try {
       const res = await this._request(
         `${NEBULA_API_BASE}/${region}?auth=nebula-${NEBULA_API_UUID}`,
       );
@@ -510,26 +518,28 @@ export default class TaskRunnerPrimitive {
       if (!res.ok) {
         const error = new Error('Unable to fetch cookies');
         error.status = res.status || res.errno;
-        reject(error);
+        throw error;
       }
 
       const body = await res.json();
       if (!body || (body && !body.cookies)) {
         const error = new Error('Unable to parse cookies');
         error.status = res.status || res.errno;
-        reject(error);
+        throw error;
       }
 
       this._cookies = body.cookies;
-      // this._logger.info(this._cookies);
+      this._logger.info(this._cookies);
 
       this._context.jar.setCookieSync(`lastid=${lastid}`, this._context.task.site.url);
       await body.cookies.map(cookie =>
         this._context.jar.setCookieSync(`${cookie};`, this._context.task.site.url),
       );
 
-      resolve(true);
-    });
+      return true;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async _handleAddToCart() {
@@ -586,7 +596,6 @@ export default class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
-
       if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         this._pooky = false;
         this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
@@ -603,7 +612,7 @@ export default class TaskRunnerPrimitive {
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
-      return this._handleFetchErrors([error], States.ADD_TO_CART);
+      return this._handleFetchErrors(error, States.ADD_TO_CART);
     }
   }
 
@@ -836,7 +845,7 @@ export default class TaskRunnerPrimitive {
       if (/invalid json/i.test(error)) {
         return States.ADD_TO_CART;
       }
-      return this._handleFetchErrors([error], States.SUBMIT_CHECKOUT);
+      return this._handleFetchErrors(error, States.SUBMIT_CHECKOUT);
     }
   }
 
@@ -963,7 +972,7 @@ export default class TaskRunnerPrimitive {
 
       return States.CHECK_STATUS;
     } catch (error) {
-      return this._handleFetchErrors([error], States.CHECK_STATUS);
+      return this._handleFetchErrors(error, States.CHECK_STATUS);
     }
   }
 
@@ -1054,6 +1063,8 @@ export default class TaskRunnerPrimitive {
 
   async start() {
     this._prevState = States.STARTED;
+
+    this._emitTaskEvent({ message: 'Waiting for product', rawProxy: this._context.rawProxy });
 
     let shouldStop = false;
     while (this._state !== States.DONE && !shouldStop) {

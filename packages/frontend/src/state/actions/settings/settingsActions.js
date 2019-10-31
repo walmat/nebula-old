@@ -1,5 +1,5 @@
 import makeActionCreator from '../actionCreator';
-import parseProductType from '../../../utils/parseProductType';
+import parseProductType from '../../utils/parseProductType';
 
 // Top level Actions
 export const SETTINGS_ACTIONS = {

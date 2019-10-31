@@ -1,0 +1,71 @@
+@import '../../styles/mixins.scss';
+
+.settings {
+  &--account-manager {
+    &__section-header {
+      margin-top: 15px;
+    }
+
+    &__adjust-margin {
+      margin: 0 23px;
+    }
+
+    &__input-group {
+      @include input-group;
+
+      &--username {
+        @include font-base;
+        border-width: 1px;
+        border-style: solid;
+        flex-grow: 1;
+        height: 29px;
+        border-radius: 3px;
+      }
+
+      &--password {
+        @include font-base;
+        border-width: 1px;
+        border-style: solid;
+        flex-grow: 1;
+        height: 29px;
+        border-radius: 3px;
+      }
+
+      &--account {
+        @include font-base;
+        border-radius: 3px;
+      }
+
+      &--label {
+        @include font-base;
+        @include themify($themes) {
+          color: themed('tableHeaderColor');
+        }
+        margin: 0;
+        margin-bottom: 2px;
+      }
+
+      &--save {
+        @include button-base;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary') !important;
+          color: themed('buttonPrimaryText') !important;
+        }
+        width: 83px !important;
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed !important;
+        }
+      }
+
+      &--delete {
+        @include button-base;
+        @include themify($themes) {
+          background: themed('buttonColorSecondary') !important;
+          color: themed('buttonPrimaryText') !important;
+        }
+        width: 83px !important;
+      }
+    }
+  }
+}

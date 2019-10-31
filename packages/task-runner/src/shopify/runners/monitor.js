@@ -103,8 +103,9 @@ export default class MonitorPrimitive {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   _cleanup() {
-    console.log(this._history);
+    // console.log(this._history);
   }
 
   async swapProxies() {
@@ -163,7 +164,7 @@ export default class MonitorPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        this._events.emit(event, this.ids[0], payload, event);
+        this._events.emit(event, this.taskIds, payload, event);
         break;
       }
       default: {

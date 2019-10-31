@@ -1,0 +1,58 @@
+// AWS Login Specific Rules
+@import '../../styles/themes';
+@import '../../styles/mixins';
+
+.server {
+  .server-credentials {
+    margin-top: 1px;
+    border: 1px solid #f0405e;
+    border-radius: 3px;
+
+    &__label {
+      @include select-font;
+      height: 12px;
+      margin-bottom: 3px;
+      margin-top: 0;
+      padding-left: 0.5px;
+    }
+
+    &__input-group {
+      margin: 11.5px !important;
+      padding-top: -1px;
+      padding-bottom: 2px;
+
+      &--middle {
+        margin: 0 11.5px !important;
+        padding-top: 5px;
+        padding-bottom: 2px;
+      }
+    }
+
+    &__input {
+      @include select-font;
+
+      &--bordered {
+        border: 1px solid #f0405e;
+      }
+
+      &--field {
+        height: 29px;
+        &:disabled {
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    &__submit-row {
+      align-self: flex-end;
+    }
+
+    &__submit {
+      @include button-base;
+      width: 112px !important;
+      background: #f0405e;
+      color: #efefef;
+      letter-spacing: 0;
+    }
+  }
+}

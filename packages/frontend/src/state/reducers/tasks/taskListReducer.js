@@ -2,7 +2,7 @@
 import shortId from 'shortid';
 
 import PLATFORMS from '../../../constants/platforms';
-import parseProductType from '../../../utils/parseProductType';
+import parseProductType from '../../utils/parseProductType';
 import {
   TASK_ACTIONS,
   SERVER_ACTIONS,
@@ -309,13 +309,16 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
-      const { tasks, edits: { url, password } } = action;
+      const {
+        tasks,
+        edits: { url, password },
+      } = action;
 
       if (window.Bridge) {
         tasks.forEach(t => {
           const idx = nextState.findIndex(task => task.id === t.id);
 
-          if (idx > -1) {
+          if (idx >= 0) {
             let newTask;
             if (url) {
               newTask = {
@@ -346,11 +349,11 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
                   site: {
                     ...t.edits.site,
                     password,
-                  }
+                  },
                 },
               };
             }
-            
+
             nextState[idx] = newTask;
           }
         });
@@ -359,6 +362,7 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       }
       break;
     }
+    // TODO: OPTIMIZE THIS!!!
     case TASK_ACTIONS.STATUS: {
       if (!action.messageBuffer) {
         break;
@@ -459,11 +463,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
-      const found = nextState.find(t => t.id === action.response.task.id);
-      if (found === undefined) {
+      const idx = nextState.findIndex(t => t.id === action.response.task.id);
+      if (idx < 0) {
         break;
       }
-      const idx = nextState.indexOf(found);
 
       // do nothing if the task is already running..
       if (nextState[idx].status === 'running') {
@@ -506,11 +509,10 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         break;
       }
 
-      const found = nextState.find(t => t.id === action.response.task.id);
-      if (found === undefined) {
+      const idx = nextState.findIndex(t => t.id === action.response.task.id);
+      if (idx < 0) {
         break;
       }
-      const idx = nextState.indexOf(found);
 
       // do nothing if the status is already stopped or idle
       if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {

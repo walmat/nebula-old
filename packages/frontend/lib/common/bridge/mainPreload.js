@@ -216,6 +216,10 @@ const _testProxy = async (url, proxy) => {
   }
 };
 
+if (process.env.NODE_ENV !== 'production') {
+  window.__devtron = { require, process };
+}
+
 /**
  * On process load, create the Bridge
  */
@@ -230,7 +234,6 @@ process.once('loaded', () => {
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,
-    // registerForUpdateEvents: _registerForUpdateEvents,
     deregisterForTaskEvents: _deregisterForTaskEvents,
     startTasks: _startTasks,
     restartTasks: _restartTasks,

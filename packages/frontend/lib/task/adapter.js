@@ -19,25 +19,21 @@ class TaskManagerAdapter {
 
     this._taskManager = new TaskManager(logPath);
 
-    this._taskEventHandler = (taskId, statusMessage) => {
-      // grab the old messages (if they exists)..
+    ipcRenderer.setMaxListeners(0);
+
+    /**
+     * @Param taskIds {List<String>} - List of task ids
+     * @Param statusMessage {Object} - Incoming status message object for that task
+     */
+    this._taskEventHandler = async (taskIds, statusMessage) => {
       if (statusMessage) {
-        console.log(`Task: ${taskId} sent message: ${statusMessage}!`);
-        const lastMessage = this.statusMessageBuffer[taskId];
-        if (!lastMessage) {
-          this.statusMessageBuffer[taskId] = statusMessage;
-        } else {
+        [...taskIds].forEach(taskId => {
+          const previous = this.statusMessageBuffer[taskId];
           this.statusMessageBuffer[taskId] = {
-            ...lastMessage,
+            ...previous,
             ...statusMessage,
           };
-        }
-      }
-    };
-
-    this._taskEventMessageSender = () => {
-      if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
-        console.info('[DEBUG]: Relaying message buffer!');
+        });
         ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
         this.statusMessageBuffer = {};
       }
@@ -59,18 +55,11 @@ class TaskManagerAdapter {
     ipcRenderer.on(IPCKeys.RegisterTaskEventHandler, () => {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
-        if (!this._messageInterval) {
-          // batch status updates every .5 seconds
-          this._messageInterval = setInterval(this._taskEventMessageSender, 0);
-        }
       }
     });
     ipcRenderer.on(IPCKeys.DeregisterTaskEventHandler, () => {
       if (this._taskManager) {
         this._taskManager.deregisterForTaskEvents(this._taskEventHandler);
-        if (this._messageInterval) {
-          clearInterval(this._messageInterval);
-        }
       }
     });
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));

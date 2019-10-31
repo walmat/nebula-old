@@ -1,5 +1,5 @@
 import { SETTINGS_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
-import settingsAttributeValidatorMap from '../../../utils/validation/settingsAttributeValidators';
+import settingsAttributeValidatorMap from '../../validation/settingsAttributeValidators';
 
 const settingsAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing settings

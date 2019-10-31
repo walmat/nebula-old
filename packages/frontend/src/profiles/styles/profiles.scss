@@ -1,0 +1,57 @@
+%input_field {
+  border: 1px solid;
+  margin: 9px 0;
+  margin-right: 15px;
+  height: 29px;
+}
+
+.profiles {
+  &--input-fields {
+    margin-top: 22px !important;
+  }
+  &--save-row {
+    margin-top: 28px !important;
+  }
+
+  .profiles__fields {
+    &--matches {
+      margin-top: 0.5px;
+      height: 21px;
+      width: 21px;
+      cursor: pointer;
+      &:hover {
+        opacity: 0.8333;
+      }
+    }
+
+    &--transfer {
+      cursor: pointer;
+      margin-right: 10px;
+      &:hover {
+        opacity: 0.8333;
+      }
+    }
+
+    &--name {
+      width: 164px;
+      height: 29px;
+      border: 1px solid;
+      border-radius: 3px;
+    }
+
+    &--save {
+      @include button-font;
+      @include themify($themes) {
+        background: themed('buttonColorPrimary');
+        color: themed('buttonPrimaryText');
+      }
+      border-radius: 3px;
+      border: none;
+      width: 83px;
+      height: 29px;
+      cursor: pointer;
+      margin-top: 14px;
+      margin-right: 14px;
+    }
+  }
+}

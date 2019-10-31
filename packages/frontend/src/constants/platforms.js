@@ -4,6 +4,6 @@ const platforms = {
   Supreme: 'Supreme',
   Mesh: 'Mesh',
   Other: 'Other',
-}
+};
 
 module.exports = platforms;

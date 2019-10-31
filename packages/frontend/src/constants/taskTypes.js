@@ -1,5 +1,5 @@
 export default {
-    SAFE: 'SAFE',
-    CART: 'CART',
-    FAST: 'FAST',
+  SAFE: 'SAFE',
+  CART: 'CART',
+  FAST: 'FAST',
 };
