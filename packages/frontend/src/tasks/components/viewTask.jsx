@@ -15,7 +15,7 @@ import TaskRow from './taskRow';
 import sDefns from '../../state/definitions/settingsDefinitions';
 import tDefns from '../../state/definitions/taskDefinitions';
 
-import { SETTINGS_FIELDS, settingsActions, taskActions } from '../../state/actions';
+import { SETTINGS_FIELDS, settingsActions, editAllTasks, startAllTasks, stopAllTasks, destroyAllTasks } from '../../state/actions';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { buildStyle } from '../../styles';
 
@@ -382,16 +382,16 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(settingsActions.edit(changes.field, changes.value));
   },
   onDestroyAllTasks: tasks => {
-    dispatch(taskActions.destroyAll(tasks));
+    dispatch(destroyAllTasks(tasks));
   },
   onStartAllTasks: (tasks, proxies) => {
-    dispatch(taskActions.startAll(tasks, proxies));
+    dispatch(startAllTasks(tasks, proxies));
   },
   onStopAllTasks: tasks => {
-    dispatch(taskActions.stopAll(tasks));
+    dispatch(stopAllTasks(tasks));
   },
   onMassEdit: (tasks, edits) => {
-    dispatch(taskActions.editAll(tasks, edits));
+    dispatch(editAllTasks(tasks, edits));
   },
 });
 

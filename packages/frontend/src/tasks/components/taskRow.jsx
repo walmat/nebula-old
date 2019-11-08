@@ -22,7 +22,7 @@ import { ReactComponent as CopyIcon } from '../../styles/images/tasks/copy.svg';
 import { ReactComponent as StartIcon } from '../../styles/images/tasks/start.svg';
 import { ReactComponent as StopIcon } from '../../styles/images/tasks/stop.svg';
 import { ReactComponent as DestroyIcon } from '../../styles/images/tasks/destroy.svg';
-import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../../state/actions';
+import { editTask, clearEdits, updateTask, selectTask, copyTask, startTask, stopTask, destroyTask, mapTaskFieldsToKey, TASK_FIELDS } from '../../state/actions';
 import { buildStyle } from '../../styles';
 
 export class TaskRowPrimitive extends PureComponent {
@@ -504,28 +504,28 @@ export const mapStateToProps = (state, ownProps) => ({
 
 export const mapDispatchToProps = dispatch => ({
   onEditTask: (task, changes) => {
-    dispatch(taskActions.edit(task.id, changes.field, changes.value, changes.sites));
+    dispatch(editTask(task.id, changes.field, changes.value, changes.sites));
   },
   onCancelEdits: task => {
-    dispatch(taskActions.clearEdits(task.id, task));
+    dispatch(clearEdits(task.id, task));
   },
   onCommitEdits: task => {
-    dispatch(taskActions.update(task.id, task));
+    dispatch(updateTask(task.id, task));
   },
   onSelectTask: task => {
-    dispatch(taskActions.select(task));
+    dispatch(selectTask(task));
   },
   onCopyTask: task => {
-    dispatch(taskActions.copy(task));
+    dispatch(copyTask(task));
   },
   onStartTask: (task, proxies) => {
-    dispatch(taskActions.start(task, proxies));
+    dispatch(startTask(task, proxies));
   },
   onStopTask: task => {
-    dispatch(taskActions.stop(task));
+    dispatch(stopTask(task));
   },
   onDestroyTask: task => {
-    dispatch(taskActions.destroy(task, 'one'));
+    dispatch(destroyTask(task, 'one'));
   },
 });
 

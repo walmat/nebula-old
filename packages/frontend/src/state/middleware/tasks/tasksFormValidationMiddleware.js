@@ -1,6 +1,5 @@
-import { TASK_ACTIONS, mapTaskFieldsToKey, taskActions } from '../../actions';
+import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey, handleError } from '../../actions';
 import taskAttributeValidatorMap from '../../validation/taskAttributeValidators';
-import { TASK_FIELDS } from '../../actions/tasks/taskActions';
 import PLATFORMS from '../../../constants/platforms';
 
 const tasksFormValidationMiddleware = store => next => action => {
@@ -9,7 +8,7 @@ const tasksFormValidationMiddleware = store => next => action => {
   }
 
   if (!action.response || (action.response && !action.response.task)) {
-    return store.dispatch(taskActions.error(action.type, 'invalid action structure!'));
+    return store.dispatch(handleError(action.type, 'invalid action structure!'));
   }
 
   // action is gonna be update or add...

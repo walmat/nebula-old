@@ -1,9 +1,27 @@
-import ReactDOM from 'react-dom';
-import createApp from './app';
-import configureStore from './state/configureStore';
-import { globalActions } from './state/actions';
+import React from 'react';
+import { render } from 'react-dom';
+import Root from './root';
+import { AppContainer } from 'react-hot-loader';
+import { configureStore, history } from './state/store';
 
+const MOUNT_POINT = document.getElementById('root');
 const store = configureStore();
-store.dispatch(globalActions.migrateState());
 
-ReactDOM.render(createApp(store), document.getElementById('root'));
+render(
+  <AppContainer>
+    <Root store={store} history={history} />
+  </AppContainer>,
+  MOUNT_POINT
+);
+
+if (module.hot) {
+  module.hot.accept('./root', () => {
+    const NextRoot = require('./root').default;
+    render(
+      <AppContainer>
+        <NextRoot store={store} history={history} />
+      </AppContainer>,
+      MOUNT_POINT
+    );
+  });
+}

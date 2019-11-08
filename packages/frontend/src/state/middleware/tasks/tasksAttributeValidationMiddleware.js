@@ -1,4 +1,4 @@
-import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../../actions';
+import { TASK_ACTIONS, TASK_FIELDS, mapTaskFieldsToKey, handleError } from '../../actions';
 import taskAttributeValidatorMap from '../../validation/taskAttributeValidators';
 
 const tasksAttributeValidationMiddleware = store => next => action => {
@@ -18,7 +18,7 @@ const tasksAttributeValidationMiddleware = store => next => action => {
 
   // Check for valid payload structure and dispatch an error if invalid
   if (!action.field || (!action.value && (action.value !== '' && action.value !== null))) {
-    return store.dispatch(taskActions.error(action.type, 'invalid action structure!'));
+    return store.dispatch(handleError(action.type, 'invalid action structure!'));
   }
 
   const newAction = JSON.parse(JSON.stringify(action));

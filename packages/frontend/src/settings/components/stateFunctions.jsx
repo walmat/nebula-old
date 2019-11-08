@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { globalActions } from '../../state/actions';
+import { importState } from '../../state/actions';
 
 export class StateFunctionsPrimitive extends PureComponent {
   constructor(props) {
@@ -77,7 +77,7 @@ StateFunctionsPrimitive.defaultProps = {
 
 export const mapDispatchToProps = dispatch => ({
   importState: state => {
-    dispatch(globalActions.import(state));
+    dispatch(importState(state));
   },
 });
 

@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 
-import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../../state/actions';
+import { TASK_FIELDS, mapTaskFieldsToKey, addTask, editTask } from '../../state/actions';
 import * as getAllSizes from '../../constants/getAllSizes';
 import { THEMES } from '../../constants/themes';
 import PLATFORMS from '../../constants/platforms';
@@ -749,10 +749,10 @@ export const mapStateToProps = (state, ownProps) => ({
 
 export const mapDispatchToProps = dispatch => ({
   onFieldChange: changes => {
-    dispatch(taskActions.edit(null, changes.field, changes.value, changes.sites));
+    dispatch(editTask(null, changes.field, changes.value, changes.sites));
   },
   onAddNewTask: (newTask, amount) => {
-    dispatch(taskActions.add(newTask, amount));
+    dispatch(addTask(newTask, amount));
   },
 });
 

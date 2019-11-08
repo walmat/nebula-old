@@ -1,31 +1,14 @@
 /**
  * This file is a shared import point for all actions.
  */
-import makeActionCreator from './actions/actionCreator';
-
+import * as app from './actions/app';
 import * as profiles from './actions/profiles/profileActions';
 import * as task from './actions/tasks/taskActions';
 import * as settings from './actions/settings/settingsActions';
 import * as server from './actions/server/serverActions';
 import * as navbar from './actions/navbar/navbarActions';
 
-// Global Actions
-export const GLOBAL_ACTIONS = {
-  RESET: '@@RESET',
-  IMPORT: '@@IMPORT',
-  SET_THEME: '@@SET_THEME',
-  FETCH_SITES: '@@FETCH_SITES',
-  MIGRATE_STATE: '@@MIGRATE_STATE',
-  INIT: '@@INIT',
-};
-
-export const globalActions = {
-  reset: makeActionCreator(GLOBAL_ACTIONS.RESET),
-  import: makeActionCreator(GLOBAL_ACTIONS.IMPORT, 'state'),
-  setTheme: makeActionCreator(GLOBAL_ACTIONS.SET_THEME, 'theme'),
-  migrateState: makeActionCreator(GLOBAL_ACTIONS.MIGRATE_STATE),
-  fetchSites: makeActionCreator(GLOBAL_ACTIONS.FETCH_SITES, 'sites'),
-};
+export const { APP_ACTIONS, fetchSites, importState, migrateState, reset, setTheme } = app;
 
 // Reimports
 export const {
@@ -41,7 +24,26 @@ export const {
   LOCATION_FIELDS,
 } = profiles;
 
-export const { taskActions, mapTaskFieldsToKey, TASK_ACTIONS, TASK_FIELDS } = task;
+export const {
+  addTask,
+  clearEdits,
+  copyTask,
+  destroyAllTasks,
+  destroyTask,
+  editAllTasks,
+  editTask,
+  handleError,
+  selectTask,
+  startAllTasks,
+  startTask,
+  stopAllTasks,
+  stopTask,
+  updateTask,
+  updateTaskStatus,
+  mapTaskFieldsToKey,
+  TASK_ACTIONS,
+  TASK_FIELDS,
+} = task;
 
 export const {
   serverActions,

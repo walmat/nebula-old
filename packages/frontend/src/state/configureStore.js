@@ -15,7 +15,6 @@ import settingsAttributeValidationMiddleware from './middleware/settings/setting
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
-
 export default function configureStore() {
   return createStore(
     topLevelReducer,
