@@ -5,8 +5,8 @@ import PropTypes from 'prop-types';
 import tDefns from '../../state/definitions/taskDefinitions';
 import { addTestId } from '../../utils';
 
-const OutputCol = ({ output, classMap, checkoutUrl }) => {
-  const outputColorMap = {
+const OutputCol = ({ message, classMap, checkoutUrl }) => {
+  const messageColorMap = {
     'Waiting for captcha': 'warning',
     'Checkpoint captcha': 'warning',
     'Duplicate order': 'warning',
@@ -19,26 +19,26 @@ const OutputCol = ({ output, classMap, checkoutUrl }) => {
   };
 
   const match = /Waiting for captcha|Checkpoint captcha|Duplicate order|Checking order status|Checkout failed|Polling queue|Payment successful|Payment failed|Card declined/i.exec(
-    output,
+    message,
   );
-  const messageClassName = match ? outputColorMap[match[0]] : 'normal';
+  const messageClassName = match ? messageColorMap[match[0]] : 'normal';
 
   return (
     <div
-      className={`${classMap.output.join(' ')} tasks-row__log--${messageClassName}`}
-      data-testid={addTestId('LogTaskRow.output')}
+      className={`${classMap.message.join(' ')} tasks-row__log--${messageClassName}`}
+      data-testid={addTestId('LogTaskRow.message')}
       role="button"
       tabIndex={0}
       onKeyPress={() => {}}
       onClick={() => OutputCol.openDefaultBrowser(checkoutUrl)}
     >
-      {output}
+      {message}
     </div>
   );
 };
 
 OutputCol.propTypes = {
-  output: PropTypes.string.isRequired,
+  message: PropTypes.string.isRequired,
   classMap: PropTypes.any.isRequired,
   checkoutUrl: PropTypes.string,
 };
@@ -57,7 +57,7 @@ const LogTaskRow = ({
     chosenSize,
     sizes,
     proxy,
-    output,
+    message,
     checkoutUrl,
   },
   style,
@@ -69,7 +69,7 @@ const LogTaskRow = ({
     product: ['col', 'col--no-gutter', 'tasks-row__log--product'],
     size: ['col', 'col--no-gutter', 'tasks-row__log--size'],
     proxy: ['col', 'col--no-gutter', 'tasks-row__log--proxy'],
-    output: ['col', 'col--no-gutter', 'tasks-row__log--output'],
+    message: ['col', 'col--no-gutter', 'tasks-row__log--message'],
   };
 
   const tasksRow = `row row--gutter ${selected ? 'tasks-row--selected' : 'tasks-row'}`;
@@ -113,7 +113,7 @@ const LogTaskRow = ({
         >
           {proxy || 'None'}
         </div>
-        <OutputCol output={output} classMap={classMap} checkoutUrl={checkoutUrl} />
+        <OutputCol message={message} classMap={classMap} checkoutUrl={checkoutUrl} />
       </div>
     </div>
   );

@@ -547,7 +547,7 @@ export default class TaskManager {
   }
 
   // MARK: Private Methods
-  _setup(runner, monitor) {
+  async _setup(runner, monitor) {
     const handlerGenerator = (event, sideEffects) => (id, ...params) => {
       if (id === runner.id || id === 'ALL') {
         const args = [runner.id, ...params];
@@ -578,81 +578,83 @@ export default class TaskManager {
           ];
 
     // Generate Handlers for each event
-    // eslint-disable-next-line array-callback-return
-    emissions.forEach(event => {
-      let handler;
-      switch (event) {
-        case Events.Abort: {
-          // Abort handler has a special function so use that instead of default handler
-          handler = id => {
-            if (id === runner.id || id === 'ALL') {
-              // TODO: Respect the scope of the runner's methods (issue #137)
-              if (monitor && monitor.ids.some(i => i === id)) {
-                // TODO: Also remove the task id somehow in the handle abort
-                monitor._handleAbort(id);
-              } else {
-                let found;
-                // eslint-disable-next-line no-restricted-syntax
-                for (const m of Object.values(this._monitors)) {
-                  if (m.ids.some(i => i === id)) {
-                    found = m;
-                    break;
+    Promise.all(
+      // eslint-disable-next-line array-callback-return
+      emissions.map(event => {
+        let handler;
+        switch (event) {
+          case Events.Abort: {
+            // Abort handler has a special function so use that instead of default handler
+            handler = id => {
+              if (id === runner.id || id === 'ALL') {
+                // TODO: Respect the scope of the runner's methods (issue #137)
+                if (monitor && monitor.ids.some(i => i === id)) {
+                  // TODO: Also remove the task id somehow in the handle abort
+                  monitor._handleAbort(id);
+                } else {
+                  let found;
+                  // eslint-disable-next-line no-restricted-syntax
+                  for (const m of Object.values(this._monitors)) {
+                    if (m.ids.some(i => i === id)) {
+                      found = m;
+                      break;
+                    }
+                  }
+
+                  if (found) {
+                    found._handleAbort(id);
                   }
                 }
 
-                if (found) {
-                  found._handleAbort(id);
-                }
+                runner._handleAbort(runner.id);
               }
-
-              runner._handleAbort(runner.id);
-            }
-          };
-          break;
+            };
+            break;
+          }
+          case Events.ProductFound: {
+            handler = (id, product, parseType) => {
+              runner._handleProduct(id, product, parseType);
+            };
+            break;
+          }
+          case Events.DeregisterProxy: {
+            handler = id => {
+              runner._handleDeregisterProxy(id);
+              // if (monitor) {
+              //   monitor._handleDeregisterProxy(id);
+              // }
+            };
+            break;
+          }
+          case Events.Harvest: {
+            // Harvest handler has a special function so use that instead of default handler
+            handler = (id, token) => {
+              if (id === runner.id || id === 'ALL') {
+                // TODO: Respect the scope of the runner's methods (issue #137)
+                runner._handleHarvest(runner.id, token);
+              }
+            };
+            break;
+          }
+          case Events.SendProxy: {
+            // Send proxy has a side effect so set it then generate the handler
+            const sideEffects = (id, proxy) => {
+              // Store proxy on worker so we can release it during cleanup
+              this._runners[id].proxy = proxy;
+            };
+            handler = handlerGenerator(RunnerEvents.ReceiveProxy, sideEffects);
+            break;
+          }
+          default: {
+            handler = handlerGenerator(event, null);
+            break;
+          }
         }
-        case Events.ProductFound: {
-          handler = (id, product, parseType) => {
-            runner._handleProduct(id, product, parseType);
-          };
-          break;
-        }
-        case Events.DeregisterProxy: {
-          handler = id => {
-            runner._handleDeregisterProxy(id);
-            // if (monitor) {
-            //   monitor._handleDeregisterProxy(id);
-            // }
-          };
-          break;
-        }
-        case Events.Harvest: {
-          // Harvest handler has a special function so use that instead of default handler
-          handler = (id, token) => {
-            if (id === runner.id || id === 'ALL') {
-              // TODO: Respect the scope of the runner's methods (issue #137)
-              runner._handleHarvest(runner.id, token);
-            }
-          };
-          break;
-        }
-        case Events.SendProxy: {
-          // Send proxy has a side effect so set it then generate the handler
-          const sideEffects = (id, proxy) => {
-            // Store proxy on worker so we can release it during cleanup
-            this._runners[id].proxy = proxy;
-          };
-          handler = handlerGenerator(RunnerEvents.ReceiveProxy, sideEffects);
-          break;
-        }
-        default: {
-          handler = handlerGenerator(event, null);
-          break;
-        }
-      }
-      // Store handler for cleanup
-      handlers[event] = handler;
-      this._events.on(event, handler, this);
-    });
+        // Store handler for cleanup
+        handlers[event] = handler;
+        this._events.on(event, handler, this);
+      }),
+    );
     this._handlers[runner.id] = handlers;
 
     if (runner.type === RunnerTypes.ShippingRates) {
@@ -868,10 +870,9 @@ export default class TaskManager {
     this._logger.silly('Starting ...');
     try {
       if (monitor) {
-        await Promise.all([runner.start(), monitor.start()]);
-      } else {
-        await runner.start();
+        monitor.start();
       }
+      await runner.start();
       this._logger.silly('Runner %s finished without errors', runnerId);
     } catch (error) {
       this._logger.error(

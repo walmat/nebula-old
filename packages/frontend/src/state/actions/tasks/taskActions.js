@@ -138,15 +138,16 @@ const _stopTaskRequest = async task => {
 };
 
 const _stopAllTasksRequest = async tasks => {
-  if (!tasks.length) {
+  const runningTasks = tasks.filter(t => t.status === 'running');
+  if (!runningTasks.length) {
     throw new Error('No tasks running');
   }
 
   if (window.Bridge) {
-    window.Bridge.stopTasks(tasks);
+    window.Bridge.stopTasks(runningTasks);
   }
 
-  return { tasks };
+  return { tasks: runningTasks };
 };
 
 // Private Actions

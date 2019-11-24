@@ -22,7 +22,7 @@ const { States, Types, DelayTypes, HookTypes, HarvestStates } = TaskRunner;
 const { ParseType } = Monitor;
 
 // SUPREME
-export default class TaskRunnerPrimitive {
+class TaskRunnerPrimitive {
   get state() {
     return this._state;
   }
@@ -693,9 +693,7 @@ export default class TaskRunnerPrimitive {
       return States.ABORT;
     }
 
-    const {
-      variant: { id: s },
-    } = this._context.task.product;
+    const { id: s } = this._context.task.product.variant;
 
     let region = 'US';
     if (/EU/i.test(name)) {
@@ -754,9 +752,7 @@ export default class TaskRunnerPrimitive {
       // this._form = backupForm(region, profileInfo, payment, s);
 
       // patch in the captcha token
-      if (this.captchaToken) {
-        this._form += `&g-recaptcha-response=${this.captchaToken}`;
-      }
+      this._form += `&g-recaptcha-response=${this.captchaToken || undefined}`;
     }
 
     if (!this._pooky) {
@@ -809,7 +805,7 @@ export default class TaskRunnerPrimitive {
       }
 
       const body = await res.json();
-      this._logger.debug('BODY::: %j', body);
+      this._logger.debug('BODY: %j', body);
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
@@ -1078,3 +1074,5 @@ export default class TaskRunnerPrimitive {
 
 TaskRunnerPrimitive.Events = Events;
 TaskRunnerPrimitive.States = States;
+
+export default TaskRunnerPrimitive;

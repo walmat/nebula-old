@@ -133,6 +133,13 @@ export default class ProxyManager {
       // Force wait limit to be 0 if we have an invalid parameter value passed in
       newTimeout = 0;
     }
+
+    console.log(this._proxies.size)
+    if (!this._proxies.size) {
+      this._logger.debug('No proxies available! Skipping reserve');
+      return null;
+    }
+
     this._logger.debug(
       'Reserving proxy for runner %s for site %s... Looking through %d proxies',
       id,

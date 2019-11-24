@@ -100,7 +100,7 @@
         }
       }
 
-      &--output {
+      &--message {
         @include header-field;
         width: 20px;
         padding-left: 10px;
@@ -227,7 +227,7 @@
             }
           }
 
-          &--output {
+          &--message {
             @include input-field;
             width: 50px;
             padding-left: 10px;

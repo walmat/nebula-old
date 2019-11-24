@@ -17,7 +17,7 @@ const { Types } = TaskRunner;
 const { States, DelayTypes, ParseType, ErrorCodes } = Monitor;
 
 // SUPREME
-export default class MonitorPrimitive {
+class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Keywords) {
     this.ids = [context.id];
     this._task = context.task;
@@ -669,3 +669,5 @@ export default class MonitorPrimitive {
     this._cleanup();
   }
 }
+
+export default MonitorPrimitive;

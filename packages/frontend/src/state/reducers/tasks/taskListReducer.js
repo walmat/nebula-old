@@ -362,66 +362,51 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       }
       break;
     }
-    // TODO: OPTIMIZE THIS!!!
     case TASK_ACTIONS.STATUS: {
       if (!action.messageBuffer) {
         break;
       }
       const { messageBuffer } = action;
       const taskMap = {};
-      nextState.forEach(t => {
+      // eslint-disable-next-line array-callback-return
+      nextState.map(t => {
         taskMap[t.id] = t;
       });
       // for each task in the messageBuffer, update the status
-      Object.entries(messageBuffer).forEach(([taskId, msg]) => {
-        const { type } = msg;
-        if (type !== 'srr') {
-          const task = taskMap[taskId];
-          if (task) {
-            const {
-              message,
-              size,
-              rawProxy,
-              found,
-              apiKey,
-              checkoutUrl,
-              paymentToken,
-              needsCaptcha,
-              order,
-              status,
-            } = msg;
-
-            task.output = message;
-            if (size) {
-              task.chosenSize = size;
-            }
-            if (rawProxy) {
-              task.proxy = rawProxy;
-            }
-            if (found) {
-              task.product.found = found;
-            }
-            if (apiKey) {
-              task.site.apiKey = apiKey;
-            }
-            if (checkoutUrl) {
-              task.checkoutUrl = checkoutUrl;
-            }
-            if (paymentToken) {
-              task.paymentToken = paymentToken;
-            }
-            if (needsCaptcha) {
-              task.needsCaptcha = needsCaptcha;
-            }
-            if (order) {
-              task.order = order;
-            }
-            if (status) {
-              task.status = status;
+      Promise.all(
+        // eslint-disable-next-line array-callback-return
+        Object.entries(messageBuffer).map(([taskId, msg]) => {
+          const { type } = msg;
+          if (type !== 'srr') {
+            const task = taskMap[taskId];
+            if (task) {
+              const { message, size, rawProxy, found, apiKey, checkoutUrl, order, status } = msg;
+              task.message = message;
+              // if (size) {
+              //   task.chosenSize = size;
+              // }
+              // if (rawProxy) {
+              //   task.proxy = rawProxy;
+              // }
+              // if (found) {
+              //   task.product.found = found;
+              // }
+              // if (apiKey) {
+              //   task.site.apiKey = apiKey;
+              // }
+              // if (checkoutUrl) {
+              //   task.checkoutUrl = checkoutUrl;
+              // }
+              // if (order) {
+              //   task.order = order;
+              // }
+              // if (status) {
+              //   task.status = status;
+              // }
             }
           }
-        }
-      });
+        }),
+      );
       break;
     }
     case TASK_ACTIONS.EDIT: {
@@ -471,9 +456,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       // do nothing if the task is already running..
       if (nextState[idx].status === 'running') {
         break;
-      } else if (nextState[idx].status === 'bypassed' && nextState[idx].needsChanged) {
-        nextState[idx].output = 'Change product info! Start again to bypass';
-        nextState[idx].needsChanged = false;
       } else {
         nextState[idx].status = 'running';
         nextState[idx].output = 'Starting task!';
@@ -487,21 +469,18 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
       const { tasks } = action.response;
 
-      tasks.forEach(task => {
-        const idx = nextState.findIndex(t => t.id === task.id);
-        if (idx === -1 || nextState[idx].status === 'running') {
-          return;
-        }
+      Promise.all(
+        // eslint-disable-next-line array-callback-return
+        tasks.map(task => {
+          const idx = nextState.findIndex(t => t.id === task.id);
+          if (idx === -1 || nextState[idx].status === 'running') {
+            return;
+          }
 
-        if (nextState[idx].status === 'bypassed' && nextState[idx].needsChanged) {
-          nextState[idx].output = 'Change product info! Start again to bypass';
-          nextState[idx].needsChanged = false;
-          return;
-        }
-
-        nextState[idx].status = 'running';
-        nextState[idx].output = 'Starting task!';
-      });
+          nextState[idx].status = 'running';
+          nextState[idx].message = 'Starting task!';
+        }),
+      );
       break;
     }
     case TASK_ACTIONS.STOP: {
@@ -518,14 +497,8 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
       if (nextState[idx].status === 'stopped' || nextState[idx].status === 'idle') {
         break;
       } else {
-        // Clear cache on non-qb tasks
-        if (!nextState[idx].isQueueBypass) {
-          delete nextState[idx].checkoutUrl;
-          delete nextState[idx].paymentToken;
-        }
-
         nextState[idx].status = 'stopped';
-        nextState[idx].output = '';
+        nextState[idx].message = '';
         nextState[idx].chosenSize = nextState[idx].size;
         nextState[idx].proxy = null;
         nextState[idx].product.found = null;
@@ -540,25 +513,22 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
 
       const { tasks } = action.response;
 
-      tasks.forEach(task => {
-        const idx = nextState.findIndex(t => t.id === task.id);
+      Promise.all(
+        // eslint-disable-next-line array-callback-return
+        tasks.map(task => {
+          const idx = nextState.findIndex(t => t.id === task.id);
 
-        if (idx === -1) {
-          return;
-        }
+          if (idx === -1) {
+            return;
+          }
 
-        // Clear cache on non-qb tasks
-        if (!nextState[idx].isQueueBypass) {
-          delete nextState[idx].checkoutUrl;
-          delete nextState[idx].paymentToken;
-        }
-
-        nextState[idx].status = 'stopped';
-        nextState[idx].output = '';
-        nextState[idx].chosenSize = nextState[idx].size;
-        nextState[idx].proxy = null;
-        nextState[idx].product.found = null;
-      });
+          nextState[idx].status = 'stopped';
+          nextState[idx].message = '';
+          nextState[idx].chosenSize = nextState[idx].size;
+          nextState[idx].proxy = null;
+          nextState[idx].product.found = null;
+        }),
+      );
       break;
     }
     case TASK_ACTIONS.ERROR: {

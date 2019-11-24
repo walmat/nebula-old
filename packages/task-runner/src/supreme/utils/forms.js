@@ -19,7 +19,7 @@ export const parseForm = async ($, formName, wanted, billing, payment, size) => 
     const value = $(el).attr('value') || '';
 
     // blacklisted values/names
-    if (/qty|size-options/i.test(name)) {
+    if (/qty|size-options|store_address/i.test(name)) {
       return;
     }
 
@@ -72,14 +72,14 @@ export const parseForm = async ($, formName, wanted, billing, payment, size) => 
     if (/country/i.test(name)) {
       val = country;
     }
-    if (/bn|name/i.test(name)) {
+    if (/bn/i.test(name)) {
       const fullName = `${billing.firstName.replace(/\s/g, '+')}+${billing.lastName.replace(
         /\s/g,
         '+',
       )}`;
       val = fullName;
     }
-    if (/carn|card/i.test(name) && !/month|year|vv|type/i.test(name)) {
+    if (/carn|card|riearmxa/i.test(name) && !/month|year|vv|meknk|type/i.test(name)) {
       val = payment.cardNumber.match(/.{1,4}/g).join('+');
     }
     if (/card/i.test(name) && /month/i.test(name)) {
@@ -103,7 +103,7 @@ export const parseForm = async ($, formName, wanted, billing, payment, size) => 
       }
       val = cardType;
     }
-    if (/card/i.test(name) && /vv/i.test(name)) {
+    if (/card/i.test(name) && /vv|meknk/i.test(name)) {
       val = payment.cvv;
     }
     if (/cookie-sub/i.test(name)) {

@@ -7,7 +7,7 @@ import { addTestId } from '../../utils';
 
 export class LogTaskPrimitive extends PureComponent {
   static renderOutputLogRow(msg, i) {
-    const outputColorMap = {
+    const messageColorMap = {
       'Waiting for captcha': 'warning',
       'Checkpoint captcha': 'warning',
       'Duplicate order': 'warning',
@@ -22,10 +22,10 @@ export class LogTaskPrimitive extends PureComponent {
     const match = /Waiting for captcha|Checkpoint captcha|Duplicate order|Checking order status|Checkout failed|Polling queue|Payment successful|Payment failed|Card declined/i.exec(
       msg,
     );
-    const messageClassName = match ? outputColorMap[match[0]] : 'normal';
+    const messageClassName = match ? messageColorMap[match[0]] : 'normal';
     return (
-      <div key={i} className="row row--start row--gutter tasks-live-log__output-row">
-        <p className={`tasks-live-log__output-row-message--${messageClassName}`}>{msg}</p>
+      <div key={i} className="row row--start row--gutter tasks-live-log__message-row">
+        <p className={`tasks-live-log__message-row-message--${messageClassName}`}>{msg}</p>
       </div>
     );
   }
@@ -111,7 +111,7 @@ export class LogTaskPrimitive extends PureComponent {
       ],
       product: ['col', 'tasks-log__header--product'],
       proxy: ['col', 'tasks-log__header', 'tasks-log__header--proxy'],
-      output: ['col', 'tasks-log__header', 'tasks-log__header--output'],
+      message: ['col', 'tasks-log__header', 'tasks-log__header--message'],
     };
     if (fullscreen) {
       Object.values(classMap).forEach(v => v.push(`${v[v.length - 1]}--fullscreen`));
@@ -174,10 +174,10 @@ export class LogTaskPrimitive extends PureComponent {
                 <p>Proxy</p>
               </div>
               <div
-                data-testid={addTestId('LogTaskPrimitive.header--output')}
-                className={classMap.output.join(' ')}
+                data-testid={addTestId('LogTaskPrimitive.header--message')}
+                className={classMap.message.join(' ')}
               >
-                <p>Output</p>
+                <p>Status</p>
               </div>
             </div>
             <div className="row row--start tasks-log__view-line">

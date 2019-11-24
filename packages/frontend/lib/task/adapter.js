@@ -27,14 +27,18 @@ class TaskManagerAdapter {
      */
     this._taskEventHandler = async (taskIds, statusMessage) => {
       if (statusMessage) {
-        [...taskIds].forEach(taskId => {
-          const previous = this.statusMessageBuffer[taskId];
-          this.statusMessageBuffer[taskId] = {
-            ...previous,
-            ...statusMessage,
-          };
-        });
+        return Promise.all(
+          // eslint-disable-next-line array-callback-return
+          [...taskIds].map(taskId => {
+            const previous = this.statusMessageBuffer[taskId];
+            this.statusMessageBuffer[taskId] = {
+              ...previous,
+              ...statusMessage,
+            };
+          }),
+        );
       }
+      return null;
     };
 
     this._taskEventMessageSender = () => {
@@ -62,7 +66,7 @@ class TaskManagerAdapter {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
         if (!this._messageInterval) {
           // batch status updates every 1 second
-          this._messageInterval = setInterval(this._taskEventMessageSender, 1000);
+          this._messageInterval = setInterval(this._taskEventMessageSender, 0);
         }
       }
     });
