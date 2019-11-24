@@ -27,22 +27,21 @@ export default class TaskPrimitive {
     return this._state;
   }
 
-  constructor(context, proxy, type, platform = Platforms.Shopify) {
+  constructor(context, proxy, parseType, platform = Platforms.Shopify) {
     // Add Ids to object
     this.id = context.id;
     this._task = context.task;
-    this.taskId = context.taskId;
     this.proxy = proxy;
     this._events = context.events;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie')(fetch, context.jar);
+    const _request = require('fetch-cookie/node-fetch')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
-      timeout: 45000, // to be overridden as necessary
+      timeout: 35000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
-    this._parseType = type;
+    this._parseType = parseType;
     this._platform = platform;
 
     this._delayer = null;
@@ -369,7 +368,7 @@ export default class TaskPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
-        this._events.emit(event, [this.taskId], payload, event);
+        this._events.emit(event, [this.id], payload, event);
         break;
       }
       default: {

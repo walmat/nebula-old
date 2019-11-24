@@ -210,19 +210,12 @@
     }
 
     &__submit {
-      @include button-font;
+      @include button-base;
       margin-right: -1px;
-      width: 83px;
-      height: 29px;
-      cursor: pointer;
       @include themify($themes) {
         background: themed('buttonColorPrimary');
       }
-      border: none;
-      border-radius: 3px;
-      font-size: 12px;
-      color: #efefef;
-      letter-spacing: 0;
+      color: #f4f4f4 !important;
     }
   }
 }

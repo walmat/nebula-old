@@ -23,7 +23,6 @@ export default class ShippingRatesRunner {
   constructor(id, task, proxy, loggerPath, type = Types.ShippingRates) {
     this.id = id;
     this.task = task;
-    this.taskId = task.id;
     this.proxy = proxy;
     this._type = type;
 
@@ -37,7 +36,7 @@ export default class ShippingRatesRunner {
     this.aborter = new AbortController();
 
     // eslint-disable-next-line global-require
-    const request = require('fetch-cookie')(fetch, new CookieJar());
+    const request = require('fetch-cookie/node-fetch')(fetch, new CookieJar());
 
     this._request = defaults(request, this.task.site.url, {
       timeout: 12000, // to be overridden as necessary
@@ -409,7 +408,7 @@ export default class ShippingRatesRunner {
     return handler.call(this);
   }
 
-  async run() {
+  async loop() {
     let nextState;
     let message;
 
@@ -426,7 +425,7 @@ export default class ShippingRatesRunner {
     return { nextState, message };
   }
 
-  async start() {
+  async run() {
     let nextState;
     let message;
 
@@ -434,7 +433,7 @@ export default class ShippingRatesRunner {
 
     while (nextState !== this.states.ERROR && !this.aborted) {
       // eslint-disable-next-line no-await-in-loop
-      ({ nextState, message } = await this.run());
+      ({ nextState, message } = await this.loop());
 
       if (this.shippingRates.length) {
         this._emitTaskEvent({

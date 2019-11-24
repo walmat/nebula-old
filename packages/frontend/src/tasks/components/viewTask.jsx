@@ -238,7 +238,7 @@ export class ViewTaskPrimitive extends PureComponent {
 
   renderRow({ index, key, style, parent, isVisible, task }) {
     if (!isVisible) {
-      return;
+      return <></>;
     }
 
     return (

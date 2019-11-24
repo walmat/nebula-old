@@ -147,7 +147,7 @@ class TaskManagerAdapter {
 process.once('loaded', () => {
   let tma = null;
   ipcRenderer.once('LOG_PATH', (_, logPath) => {
-    console.log('received log path...');
+    console.log(`Received log path: ${logPath}`);
     tma = new TaskManagerAdapter(logPath);
   });
 });

@@ -30,7 +30,6 @@ export default class TaskPrimitive {
   constructor(context, proxy, type, platform = Platforms.Supreme) {
     this.id = context.id;
     this._task = context.task;
-    this.taskId = context.taskId;
     this._events = context.events;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
@@ -39,7 +38,7 @@ export default class TaskPrimitive {
     this._platform = platform;
 
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie')(fetch, context.jar);
+    const _request = require('fetch-cookie/node-fetch')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
       timeout: 10000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
@@ -337,7 +336,7 @@ export default class TaskPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
-        this._events.emit(event, [this.taskId], payload, event);
+        this._events.emit(event, [this.id], payload, event);
         break;
       }
       default: {
@@ -1023,9 +1022,13 @@ export default class TaskPrimitive {
     return handler.call(this);
   }
 
-  // MARK: State Machine Run Loop
+  // MARK: State Machine Run Methods
 
-  async run() {
+  stop() {
+    this._context.aborted = true;
+  }
+
+  async loop() {
     let nextState = this._state;
 
     if (this._context.aborted) {
@@ -1057,7 +1060,7 @@ export default class TaskPrimitive {
     return false;
   }
 
-  async start() {
+  async run() {
     this._prevState = States.STARTED;
 
     this._emitTaskEvent({ message: 'Waiting for product', rawProxy: this._context.rawProxy });
@@ -1065,7 +1068,7 @@ export default class TaskPrimitive {
     let shouldStop = false;
     while (this._state !== States.DONE && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
-      shouldStop = await this.run();
+      shouldStop = await this.loop();
     }
 
     this._cleanup();

@@ -1,12 +1,9 @@
 import EventEmitter from 'eventemitter3';
-import { generate } from 'shortid';
 import { isEqual } from 'lodash';
 import { CookieJar } from 'tough-cookie';
 
 // Shared includes
-import ProxyManager from './common/proxyManager';
-import WebhookManager from './common/webhookManager';
-import { createLogger } from './common/logger';
+import { ProxyManager, WebhookManager, createLogger } from './common';
 import { Platforms, Manager, Task } from './constants';
 
 // Shopify includes
@@ -29,8 +26,8 @@ const { Events } = Manager;
 const { Events: TaskEvents } = Task;
 
 export default class TaskManager {
-  get loggerPath() {
-    return this._loggerPath;
+  get logPath() {
+    return this._logPath;
   }
 
   get proxyManager() {
@@ -41,12 +38,12 @@ export default class TaskManager {
     return this._webhookManager;
   }
 
-  constructor(loggerPath) {
+  constructor(logPath) {
     // Event Emitter for this manager
     this._events = new EventEmitter();
 
     // Logger file path
-    this._loggerPath = loggerPath;
+    this._logPath = logPath;
 
     // Tasks Map
     this._tasks = {};
@@ -65,7 +62,7 @@ export default class TaskManager {
 
     // Logger
     this._logger = createLogger({
-      dir: this._loggerPath,
+      dir: this._logPath,
       name: 'TaskManager',
       prefix: 'manager',
     });
@@ -393,13 +390,9 @@ export default class TaskManager {
     }
   }
 
-  async setup(site, platform) {
-    let id;
-    do {
-      id = generate();
-    } while (this._tasks[id]);
-    const openProxy = await this._proxyManager.reserve(id, site, platform);
-    return { id, openProxy };
+  async setup(id, site, platform) {
+    const proxy = await this._proxyManager.reserve(id, site, platform);
+    return proxy;
   }
 
   cleanup(id) {
@@ -427,15 +420,16 @@ export default class TaskManager {
   async start(task, { type = TaskTypes.Normal }) {
     this._logger.silly('Starting task %s', task.id);
 
-    const alreadyStarted = Object.values(this._tasks).find(t => t.taskId === task.id);
+    const alreadyStarted = Object.values(this._tasks).find(t => t.id === task.id);
     if (alreadyStarted) {
       this._logger.warn('This task is already running! skipping start');
       return;
     }
-    const { id, openProxy } = await this.setup(task.site.url, task.platform);
-    this._logger.silly('Creating new task %s for %s', id, task.id);
 
-    this._start([id, task, openProxy, type]).then(() => this.cleanup(id));
+    const proxy = await this.setup(task.id, task.site.url, task.platform);
+    this._logger.silly('Creating new task for %s', task.id);
+
+    this._start([task, proxy, type]).then(() => this.cleanup(task.id));
   }
 
   /**
@@ -463,7 +457,7 @@ export default class TaskManager {
     const monitorId = Object.keys(this._monitors).find(k =>
       this._monitors[k].taskIds.some(id => id === task.id),
     );
-    const id = Object.keys(this._tasks).find(k => this._tasks[k].taskId === task.id);
+    const id = Object.keys(this._tasks).find(k => this._tasks[k].id === task.id);
     const oldTask = this._tasks[id];
     // TODO: comparisons here.. we should only reset the monitor if the product data/site changes
     if (monitorId) {
@@ -496,20 +490,23 @@ export default class TaskManager {
    *
    * @param {Task} task the task to stop
    */
-  stop(task) {
-    this._logger.silly('Attempting to stop task with taskId: %s', task.id);
-    const rId = Object.keys(this._tasks).find(k => this._tasks[k].taskId === task.id);
-    if (!rId) {
-      this._logger.warn(
-        'This task was not previously running or has already been stopped! Skipping stop',
-      );
+  stop({ id }) {
+    this._logger.silly('Attempting to stop task with id: %s', id);
+    const task = this._tasks[id];
+    console.log(task);
+    if (!task) {
+      this._logger.warn('This task was not previously running or has already been stopped!');
       return null;
     }
 
+    const monitor = this._monitors[id];
+    task.stop();
+
+    this._logger.silly('Performing cleanup for task %s', id);
     // Send abort signal
-    this._events.emit(Events.Abort, rId);
+    this._events.emit(Events.Abort, id);
     this._logger.silly('Stop signal sent');
-    return rId;
+    return this._cleanup(task, monitor);
   }
 
   /**
@@ -526,7 +523,7 @@ export default class TaskManager {
     let tasksToStop = tasks;
     // if force option is set, force stop all running tasks
     if (force) {
-      tasksToStop = Object.values(this._tasks).map(({ taskId: id }) => ({ id }));
+      tasksToStop = Object.values(this._tasks).map(({ id }) => ({ id }));
       if (tasksToStop.length > 0) {
         this._logger.silly('Force Stopping %d tasks', tasksToStop.length, tasksToStop);
       }
@@ -540,7 +537,7 @@ export default class TaskManager {
    * @param {Task} task the task to check
    */
   isRunning(task) {
-    return !!Object.values(this._tasks).find(r => r.task.id === task.id);
+    return !!Object.values(this._tasks).find(t => t.id === task.id);
   }
 
   // MARK: Private Methods
@@ -671,7 +668,7 @@ export default class TaskManager {
     task._events.on(TaskTypes.SwapTaskProxy, this.handleSwapProxy, this);
   }
 
-  _cleanup(task, monitor) {
+  async _cleanup(task, monitor) {
     const handlers = this._handlers[task.id];
     delete this._handlers[task.id];
     // Cleanup manager handlers
@@ -695,16 +692,22 @@ export default class TaskManager {
             Events.ChangeDelay,
             Events.UpdateHook,
           ];
-    emissions.forEach(event => {
-      this._events.removeListener(event, handlers[event]);
-    });
+    await Promise.all(
+      // eslint-disable-next-line array-callback-return
+      emissions.map(event => {
+        this._events.removeListener(event, handlers[event]);
+      }),
+    );
+    return task.id;
   }
 
-  async _start([id, task, openProxy, type]) {
+  async _start([task, proxy, type]) {
     let newTask;
     let monitor;
 
-    const { platform } = task;
+    const { platform, id } = task;
+
+    console.log(id);
 
     switch (platform) {
       case Platforms.Shopify: {
@@ -713,7 +716,6 @@ export default class TaskManager {
 
           const context = {
             id,
-            taskId: task.id,
             type: parseType,
             task,
             productFound: false,
@@ -721,7 +723,7 @@ export default class TaskManager {
             events: new EventEmitter(),
             jar: new CookieJar(),
             logger: createLogger({
-              dir: this._loggerPath,
+              dir: this._logPath,
               name: `Task-${id}`,
               prefix: `task-${id}`,
             }),
@@ -729,7 +731,7 @@ export default class TaskManager {
           };
 
           // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-          newTask = new ShopifyTask(context, openProxy, parseType);
+          newTask = new ShopifyTask(context, proxy, parseType);
           newTask.parseType = parseType;
 
           // prevent multiple monitors on same site with same data
@@ -760,25 +762,23 @@ export default class TaskManager {
           this._logger.debug('Existing monitor? %j', found || false);
 
           if (found) {
-            this._logger.debug('Existing monitor found! Just adding ids');
-            found.ids.push(context.id);
-            found.taskIds.push(context.taskId);
+            this._logger.debug('Existing monitor found! Just adding id');
+            found.ids.push(id);
           } else {
-            monitor = new ShopifyMonitor(context, openProxy, parseType);
+            monitor = new ShopifyMonitor(context, proxy, parseType);
             monitor.platform = platform;
             monitor.site = task.site.url;
             monitor.type = parseType;
           }
         } else if (type === TaskTypes.ShippingRates) {
           // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-          newTask = new RateFetcher(id, task, openProxy, this._loggerPath);
+          newTask = new RateFetcher(task, proxy, this._logPath);
         }
         break;
       }
       case Platforms.Supreme: {
         const context = {
           id,
-          taskId: task.id,
           type: ParseType.Keywords,
           task,
           productFound: false,
@@ -786,7 +786,7 @@ export default class TaskManager {
           events: new EventEmitter(),
           jar: new CookieJar(),
           logger: createLogger({
-            dir: this._loggerPath,
+            dir: this._logPath,
             name: `Task-${id}`,
             prefix: `task-${id}`,
           }),
@@ -794,7 +794,7 @@ export default class TaskManager {
         };
 
         // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-        newTask = new SupremeTask(context, openProxy, ParseType.Keywords);
+        newTask = new SupremeTask(context, proxy, ParseType.Keywords);
         newTask.parseType = ParseType.Keywords;
 
         let found;
@@ -830,12 +830,11 @@ export default class TaskManager {
 
         if (found) {
           this._logger.debug('Existing monitor found! Just adding ids');
-          found.ids.push(context.id);
-          found.taskIds.push(context.taskId);
+          found.ids.push(id);
         } else {
           this._logger.debug('No monitor found! Creating a new monitor');
           // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-          monitor = new SupremeMonitor(context, openProxy);
+          monitor = new SupremeMonitor(context, proxy);
           monitor.platform = platform;
           monitor.site = task.site.url;
           monitor.type = ParseType.Keywords;
@@ -846,7 +845,7 @@ export default class TaskManager {
         break;
     }
 
-    // Return early if invalid platform was passed in
+    // Return early if invalid task was created...
     if (!newTask) {
       return;
     }
@@ -859,6 +858,7 @@ export default class TaskManager {
       this._monitors[id] = monitor;
     }
     this._tasks[id] = newTask;
+    console.log(this._tasks[id]);
     this._logger.silly('Wiring up Events ...');
     this._setup(newTask, monitor);
 
@@ -866,16 +866,13 @@ export default class TaskManager {
     this._logger.silly('Starting ...');
     try {
       if (monitor) {
-        monitor.start();
+        monitor.run();
       }
-      await newTask.start();
-      this._logger.silly('Task %s finished without errors', id);
+      newTask.run();
+      this._logger.silly('Task %s started without errors', id);
     } catch (error) {
-      this._logger.error('Task %s was stopped due to an error: %s', id, error.toString(), error);
+      this._logger.error('Task %s was unable to start due to an error: %s', id, error.toString());
     }
-
-    this._logger.silly('Performing cleanup for task %s', id);
-    this._cleanup(newTask, monitor);
   }
 }
 

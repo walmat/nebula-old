@@ -20,7 +20,6 @@ export default class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Unknown) {
     this.ids = [context.id];
     this._task = context.task;
-    this.taskIds = [context.taskId];
     this.proxy = proxy;
     this._jar = context.jar;
     this._events = context.events;
@@ -32,7 +31,7 @@ export default class MonitorPrimitive {
     this._signal = this._aborter.signal;
 
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie')(fetch, context.jar);
+    const _request = require('fetch-cookie/node-fetch')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
       timeout: 30000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
@@ -164,7 +163,7 @@ export default class MonitorPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        this._events.emit(event, this.taskIds, payload, event);
+        this._events.emit(event, this.ids, payload, event);
         break;
       }
       default: {
@@ -629,7 +628,7 @@ export default class MonitorPrimitive {
   }
 
   // MARK: State Machine Run Loop
-  async run() {
+  async loop() {
     let nextState = this._state;
 
     if (this._context.aborted || this._context.productFound) {
@@ -660,12 +659,12 @@ export default class MonitorPrimitive {
     return false;
   }
 
-  async start() {
+  async run() {
     let shouldStop = false;
 
     while (this._state !== States.ABORT && !shouldStop) {
       // eslint-disable-next-line no-await-in-loop
-      shouldStop = await this.run();
+      shouldStop = await this.loop();
     }
 
     this._cleanup();

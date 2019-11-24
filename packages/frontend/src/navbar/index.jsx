@@ -93,7 +93,7 @@ export class NavbarPrimitive extends PureComponent {
         sitekey: '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
         host: 'http://checkout.shopify.com',
       },
-    }
+    };
 
     this.renderCaptchaHarvesterRow = this.renderCaptchaHarvesterRow.bind(this);
     this.openHarvesterWindow = this.openHarvesterWindow.bind(this);
@@ -120,11 +120,7 @@ export class NavbarPrimitive extends PureComponent {
         <button
           type="button"
           className="navbar__button--open-captcha"
-          onClick={() => this.openHarvesterWindow(
-              host,
-              sitekey,
-            )
-          }
+          onClick={() => this.openHarvesterWindow(host, sitekey)}
         >
           {label}
         </button>
@@ -134,8 +130,7 @@ export class NavbarPrimitive extends PureComponent {
 
   renderNavbarIconRow(route, { Icon, iconName, classNameGenerator }) {
     const { onKeyPress, onRoute, location, history } = this.props;
-    console.log(location.pathname);
-    const className = classNameGenerator(location);
+    const className = classNameGenerator(location.pathname);
     const props = {
       Icon,
       iconName,
@@ -207,8 +202,8 @@ export class NavbarPrimitive extends PureComponent {
 }
 
 NavbarPrimitive.propTypes = {
-  history: PropTypes.object.isRequired,
-  location: PropTypes.object.isRequired,
+  history: PropTypes.objectOf(PropTypes.any).isRequired,
+  location: PropTypes.objectOf(PropTypes.any).isRequired,
   theme: PropTypes.string.isRequired,
   onRoute: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,

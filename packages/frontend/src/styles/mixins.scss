@@ -7,30 +7,6 @@
   letter-spacing: 0;
 }
 
-@mixin button-base {
-  @include font-base;
-  font-weight: 500;
-  font-size: 12px;
-  width: 83px;
-  height: 29px;
-  opacity: 1;
-  cursor: pointer;
-  border: none;
-  border-radius: 3px;
-  @include themify($themes) {
-    color: themed('buttonPrimaryText');
-  }
-
-  &:hover {
-    opacity: 0.8333;
-  }
-
-  &:disabled {
-    cursor: not-allowed !important;
-    opacity: 0.5;
-  }
-}
-
 @mixin input-group {
   @include themify($themes) {
     border-color: themed('tableBorderColor');
@@ -82,13 +58,25 @@
 @mixin button-font {
   @include font-base;
   font-size: 12px;
+  letter-spacing: 0;
 }
 
 @mixin button-base {
   @include button-font;
   width: 83px;
   height: 29px;
+  opacity: 1;
   cursor: pointer;
   border: none;
   border-radius: 3px;
+  color: #f4f4f4 !important;
+
+  &:hover {
+    opacity: 0.8333;
+  }
+
+  &:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5;
+  }
 }

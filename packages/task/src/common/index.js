@@ -1,6 +1,10 @@
 import now from 'performance-now';
 import delay from 'delay';
+
 import rfrl from './rfrl';
+import { createLogger } from './logger';
+import ProxyManager from './proxyManager';
+import WebhookManager from './webhookManager';
 
 const waitForDelay = (time, signal) => delay(time, { signal });
 const reflect = p => p.then(v => ({ v, status: 'fulfilled' }), e => ({ e, status: 'rejected' }));
@@ -72,4 +76,7 @@ export {
   getRandomIntInclusive,
   capitalizeFirstLetter,
   currencyWithSymbol,
+  ProxyManager,
+  WebhookManager,
+  createLogger,
 };
