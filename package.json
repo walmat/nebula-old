@@ -1,21 +1,25 @@
 {
-  "name": "@nebula/nebula-root",
-  "description": "the root level for the nebula project",
-  "version": "0.0.0",
+  "name": "@nebula/root",
+  "description": "the root level for nebula",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "build": "yarn workspaces run build",
-    "ship": "concurrently 'yarn build:task' 'yarn pack'",
+    "ship": "concurrently \"yarn build:task\" \"yarn pack\"",
+    "clean": "concurrently \"yarn clean:root\" \"yarn clean:frontend\" \"yarn clean:task-runner\"",
+    "clean:root": "cross-env rm -rf node_modules",
+    "clean:frontend": "cross-env rm -rf packages/frontend/node_modules packages/frontend/build packages/frontend/dist packages/frontend/orion",
+    "clean:task": "cross-env rm -rf packages/task/node_modules packages/task/build packages/task-built/node_modules packages/task-built/build packages/task-built/dist",
     "build:frontend": "yarn workspace @nebula/orion build",
-    "build:task": "yarn workspace @nebula/task-runner build",
+    "build:task": "yarn workspace @nebula/task build",
     "pack": "yarn workspace @nebula/orion publish",
-    "start:dev-server": "yarn workspace @nebula/orion dev-server",
-    "start:dev": "wait-on tcp:3000 && yarn workspace @nebula/orion dev",
-    "start:prod": "yarn workspace @nebula/orion prod",
+    "dev-server": "yarn workspace @nebula/orion dev-server",
+    "dev": "wait-on tcp:3000 && yarn workspace @nebula/orion dev",
+    "prod": "yarn workspace @nebula/orion prod",
     "ci": "yarn workspaces run ci",
     "lint": "yarn workspaces run lint",
     "test": "yarn workspaces run test",
-    "postinstall": "yarn workspace @nebula/orion afterinstall"
+    "postinstall": "concurrently \"yarn workspace @nebula/orion afterinstall\" \"yarn workspace @nebula/task afterinstall\""
   },
   "workspaces": [
     "packages/*"

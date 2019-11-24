@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react';
-import { sortBy } from 'lodash';
-import { isEmpty } from 'lodash';
-import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
+import { sortBy, isEmpty } from 'lodash';
+import PropTypes from 'prop-types';
+
+// Components
 import Navbar from './navbar';
 import Tasks from './tasks';
 import Profiles from './profiles';
@@ -14,14 +15,14 @@ import { THEMES, mapBackgroundThemeToColor, mapToNextTheme } from './constants/t
 
 import { addTestId, renderSvgIcon } from './utils';
 
-/* SVGS */
+// SVGs
 import { ReactComponent as CloseIcon } from './styles/images/app/close.svg';
 import { ReactComponent as DeactivateIcon } from './styles/images/app/logout.svg';
 import { ReactComponent as MinimizeIcon } from './styles/images/app/minimize.svg';
 import { ReactComponent as NightModeIcon } from './styles/images/app/moon.svg';
 import { ReactComponent as LightModeIcon } from './styles/images/app/sun.svg';
 
-/* CSS */
+// Styles
 import './styles/index.scss';
 
 export class App extends PureComponent {

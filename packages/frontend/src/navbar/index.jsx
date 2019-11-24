@@ -134,6 +134,7 @@ export class NavbarPrimitive extends PureComponent {
 
   renderNavbarIconRow(route, { Icon, iconName, classNameGenerator }) {
     const { onKeyPress, onRoute, location, history } = this.props;
+    console.log(location.pathname);
     const className = classNameGenerator(location);
     const props = {
       Icon,
@@ -206,8 +207,8 @@ export class NavbarPrimitive extends PureComponent {
 }
 
 NavbarPrimitive.propTypes = {
-  history: PropTypes.objectOf(PropTypes.any).isRequired,
-  location: PropTypes.string.isRequired,
+  history: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
   theme: PropTypes.string.isRequired,
   onRoute: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,

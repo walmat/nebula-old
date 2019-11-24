@@ -11,18 +11,18 @@ import Timer from '../../common/timer';
 import notification, { Discord, Slack } from '../hooks';
 import AsyncQueue from '../../common/asyncQueue';
 import { waitForDelay, userAgent, currencyWithSymbol } from '../../common';
-import { Runner, Manager, Platforms, SiteKeyForPlatform } from '../../constants';
-import { TaskRunner, Monitor } from '../utils/constants';
+import { Task, Manager, Platforms, SiteKeyForPlatform } from '../../constants';
+import { Task as TaskConstants, Monitor } from '../utils/constants';
 import { stateForError, getHeaders } from '../utils';
 import { addToCart, parseForm, patchCheckoutForm } from '../utils/forms';
 import pickVariant from '../utils/pickVariant';
 
-const { Events } = Runner;
+const { Events } = Task;
 const { Events: TaskManagerEvents } = Manager;
-const { States, Types, DelayTypes, HookTypes, Modes, StateMap, HarvestStates } = TaskRunner;
+const { States, Types, DelayTypes, HookTypes, Modes, StateMap, HarvestStates } = TaskConstants;
 const { ParseType } = Monitor;
 
-export default class TaskRunnerPrimitive {
+export default class TaskPrimitive {
   get state() {
     return this._state;
   }
@@ -5717,5 +5717,5 @@ export default class TaskRunnerPrimitive {
   }
 }
 
-TaskRunnerPrimitive.Events = Events;
-TaskRunnerPrimitive.States = States;
+TaskPrimitive.Events = Events;
+TaskPrimitive.States = States;

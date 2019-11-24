@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
-import { TaskRunner } from './constants';
+import { Task as TaskConstants } from './constants';
 
-const { States } = TaskRunner;
+const { States } = TaskConstants;
 
 export const patchCheckoutForm = (
   billingMatchesShipping,

@@ -7,8 +7,8 @@ import { isEqual } from 'lodash';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
-import { Manager, Runner, Platforms, SiteKeyForPlatform } from '../../constants';
-import { TaskRunner, Monitor } from '../utils/constants';
+import { Manager, Task, Platforms, SiteKeyForPlatform } from '../../constants';
+import { Task as TaskConstants, Monitor } from '../utils/constants';
 import notification, { Discord, Slack } from '../hooks';
 import AsyncQueue from '../../common/asyncQueue';
 import Timer from '../../common/timer';
@@ -17,12 +17,12 @@ import getHeaders from '../utils';
 import { waitForDelay, getRandomIntInclusive } from '../../common';
 
 const { Events: TaskManagerEvents } = Manager;
-const { Events } = Runner;
-const { States, Types, DelayTypes, HookTypes, HarvestStates } = TaskRunner;
+const { Events } = Task;
+const { States, Types, DelayTypes, HookTypes, HarvestStates } = TaskConstants;
 const { ParseType } = Monitor;
 
 // SUPREME
-class TaskRunnerPrimitive {
+export default class TaskPrimitive {
   get state() {
     return this._state;
   }
@@ -1072,7 +1072,5 @@ class TaskRunnerPrimitive {
   }
 }
 
-TaskRunnerPrimitive.Events = Events;
-TaskRunnerPrimitive.States = States;
-
-export default TaskRunnerPrimitive;
+TaskPrimitive.Events = Events;
+TaskPrimitive.States = States;

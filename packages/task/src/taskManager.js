@@ -1,31 +1,32 @@
 import EventEmitter from 'eventemitter3';
-import shortid from 'shortid';
+import { generate } from 'shortid';
 import { isEqual } from 'lodash';
 import { CookieJar } from 'tough-cookie';
 
-// global includes
+// Shared includes
 import ProxyManager from './common/proxyManager';
 import WebhookManager from './common/webhookManager';
 import { createLogger } from './common/logger';
-import { Platforms, Manager, Runner } from './constants';
+import { Platforms, Manager, Task } from './constants';
 
-// shopify includes
-import { Monitor as ShopifyMonitor, TaskRunner as ShopifyRunner, RateFetcher } from './shopify';
+// Shopify includes
+import {
+  Monitor as ShopifyMonitor,
+  Task as ShopifyTask,
+  RateFetcher,
+  TaskTypes,
+  HookTypes,
+  ParseType,
+} from './shopify';
 import { getParseType } from './shopify/utils/parse';
-import { Monitor, TaskRunner } from './shopify/utils/constants';
 import Discord from './shopify/hooks/discord';
 import Slack from './shopify/hooks/slack';
-// TODO: footsites includes
 
-// supreme includes
-import { Monitor as SupremeMonitor, TaskRunner as SupremeRunner } from './supreme';
+// Supreme includes
+import { Monitor as SupremeMonitor, Task as SupremeTask } from './supreme';
 
 const { Events } = Manager;
-const { Events: RunnerEvents } = Runner;
-const { ParseType } = Monitor;
-const { HookTypes, Types: RunnerTypes } = TaskRunner;
-
-// TODO: mesh includes
+const { Events: TaskEvents } = Task;
 
 export default class TaskManager {
   get loggerPath() {
@@ -47,8 +48,8 @@ export default class TaskManager {
     // Logger file path
     this._loggerPath = loggerPath;
 
-    // Task Map
-    this._runners = {};
+    // Tasks Map
+    this._tasks = {};
 
     // Monitors Map
     this._monitors = {};
@@ -101,9 +102,9 @@ export default class TaskManager {
   /**
    * Harvest Captcha
    *
-   * Harvest a given captcha token for a given runner
+   * Harvest a given captcha token for a given task
    *
-   * @param {String} runnerId the runner to update
+   * @param {String} id the task to update
    * @param {String} token the captcha token to harvest
    */
   harvestCaptchaToken(_, token, sitekey) {
@@ -113,47 +114,47 @@ export default class TaskManager {
       this._tokenReserveQueue[sitekey].length,
     );
     if (this._tokenReserveQueue[sitekey] && this._tokenReserveQueue[sitekey].length) {
-      // Get the next runner to pass the token
-      const { runnerId, priority } = this._tokenReserveQueue[sitekey].shift();
-      this._logger.debug('TaskManager: Grabbed requester: %s with priority %s', runnerId, priority);
-      // Use the runner id to get the container
-      const container = this._captchaQueues.get(runnerId);
+      // Get the next task to pass the token
+      const { id, priority } = this._tokenReserveQueue[sitekey].shift();
+      this._logger.debug('TaskManager: Grabbed requester: %s with priority %s', id, priority);
+      // Use the task id to get the container
+      const container = this._captchaQueues.get(id);
       if (!container) {
         // The current container no longer exists in the captcha queue,
-        // Call recursively to get the next runner
-        this._logger.debug('TaskManager: Runner not found! Recursive calling next runner');
-        this.harvestCaptchaToken(runnerId, token, sitekey);
+        // Call recursively to get the next task
+        this._logger.debug('TaskManager: Task not found! Recursive calling next task');
+        this.harvestCaptchaToken(id, token, sitekey);
       }
-      // Send event to pass data to runner
-      this._logger.debug('TaskManager: Sending token to %s', runnerId);
-      this._events.emit(Events.Harvest, runnerId, token);
+      // Send event to pass data to task
+      this._logger.debug('TaskManager: Sending token to %s', id);
+      this._events.emit(Events.Harvest, id, token);
 
-      // stop the harvester for that runner..
-      this.handleStopHarvest(runnerId, sitekey);
+      // stop the harvester for that task..
+      this.handleStopHarvest(id, sitekey);
     }
   }
 
   /**
-   * Handle Proxy Swapping Events from runner
+   * Handle Proxy Swapping Events from task
    *
-   * @param {String} runnerId
+   * @param {String} id
    * @param {Object} proxy
    */
-  async handleSwapProxy(runnerId, proxy) {
-    this._logger.debug('Swapping proxy: %j for task %s', proxy, runnerId);
+  async handleSwapProxy(id, proxy) {
+    this._logger.debug('Swapping proxy: %j for task %s', proxy, id);
 
     const proxyId = proxy ? proxy.id : null;
-    const { site, platform } = this._runners[runnerId];
-    const newProxy = await this._proxyManager.swap(runnerId, proxyId, site, platform);
-    this._events.emit(Events.SendProxy, runnerId, newProxy);
+    const { site, platform } = this._tasks[id];
+    const newProxy = await this._proxyManager.swap(id, proxyId, site, platform);
+    this._events.emit(Events.SendProxy, id, newProxy);
   }
 
-  async handleProduct(runnerIds, product, parseType) {
+  async handleProduct(ids, product, parseType) {
     const interval = setInterval(() => {
-      [...runnerIds].forEach(id => {
-        const runner = Object.values(this._runners).find(r => r.id === id);
+      [...ids].forEach(id => {
+        const task = Object.values(this._tasks).find(r => r.id === id);
 
-        if (!runner || (runner && runner._aborted)) {
+        if (!task || (task && task._aborted)) {
           clearInterval(interval);
         }
 
@@ -162,24 +163,24 @@ export default class TaskManager {
     }, 1000);
   }
 
-  async handleDeregisterProxy(runnerIds) {
+  async handleDeregisterProxy(ids) {
     // eslint-disable-next-line array-callback-return
-    return Object.values(runnerIds).map(id => {
-      const runner = this._runners[id];
+    return Object.values(ids).map(id => {
+      const task = this._tasks[id];
       // const monitor = this._monitors[id];
 
       // if there's no task running, just exit early..
-      if (!runner) {
+      if (!task) {
         return;
       }
 
-      this._events.emit(Events.DeregisterProxy, runner.id);
+      this._events.emit(Events.DeregisterProxy, task.id);
     });
   }
 
   async handleWebhook(hooks = {}) {
     if (hooks instanceof Array) {
-      await hooks.map(async hook => {
+      hooks.map(async hook => {
         if (hook) {
           this._webhookManager.insert(hook);
           await this._webhookManager.send();
@@ -218,7 +219,7 @@ export default class TaskManager {
   // only called when oneCheckout is enabled for that task that checks out
   async handleSuccess(task) {
     // eslint-disable-next-line array-callback-return
-    return Object.values(this._runners).map(r => {
+    return Object.values(this._tasks).map(r => {
       // if we are using the same profile, emit the abort event
       this._logger.debug(
         'ONE CHECKOUT: Same profile?: %j, Same site?: %j, Same product?: %j',
@@ -236,7 +237,7 @@ export default class TaskManager {
           'status',
           task.id,
           { message: 'Profile already used!', status: 'used' },
-          RunnerEvents.TaskStatus,
+          TaskEvents.TaskStatus,
         );
         this.stop(r.task);
       }
@@ -246,28 +247,28 @@ export default class TaskManager {
   /**
    * Start Harvesting Captcha
    *
-   * Register and retrieve a captcha token for the given runner id. If
-   * the captcha harvesting has not started for this runner, it will be
+   * Register and retrieve a captcha token for the given id. If
+   * the captcha harvesting has not started for this task, it will be
    * started.
    *
-   * @param {String} runnerId the runner for which to register captcha events
+   * @param {String} id the task for which to register captcha events
    */
-  handleStartHarvest(runnerId, sitekey, host, priority) {
-    this._logger.debug('TaskManager: Inserting %s requester with %s priority', runnerId, priority);
-    let container = this._captchaQueues.get(runnerId);
+  handleStartHarvest(id, sitekey, host, priority) {
+    this._logger.debug('TaskManager: Inserting %s requester with %s priority', id, priority);
+    let container = this._captchaQueues.get(id);
     if (!container) {
-      // We haven't started harvesting for this runner yet, create a queue and start harvesting
+      // We haven't started harvesting for this task yet, create a queue and start harvesting
       container = {};
       // Store the container on the captcha queue map
-      this._captchaQueues.set(runnerId, container);
+      this._captchaQueues.set(id, container);
 
       if (!this._tokenReserveQueue[sitekey]) {
         this._tokenReserveQueue[sitekey] = [];
-        this._logger.debug('TaskManager: Pushing %s to first place in line', runnerId);
-        // Add the runner to the back of the token reserve queue
-        this._tokenReserveQueue[sitekey].push({ runnerId, host, priority });
+        this._logger.debug('TaskManager: Pushing %s to first place in line', id);
+        // Add the task to the back of the token reserve queue
+        this._tokenReserveQueue[sitekey].push({ id, host, priority });
 
-        this._events.emit(Events.StartHarvest, runnerId, sitekey, host);
+        this._events.emit(Events.StartHarvest, id, sitekey, host);
         return;
       }
 
@@ -280,35 +281,35 @@ export default class TaskManager {
       for (let i = 0; i < this._tokenReserveQueue[sitekey].length; i += 1) {
         // if the new items priority is less than, splice it in place.
         if (this._tokenReserveQueue[sitekey][i].priority > priority) {
-          this._logger.debug('TaskManager: Inserting %s as: %s place in line', runnerId, i);
-          this._tokenReserveQueue[sitekey].splice(i, 0, { runnerId, priority });
+          this._logger.debug('TaskManager: Inserting %s as: %s place in line', id, i);
+          this._tokenReserveQueue[sitekey].splice(i, 0, { id, priority });
           contains = true;
           break;
         }
       }
 
       if (!contains) {
-        this._logger.debug('TaskManager: Pushing %s to last place in line', runnerId);
-        // Add the runner to the back of the token reserve queue
-        this._tokenReserveQueue[sitekey].push({ runnerId, priority });
+        this._logger.debug('TaskManager: Pushing %s to last place in line', id);
+        // Add the task to the back of the token reserve queue
+        this._tokenReserveQueue[sitekey].push({ id, priority });
       }
 
       // Emit an event to start harvesting
-      this._events.emit(Events.StartHarvest, runnerId, sitekey, host);
+      this._events.emit(Events.StartHarvest, id, sitekey, host);
     }
   }
 
   /**
    * Stop Harvesting Captchas
    *
-   * Deregister this runner id from looking for captcha tokens and send an
+   * Deregister this id from looking for captcha tokens and send an
    * event to stop harvesting captchas for this id.
    *
-   * If the runner was not previously harvesting captchas, this method does
+   * If the task was not previously harvesting captchas, this method does
    * nothing.
    */
-  handleStopHarvest(runnerId, sitekey) {
-    const container = this._captchaQueues.get(runnerId);
+  handleStopHarvest(id, sitekey) {
+    const container = this._captchaQueues.get(id);
 
     // If this container was never started, there's no need to do anything further
     if (!container) {
@@ -316,39 +317,40 @@ export default class TaskManager {
     }
 
     // FYI this will reject all calls currently waiting for a token
-    this._captchaQueues.delete(runnerId);
+    this._captchaQueues.delete(id);
 
     if (this._tokenReserveQueue[sitekey]) {
       this._tokenReserveQueue[sitekey] = this._tokenReserveQueue[sitekey].filter(
-        ({ runnerId: rId }) => rId !== runnerId,
+        ({ id: tId }) => tId !== id,
       );
     }
 
     // Emit an event to stop harvesting
-    this._events.emit(Events.StopHarvest, runnerId, sitekey);
+    this._events.emit(Events.StopHarvest, id, sitekey);
   }
-  // MARK: Task Runner Callback Methods
+
+  // MARK: Task Callback Methods
 
   /**
-   * Callback for Task Runner Events
+   * Callback for Task Events
    *
    * This method is registered as a callback for all running tasks. The method
-   * is used to merge all task runner events into a single stream, so only one
-   * event handler is needed to consume all task runner events.
+   * is used to merge all task events into a single stream, so only one
+   * event handler is needed to consume all task events.
    *
-   * @param {String} runnerId the id of the runner/monitor that emitted the event
+   * @param {String} id the id of the task/monitor that emitted the event
    * @param {String} message the status message
-   * @param {TaskRunner.Event} event the type of event that was emitted
+   * @param {Task.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(taskIds, message, event) {
     this._logger.silly('Tasks: %j posted new event %s - %j', taskIds, event, message);
     // For now only re emit Task Status Events
-    if (event === RunnerEvents.TaskStatus) {
+    if (event === TaskEvents.TaskStatus) {
       this._logger.silly('Reemitting this task update...');
       this._events.emit('status', taskIds, message, event);
     }
 
-    if (event === RunnerEvents.MonitorStatus) {
+    if (event === TaskEvents.MonitorStatus) {
       this._logger.silly('Reemitting this monitor update...');
       this._events.emit('status', taskIds, message, event);
     }
@@ -392,53 +394,48 @@ export default class TaskManager {
   }
 
   async setup(site, platform) {
-    let runnerId;
+    let id;
     do {
-      runnerId = shortid.generate();
-    } while (this._runners[runnerId]);
-    const openProxy = await this._proxyManager.reserve(runnerId, site, platform);
-    return {
-      runnerId,
-      openProxy,
-    };
+      id = generate();
+    } while (this._tasks[id]);
+    const openProxy = await this._proxyManager.reserve(id, site, platform);
+    return { id, openProxy };
   }
 
-  cleanup(runnerId) {
-    const { proxy, site, platform } = this._runners[runnerId];
-    delete this._runners[runnerId];
-    delete this._monitors[runnerId];
+  cleanup(id) {
+    const { proxy, site, platform } = this._tasks[id];
+    delete this._tasks[id];
+    delete this._monitors[id];
 
     if (proxy) {
-      this._proxyManager.release(runnerId, site, platform, proxy.id);
+      this._proxyManager.release(id, site, platform, proxy.id);
     }
   }
-
-  // MARK: Task Related Methods
 
   /**
    * Start a task
    *
    * This method starts a given task if it has not already been started. The
    * requisite data is generated (id, open proxy if it is available, etc.) and
-   * starts the task runner asynchronously.
+   * starts the task asynchronously.
    *
    * If the given task has already started, this method does nothing.
    * @param {Task} task
-   * @param {object} options Options to customize the runner:
-   *   - type - The runner type to start
+   * @param {object} options Options to customize the task:
+   *   - type - The task type to start
    */
-  async start(task, { type = RunnerTypes.Normal }) {
+  async start(task, { type = TaskTypes.Normal }) {
     this._logger.silly('Starting task %s', task.id);
 
-    const alreadyStarted = Object.values(this._runners).find(r => r.taskId === task.id);
+    const alreadyStarted = Object.values(this._tasks).find(t => t.taskId === task.id);
     if (alreadyStarted) {
       this._logger.warn('This task is already running! skipping start');
       return;
     }
-    const { runnerId, openProxy } = await this.setup(task.site.url, task.platform);
-    this._logger.silly('Creating new runner %s for task %s', runnerId, task.id);
+    const { id, openProxy } = await this.setup(task.site.url, task.platform);
+    this._logger.silly('Creating new task %s for %s', id, task.id);
 
-    this._start([runnerId, task, openProxy, type]).then(() => this.cleanup(runnerId));
+    this._start([id, task, openProxy, type]).then(() => this.cleanup(id));
   }
 
   /**
@@ -449,8 +446,8 @@ export default class TaskManager {
    * tasks in the given list.
    *
    * @param {List<Task>} tasks list of tasks to start
-   * @param {object} options Options to customize the runner:
-   *   - type - The runner type to start
+   * @param {object} options Options to customize the task:
+   *   - type - The task type to start
    */
   startAll(tasks, options) {
     Promise.all([...tasks].map(t => this.start(t, options)));
@@ -462,21 +459,21 @@ export default class TaskManager {
   async restart(task) {
     this._logger.silly('Restarting task %s', task.id);
 
-    // TODO: Split monitor/runner abort event calls up into separate events..
+    // TODO: Split monitor/task abort event calls up into separate events..
     const monitorId = Object.keys(this._monitors).find(k =>
       this._monitors[k].taskIds.some(id => id === task.id),
     );
-    const runnerId = Object.keys(this._runners).find(k => this._runners[k].taskId === task.id);
-    const runner = this._runners[runnerId];
+    const id = Object.keys(this._tasks).find(k => this._tasks[k].taskId === task.id);
+    const oldTask = this._tasks[id];
     // TODO: comparisons here.. we should only reset the monitor if the product data/site changes
     if (monitorId) {
       const monitor = this._monitors[monitorId];
       // otherwise, just patch in the new task data (as we don't need to set the new defaults)
       const parseType = getParseType(task.product, task.site, task.platform);
       monitor._context.task = task;
-      runner._context.task = task;
+      oldTask._context.task = task;
       monitor._parseType = parseType;
-      runner._parseType = parseType;
+      oldTask._parseType = parseType;
       if (monitor._delayer) {
         monitor._delayer.clear();
       }
@@ -500,8 +497,8 @@ export default class TaskManager {
    * @param {Task} task the task to stop
    */
   stop(task) {
-    this._logger.silly('Attempting to stop runner with task id: %s', task.id);
-    const rId = Object.keys(this._runners).find(k => this._runners[k].taskId === task.id);
+    this._logger.silly('Attempting to stop task with taskId: %s', task.id);
+    const rId = Object.keys(this._tasks).find(k => this._tasks[k].taskId === task.id);
     if (!rId) {
       this._logger.warn(
         'This task was not previously running or has already been stopped! Skipping stop',
@@ -529,7 +526,7 @@ export default class TaskManager {
     let tasksToStop = tasks;
     // if force option is set, force stop all running tasks
     if (force) {
-      tasksToStop = Object.values(this._runners).map(({ taskId: id }) => ({ id }));
+      tasksToStop = Object.values(this._tasks).map(({ taskId: id }) => ({ id }));
       if (tasksToStop.length > 0) {
         this._logger.silly('Force Stopping %d tasks', tasksToStop.length, tasksToStop);
       }
@@ -543,20 +540,20 @@ export default class TaskManager {
    * @param {Task} task the task to check
    */
   isRunning(task) {
-    return !!Object.values(this._runners).find(r => r.task.id === task.id);
+    return !!Object.values(this._tasks).find(r => r.task.id === task.id);
   }
 
   // MARK: Private Methods
-  async _setup(runner, monitor) {
+  async _setup(task, monitor) {
     const handlerGenerator = (event, sideEffects) => (id, ...params) => {
-      if (id === runner.id || id === 'ALL') {
-        const args = [runner.id, ...params];
+      if (id === task.id || id === 'ALL') {
+        const args = [task.id, ...params];
         if (sideEffects) {
           // Call side effect before sending message
           sideEffects.apply(this, args);
         }
         // TODO: Respect the scope of the _events variable (issue #137)
-        runner._events.emit(event, ...args);
+        task._events.emit(event, ...args);
         if (monitor) {
           monitor._events.emit(event, ...args);
         }
@@ -565,7 +562,7 @@ export default class TaskManager {
 
     const handlers = {};
     const emissions =
-      runner.type === RunnerTypes.ShippingRates
+      task.type === TaskTypes.ShippingRates
         ? [Events.Abort]
         : [
             Events.Abort,
@@ -586,8 +583,8 @@ export default class TaskManager {
           case Events.Abort: {
             // Abort handler has a special function so use that instead of default handler
             handler = id => {
-              if (id === runner.id || id === 'ALL') {
-                // TODO: Respect the scope of the runner's methods (issue #137)
+              if (id === task.id || id === 'ALL') {
+                // TODO: Respect the scope of the task's methods (issue #137)
                 if (monitor && monitor.ids.some(i => i === id)) {
                   // TODO: Also remove the task id somehow in the handle abort
                   monitor._handleAbort(id);
@@ -606,20 +603,20 @@ export default class TaskManager {
                   }
                 }
 
-                runner._handleAbort(runner.id);
+                task._handleAbort(task.id);
               }
             };
             break;
           }
           case Events.ProductFound: {
             handler = (id, product, parseType) => {
-              runner._handleProduct(id, product, parseType);
+              task._handleProduct(id, product, parseType);
             };
             break;
           }
           case Events.DeregisterProxy: {
             handler = id => {
-              runner._handleDeregisterProxy(id);
+              task._handleDeregisterProxy(id);
               // if (monitor) {
               //   monitor._handleDeregisterProxy(id);
               // }
@@ -629,9 +626,9 @@ export default class TaskManager {
           case Events.Harvest: {
             // Harvest handler has a special function so use that instead of default handler
             handler = (id, token) => {
-              if (id === runner.id || id === 'ALL') {
-                // TODO: Respect the scope of the runner's methods (issue #137)
-                runner._handleHarvest(runner.id, token);
+              if (id === task.id || id === 'ALL') {
+                // TODO: Respect the scope of the task's methods (issue #137)
+                task._handleHarvest(task.id, token);
               }
             };
             break;
@@ -640,9 +637,9 @@ export default class TaskManager {
             // Send proxy has a side effect so set it then generate the handler
             const sideEffects = (id, proxy) => {
               // Store proxy on worker so we can release it during cleanup
-              this._runners[id].proxy = proxy;
+              this._tasks[id].proxy = proxy;
             };
-            handler = handlerGenerator(RunnerEvents.ReceiveProxy, sideEffects);
+            handler = handlerGenerator(TaskEvents.ReceiveProxy, sideEffects);
             break;
           }
           default: {
@@ -655,40 +652,40 @@ export default class TaskManager {
         this._events.on(event, handler, this);
       }),
     );
-    this._handlers[runner.id] = handlers;
+    this._handlers[task.id] = handlers;
 
-    if (runner.type === RunnerTypes.ShippingRates) {
-      runner.registerForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
+    if (task.type === TaskTypes.ShippingRates) {
+      task.registerForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
       return;
     }
     if (monitor) {
-      monitor.registerForEvent(RunnerEvents.MonitorStatus, this.mergeStatusUpdates);
+      monitor.registerForEvent(TaskEvents.MonitorStatus, this.mergeStatusUpdates);
       monitor._events.on(Events.ProductFound, this.handleProduct, this);
-      monitor._events.on(RunnerEvents.SwapMonitorProxy, this.handleSwapProxy, this);
+      monitor._events.on(TaskEvents.SwapMonitorProxy, this.handleSwapProxy, this);
     }
-    runner.registerForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
-    runner._events.on(Events.Webhook, this.handleWebhook, this);
-    runner._events.on(Events.Success, this.handleSuccess, this);
-    runner._events.on(Events.StartHarvest, this.handleStartHarvest, this);
-    runner._events.on(Events.StopHarvest, this.handleStopHarvest, this);
-    runner._events.on(RunnerEvents.SwapTaskProxy, this.handleSwapProxy, this);
+    task.registerForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
+    task._events.on(Events.Webhook, this.handleWebhook, this);
+    task._events.on(Events.Success, this.handleSuccess, this);
+    task._events.on(Events.StartHarvest, this.handleStartHarvest, this);
+    task._events.on(Events.StopHarvest, this.handleStopHarvest, this);
+    task._events.on(TaskTypes.SwapTaskProxy, this.handleSwapProxy, this);
   }
 
-  _cleanup(runner, monitor) {
-    const handlers = this._handlers[runner.id];
-    delete this._handlers[runner.id];
+  _cleanup(task, monitor) {
+    const handlers = this._handlers[task.id];
+    delete this._handlers[task.id];
     // Cleanup manager handlers
-    runner.deregisterForEvent(RunnerEvents.TaskStatus, this.mergeStatusUpdates);
+    task.deregisterForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
     if (monitor) {
-      monitor.deregisterForEvent(RunnerEvents.MonitorStatus, this.mergeStatusUpdates);
+      monitor.deregisterForEvent(TaskEvents.MonitorStatus, this.mergeStatusUpdates);
       monitor._events.removeAllListeners();
     }
     // TODO: Respect the scope of the _events variable (issue #137)
-    runner._events.removeAllListeners();
+    task._events.removeAllListeners();
 
-    // Cleanup runner handlers
+    // Cleanup task handlers
     const emissions =
-      runner.type === RunnerTypes.ShippingRates
+      task.type === TaskTypes.ShippingRates
         ? [Events.Abort]
         : [
             Events.Abort,
@@ -703,19 +700,19 @@ export default class TaskManager {
     });
   }
 
-  async _start([runnerId, task, openProxy, type]) {
-    let runner;
+  async _start([id, task, openProxy, type]) {
+    let newTask;
     let monitor;
 
     const { platform } = task;
 
     switch (platform) {
       case Platforms.Shopify: {
-        if (type === RunnerTypes.Normal) {
+        if (type === TaskTypes.Normal) {
           const parseType = getParseType(task.product, null, platform);
 
           const context = {
-            id: runnerId,
+            id,
             taskId: task.id,
             type: parseType,
             task,
@@ -725,15 +722,15 @@ export default class TaskManager {
             jar: new CookieJar(),
             logger: createLogger({
               dir: this._loggerPath,
-              name: `Task-${runnerId}`,
-              prefix: `task-${runnerId}`,
+              name: `Task-${id}`,
+              prefix: `task-${id}`,
             }),
             aborted: false,
           };
 
           // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-          runner = new ShopifyRunner(context, openProxy, parseType);
-          runner.parseType = parseType;
+          newTask = new ShopifyTask(context, openProxy, parseType);
+          newTask.parseType = parseType;
 
           // prevent multiple monitors on same site with same data
           let found;
@@ -767,21 +764,20 @@ export default class TaskManager {
             found.ids.push(context.id);
             found.taskIds.push(context.taskId);
           } else {
-            // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
             monitor = new ShopifyMonitor(context, openProxy, parseType);
             monitor.platform = platform;
             monitor.site = task.site.url;
             monitor.type = parseType;
           }
-        } else if (type === RunnerTypes.ShippingRates) {
+        } else if (type === TaskTypes.ShippingRates) {
           // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-          runner = new RateFetcher(runnerId, task, openProxy, this._loggerPath);
+          newTask = new RateFetcher(id, task, openProxy, this._loggerPath);
         }
         break;
       }
       case Platforms.Supreme: {
         const context = {
-          id: runnerId,
+          id,
           taskId: task.id,
           type: ParseType.Keywords,
           task,
@@ -791,15 +787,15 @@ export default class TaskManager {
           jar: new CookieJar(),
           logger: createLogger({
             dir: this._loggerPath,
-            name: `Task-${runnerId}`,
-            prefix: `task-${runnerId}`,
+            name: `Task-${id}`,
+            prefix: `task-${id}`,
           }),
           aborted: false,
         };
 
         // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-        runner = new SupremeRunner(context, openProxy, ParseType.Keywords);
-        runner.parseType = ParseType.Keywords;
+        newTask = new SupremeTask(context, openProxy, ParseType.Keywords);
+        newTask.parseType = ParseType.Keywords;
 
         let found;
         // eslint-disable-next-line no-restricted-syntax
@@ -851,40 +847,35 @@ export default class TaskManager {
     }
 
     // Return early if invalid platform was passed in
-    if (!runner) {
+    if (!newTask) {
       return;
     }
 
-    runner.site = task.site.url;
-    runner.task = task;
-    runner.platform = platform;
-    runner.type = type;
+    newTask.site = task.site.url;
+    newTask.task = task;
+    newTask.platform = platform;
+    newTask.type = type;
     if (monitor) {
-      this._monitors[runnerId] = monitor;
+      this._monitors[id] = monitor;
     }
-    this._runners[runnerId] = runner;
+    this._tasks[id] = newTask;
     this._logger.silly('Wiring up Events ...');
-    this._setup(runner, monitor);
+    this._setup(newTask, monitor);
 
-    // Start the runner asynchronously
+    // Start the task asynchronously
     this._logger.silly('Starting ...');
     try {
       if (monitor) {
         monitor.start();
       }
-      await runner.start();
-      this._logger.silly('Runner %s finished without errors', runnerId);
+      await newTask.start();
+      this._logger.silly('Task %s finished without errors', id);
     } catch (error) {
-      this._logger.error(
-        'Runner %s was stopped due to an error: %s',
-        runnerId,
-        error.toString(),
-        error,
-      );
+      this._logger.error('Task %s was stopped due to an error: %s', id, error.toString(), error);
     }
 
-    this._logger.silly('Performing cleanup for runner %s', runnerId);
-    this._cleanup(runner, monitor);
+    this._logger.silly('Performing cleanup for task %s', id);
+    this._cleanup(newTask, monitor);
   }
 }
 

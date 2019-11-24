@@ -48,17 +48,17 @@ const CheckoutStates = {
 // Runner Type will be used on frontend, so changing
 // these values may break certain things on the
 // Frontend!
-const TaskRunnerTypes = {
+const TaskTypes = {
   Normal: 'normal',
   ShippingRates: 'srr',
 };
 
-const TaskRunnerDelayTypes = {
+const TaskDelayTypes = {
   error: 'errorDelay',
   monitor: 'monitorDelay',
 };
 
-const TaskRunnerHookTypes = {
+const TaskHookTypes = {
   slack: 'slack',
   discord: 'discord',
 };
@@ -70,7 +70,7 @@ const Modes = {
   UNKNOWN: 'UNKNOWN',
 };
 
-const TaskRunnerHarvestStates = {
+const TaskHarvestStates = {
   idle: 'IDLE',
   start: 'START',
   suspend: 'SUSPEND',
@@ -227,21 +227,21 @@ const ParseType = {
 
 const CheckoutRefreshTimeout = 98000;
 
-const TaskRunner = {
-  Types: TaskRunnerTypes,
+const Task = {
+  Types: TaskTypes,
   Modes,
   States: CheckoutStates,
   StateMap: QueueNextState,
   CheckoutRefresh: CheckoutRefreshTimeout,
-  DelayTypes: TaskRunnerDelayTypes,
-  HookTypes: TaskRunnerHookTypes,
-  HarvestStates: TaskRunnerHarvestStates,
+  DelayTypes: TaskDelayTypes,
+  HookTypes: TaskHookTypes,
+  HarvestStates: TaskHarvestStates,
 };
 
 const Monitor = {
   States: MonitorStates,
-  DelayTypes: TaskRunnerDelayTypes,
+  DelayTypes: TaskDelayTypes,
   ParseType,
 };
 
-export { TaskRunner, Monitor, ErrorCodes };
+export { Task, Monitor, ErrorCodes };

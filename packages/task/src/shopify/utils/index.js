@@ -1,7 +1,7 @@
 import { userAgent } from '../../common';
-import { TaskRunner } from './constants';
+import { Task as TaskConstants } from './constants';
 
-const { States } = TaskRunner;
+const { States } = TaskConstants;
 
 export const stateForError = ({ status, name, errno }, { message, nextState }) => {
   // Look for errors in cause

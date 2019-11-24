@@ -1,14 +1,14 @@
 {
-  "name": "@nebula/task-runner-built",
+  "name": "@nebula/task-built",
   "version": "0.1.0",
-  "description": "built code of task-runner",
+  "description": "built code of task",
   "private": true,
   "main": "dist/build/index.js",
   "files": [
     "dist/"
   ],
   "scripts": {
-    "build": "yarn workspace @nebula/task-runner run build",
+    "build": "yarn workspace @nebula/task run build",
     "ci": "exit 0",
     "lint": "exit 0",
     "test": "exit 0"

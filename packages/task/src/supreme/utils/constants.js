@@ -21,18 +21,18 @@ const CheckoutStates = {
   STOP: 'STOP',
 };
 
-const TaskRunnerDelayTypes = {
+const TaskDelayTypes = {
   checkout: 'checkoutDelay',
   error: 'errorDelay',
   monitor: 'monitorDelay',
 };
 
-const TaskRunnerHookTypes = {
+const TaskHookTypes = {
   slack: 'slack',
   discord: 'discord',
 };
 
-const TaskRunnerHarvestStates = {
+const TaskHarvestStates = {
   idle: 'IDLE',
   start: 'START',
   suspend: 'SUSPEND',
@@ -52,19 +52,19 @@ const ErrorCodes = {
   ProductNotFound: 'PRODUCT_NOT_FOUND',
 };
 
-const TaskRunner = {
+const Task = {
   States: CheckoutStates,
   Types: { Normal: 'normal' },
-  DelayTypes: TaskRunnerDelayTypes,
-  HookTypes: TaskRunnerHookTypes,
-  HarvestStates: TaskRunnerHarvestStates,
+  DelayTypes: TaskDelayTypes,
+  HookTypes: TaskHookTypes,
+  HarvestStates: TaskHarvestStates,
 };
 
 const Monitor = {
   States: MonitorStates,
-  DelayTypes: TaskRunnerDelayTypes,
+  DelayTypes: TaskDelayTypes,
   ParseType,
   ErrorCodes,
 };
 
-export { TaskRunner, Monitor };
+export { Task, Monitor };

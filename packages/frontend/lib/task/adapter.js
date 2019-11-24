@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
-const { TaskManager } = require('@nebula/task-runner-built');
+const { TaskManager } = require('@nebula/task-built');
 
 const { IPCKeys } = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
@@ -94,9 +94,9 @@ class TaskManagerAdapter {
     await this._taskManager.stopAll([], { force: true, wait: true });
   }
 
-  _onHarvestToken(_, runnerId, token, sitekey) {
-    console.log(`Harvesting Token: ${token}\nRunner: ${runnerId}\nkey: ${sitekey}`);
-    this._taskManager.harvestCaptchaToken(runnerId, token, sitekey);
+  _onHarvestToken(_, id, token, sitekey) {
+    console.log(`Harvesting Token: ${token}\Task: ${id}\nkey: ${sitekey}`);
+    this._taskManager.harvestCaptchaToken(id, token, sitekey);
   }
 
   _onStartTasksRequest(_, tasks, options) {

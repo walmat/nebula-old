@@ -12,7 +12,7 @@ const TaskManagerEvents = {
   Success: 'SUCCESS',
 };
 
-const TaskRunnerEvents = {
+const TaskEvents = {
   All: 'ALL',
   TaskStatus: 'TASK_STATUS',
   MonitorStatus: 'MONITOR_STATUS',
@@ -39,8 +39,8 @@ const Manager = {
   Events: TaskManagerEvents,
 };
 
-const Runner = {
-  Events: TaskRunnerEvents,
+const Task = {
+  Events: TaskEvents,
 };
 
-export { Manager, Runner, Platforms, SiteKeyForPlatform };
+export { Manager, Task, Platforms, SiteKeyForPlatform };

@@ -173,23 +173,23 @@ class CaptchaWindowManager {
    *
    * If no captcha windows are present, one is created
    */
-  async startHarvesting(runnerId, sitekey, host) {
+  async startHarvesting(id, sitekey, host) {
     if (!this._captchaWindows[sitekey]) {
       this._captchaWindows[sitekey] = [];
     }
 
     this._harvestStatus[sitekey] = {
       state: HARVEST_STATES.ACTIVE,
-      runnerId,
+      id,
       sitekey,
       host,
     };
 
     if (this._captchaWindows[sitekey].length === 0) {
-      await this.spawnCaptchaWindow({ runnerId, sitekey, host });
+      await this.spawnCaptchaWindow({ id, sitekey, host });
     } else {
       this._captchaWindows[sitekey].forEach(win =>
-        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, sitekey, host),
+        win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host),
       );
     }
   }
@@ -200,15 +200,15 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
-  suspendHarvesting(runnerId, sitekey, host) {
+  suspendHarvesting(id, sitekey, host) {
     this._harvestStatus[sitekey] = {
       state: HARVEST_STATES.SUSPEND,
-      runnerId,
+      id,
       sitekey,
       host,
     };
     (this._captchaWindows[sitekey] || []).forEach(win => {
-      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, sitekey, host);
+      win.webContents.send(IPCKeys.StopHarvestCaptcha, id, sitekey, host);
     });
   }
 
@@ -218,15 +218,15 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
-  stopHarvesting(runnerId, sitekey, host) {
+  stopHarvesting(id, sitekey, host) {
     this._harvestStatus = {
       state: HARVEST_STATES.IDLE,
-      runnerId,
+      id,
       sitekey,
       host,
     };
     (this._captchaWindows[sitekey] || []).forEach(win => {
-      win.webContents.send(IPCKeys.StopHarvestCaptcha, runnerId, sitekey, host);
+      win.webContents.send(IPCKeys.StopHarvestCaptcha, id, sitekey, host);
     });
   }
 
@@ -293,12 +293,12 @@ class CaptchaWindowManager {
    */
   spawnCaptchaWindow(options = {}) {
 
-    const { host, sitekey, runnerId } = options;
+    const { host, sitekey, id } = options;
 
     if (!this._harvestStatus[sitekey]) {
       this._harvestStatus[sitekey] = {
         state: HARVEST_STATES.IDLE,
-        runnerId,
+        id,
         sitekey,
         host,
       };
@@ -386,7 +386,7 @@ class CaptchaWindowManager {
 
       // If we are actively harvesting, start harvesting on the new window as well
       if (state === HARVEST_STATES.ACTIVE) {
-        win.webContents.send(IPCKeys.StartHarvestCaptcha, runnerId, sitekey, host);
+        win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host);
         if (Notification.isSupported()) {
           const sound = nebulaEnv.isDevelopment()
             ? Path.join(__dirname, '../../public/assets/sounds/notification.mp3')
@@ -605,13 +605,13 @@ class CaptchaWindowManager {
    */
   _generateTokenExpirationUpdateCallback(key) {
     return () => {
-      const { state, runnerId, sitekey, host } = this._harvestStatus[key];
+      const { state, id, sitekey, host } = this._harvestStatus[key];
       if (
         this._tokenQueue[key].backlogLength < MAX_HARVEST_CAPTCHA_COUNT &&
         state === HARVEST_STATES.SUSPEND
       ) {
         console.log('[DEBUG]: Resuming harvesters...');
-        this.startHarvesting(runnerId, sitekey, host);
+        this.startHarvesting(id, sitekey, host);
       }
     }
   }
@@ -625,7 +625,7 @@ class CaptchaWindowManager {
    */
   _onHarvestToken(
     _,
-    runnerId,
+    id,
     token,
     sitekey = 'unattached',
     host = 'http://checkout.shopify.com',
@@ -650,8 +650,8 @@ class CaptchaWindowManager {
     });
 
     if (this._tokenQueue[sitekey].backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {
-      console.log('[DEBUG]: Token Queue is greater than max, suspending...');
-      this.suspendHarvesting(runnerId, sitekey, host);
+      console.log('[DEBUG]: Token Queue is greater than max, backing off...');
+      this.suspendHarvesting(id, sitekey, host);
     }
   }
 

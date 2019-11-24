@@ -8,16 +8,16 @@ import { filter, every, some, sortBy } from 'lodash';
 
 import { capitalizeFirstLetter, waitForDelay, getRandomIntInclusive } from '../../common';
 import getHeaders from '../utils';
-import { Manager, Runner } from '../../constants';
-import { Monitor, TaskRunner } from '../utils/constants';
+import { Manager, Task } from '../../constants';
+import { Monitor, Task as TaskContants } from '../utils/constants';
 
 const { Events: TaskManagerEvents } = Manager;
-const { Events } = Runner;
-const { Types } = TaskRunner;
+const { Events } = Task;
+const { Types } = TaskContants;
 const { States, DelayTypes, ParseType, ErrorCodes } = Monitor;
 
 // SUPREME
-class MonitorPrimitive {
+export default class MonitorPrimitive {
   constructor(context, proxy, type = ParseType.Keywords) {
     this.ids = [context.id];
     this._task = context.task;
@@ -669,5 +669,3 @@ class MonitorPrimitive {
     this._cleanup();
   }
 }
-
-export default MonitorPrimitive;

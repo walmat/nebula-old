@@ -1,7 +1,7 @@
 /* eslint-disable global-require */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer, shell } = require('electron');
-const { TaskRunnerTypes } = require('@nebula/task-runner-built');
+const { TaskTypes } = require('@nebula/task-built');
 
 const { IPCKeys } = require('../constants');
 const nebulaEnv = require('../../_electron/env');
@@ -9,9 +9,9 @@ const { base, util } = require('./index');
 
 nebulaEnv.setUpEnvironment();
 
-let srrRequest = null;
+let rateFetcherRequest = null;
 let handlers = [];
-const SRR_ID = 1000;
+const RATE_FETCHER_ID = 1000000000;
 
 const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
@@ -94,26 +94,23 @@ const _startTasks = (tasks, options) => {
   util.sendEvent(IPCKeys.RequestStartTasks, tasks, options);
 };
 
-const _restartTasks = (tasks, options) => {
-  util.sendEvent(IPCKeys.RequestRestartTasks, tasks, options);
-};
-
-/**
- * Sends task(s) that should be stopped to launcher.js
- */
 const _stopTasks = tasks => {
   util.sendEvent(IPCKeys.RequestStopTasks, tasks);
 };
 
-const _startShippingRatesRunner = task => {
+const _restartTasks = (tasks, options) => {
+  util.sendEvent(IPCKeys.RequestRestartTasks, tasks, options);
+};
+
+const _startShippingRateTask = task => {
   const request = {
-    task: { ...task, id: SRR_ID, size: 'Random', platform: 'Shopify' },
+    task: { ...task, id: RATE_FETCHER_ID, size: 'Random', platform: 'Shopify' },
     cancel: () => {},
     promise: null,
   };
 
-  if (srrRequest) {
-    return Promise.reject(new Error('Shipping Rates Runner has already been started!'));
+  if (rateFetcherRequest) {
+    return Promise.reject(new Error('Rate Fetcher Task has already been started!'));
   }
 
   request.promise = new Promise((resolve, reject) => {
@@ -122,11 +119,11 @@ const _startShippingRatesRunner = task => {
     // Define srr message handler to retrive data
     const srrMessageHandler = (_, payload) => {
       // Only respond to specific type and id
-      if (payload[SRR_ID] && payload[SRR_ID].type === TaskRunnerTypes.ShippingRates) {
-        // Runner type is exposed from the task-runner package
-        response.rates = payload[SRR_ID].rates || response.rates; // update rates if it exists
-        response.selectedRate = payload[SRR_ID].selected || response.selectedRate; // update selected if it exists
-        if (payload[SRR_ID].done) {
+      if (payload[RATE_FETCHER_ID] && payload[RATE_FETCHER_ID].type === TaskTypes.ShippingRates) {
+        // Task type is exposed from the task package
+        response.rates = payload[RATE_FETCHER_ID].rates || response.rates; // update rates if it exists
+        response.selectedRate = payload[RATE_FETCHER_ID].selected || response.selectedRate; // update selected if it exists
+        if (payload[RATE_FETCHER_ID].done) {
           // SRR is done
           _deregisterForTaskEvents(srrMessageHandler);
           if (!response.rates || !response.selectedRate) {
@@ -136,7 +133,7 @@ const _startShippingRatesRunner = task => {
             // Resolve since we have the required data
             resolve(response);
           }
-          srrRequest = null;
+          rateFetcherRequest = null;
         }
       }
     };
@@ -145,24 +142,24 @@ const _startShippingRatesRunner = task => {
     request.cancel = () => {
       _deregisterForTaskEvents(srrMessageHandler);
       _stopTasks(request.task);
-      srrRequest = null;
-      reject(new Error('Runner was cancelled'));
+      rateFetcherRequest = null;
+      reject(new Error('Rate Fetcher was cancelled!'));
     };
 
-    srrRequest = request;
+    rateFetcherRequest = request;
     _registerForTaskEvents(srrMessageHandler);
-    _startTasks(request.task, { type: TaskRunnerTypes.ShippingRates });
+    _startTasks(request.task, { type: TaskTypes.ShippingRates });
   });
 
   return request.promise;
 };
 
-const _stopShippingRatesRunner = () => {
-  if (!srrRequest) {
-    return Promise.reject(new Error('No SRR Running'));
+const _stopShippingRateTask = () => {
+  if (!rateFetcherRequest) {
+    return Promise.reject(new Error('No Rate Fetcher Running'));
   }
-  srrRequest.cancel();
-  srrRequest = null;
+  rateFetcherRequest.cancel();
+  rateFetcherRequest = null;
   return Promise.resolve();
 };
 
@@ -229,8 +226,8 @@ process.once('loaded', () => {
     /* PRIVATE EVENTS */
     launchCaptchaHarvester: _launchCaptchaHarvester,
     setTheme: _setTheme,
-    startShippingRatesRunner: _startShippingRatesRunner,
-    stopShippingRatesRunner: _stopShippingRatesRunner,
+    startShippingRateTask: _startShippingRateTask,
+    stopShippingRateTask: _stopShippingRateTask,
     closeAllCaptchaWindows: _closeAllCaptchaWindows,
     deactivate: _deactivate,
     registerForTaskEvents: _registerForTaskEvents,

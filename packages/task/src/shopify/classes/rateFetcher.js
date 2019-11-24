@@ -6,20 +6,18 @@ import defaults from 'fetch-defaults';
 import { CookieJar } from 'tough-cookie';
 import { pick } from 'lodash';
 
-import { Runner, Platforms } from '../../constants';
+import { Task as TaskConstants, Platforms } from '../../constants';
 import { createLogger } from '../../common/logger';
 import pickVariant from '../utils/pickVariant';
 import { rfrl, userAgent } from '../../common';
 import { addToCart } from '../utils/forms';
 import { getParseType } from '../utils/parse';
-import { Monitor, TaskRunner } from '../utils/constants';
+import { Monitor, Task } from '../utils/constants';
 import { Parser, getSpecialParser, getParsers } from '../parsers';
 
 const { ParseType } = Monitor;
-const { Types } = TaskRunner;
-const { Events } = Runner;
-
-const request = require('fetch-cookie')(fetch, new CookieJar());
+const { Types } = Task;
+const { Events } = TaskConstants;
 
 export default class ShippingRatesRunner {
   constructor(id, task, proxy, loggerPath, type = Types.ShippingRates) {
@@ -38,14 +36,17 @@ export default class ShippingRatesRunner {
     this.aborted = false;
     this.aborter = new AbortController();
 
+    // eslint-disable-next-line global-require
+    const request = require('fetch-cookie')(fetch, new CookieJar());
+
     this._request = defaults(request, this.task.site.url, {
-      timeout: 120000, // to be overridden as necessary
+      timeout: 12000, // to be overridden as necessary
       signal: this.aborter.signal, // generic abort signal
     });
 
     this.monitorAborter = new AbortController();
     this._monitorRequest = defaults(request, this.task.site.url, {
-      timeout: 120000,
+      timeout: 12000,
       signal: this.monitorAborter.signal,
     });
 
@@ -451,5 +452,3 @@ export default class ShippingRatesRunner {
     }
   }
 }
-
-module.exports = ShippingRatesRunner;

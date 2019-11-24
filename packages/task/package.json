@@ -1,15 +1,15 @@
 {
-  "name": "@nebula/task-runner",
+  "name": "@nebula/task",
   "version": "0.1.0",
   "private": true,
   "main": "dist/build/index.js",
   "scripts": {
     "build": "run-s build:babel build:obfuscate",
     "build:babel": "babel --root-mode upward --no-comments -d build src/",
-    "build:obfuscate": "javascript-obfuscator ./build --config ./.jsobfrc.js --output ../task-runner-built/dist",
+    "build:obfuscate": "cross-env javascript-obfuscator ./build --config ./.jsobfrc.js --output ../task-built/dist",
     "ci": "exit 0",
     "lint": "eslint src/",
-    "postinstall": "yarn run build",
+    "afterinstall": "yarn run build",
     "test": "echo \"Warning: no test specified\" && exit 0"
   },
   "dependencies": {

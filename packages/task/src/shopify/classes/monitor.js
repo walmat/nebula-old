@@ -4,16 +4,16 @@ import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 import { pick } from 'lodash';
 
-import { Manager, Runner, Platforms } from '../../constants';
+import { Manager, Task, Platforms } from '../../constants';
 import { getParseType } from '../utils/parse';
 import { Parser, getSpecialParser, getParsers } from '../parsers';
 import { rfrl, capitalizeFirstLetter, waitForDelay } from '../../common';
-import { Monitor, TaskRunner, ErrorCodes } from '../utils/constants';
+import { Monitor, Task as TaskConstants, ErrorCodes } from '../utils/constants';
 
 const { Events: TaskManagerEvents } = Manager;
 const { States, DelayTypes, ParseType } = Monitor;
-const { Types, Modes } = TaskRunner;
-const { Events } = Runner;
+const { Types, Modes } = TaskConstants;
+const { Events } = Task;
 
 // SHOPIFY
 export default class MonitorPrimitive {
