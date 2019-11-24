@@ -13,6 +13,8 @@ import * as getAllSizes from '../../constants/getAllSizes';
 import { THEMES } from '../../constants/themes';
 import PLATFORMS from '../../constants/platforms';
 
+import { makeNewTask } from '../selectors';
+
 import sDefns from '../../state/definitions/settingsDefinitions';
 import pDefns from '../../state/definitions/profileDefinitions';
 import tDefns from '../../state/definitions/taskDefinitions';
@@ -742,7 +744,7 @@ export const mapStateToProps = (state, ownProps) => ({
   profiles: state.profiles,
   accounts: state.settings.accounts.list,
   sites: state.sites,
-  task: state.newTask,
+  task: makeNewTask(state),
   theme: state.theme,
   errors: state.newTask.errors,
 });

@@ -226,7 +226,8 @@ export const mapDispatchToProps = dispatch => ({
   onRoute: (route, history) => dispatch(navbarActions.route(route, history)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withRouter(NavbarPrimitive));
+export default withRouter(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(NavbarPrimitive));

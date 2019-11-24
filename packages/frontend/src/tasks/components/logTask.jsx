@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
+import { makeTasks } from '../selectors';
 import tDefns from '../../state/definitions/taskDefinitions';
 import { addTestId } from '../../utils';
 
@@ -202,7 +203,7 @@ LogTaskPrimitive.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  tasks: state.tasks,
+  tasks: makeTasks(state),
 });
 
 export default connect(mapStateToProps)(LogTaskPrimitive);

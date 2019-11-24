@@ -39,7 +39,7 @@ export default class TaskRunnerPrimitive {
     this._platform = platform;
 
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie')(fetch, context.jar);
+    const _request = require('fetch-cookie/node-fetch')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
       timeout: 10000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal

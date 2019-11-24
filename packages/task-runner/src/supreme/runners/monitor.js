@@ -32,7 +32,7 @@ export default class MonitorPrimitive {
     this._signal = this._aborter.signal;
 
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie')(fetch, context.jar);
+    const _request = require('fetch-cookie/node-fetch')(fetch, context.jar);
     this._request = defaults(_request, this._task.site.url, {
       timeout: 15000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal

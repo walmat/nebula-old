@@ -11,6 +11,8 @@ import {
 } from 'react-virtualized';
 import NumberFormat from 'react-number-format';
 
+import { makeTasks } from '../selectors';
+
 import TaskRow from './taskRow';
 import sDefns from '../../state/definitions/settingsDefinitions';
 import tDefns from '../../state/definitions/taskDefinitions';
@@ -372,7 +374,7 @@ ViewTaskPrimitive.defaultProps = {
 export const mapStateToProps = state => ({
   monitorDelay: state.settings.monitorDelay,
   errorDelay: state.settings.errorDelay,
-  tasks: state.tasks,
+  tasks: makeTasks(state),
   selectedTask: state.selectedTask,
   proxies: state.settings.proxies,
 });

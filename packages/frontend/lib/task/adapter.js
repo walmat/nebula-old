@@ -62,7 +62,7 @@ class TaskManagerAdapter {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
         if (!this._messageInterval) {
           // batch status updates every 1 second
-          this._messageInterval = setInterval(this._taskEventMessageSender, 1000);
+          this._messageInterval = setInterval(this._taskEventMessageSender, 0);
         }
       }
     });
