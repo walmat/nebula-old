@@ -3,6 +3,8 @@ import delay from 'delay';
 
 import rfrl from './rfrl';
 import { createLogger } from './logger';
+import AsyncQueue from './asyncQueue';
+import Context from './context';
 import ProxyManager from './proxyManager';
 import WebhookManager from './webhookManager';
 
@@ -76,6 +78,8 @@ export {
   getRandomIntInclusive,
   capitalizeFirstLetter,
   currencyWithSymbol,
+  AsyncQueue,
+  Context,
   ProxyManager,
   WebhookManager,
   createLogger,

@@ -1,7 +1,8 @@
 /* eslint-disable no-restricted-syntax */
 import EventEmitter from 'eventemitter3';
+import HttpsProxyAgent from 'https-proxy-agent';
 import hash from 'object-hash';
-import shortid from 'shortid';
+import { generate } from 'shortid';
 import { Manager } from '../constants';
 
 export default class ProxyManager {
@@ -66,7 +67,7 @@ export default class ProxyManager {
     }
     this._logger.debug('New Proxy Detected with hash %s. Adding now', proxyHash);
     do {
-      id = shortid.generate();
+      id = generate();
     } while (this._proxies.get(id));
 
     const formattedProxy = this.format(proxy);
@@ -77,10 +78,10 @@ export default class ProxyManager {
       id,
       hash: proxyHash,
       raw: proxy,
-      proxy: formattedProxy,
+      proxy: new HttpsProxyAgent(formattedProxy),
       platforms: {},
       use: {},
-      runners: {},
+      tasks: {},
     });
     this._logger.debug('Proxy Added with id %s', id);
   }
@@ -134,14 +135,13 @@ export default class ProxyManager {
       newTimeout = 0;
     }
 
-    console.log(this._proxies.size)
     if (!this._proxies.size) {
       this._logger.debug('No proxies available! Skipping reserve');
       return null;
     }
 
     this._logger.debug(
-      'Reserving proxy for runner %s for site %s... Looking through %d proxies',
+      'Reserving proxy for task %s for site %s... Looking through %d proxies',
       id,
       site,
       this._proxies.size,
@@ -161,7 +161,7 @@ export default class ProxyManager {
         this._proxies.delete(proxy.id);
         // set it to in use
         proxy.use[site] = true;
-        proxy.runners[id] = id;
+        proxy.tasks[id] = id;
         proxy.platforms[platform] = true;
         // push the proxy back onto the end of the stack
         this._proxies.set(proxy.id, proxy);
@@ -169,7 +169,7 @@ export default class ProxyManager {
         return proxy;
       }
     }
-    if (!wait || newTimeout === 0) {
+    if (!wait || !newTimeout) {
       this._logger.debug('Not waiting for open proxy, returning null');
       return null;
     }

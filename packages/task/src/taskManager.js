@@ -3,7 +3,7 @@ import { isEqual } from 'lodash';
 import { CookieJar } from 'tough-cookie';
 
 // Shared includes
-import { ProxyManager, WebhookManager, createLogger } from './common';
+import { Context, ProxyManager, WebhookManager, createLogger } from './common';
 import { Platforms, Manager, Task } from './constants';
 
 // Shopify includes
@@ -11,16 +11,21 @@ import {
   Monitor as ShopifyMonitor,
   Task as ShopifyTask,
   RateFetcher,
+  Discord as ShopifyDiscord,
+  Slack as ShopifySlack,
   TaskTypes,
   HookTypes,
   ParseType,
 } from './shopify';
 import { getParseType } from './shopify/utils/parse';
-import Discord from './shopify/hooks/discord';
-import Slack from './shopify/hooks/slack';
 
 // Supreme includes
-import { Monitor as SupremeMonitor, Task as SupremeTask } from './supreme';
+import {
+  Monitor as SupremeMonitor,
+  Task as SupremeTask,
+  Discord as SupremeDiscord,
+  Slack as SupremeSlack,
+} from './supreme';
 
 const { Events } = Manager;
 const { Events: TaskEvents } = Task;
@@ -148,16 +153,20 @@ export default class TaskManager {
 
   async handleProduct(ids, product, parseType) {
     const interval = setInterval(() => {
-      [...ids].forEach(id => {
-        const task = Object.values(this._tasks).find(r => r.id === id);
+      this._logger.debug('Notifying IDs: %j', ids);
+      return Promise.all(
+        // eslint-disable-next-line array-callback-return
+        [...ids].map(id => {
+          const task = Object.values(this._tasks).find(t => t.id === id);
 
-        if (!task || (task && task._aborted)) {
-          clearInterval(interval);
-        }
+          if (!task || (task && task._aborted)) {
+            clearInterval(interval);
+          }
 
-        this._events.emit(Events.ProductFound, id, product, parseType);
-      });
-    }, 1000);
+          this._events.emit(Events.ProductFound, id, product, parseType);
+        }),
+      );
+    }, 500);
   }
 
   async handleDeregisterProxy(ids) {
@@ -382,26 +391,11 @@ export default class TaskManager {
       'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
     ];
     if (type === HookTypes.discord) {
-      const webhook = new Discord(hook).build(...payload);
+      const webhook = new ShopifyDiscord(hook).build(...payload);
       this.handleWebhook(webhook);
     } else if (type === HookTypes.slack) {
-      const webhook = new Slack(hook).build(...payload);
+      const webhook = new ShopifySlack(hook).build(...payload);
       this.handleWebhook(webhook);
-    }
-  }
-
-  async setup(id, site, platform) {
-    const proxy = await this._proxyManager.reserve(id, site, platform);
-    return proxy;
-  }
-
-  cleanup(id) {
-    const { proxy, site, platform } = this._tasks[id];
-    delete this._tasks[id];
-    delete this._monitors[id];
-
-    if (proxy) {
-      this._proxyManager.release(id, site, platform, proxy.id);
     }
   }
 
@@ -418,18 +412,10 @@ export default class TaskManager {
    *   - type - The task type to start
    */
   async start(task, { type = TaskTypes.Normal }) {
-    this._logger.silly('Starting task %s', task.id);
+    const proxy = await this._proxyManager.reserve(task.id, task.site.url, task.platform);
 
-    const alreadyStarted = Object.values(this._tasks).find(t => t.id === task.id);
-    if (alreadyStarted) {
-      this._logger.warn('This task is already running! skipping start');
-      return;
-    }
-
-    const proxy = await this.setup(task.id, task.site.url, task.platform);
-    this._logger.silly('Creating new task for %s', task.id);
-
-    this._start([task, proxy, type]).then(() => this.cleanup(task.id));
+    this._logger.silly('Starting task for %s with proxy %j', task.id, proxy);
+    return this._start([task, proxy, type]);
   }
 
   /**
@@ -493,19 +479,29 @@ export default class TaskManager {
   stop({ id }) {
     this._logger.silly('Attempting to stop task with id: %s', id);
     const task = this._tasks[id];
-    console.log(task);
+
     if (!task) {
       this._logger.warn('This task was not previously running or has already been stopped!');
       return null;
     }
 
-    const monitor = this._monitors[id];
     task.stop();
 
-    this._logger.silly('Performing cleanup for task %s', id);
+    const monitor = Object.values(this._monitors).find(m => m.ids.some(i => i === id));
+    this._logger.debug('Found monitor? %j', monitor || false);
+
+    if (!monitor) {
+      // Send abort signal
+      this._logger.silly('Abort signal sent');
+      this._events.emit(Events.Abort, id);
+      this._logger.silly('Performing cleanup for task %s', id);
+      return this._cleanup(task);
+    }
+
     // Send abort signal
+    this._logger.silly('Abort signal sent');
     this._events.emit(Events.Abort, id);
-    this._logger.silly('Stop signal sent');
+    this._logger.silly('Performing cleanup for task %s', id);
     return this._cleanup(task, monitor);
   }
 
@@ -669,14 +665,24 @@ export default class TaskManager {
   }
 
   async _cleanup(task, monitor) {
-    const handlers = this._handlers[task.id];
-    delete this._handlers[task.id];
+    const { id } = task;
+
+    if (monitor) {
+      const { ids } = monitor;
+      this._logger.debug('Remaining monitor ids: %j', ids);
+
+      if (!ids.length) {
+        this._logger.debug('Freeing monitor!');
+        monitor.deregisterForEvent(TaskEvents.MonitorStatus, this.mergeStatusUpdates);
+        monitor._events.removeAllListeners();
+        delete this._monitors[id];
+      }
+    }
+
+    const handlers = this._handlers[id];
+    delete this._handlers[id];
     // Cleanup manager handlers
     task.deregisterForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
-    if (monitor) {
-      monitor.deregisterForEvent(TaskEvents.MonitorStatus, this.mergeStatusUpdates);
-      monitor._events.removeAllListeners();
-    }
     // TODO: Respect the scope of the _events variable (issue #137)
     task._events.removeAllListeners();
 
@@ -698,6 +704,14 @@ export default class TaskManager {
         this._events.removeListener(event, handlers[event]);
       }),
     );
+
+    const { proxy, site, platform } = this._tasks[id];
+    delete this._tasks[id];
+
+    if (proxy) {
+      this._proxyManager.release(id, site, platform, proxy.id);
+    }
+
     return task.id;
   }
 
@@ -707,19 +721,17 @@ export default class TaskManager {
 
     const { platform, id } = task;
 
-    console.log(id);
-
     switch (platform) {
       case Platforms.Shopify: {
         if (type === TaskTypes.Normal) {
           const parseType = getParseType(task.product, null, platform);
 
-          const context = {
+          const context = new Context({
             id,
-            type: parseType,
             task,
-            productFound: false,
-            status: null,
+            parseType,
+            proxy,
+            message: '',
             events: new EventEmitter(),
             jar: new CookieJar(),
             logger: createLogger({
@@ -727,18 +739,16 @@ export default class TaskManager {
               name: `Task-${id}`,
               prefix: `task-${id}`,
             }),
+            discord: new ShopifyDiscord(task.discord),
+            slack: new ShopifySlack(task.slack),
+            captchaQueue: null,
             aborted: false,
-          };
+          });
 
-          // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-          newTask = new ShopifyTask(context, proxy, parseType);
-          newTask.parseType = parseType;
+          newTask = new ShopifyTask(context);
 
-          // prevent multiple monitors on same site with same data
-          let found;
-          // eslint-disable-next-line no-restricted-syntax
-          for (const m of Object.values(this._monitors)) {
-            if (m.platform === platform) {
+          const found = Object.values(this._monitors).find(async m => {
+            if (m.context.platform === platform) {
               // eslint-disable-next-line no-await-in-loop
               const isSameProduct = await TaskManager._compareProductInput(
                 m._task.product,
@@ -753,22 +763,19 @@ export default class TaskManager {
               );
 
               if (isSameProduct && m._task.site.url === context.task.site.url) {
-                found = m;
-                break;
+                return m;
               }
             }
-          }
+            return null;
+          });
 
           this._logger.debug('Existing monitor? %j', found || false);
 
           if (found) {
             this._logger.debug('Existing monitor found! Just adding id');
-            found.ids.push(id);
+            found.context.ids.push(id);
           } else {
-            monitor = new ShopifyMonitor(context, proxy, parseType);
-            monitor.platform = platform;
-            monitor.site = task.site.url;
-            monitor.type = parseType;
+            monitor = new ShopifyMonitor(context);
           }
         } else if (type === TaskTypes.ShippingRates) {
           // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
@@ -777,12 +784,12 @@ export default class TaskManager {
         break;
       }
       case Platforms.Supreme: {
-        const context = {
+        const context = new Context({
           id,
-          type: ParseType.Keywords,
           task,
-          productFound: false,
-          status: null,
+          parseType: ParseType.Keywords,
+          proxy,
+          message: '',
           events: new EventEmitter(),
           jar: new CookieJar(),
           logger: createLogger({
@@ -790,16 +797,15 @@ export default class TaskManager {
             name: `Task-${id}`,
             prefix: `task-${id}`,
           }),
+          discord: new SupremeDiscord(task.discord),
+          slack: new SupremeSlack(task.slack),
+          captchaQueue: null,
           aborted: false,
-        };
+        });
 
-        // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-        newTask = new SupremeTask(context, proxy, ParseType.Keywords);
-        newTask.parseType = ParseType.Keywords;
+        newTask = new SupremeTask(context);
 
-        let found;
-        // eslint-disable-next-line no-restricted-syntax
-        for (const m of Object.values(this._monitors)) {
+        const found = Object.values(this._monitors).find(async m => {
           if (m.platform === platform) {
             // eslint-disable-next-line no-await-in-loop
             const isSameProduct = await TaskManager._compareProductInput(
@@ -820,24 +826,20 @@ export default class TaskManager {
               m._task.category === context.task.category &&
               m._task.site.url === context.task.site.url
             ) {
-              found = m;
-              break;
+              return m;
             }
           }
-        }
+          return null;
+        });
 
         this._logger.debug('Existing monitor? %j', found || false);
 
         if (found) {
           this._logger.debug('Existing monitor found! Just adding ids');
-          found.ids.push(id);
+          found.context.ids.push(id);
         } else {
           this._logger.debug('No monitor found! Creating a new monitor');
-          // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
-          monitor = new SupremeMonitor(context, proxy);
-          monitor.platform = platform;
-          monitor.site = task.site.url;
-          monitor.type = ParseType.Keywords;
+          monitor = new SupremeMonitor(context);
         }
         break;
       }
@@ -850,15 +852,10 @@ export default class TaskManager {
       return;
     }
 
-    newTask.site = task.site.url;
-    newTask.task = task;
-    newTask.platform = platform;
-    newTask.type = type;
     if (monitor) {
       this._monitors[id] = monitor;
     }
     this._tasks[id] = newTask;
-    console.log(this._tasks[id]);
     this._logger.silly('Wiring up Events ...');
     this._setup(newTask, monitor);
 

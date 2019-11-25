@@ -4,102 +4,89 @@ import AbortController from 'abort-controller';
 import HttpsProxyAgent from 'https-proxy-agent';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
-import { filter, every, some, sortBy } from 'lodash';
 
-import { capitalizeFirstLetter, waitForDelay, getRandomIntInclusive } from '../../common';
-import getHeaders from '../utils';
-import { Manager, Task } from '../../constants';
+import { capitalizeFirstLetter, waitForDelay } from '../../common';
+import getHeaders, { matchKeywords, matchVariation } from '../utils';
+import { Manager, Task, Platforms } from '../../constants';
 import { Monitor, Task as TaskContants } from '../utils/constants';
 
 const { Events: TaskManagerEvents } = Manager;
 const { Events } = Task;
 const { Types } = TaskContants;
-const { States, DelayTypes, ParseType, ErrorCodes } = Monitor;
+const { States, DelayTypes, ErrorCodes } = Monitor;
 
 // SUPREME
 export default class MonitorPrimitive {
-  constructor(context, proxy, type = ParseType.Keywords) {
-    this.ids = [context.id];
-    this._task = context.task;
-    this.proxy = proxy;
-    this._jar = context.jar;
-    this._events = context.events;
-    this._logger = context.logger;
-    this._parseType = type;
+  get state() {
+    return this._state;
+  }
 
+  get context() {
+    return this._context;
+  }
+
+  get platform() {
+    return this._platform;
+  }
+
+  constructor(context, platform = Platforms.Supreme) {
+    this._context = context;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
+    this._platform = platform;
 
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie/node-fetch')(fetch, context.jar);
-    this._request = defaults(_request, this._task.site.url, {
-      timeout: 15000, // to be overridden as necessary
-      signal: this._aborter.signal, // generic abort signal
+    const _fetch = require('fetch-cookie/node-fetch')(fetch, context.jar);
+    this._fetch = defaults(_fetch, context.task.site.url, {
+      timeout: 15000, // can be overridden as necessary per request
+      signal: this._aborter.signal,
     });
     this._delayer = null;
 
     this._state = States.PARSE;
     this._prevState = States.PARSE;
 
-    const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
-
-    if (p) {
-      p.options.maxSockets = Infinity;
-      p.options.maxFreeSockets = Infinity;
-      p.options.keepAlive = true;
-      p.maxFreeSockets = Infinity;
-      p.maxSockets = Infinity;
-    }
-
-    this._context = {
-      ...context,
-      proxy: p,
-      rawProxy: proxy ? proxy.raw : 'localhost',
-      aborter: this._aborter,
-      delayer: this._delayer,
-      signal: this._aborter.signal,
-      request: this._request,
-      jar: this._jar,
-      logger: this._logger,
-    };
-
-    this._history = [];
-    this._previousProxy = '';
     this._checkingStock = false;
 
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
   }
 
+  // MARK: Handler functions
+
   _handleAbort(id) {
-    if (this.ids.some(i => i === id)) {
-      this.ids = this.ids.filter(i => i !== id);
-
-      console.log(this.ids, this.ids.length);
-
-      if (!this.ids.length) {
-        this._context.aborted = true;
-        this._aborter.abort();
-        if (this._delayer) {
-          this._delayer.clear();
-        }
-      }
+    if (!this._context.hasId(id)) {
+      return;
     }
-  }
 
-  _handleDelay(id, delay, type) {
-    if (this.ids.some(i => i === id)) {
-      if (type === DelayTypes.error) {
-        this._context.task.errorDelay = delay;
-      } else if (type === DelayTypes.monitor) {
-        this._context.task.monitorDelay = delay;
-      }
+    this._context.removeId(id);
+
+    if (!this._context.ids.length) {
+      this._context.aborted(true);
+      this._aborter.abort();
       if (this._delayer) {
         this._delayer.clear();
       }
     }
   }
 
-  async _handleParsingErrors(errors) {
+  _handleDelay(id, delay, type) {
+    if (!this._context.hasId(id)) {
+      return;
+    }
+
+    if (type === DelayTypes.error) {
+      this._context.task.errorDelay = delay;
+    } else if (type === DelayTypes.monitor) {
+      this._context.task.monitorDelay = delay;
+    }
+
+    // reset delay to immediately propagate the delay
+    if (this._delayer) {
+      this._delayer.clear();
+    }
+  }
+
+  async _handleErrors(errors) {
     if (this._context.aborted) {
       this._logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
@@ -138,24 +125,20 @@ export default class MonitorPrimitive {
     return this._prevState;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  _cleanup() {
-    // console.log(this._history);
-  }
-
   async swapProxies() {
     // index 0 will always be the origination task.. so let's use that to swap
-    this._events.emit(Events.SwapMonitorProxy, this.ids[0], this.proxy);
+    const { id, proxy } = this._context;
+    this._events.emit(Events.SwapMonitorProxy, id, proxy);
     return new Promise((resolve, reject) => {
       let timeout;
-      const proxyHandler = (id, proxy) => {
+      const proxyHandler = (_, newProxy) => {
         this._logger.silly('Reached Proxy Handler, resolving');
         // clear the timeout interval
         clearTimeout(timeout);
         // reset the timeout
         timeout = null;
         // finally, resolve with the new proxy
-        resolve(proxy);
+        resolve(newProxy);
       };
       timeout = setTimeout(() => {
         this._events.removeListener(Events.ReceiveProxy, proxyHandler);
@@ -168,6 +151,9 @@ export default class MonitorPrimitive {
       this._events.once(Events.ReceiveProxy, proxyHandler);
     });
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  _cleanup() {}
 
   // MARK: Event Registration
   registerForEvent(event, callback) {
@@ -197,7 +183,8 @@ export default class MonitorPrimitive {
     switch (event) {
       // Emit supported events on their specific channel
       case Events.MonitorStatus: {
-        this._events.emit(event, this.ids, payload, event);
+        const { ids } = this._context;
+        this._events.emit(event, ids, payload, event);
         break;
       }
       default: {
@@ -208,171 +195,11 @@ export default class MonitorPrimitive {
   }
 
   _emitMonitorEvent(payload = {}) {
-    this._logger.debug('PAYLOAD: %j', payload);
-    if (payload.message && payload.message !== this._context.status) {
-      this._status = payload.message;
+    const { message } = payload;
+    if (message && message !== this._context.message) {
+      this._context.message(message);
       this._emitEvent(Events.MonitorStatus, { ...payload, type: Types.Normal });
     }
-  }
-
-  static async filterAndLimit(list, sorter, limit, logger) {
-    const _logger = logger || { log: () => {} };
-    _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
-    if (!list) {
-      _logger.log('silly', 'No list given! returning empty list');
-      return [];
-    }
-    _logger.log(
-      'silly',
-      'List Detected with %d elements. Proceeding to sorting now...',
-      list.length,
-    );
-    let sorted = list;
-    if (sorter) {
-      _logger.log('silly', 'Sorter detected, sorting...');
-      sorted = sortBy(list, sorter);
-    }
-
-    const _limit = limit || 0;
-    if (_limit === 0) {
-      _logger.log('silly', 'No limit given! returning...');
-      return sorted;
-    }
-    if (_limit > 0) {
-      _logger.log('silly', 'Ascending Limit detected, limiting...');
-      return sorted.slice(_limit);
-    }
-    _logger.log('silly', 'Descending Limit detected, limiting...');
-    // slice, then reverse elements to get the proper order
-    return sorted.slice(0, _limit).reverse();
-  }
-
-  async matchKeywords(products, keywords, _filter, logger, returnAll = false) {
-    const _logger = logger || { log: () => {} };
-    _logger.log(
-      'silly',
-      'Starting keyword matching for keywords: %s',
-      JSON.stringify(keywords, null, 2),
-      keywords,
-    );
-    if (!products) {
-      _logger.log('silly', 'No product list given! Returning null');
-      return null;
-    }
-    if (!keywords) {
-      _logger.log('silly', 'No keywords object given! Returning null');
-      return null;
-    }
-    if (!keywords.pos || !keywords.neg) {
-      _logger.log('silly', 'Malformed keywords object! Returning null');
-      return null;
-    }
-
-    const matches = filter(products, product => {
-      const name = product.name.toUpperCase();
-
-      // defaults
-      let pos = true;
-      let neg = false;
-
-      if (keywords.pos.length) {
-        pos = every(
-          keywords.pos.map(k => k.toUpperCase()),
-          keyword => name.indexOf(keyword.toUpperCase()) > -1,
-        );
-      }
-
-      if (keywords.neg.length) {
-        neg = some(keywords.neg.map(k => k.toUpperCase()), keyword => name.indexOf(keyword) > -1);
-      }
-
-      return pos && !neg;
-    });
-
-    if (!matches || (matches && !matches.length)) {
-      _logger.log(
-        'silly',
-        'Searched %d products. No matches found! Returning null',
-        products.length,
-      );
-      return null;
-    }
-
-    if (matches.length > 1) {
-      let filtered;
-      _logger.log(
-        'silly',
-        'Searched %d products. %d Products Found',
-        products.length,
-        matches.length,
-        JSON.stringify(matches.map(({ name }) => name), null, 2),
-      );
-      if (_filter && _filter.sorter && _filter.limit) {
-        _logger.log('silly', 'Using given filtering heuristic on the products...');
-        let { limit } = _filter;
-        if (returnAll) {
-          _logger.log('silly', "Overriding filter's limit and returning all products...");
-          limit = 0;
-        }
-        filtered = await MonitorPrimitive.filterAndLimit(
-          matches,
-          _filter.sorter,
-          limit,
-          this._logger,
-        );
-        if (!returnAll) {
-          _logger.log('silly', 'Returning Matched Product: %s', filtered[0].name);
-          return filtered[0];
-        }
-        _logger.log('silly', 'Returning %d Matched Products', filtered.length);
-        return filtered;
-      }
-      _logger.log(
-        'silly',
-        'No Filter or Invalid Filter Heuristic given! Defaulting to most recent...',
-      );
-      if (returnAll) {
-        _logger.log('silly', 'Returning all products...');
-        filtered = await MonitorPrimitive.filterAndLimit(matches, 'position', 0, this._logger);
-        _logger.log('silly', 'Returning %d Matched Products', filtered);
-        return filtered;
-      }
-      filtered = await MonitorPrimitive.filterAndLimit(matches, 'position', -1, this._logger);
-      _logger.log('silly', 'Returning Matched Product: %s', filtered[0].name);
-      return filtered[0];
-    }
-    _logger.log(
-      'silly',
-      'Searched %d products. Matching Product Found: %s',
-      products.length,
-      matches[0].name,
-    );
-    return returnAll ? matches : matches[0];
-  }
-
-  static async matchVariation(variations, variation, logger = { log: () => {} }) {
-    if (/random/i.test(variation)) {
-      const rand = getRandomIntInclusive(0, variations.length - 1);
-      const variant = variations[rand];
-      return variant;
-    }
-
-    return variations.find(v => {
-      const { name } = v;
-      let variationMatcher;
-      if (/[0-9]+/.test(name)) {
-        // We are matching a shoe size
-        variationMatcher = s => new RegExp(`${name}`, 'i').test(s);
-      } else {
-        // We are matching a garment size
-        variationMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${name}`, 'i').test(s.trim());
-      }
-
-      if (variationMatcher(variation)) {
-        logger.log('debug', 'Choosing variant: %j', v);
-        return v;
-      }
-    });
   }
 
   async _handleSwapProxies() {
@@ -386,7 +213,7 @@ export default class MonitorPrimitive {
 
       this._logger.debug('PROXY IN _handleSwapProxies: %j', proxy);
       // Proxy is fine, update the references
-      if ((proxy || proxy === null) && this._previousProxy !== null) {
+      if ((proxy || proxy === null) && this._previousProxy !== proxy) {
         if (proxy === null) {
           this._previousProxy = this._context.proxy;
           this.proxy = proxy; // null
@@ -489,7 +316,7 @@ export default class MonitorPrimitive {
         neg: product.neg_keywords,
       };
 
-      const matchedProduct = await this.matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter at this point...
+      const matchedProduct = await matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter at this point...
 
       if (!matchedProduct) {
         this._logger.silly('Supreme Monitor: Unable to find matching product!');
@@ -506,7 +333,7 @@ export default class MonitorPrimitive {
 
       return States.STOCK;
     } catch (error) {
-      return this._handleParsingErrors([error]);
+      return this._handleErrors([error]);
     }
   }
 
@@ -546,7 +373,7 @@ export default class MonitorPrimitive {
         throw error;
       }
 
-      const matchedVariation = await MonitorPrimitive.matchVariation(styles, variation, logger);
+      const matchedVariation = await matchVariation(styles, variation, logger);
 
       if (!matchedVariation) {
         this._emitMonitorEvent({ message: 'No variation matched!', rawProxy });

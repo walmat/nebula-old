@@ -27,64 +27,35 @@ export default class TaskPrimitive {
     return this._state;
   }
 
-  constructor(context, proxy, type, platform = Platforms.Supreme) {
-    this.id = context.id;
-    this._task = context.task;
-    this._events = context.events;
+  get context() {
+    return this._context;
+  }
+
+  get platform() {
+    return this._platform;
+  }
+
+  constructor(context, platform = Platforms.Supreme) {
+    this._context = context;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
-    this.proxy = proxy;
-    this._parseType = type;
     this._platform = platform;
 
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie/node-fetch')(fetch, context.jar);
-    this._request = defaults(_request, this._task.site.url, {
-      timeout: 10000, // to be overridden as necessary
-      signal: this._aborter.signal, // generic abort signal
+    const _fetch = require('fetch-cookie/node-fetch')(fetch, context.jar);
+    this._fetch = defaults(_fetch, context.task.site.url, {
+      timeout: 10000, // can be overridden as necessary per request
+      signal: this._aborter.signal,
     });
 
     this._delayer = null;
-    this._captchaQueue = null;
     this._state = States.WAIT_FOR_PRODUCT;
-
     this._timer = new Timer();
-    this._discord = new Discord(this._task.discord);
-    this._slack = new Slack(this._task.slack);
-    this._logger = context.logger;
-
-    const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
-
-    if (p) {
-      p.options.maxSockets = Infinity;
-      p.options.maxFreeSockets = Infinity;
-      p.options.keepAlive = true;
-      p.maxFreeSockets = Infinity;
-      p.maxSockets = Infinity;
-    }
-
-    this._context = {
-      ...context,
-      proxy: p,
-      rawProxy: proxy ? proxy.raw : 'localhost',
-      aborter: this._aborter,
-      delayer: this._delayer,
-      signal: this._aborter.signal,
-      request: this._request,
-      jar: context.jar,
-      discord: this._discord,
-      slack: this._slack,
-      logger: this._logger,
-      harvestState: HarvestStates.idle,
-    };
-
-    this._history = [];
     this.webhookSent = false;
     this._slug = null;
-    this._pooky = false;
-    this.captchaToken = '';
-    this._cookies = '';
-    this._previousProxy = '';
+
+    // patches to context...
+    this._context.harvestState(HarvestStates.idle);
 
     this._events.on(TaskManagerEvents.Abort, this._handleAbort, this);
     this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
@@ -93,19 +64,24 @@ export default class TaskPrimitive {
   }
 
   _handleAbort(id) {
-    if (id === this._context.id) {
-      this._context.aborted = true;
-      this._aborter.abort();
-      if (this._delayer) {
-        this._delayer.clear();
-      }
+    if (id !== this._context.id) {
+      return;
+    }
+
+    this._context.aborted(true);
+    this._aborter.abort();
+    if (this._delayer) {
+      this._delayer.clear();
     }
   }
 
   _handleHarvest(id, token) {
-    if (id === this._context.id && this._captchaQueue) {
-      this._captchaQueue.insert(token);
+    const { captchaQueue } = this._context;
+    if (id !== this._context.id || !captchaQueue) {
+      return;
     }
+
+    captchaQueue.insert(token);
   }
 
   async _compareProductInput(product, parseType) {
@@ -127,63 +103,68 @@ export default class TaskPrimitive {
   }
 
   async _handleProduct(id, product, parseType) {
-    if (parseType === this._parseType) {
-      const isSameProductData = await this._compareProductInput(product, parseType);
+    if (parseType !== this._context.parseType) {
+      return;
+    }
 
-      if (
-        (isSameProductData && !this._context.productFound) ||
-        (id === this.id && !this._context.productFound)
-      ) {
-        this._context.task.product = {
-          ...this._context.task.product,
-          ...product,
-        };
-        // patch checkout context
-        this._context.productFound = true;
-      }
+    const isSameProductData = await this._compareProductInput(product, parseType);
+
+    if (isSameProductData || id === this._context.id) {
+      this._context.task.product = {
+        ...this._context.task.product,
+        ...product,
+      };
     }
   }
 
   _handleDelay(id, delay, type) {
-    if (id === this._context.id) {
-      if (type === DelayTypes.error) {
-        this._context.task.errorDelay = delay;
-      } else if (type === DelayTypes.monitor) {
-        this._context.task.monitorDelay = delay;
-      }
-      if (this._delayer) {
-        this._delayer.clear();
-      }
+    if (id !== this._context.id) {
+      return;
+    }
+
+    if (type === DelayTypes.error) {
+      this._context.task.errorDelay = delay;
+    } else if (type === DelayTypes.monitor) {
+      this._context.task.monitorDelay = delay;
+    }
+
+    // reset delay to immediately propagate the delay
+    if (this._delayer) {
+      this._delayer.clear();
     }
   }
 
   _handleUpdateHooks(id, hook, type) {
-    if (id === this._context.id) {
-      if (type === HookTypes.Discord) {
-        this._context.task.discord = hook;
-      } else if (type === HookTypes.Slack) {
-        this._context.task.slack = hook;
-      }
+    if (id !== this._context.id) {
+      return;
+    }
+
+    if (type === HookTypes.Discord) {
+      const discord = hook ? new Discord(hook) : null;
+      this._context.discord(discord);
+    } else if (type === HookTypes.Slack) {
+      const slack = hook ? new Slack(hook) : null;
+      this._context.slack(slack);
     }
   }
 
   _cleanup() {
-    // console.log(this._history);
     this.stopHarvestCaptcha();
   }
 
   getCaptcha() {
-    if (this._context.harvestState === HarvestStates.idle) {
-      this._captchaQueue = new AsyncQueue();
+    const { harvestState, captchaQueue } = this._context;
+    if (harvestState === HarvestStates.idle) {
+      this._context.captchaQueue(new AsyncQueue());
+      this._context.harvestState(HarvestStates.start);
       this._events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
-      this._context.harvestState = HarvestStates.start;
     }
 
-    if (this._context.harvestState === HarvestStates.suspend) {
-      this._context.harvestState = HarvestStates.start;
+    if (harvestState === HarvestStates.suspend) {
+      this._context.harvestState(HarvestStates.start);
     }
 
-    if (this._context.harvestState === HarvestStates.start) {
+    if (harvestState === HarvestStates.start) {
       this._logger.silly('[DEBUG]: Starting harvest...');
       this._events.emit(
         TaskManagerEvents.StartHarvest,
@@ -195,27 +176,31 @@ export default class TaskPrimitive {
     }
 
     // return the captcha request
-    return this._captchaQueue.next();
+    return captchaQueue.next();
   }
 
   suspendHarvestCaptcha() {
-    if (this._context.harvestState === HarvestStates.start) {
-      this._logger.silly('[DEBUG]: Suspending harvest...');
-      this._events.emit(
-        TaskManagerEvents.StopHarvest,
-        this._context.id,
-        SiteKeyForPlatform[this._platform],
-        'http://www.supremenewyork.com',
-      );
-      this._context.harvestState = HarvestStates.suspend;
+    const { harvestState } = this._context;
+
+    if (harvestState !== HarvestStates.start) {
+      return;
     }
+
+    this._logger.silly('[DEBUG]: Suspending harvest...');
+    this._events.emit(
+      TaskManagerEvents.StopHarvest,
+      this._context.id,
+      SiteKeyForPlatform[this._platform],
+      'http://www.supremenewyork.com',
+    );
+    this._context.harvestState(HarvestStates.suspend);
   }
 
   stopHarvestCaptcha() {
-    const { harvestState } = this._context;
+    const { harvestState, captchaQueue } = this._context;
     if (harvestState === HarvestStates.start || harvestState === HarvestStates.suspend) {
-      this._captchaQueue.destroy();
-      this._captchaQueue = null;
+      captchaQueue.destroy();
+      this._context.captchaQueue(null);
       this._logger.silly('[DEBUG]: Stopping harvest...');
       this._events.emit(
         TaskManagerEvents.StopHarvest,
@@ -224,7 +209,7 @@ export default class TaskPrimitive {
         'http://www.supremenewyork.com',
       );
       this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
-      this._context.harvestState = HarvestStates.stop;
+      this._context.harvestState(HarvestStates.stop);
     }
   }
 
@@ -251,8 +236,6 @@ export default class TaskPrimitive {
     if (match) {
       // Check capturing group
       switch (match[1]) {
-        // connection reset
-        case 429:
         case 'ENOTFOUND':
         case 'EPROTO':
         case 'ECONNREFUSED':
@@ -775,6 +758,7 @@ export default class TaskPrimitive {
       this._emitTaskEvent({ message: `Waiting ${checkoutDelay}ms`, rawProxy });
       this._delayer = waitForDelay(totalTimeout, this._aborter.signal);
       await this._delayer;
+      this._context.task.checkoutDelay = 0; // reset checkout delay...
     }
 
     this._logger.info('parsed form: %j', this._form);
