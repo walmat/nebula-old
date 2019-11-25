@@ -27,6 +27,12 @@ const TaskDelayTypes = {
   monitor: 'monitorDelay',
 };
 
+const Regions = {
+  US: 'US',
+  EU: 'EU',
+  JP: 'JP',
+};
+
 const TaskHookTypes = {
   slack: 'slack',
   discord: 'discord',
@@ -67,4 +73,4 @@ const Monitor = {
   ErrorCodes,
 };
 
-export { Task, Monitor };
+export { Task, Monitor, Regions };

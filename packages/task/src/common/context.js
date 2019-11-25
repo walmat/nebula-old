@@ -12,6 +12,7 @@ export default class Context {
     slack,
     aborted,
     harvestState,
+    captchaRequest,
     captchaQueue,
     captchaToken,
   }) {
@@ -19,6 +20,7 @@ export default class Context {
     this.ids = [id];
     this.task = task;
     this.parseType = parseType;
+    this.lastProxy = proxy;
     this.proxy = proxy;
     this.message = message;
     this.events = events;
@@ -28,6 +30,7 @@ export default class Context {
     this.slack = slack;
     this.aborted = aborted;
     this.harvestState = harvestState;
+    this.captchaRequest = captchaRequest;
     this.captchaQueue = captchaQueue;
     this.captchaToken = captchaToken;
   }
@@ -44,51 +47,59 @@ export default class Context {
     this.ids.filter(i => i !== id);
   }
 
-  parseType(parseType) {
+  setParseType(parseType) {
     this.parseType = parseType;
   }
 
-  proxy(proxy) {
+  setLastProxy(lastProxy) {
+    this.lastProxy = lastProxy;
+  }
+
+  setProxy(proxy) {
     this.proxy = proxy;
   }
 
-  message(message) {
+  setMessage(message) {
     this.message = message;
   }
 
-  events(events) {
+  setEvents(events) {
     this.events = events;
   }
 
-  jar(jar) {
+  setJar(jar) {
     this.jar = jar;
   }
 
-  logger(logger) {
+  setLogger(logger) {
     this.logger = logger;
   }
 
-  discord(discord) {
+  setDiscord(discord) {
     this.discord = discord;
   }
 
-  slack(slack) {
+  setSlack(slack) {
     this.slack = slack;
   }
 
-  aborted(aborted) {
+  setAborted(aborted) {
     this.aborted = aborted;
   }
 
-  harvestState(harvestState) {
+  setHarvestState(harvestState) {
     this.harvestState = harvestState;
   }
 
-  captchaQueue(captchaQueue) {
+  setCaptchaRequest(captchaRequest) {
+    this.captchaRequest = captchaRequest;
+  }
+
+  setCaptchaQueue(captchaQueue) {
     this.captchaQueue = captchaQueue;
   }
 
-  captchaToken(captchaToken) {
+  setCaptchaToken(captchaToken) {
     this.captchaToken = captchaToken;
   }
 }

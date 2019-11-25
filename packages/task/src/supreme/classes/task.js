@@ -1,19 +1,17 @@
 /* eslint-disable consistent-return */
 /* eslint-disable array-callback-return */
 import AbortController from 'abort-controller';
-import cheerio from 'cheerio';
-import HttpsProxyAgent from 'https-proxy-agent';
 import { isEqual } from 'lodash';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
 import { Manager, Task, Platforms, SiteKeyForPlatform } from '../../constants';
-import { Task as TaskConstants, Monitor } from '../utils/constants';
+import { Task as TaskConstants, Monitor, Regions } from '../utils/constants';
 import notification, { Discord, Slack } from '../hooks';
 import AsyncQueue from '../../common/asyncQueue';
 import Timer from '../../common/timer';
-import { ATC, backupForm, parseForm } from '../utils/forms';
-import getHeaders from '../utils';
+import { ATC, backupForm } from '../utils/forms';
+import getHeaders, { getRegion } from '../utils';
 import { waitForDelay, getRandomIntInclusive } from '../../common';
 
 const { Events: TaskManagerEvents } = Manager;
@@ -48,19 +46,23 @@ export default class TaskPrimitive {
       signal: this._aborter.signal,
     });
 
+    // internals
+    this._sentWebhook = false;
     this._delayer = null;
     this._state = States.WAIT_FOR_PRODUCT;
+    this._prevState = this._state;
     this._timer = new Timer();
-    this.webhookSent = false;
+    this._region = getRegion(context.task.site.name);
     this._slug = null;
+    this._form = null;
 
-    // patches to context...
-    this._context.harvestState(HarvestStates.idle);
+    // context patches...
+    this._context.setHarvestState(HarvestStates.idle);
 
-    this._events.on(TaskManagerEvents.Abort, this._handleAbort, this);
-    this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
-    this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
-    this._events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
+    this._context.events.on(TaskManagerEvents.Abort, this._handleAbort, this);
+    this._context.events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
+    this._context.events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
+    this._context.events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
   }
 
   _handleAbort(id) {
@@ -68,7 +70,7 @@ export default class TaskPrimitive {
       return;
     }
 
-    this._context.aborted(true);
+    this._context.setAborted(true);
     this._aborter.abort();
     if (this._delayer) {
       this._delayer.clear();
@@ -110,6 +112,7 @@ export default class TaskPrimitive {
     const isSameProductData = await this._compareProductInput(product, parseType);
 
     if (isSameProductData || id === this._context.id) {
+      // merge the two product datas...
       this._context.task.product = {
         ...this._context.task.product,
         ...product,
@@ -141,10 +144,10 @@ export default class TaskPrimitive {
 
     if (type === HookTypes.Discord) {
       const discord = hook ? new Discord(hook) : null;
-      this._context.discord(discord);
+      this._context.setDiscord(discord);
     } else if (type === HookTypes.Slack) {
       const slack = hook ? new Slack(hook) : null;
-      this._context.slack(slack);
+      this._context.setSlack(slack);
     }
   }
 
@@ -153,22 +156,22 @@ export default class TaskPrimitive {
   }
 
   getCaptcha() {
-    const { harvestState, captchaQueue } = this._context;
+    const { id, harvestState, captchaQueue, logger, events } = this._context;
     if (harvestState === HarvestStates.idle) {
-      this._context.captchaQueue(new AsyncQueue());
-      this._context.harvestState(HarvestStates.start);
-      this._events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
+      this._context.setCaptchaQueue(new AsyncQueue());
+      this._context.setHarvestState(HarvestStates.start);
+      events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
     }
 
     if (harvestState === HarvestStates.suspend) {
-      this._context.harvestState(HarvestStates.start);
+      this._context.setHarvestState(HarvestStates.start);
     }
 
     if (harvestState === HarvestStates.start) {
-      this._logger.silly('[DEBUG]: Starting harvest...');
-      this._events.emit(
+      logger.silly('[DEBUG]: Starting harvest...');
+      events.emit(
         TaskManagerEvents.StartHarvest,
-        this._context.id,
+        id,
         SiteKeyForPlatform[this._platform],
         'http://www.supremenewyork.com',
         1,
@@ -180,47 +183,47 @@ export default class TaskPrimitive {
   }
 
   suspendHarvestCaptcha() {
-    const { harvestState } = this._context;
+    const { id, harvestState, logger, events } = this._context;
 
     if (harvestState !== HarvestStates.start) {
       return;
     }
 
-    this._logger.silly('[DEBUG]: Suspending harvest...');
-    this._events.emit(
+    logger.silly('[DEBUG]: Suspending harvest...');
+    events.emit(
       TaskManagerEvents.StopHarvest,
-      this._context.id,
+      id,
       SiteKeyForPlatform[this._platform],
       'http://www.supremenewyork.com',
     );
-    this._context.harvestState(HarvestStates.suspend);
+    this._context.setHarvestState(HarvestStates.suspend);
   }
 
   stopHarvestCaptcha() {
-    const { harvestState, captchaQueue } = this._context;
+    const { id, harvestState, captchaQueue, logger, events } = this._context;
     if (harvestState === HarvestStates.start || harvestState === HarvestStates.suspend) {
       captchaQueue.destroy();
-      this._context.captchaQueue(null);
-      this._logger.silly('[DEBUG]: Stopping harvest...');
-      this._events.emit(
+      this._context.setCaptchaQueue(null);
+      logger.silly('[DEBUG]: Stopping harvest...');
+      events.emit(
         TaskManagerEvents.StopHarvest,
-        this._context.id,
+        id,
         SiteKeyForPlatform[this._platform],
         'http://www.supremenewyork.com',
       );
-      this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
-      this._context.harvestState(HarvestStates.stop);
+      events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
+      this._context.setHarvestState(HarvestStates.stop);
     }
   }
 
-  async _handleFetchErrors(error, state) {
-    if (this._context.aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+  async _handleError(error = {}, state) {
+    const { aborted, logger } = this._context;
+    if (aborted) {
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
     const { status } = error;
-
     if (!status) {
       return state;
     }
@@ -229,7 +232,7 @@ export default class TaskPrimitive {
       return States.ABORT;
     }
 
-    const match = /(429|ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED|EPROTO)/.exec(
+    const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED|EPROTO)/.exec(
       status,
     );
 
@@ -253,7 +256,6 @@ export default class TaskPrimitive {
     if (/(?!([235][0-9]))\d{3}/g.test(status)) {
       this._emitTaskEvent({
         message: `Delaying ${this._context.task.errorDelay}ms (${status})`,
-        rawProxy: this._context.rawProxy,
       });
       this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
       await this._delayer;
@@ -263,38 +265,37 @@ export default class TaskPrimitive {
   }
 
   async swapProxies() {
-    // emit the swap event
-    this._events.emit(Events.SwapTaskProxy, this.id, this.proxy, this.shouldBanProxy);
+    const { id, proxy, logger, events } = this._context;
+    events.emit(Events.SwapTaskProxy, id, proxy);
     return new Promise((resolve, reject) => {
       let timeout;
-      const proxyHandler = (id, proxy) => {
-        this._logger.silly('Reached Proxy Handler, resolving');
+      const proxyHandler = (_, newProxy) => {
+        logger.silly('Reached Proxy Handler, resolving');
         // clear the timeout interval
         clearTimeout(timeout);
         // reset the timeout
         timeout = null;
-        // reset the ban flag
-        this.shouldBanProxy = 0;
         // finally, resolve with the new proxy
-        resolve(proxy);
+        resolve(newProxy);
       };
       timeout = setTimeout(() => {
-        this._events.removeListener(Events.ReceiveProxy, proxyHandler);
-        this._logger.silly('Reached Proxy Timeout: should reject? %s', !!timeout);
+        events.removeListener(Events.ReceiveProxy, proxyHandler);
+        logger.silly('Reached Proxy Timeout: should reject? %s', !!timeout);
         // only reject if timeout has not been cleared
         if (timeout) {
           reject(new Error('Timeout'));
         }
       }, 10000); // TODO: Make this a variable delay?
-      this._events.once(Events.ReceiveProxy, proxyHandler);
+      events.once(Events.ReceiveProxy, proxyHandler);
     });
   }
 
   // MARK: Event Registration
   registerForEvent(event, callback) {
+    const { events } = this._context;
     switch (event) {
       case Events.TaskStatus: {
-        this._events.on(Events.TaskStatus, callback);
+        events.on(Events.TaskStatus, callback);
         break;
       }
       default:
@@ -303,9 +304,10 @@ export default class TaskPrimitive {
   }
 
   deregisterForEvent(event, callback) {
+    const { events } = this._context;
     switch (event) {
       case Events.TaskStatus: {
-        this._events.removeListener(Events.TaskStatus, callback);
+        events.removeListener(Events.TaskStatus, callback);
         break;
       }
       default: {
@@ -316,22 +318,25 @@ export default class TaskPrimitive {
 
   // MARK: Event Emitting
   _emitEvent(event, payload) {
+    const { id, logger, events } = this._context;
+
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
-        this._events.emit(event, [this.id], payload, event);
+        events.emit(event, [id], payload, event);
         break;
       }
       default: {
         break;
       }
     }
-    this._logger.silly('Event %s emitted: %j', event, payload);
+    logger.silly('Event %s emitted: %j', event, payload);
   }
 
   _emitTaskEvent(payload = {}) {
-    if (payload.message && payload.message !== this._context.status) {
-      this._context.status = payload.message;
+    const { message } = payload;
+    if (message && message !== this._context.message) {
+      this._context.setMessage(message);
       this._emitEvent(Events.TaskStatus, { ...payload, type: Types.Normal });
     }
   }
@@ -339,67 +344,37 @@ export default class TaskPrimitive {
   async _handleSwapProxies() {
     const {
       task: { errorDelay },
+      logger,
     } = this._context;
     try {
-      this._logger.silly('Waiting for new proxy...');
+      logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
-      this._logger.debug(
-        'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
-        proxy,
-        this.shouldBanProxy,
-      );
+      logger.debug('Proxy in _handleSwapProxies: %j', proxy);
       // Proxy is fine, update the references
-      if ((proxy || proxy === null) && this._previousProxy !== null) {
-        if (proxy === null) {
-          this._previousProxy = this._context.proxy;
-          this.proxy = proxy; // null
-          this._context.proxy = proxy; // null
-          this._checkout._context.proxy = proxy; // null
-          this._context.rawProxy = 'localhost';
-          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-          this._emitTaskEvent({
-            message: `Swapped proxy to: localhost`,
-            proxy,
-          });
-        } else {
-          this._previousProxy = this._context.proxy;
-          this.proxy = proxy;
-          const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
+      if ((proxy || proxy === null) && this._context.proxy !== proxy) {
+        this._context.setLastProxy(this._context.proxy);
+        this._context.setProxy(proxy);
 
-          if (p) {
-            p.options.maxSockets = Infinity;
-            p.options.maxFreeSockets = Infinity;
-            p.options.keepAlive = true;
-            p.maxFreeSockets = Infinity;
-            p.maxSockets = Infinity;
-          }
-          this._context.proxy = p;
-          this._checkout._context.proxy = p;
-          this._context.rawProxy = proxy.raw;
-          this.shouldBanProxy = 0; // reset ban flag
-          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-          this._emitTaskEvent({
-            message: `Swapped proxy to: ${proxy.raw}`,
-            proxy: proxy.raw,
-          });
-        }
-        this._logger.debug('Rewinding to state: %s', this._prevState);
+        logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
+        this._emitTaskEvent({
+          message: `Swapped proxy to: ${proxy ? proxy.raw : 'localhost'}`,
+        });
+
+        logger.debug('Rewinding to state: %s', this._prevState);
         return this._prevState;
       }
 
+      // If we get a null proxy back while our previous proxy was also null.. then there aren't any available
+      // We should wait the error delay, then try again
       this._emitTaskEvent({
-        message: `No open proxy! Delaying ${errorDelay}ms`,
+        message: `No open proxies! Delaying ${errorDelay}ms`,
       });
-      // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
       this._delayer = waitForDelay(errorDelay, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Proxy banned!' });
-    } catch (err) {
-      this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
-      this._emitTaskEvent({
-        message: 'Error swapping proxies! Retrying...',
-      });
+    } catch (error) {
+      logger.error('Swap Proxies Handler completed with errors: %s', error.toString());
+      this._emitMonitorEvent({ message: 'Error swapping proxies! Retrying' });
     }
 
     // Go back to previous state
@@ -408,19 +383,20 @@ export default class TaskPrimitive {
 
   async _pickSize() {
     const {
-      product: { variants, randomInStock },
-      size,
-      rawProxy,
-    } = this._context.task;
+      task: {
+        product: { variants, randomInStock },
+        size,
+      },
+      logger,
+    } = this._context;
 
     let grouping = variants;
 
     if (randomInStock) {
       grouping = grouping.filter(v => v.stock_level);
 
-      // if we filtered all the products out, rewind it...
+      // if we filtered all the products out, rewind it to all variants...
       if (!grouping || !grouping.length) {
-        this._emitTaskEvent({ message: 'No sizes in stock!', rawProxy });
         grouping = variants;
       }
     }
@@ -441,7 +417,7 @@ export default class TaskPrimitive {
       }
 
       if (sizeMatcher(v.name)) {
-        this._logger.debug('Choosing variant: %j', v);
+        logger.debug('Choosing variant: %j', v);
         return v;
       }
     });
@@ -449,9 +425,19 @@ export default class TaskPrimitive {
     if (randomInStock) {
       if (variant) {
         const { stock_level: stockLevel } = variant;
-        // should we do a `do...while` here?
         if (!stockLevel) {
-          return grouping[getRandomIntInclusive(0, grouping.length - 1)];
+          const checkedGroup = grouping;
+
+          do {
+            const newVariant = checkedGroup.pop();
+            if (newVariant.stock_level) {
+              return newVariant;
+            }
+          } while (checkedGroup.length);
+
+          if (!checkedGroup.length) {
+            return grouping[getRandomIntInclusive(0, grouping.length - 1)];
+          }
         }
       } else {
         return grouping[getRandomIntInclusive(0, grouping.length - 1)];
@@ -466,16 +452,17 @@ export default class TaskPrimitive {
   }
 
   async _handleWaitForProduct() {
-    if (this._context.aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+    const { aborted, logger } = this._context;
+    if (aborted) {
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    if (this._context.productFound) {
+    if (this._context.task.product.variants) {
       const variant = await this._pickSize();
-      // loop back around?
+      // maybe we should loop back around?
       if (!variant) {
-        this._emitTaskEvent({ message: 'Size not found' });
+        this._emitTaskEvent({ message: 'No sizes found' });
         return States.ERROR;
       }
       this._context.task.product.variant = variant;
@@ -488,14 +475,12 @@ export default class TaskPrimitive {
     return States.WAIT_FOR_PRODUCT;
   }
 
-  async generatePooky(region = 'US') {
+  async generatePooky(region = Regions.US) {
     const lastid = Date.now();
-    const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
+    const { NEBULA_API_BASE } = process.env;
 
     try {
-      const res = await this._request(
-        `${NEBULA_API_BASE}/${region}?auth=nebula-${NEBULA_API_UUID}`,
-      );
+      const res = await this._fetch(`${NEBULA_API_BASE}/${region}`);
 
       if (!res.ok) {
         const error = new Error('Unable to fetch cookies');
@@ -510,25 +495,20 @@ export default class TaskPrimitive {
         throw error;
       }
 
-      this._cookies = body.cookies;
-      this._logger.info(this._cookies);
+      const { jar, task } = this._context;
 
-      this._context.jar.setCookieSync(`lastid=${lastid}`, this._context.task.site.url);
-      await body.cookies.map(cookie =>
-        this._context.jar.setCookieSync(`${cookie};`, this._context.task.site.url),
-      );
-
-      return true;
+      jar.setCookieSync(`lastid=${lastid}`, task.site.url);
+      return body.cookies.map(cookie => jar.setCookieSync(`${cookie};`, task.site.url));
     } catch (err) {
       throw err;
     }
   }
 
   async _handleAddToCart() {
-    const { aborted, proxy, rawProxy } = this._context;
+    const { aborted, proxy, logger } = this._context;
 
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -542,26 +522,19 @@ export default class TaskPrimitive {
       forceCaptcha,
     } = this._context.task;
 
-    this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
+    this._emitTaskEvent({ message: 'Adding to cart' });
 
     if (!this._pooky) {
       try {
-        if (/US/i.test(name)) {
-          this._pooky = await this.generatePooky('US');
-        }
-        if (/EU/i.test(name)) {
-          this._pooky = await this.generatePooky('EU');
-        }
-        if (/JP/i.test(name)) {
-          this._pooky = await this.generatePooky('JP');
-        }
+        await this.generatePooky(this._region);
       } catch (error) {
-        this._pooky = false; // extra padding here..
+        // TODO!
+        console.log(error);
       }
     }
 
     try {
-      const res = await this._request(`/shop/${s}/add.json`, {
+      const res = await this._fetch(`/shop/${s}/add.json`, {
         method: 'POST',
         agent: proxy,
         headers: {
@@ -577,81 +550,73 @@ export default class TaskPrimitive {
         throw error;
       }
 
+      // start the padding timer...
+      this._timer.start(new Date().getTime());
+
       const body = await res.json();
       if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         this._pooky = false;
-        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
+        this._emitTaskEvent({ message: 'Adding to cart' });
         return States.ADD_TO_CART;
       }
 
       if (forceCaptcha && !this.captchaToken) {
-        this._timer.start(new Date().getTime());
         return States.CAPTCHA;
       }
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
-      return this._handleFetchErrors(error, States.ADD_TO_CART);
+      return this._handleError(error, States.ADD_TO_CART);
     }
   }
 
   async _handleCaptcha() {
-    const { aborted, rawProxy } = this._context;
+    const { aborted, logger, captchaRequest } = this._context;
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
-      if (this._captchaTokenRequest) {
+      logger.silly('Abort Detected, Stopping...');
+      if (captchaRequest) {
         // cancel the request if it was previously started
-        this._captchaTokenRequest.cancel('aborted');
+        this._context.captchaRequest.cancel('aborted');
       }
       return States.ABORT;
     }
 
     // start request if it hasn't started already
-    if (!this._captchaTokenRequest) {
-      this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
-      this._captchaTokenRequest = await this.getCaptcha();
+    if (!captchaRequest) {
+      this._emitTaskEvent({ message: 'Waiting for captcha' });
+      this._context.setCaptchaRequest(await this.getCaptcha());
     }
 
     // Check the status of the request
-    switch (this._captchaTokenRequest.status) {
+    switch (captchaRequest.status) {
       case 'pending': {
-        // waiting for token, sleep for delay and then return same state to check again
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // waiting for token, sleep for 1s and then return same state to check again
+        await new Promise(resolve => setTimeout(resolve, 1000));
         return States.CAPTCHA;
       }
       case 'fulfilled': {
         // token was returned, store it and remove the request
-        ({ value: this.captchaToken } = this._captchaTokenRequest);
-        this._captchaTokenRequest = null;
+        const { value } = captchaRequest;
+        this._context.setCaptchaToken(value);
+        this._context.setCaptchaRequest(null);
         // We have the token, so suspend harvesting for now
         this.suspendHarvestCaptcha();
 
-        this._timer.stop(new Date().getTime());
         // proceed to submit checkout
-        this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting checkout' });
         return States.SUBMIT_CHECKOUT;
       }
       case 'cancelled':
       case 'destroyed': {
-        this._logger.silly(
-          'Harvest Captcha status: %s, stopping...',
-          this._captchaTokenRequest.status,
-        );
-        // clear out the status so we get a generic "errored out task event"
-        this._context.status = null;
+        logger.silly('Harvest Captcha status: %s, stopping...', captchaRequest.status);
         return States.ERROR;
       }
       default: {
-        this._logger.silly(
-          'Unknown Harvest Captcha status! %s, stopping...',
-          this._captchaTokenRequest.status,
-        );
-        // clear out the status so we get a generic "errored out task event"
-        this._context.status = null;
+        logger.silly('Unknown Harvest Captcha status! %s, stopping...', captchaRequest.status);
         return States.ERROR;
       }
     }
@@ -661,77 +626,23 @@ export default class TaskPrimitive {
     const {
       task: {
         profile: { payment, shipping, billing, billingMatchesShipping },
-        site: { name },
         checkoutDelay,
         monitorDelay,
       },
       aborted,
-      rawProxy,
+      logger,
       proxy,
     } = this._context;
 
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    const { id: s } = this._context.task.product.variant;
-
-    let region = 'US';
-    if (/EU/i.test(name)) {
-      region = 'EU';
-    }
-    if (/JP/i.test(name)) {
-      region = 'JP';
-    }
-    const profileInfo = billingMatchesShipping ? shipping : billing;
-
     if (!this._form) {
-      let body;
-      try {
-        const res = await this._request('/mobile/#checkout', {
-          method: 'GET',
-          agent: proxy,
-          headers: {
-            ...getHeaders(),
-            'content-type': 'application/x-www-form-urlencoded',
-          },
-        });
-
-        if (!res.ok) {
-          const error = new Error('Unable to fetch checkout page');
-          error.status = res.status || res.errno;
-          throw error;
-        }
-
-        body = await res.text();
-      } catch (error) {
-        this._logger.debug('Unable to fetch checkout form!');
-        // fail silently..
-        // DO NOT BUBBLE THIS ERROR UP!!!
-      }
-
-      if (body) {
-        this._logger.debug('Attempting to parse checkout fields');
-        const $ = cheerio.load(body, { xmlMode: true });
-        this._form = await parseForm(
-          $,
-          'form#mobile_checkout_form',
-          'input, textarea, select, button',
-          profileInfo,
-          payment,
-          s,
-        );
-      } else {
-        // fallback to static form..
-        this._form = backupForm(region, profileInfo, payment, s);
-      }
-
-      if (this._form.indexOf('billing') === -1) {
-        this._form = backupForm(region, profileInfo, payment, s);
-      }
-
-      // this._form = backupForm(region, profileInfo, payment, s);
+      const { id: s } = this._context.task.product.variant;
+      const profileInfo = billingMatchesShipping ? shipping : billing;
+      this._form = backupForm(this._region, profileInfo, payment, s);
 
       // patch in the captcha token
       this._form += `&g-recaptcha-response=${this.captchaToken || undefined}`;
@@ -739,34 +650,30 @@ export default class TaskPrimitive {
 
     if (!this._pooky) {
       try {
-        if (/US/i.test(name)) {
-          this._pooky = await this.generatePooky('US');
-        }
-        if (/EU/i.test(name)) {
-          this._pooky = await this.generatePooky('EU');
-        }
-        if (/JP/i.test(name)) {
-          this._pooky = await this.generatePooky('JP');
-        }
+        await this.generatePooky(this._region);
       } catch (error) {
-        this._pooky = false; // extra padding here..
+        // TODO!
+        console.log(error);
       }
     }
 
+    // stop the padding timer...
+    this._timer.stop(new Date().getTime());
+
     const totalTimeout = checkoutDelay - this._timer.getTotalTime(0);
     if (totalTimeout && totalTimeout > 0) {
-      this._emitTaskEvent({ message: `Waiting ${checkoutDelay}ms`, rawProxy });
+      this._emitTaskEvent({ message: `Waiting ${totalTimeout}ms` });
       this._delayer = waitForDelay(totalTimeout, this._aborter.signal);
       await this._delayer;
-      this._context.task.checkoutDelay = 0; // reset checkout delay...
+      this._context.task.checkoutDelay = 0; // set checkout delay to nothing now...
     }
 
-    this._logger.info('parsed form: %j', this._form);
+    logger.info('parsed form: %j', this._form);
 
-    this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
+    this._emitTaskEvent({ message: 'Submitting checkout' });
 
     try {
-      const res = await this._request('/checkout.json', {
+      const res = await this._fetch('/checkout.json', {
         method: 'POST',
         agent: proxy,
         headers: {
@@ -777,10 +684,6 @@ export default class TaskPrimitive {
         body: this._form,
       });
 
-      // no matter what, set pooky back to false to force a refetch...
-      this._pooky = false;
-      this._cookies = '';
-
       if (!res.ok) {
         const error = new Error('Failed submitting checkout');
         error.status = res.status || res.errno;
@@ -788,34 +691,34 @@ export default class TaskPrimitive {
       }
 
       const body = await res.json();
-      this._logger.debug('BODY: %j', body);
+      logger.debug('BODY: %j', body);
+
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
-          this._emitTaskEvent({ message: 'Invalid checkout slug', rawProxy });
+          this._emitTaskEvent({ message: 'Invalid checkout slug' });
           return States.SUBMIT_CHECKOUT;
         }
         // reset form..
-        this._form = '';
+        this._form = null;
         this._slug = slug;
         return States.CHECK_STATUS;
       }
 
       if (body && body.status && /out/i.test(body.status)) {
-        this._pooky = false;
-        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting checkout', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting checkout' });
       }
 
       if (body && body.status && /dup/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Duplicate order', rawProxy });
+        this._emitTaskEvent({ message: 'Duplicate order' });
         return States.DONE;
       }
 
       if (body && body.status && /failed/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Checkout failed', rawProxy });
+        this._emitTaskEvent({ message: 'Checkout failed' });
         return States.ADD_TO_CART;
       }
 
@@ -824,22 +727,22 @@ export default class TaskPrimitive {
       if (/invalid json/i.test(error)) {
         return States.ADD_TO_CART;
       }
-      return this._handleFetchErrors(error, States.SUBMIT_CHECKOUT);
+      return this._handleError(error, States.SUBMIT_CHECKOUT);
     }
   }
 
   async _handleCheckStatus() {
-    const { aborted, proxy, rawProxy } = this._context;
+    const { aborted, logger, proxy, events } = this._context;
 
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    this._emitTaskEvent({ message: 'Checking order status', rawProxy });
+    this._emitTaskEvent({ message: 'Checking status' });
 
     try {
-      const res = await this._request(`/checkout/${this._slug}/status.json`, {
+      const res = await this._fetch(`/checkout/${this._slug}/status.json`, {
         method: 'GET',
         agent: proxy,
         headers: {
@@ -857,7 +760,7 @@ export default class TaskPrimitive {
       const body = await res.json();
 
       if (body && body.status && /failed|out/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Checkout failed', rawProxy });
+        this._emitTaskEvent({ message: 'Checkout failed' });
 
         const {
           task: {
@@ -875,8 +778,8 @@ export default class TaskPrimitive {
           discord,
         } = this._context;
 
-        if (!this.webhookSent) {
-          this.webhookSent = true;
+        if (!this._sentWebhook) {
+          this._sentWebhook = true;
           const hooks = await notification(slack, discord, {
             success: false,
             product: productName,
@@ -888,29 +791,29 @@ export default class TaskPrimitive {
             size,
             image: `${image}`.startsWith('http') ? image : `https:${image}`,
           });
-          this._events.emit(TaskManagerEvents.Webhook, hooks);
+
+          // emit the webhook event
+          events.emit(TaskManagerEvents.Webhook, hooks);
         }
 
-        // reset pooky and captcha token, and also set the checkoutDelay to 0
-        this._pooky = false;
-        this._cookies = '';
-        this.captchaToken = '';
+        this._context.setCaptchaToken(null);
         this._context.task.checkoutDelay = 0;
 
-        if (/US/i.test(siteName)) {
+        if (this._region === Regions.US) {
           this._emitTaskEvent({
             message: `Delaying ${this._context.task.monitorDelay}ms`,
-            rawProxy,
           });
           this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
           await this._delayer;
+
+          return States.SUBMIT_CHECKOUT;
         }
 
-        return /US/i.test(siteName) ? States.SUBMIT_CHECKOUT : States.CAPTCHA;
+        return States.CAPTCHA;
       }
 
       if (body && body.status && /paid/i.test(body.status)) {
-        this._emitTaskEvent({ message: 'Payment successful', rawProxy });
+        this._emitTaskEvent({ message: 'Payment successful' });
 
         const {
           task: {
@@ -940,55 +843,29 @@ export default class TaskPrimitive {
           image: `${image}`.startsWith('http') ? image : `https:${image}`,
         });
 
-        this._events.emit(TaskManagerEvents.Webhook, hooks);
+        events.emit(TaskManagerEvents.Webhook, hooks);
         return States.DONE;
       }
 
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
 
-      this._emitTaskEvent({ message: 'Checking order status', rawProxy });
+      this._emitTaskEvent({ message: 'Checking status' });
 
       return States.CHECK_STATUS;
     } catch (error) {
-      return this._handleFetchErrors(error, States.CHECK_STATUS);
+      return this._handleError(error, States.CHECK_STATUS);
     }
-  }
-
-  _generateEndStateHandler(state) {
-    let status = 'stopped';
-    switch (state) {
-      case States.ABORT: {
-        status = 'aborted';
-        break;
-      }
-      case States.ERROR: {
-        status = 'errored out';
-        break;
-      }
-      case States.DONE: {
-        status = 'finished';
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-    return () => {
-      this._emitTaskEvent({
-        message: this._context.status || `Task has ${status}`,
-        done: true,
-      });
-      return States.DONE;
-    };
   }
 
   async _handleStepLogic(currentState) {
+    const { logger } = this._context;
+
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');
     }
 
-    this._logger.silly('Handling state: %s', currentState);
+    logger.silly('Handling state: %s', currentState);
 
     const stepMap = {
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
@@ -997,25 +874,26 @@ export default class TaskPrimitive {
       [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
       [States.CHECK_STATUS]: this._handleCheckStatus,
       [States.SWAP]: this._handleSwapProxies,
-      [States.DONE]: this._generateEndStateHandler(States.DONE),
-      [States.ERROR]: this._generateEndStateHandler(States.ERROR),
-      [States.ABORT]: this._generateEndStateHandler(States.ABORT),
+      [States.DONE]: () => States.DONE,
+      [States.ERROR]: () => States.DONE,
+      [States.ABORT]: () => States.DONE,
     };
 
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);
   }
 
-  // MARK: State Machine Run Methods
+  // MARK: State Machine Methods
 
   stop() {
-    this._context.aborted = true;
+    return this._context.setAborted(true);
   }
 
   async loop() {
     let nextState = this._state;
 
-    if (this._context.aborted) {
+    const { aborted, logger } = this._context;
+    if (aborted) {
       nextState = States.ABORT;
       return true;
     }
@@ -1024,15 +902,14 @@ export default class TaskPrimitive {
       nextState = await this._handleStepLogic(this._state);
     } catch (e) {
       if (!/aborterror/i.test(e.name)) {
-        this._logger.verbose('Run loop errored out! %s', e);
+        logger.verbose('Task errored out! %s', e);
         nextState = States.ERROR;
         return true;
       }
     }
-    this._logger.silly('Run Loop finished, state transitioned to: %s', nextState);
 
+    logger.silly('Task state transitioned to: %s', nextState);
     if (this._state !== nextState) {
-      // this._history.push(this._state);
       this._prevState = this._state;
       this._state = nextState;
     }
@@ -1045,15 +922,13 @@ export default class TaskPrimitive {
   }
 
   async run() {
-    this._prevState = States.STARTED;
-
-    this._emitTaskEvent({ message: 'Waiting for product', rawProxy: this._context.rawProxy });
-
     let shouldStop = false;
-    while (this._state !== States.DONE && !shouldStop) {
+    this._emitTaskEvent({ message: 'Waiting for product' });
+
+    do {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.loop();
-    }
+    } while (this._state !== States.DONE && !shouldStop);
 
     this._cleanup();
   }

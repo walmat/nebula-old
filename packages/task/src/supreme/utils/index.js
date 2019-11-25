@@ -3,6 +3,7 @@
 import { filter, every, some, sortBy } from 'lodash';
 
 import { getRandomIntInclusive } from '../../common';
+import { Regions } from './constants';
 
 export default () => ({
   authority: 'www.supremenewyork.com',
@@ -165,4 +166,15 @@ export const matchVariation = async (variations, variation, logger = { log: () =
       return v;
     }
   });
-}
+};
+
+export const getRegion = name => {
+  let region = Regions.US;
+  if (/EU/i.test(name)) {
+    region = Regions.EU;
+  }
+  if (/JP/i.test(name)) {
+    region = Regions.JP;
+  }
+  return region;
+};

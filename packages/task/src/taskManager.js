@@ -487,7 +487,8 @@ export default class TaskManager {
 
     task.stop();
 
-    const monitor = Object.values(this._monitors).find(m => m.ids.some(i => i === id));
+    console.log(Object.values(this._monitors));
+    const monitor = Object.values(this._monitors).find(m => m.context.hasId(id));
     this._logger.debug('Found monitor? %j', monitor || false);
 
     if (!monitor) {
