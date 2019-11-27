@@ -6,13 +6,12 @@ import defaults from 'fetch-defaults';
 
 import { capitalizeFirstLetter, waitForDelay } from '../../common';
 import getHeaders, { matchKeywords, matchVariation } from '../utils';
-import { Manager, Task, Platforms } from '../../constants';
-import { Monitor, Task as TaskContants } from '../utils/constants';
+import { Task as TaskContants, Platforms } from '../../constants';
+import { Monitor } from '../utils/constants';
 
-const { Events: TaskManagerEvents } = Manager;
-const { Events } = Task;
-const { Types } = TaskContants;
-const { States, DelayTypes, ErrorCodes } = Monitor;
+const { States } = Monitor;
+
+const { Types, Events, ErrorCodes } = TaskContants;
 
 // SUPREME
 export default class MonitorPrimitive {
@@ -26,6 +25,10 @@ export default class MonitorPrimitive {
 
   get platform() {
     return this._platform;
+  }
+
+  get delayer() {
+    return this._delayer;
   }
 
   constructor(context, platform = Platforms.Supreme) {
@@ -45,44 +48,9 @@ export default class MonitorPrimitive {
     this._state = States.PARSE;
     this._prevState = this._state;
     this._checkingStock = false;
-
-    this._context.events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
   }
 
   // MARK: Handler functions
-
-  _handleAbort(id) {
-    if (!this._context.hasId(id)) {
-      return;
-    }
-
-    this._context.removeId(id);
-
-    if (!this._context.ids.length) {
-      this._context.setAborted(true);
-      this._aborter.abort();
-      if (this._delayer) {
-        this._delayer.clear();
-      }
-    }
-  }
-
-  _handleDelay(id, delay, type) {
-    if (!this._context.hasId(id)) {
-      return;
-    }
-
-    if (type === DelayTypes.error) {
-      this._context.task.errorDelay = delay;
-    } else if (type === DelayTypes.monitor) {
-      this._context.task.monitorDelay = delay;
-    }
-
-    // reset delay to immediately propagate the delay
-    if (this._delayer) {
-      this._delayer.clear();
-    }
-  }
 
   async _handleError(error = {}, state) {
     const { aborted, logger } = this._context;
@@ -92,6 +60,8 @@ export default class MonitorPrimitive {
     }
 
     const { status } = error;
+
+    logger.error('Handling error with status: %j', status);
 
     if (!status) {
       return state;
@@ -120,43 +90,33 @@ export default class MonitorPrimitive {
         default:
           break;
       }
-    }
-
-    if (/(?!([235][0-9]))\d{3}/g.test(status)) {
-      this._emitTaskEvent({
-        message: `Delaying ${this._context.task.errorDelay}ms (${status})`,
+    } else if (/(?!([235][0-9]))\d{3}/g.test(status)) {
+      this._emitMonitorEvent({
+        message: `${status}! Delaying ${this._context.task.errorDelay}ms (${status})`,
       });
       this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
       await this._delayer;
+    } else if (
+      status === ErrorCodes.ProductNotFound ||
+      status === ErrorCodes.NoStylesFound ||
+      status === ErrorCodes.VariantNotFound
+    ) {
+      this._emitMonitorEvent({
+        message: `${status}! Delaying ${this._context.task.monitorDelay}ms`,
+      });
+      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      await this._delayer;
     }
-
     return state;
   }
 
   async swapProxies() {
-    const { id, proxy, logger, events } = this._context;
-    events.emit(Events.SwapMonitorProxy, id, proxy);
-    return new Promise((resolve, reject) => {
-      let timeout;
-      const proxyHandler = (_, newProxy) => {
-        logger.silly('Reached Proxy Handler, resolving');
-        // clear the timeout interval
-        clearTimeout(timeout);
-        // reset the timeout
-        timeout = null;
-        // finally, resolve with the new proxy
-        resolve(newProxy);
-      };
-      timeout = setTimeout(() => {
-        events.removeListener(Events.ReceiveProxy, proxyHandler);
-        logger.silly('Reached Proxy Timeout: should reject? %s', !!timeout);
-        // only reject if timeout has not been cleared
-        if (timeout) {
-          reject(new Error('Timeout'));
-        }
-      }, 10000); // TODO: Make this a variable delay?
-      events.once(Events.ReceiveProxy, proxyHandler);
-    });
+    const { id, proxy, task, logger, proxyManager } = this._context;
+    const proxyId = proxy ? proxy.id : null;
+    logger.debug('Swapping proxy with id: %j', proxyId);
+    const newProxy = await proxyManager.swap(id, proxyId, task.site.url, this._platform);
+    logger.debug('Received new proxy: %j', newProxy ? newProxy.proxy : null);
+    return newProxy;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -165,41 +125,17 @@ export default class MonitorPrimitive {
   // MARK: Event Registration
   registerForEvent(event, callback) {
     const { events } = this._context;
-    switch (event) {
-      case Events.MonitorStatus: {
-        events.on(Events.MonitorStatus, callback);
-        break;
-      }
-      default:
-        break;
-    }
+    events.on(event, callback);
   }
 
   deregisterForEvent(event, callback) {
     const { events } = this._context;
-    switch (event) {
-      case Events.MonitorStatus: {
-        events.removeListener(Events.MonitorStatus, callback);
-        break;
-      }
-      default: {
-        break;
-      }
-    }
+    events.removeListener(event, callback);
   }
 
   _emitEvent(event, payload) {
     const { ids, logger, events } = this._context;
-    switch (event) {
-      // Emit supported events on their specific channel
-      case Events.MonitorStatus: {
-        events.emit(event, ids, payload, event);
-        break;
-      }
-      default: {
-        break;
-      }
-    }
+    events.emit(event, ids, payload, event);
     logger.silly('Event %s emitted: %j', event, payload);
   }
 
@@ -227,7 +163,7 @@ export default class MonitorPrimitive {
         this._context.setProxy(proxy);
 
         logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-        this._emitTaskEvent({
+        this._emitMonitorEvent({
           message: `Swapped proxy to: ${proxy ? proxy.raw : 'localhost'}`,
         });
 
@@ -291,7 +227,10 @@ export default class MonitorPrimitive {
       );
 
       if (!productsInCategory || (productsInCategory && !productsInCategory.length)) {
-        return States.PARSE;
+        logger.silly('Supreme Monitor: Unable to find matching product!');
+        const error = new Error('Product Not Found');
+        error.status = ErrorCodes.ProductNotFound;
+        throw error;
       }
 
       const keywords = {
@@ -299,7 +238,7 @@ export default class MonitorPrimitive {
         neg: product.neg_keywords,
       };
 
-      const matchedProduct = await matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter at this point...
+      const matchedProduct = await matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter...
 
       if (!matchedProduct) {
         logger.silly('Supreme Monitor: Unable to find matching product!');
@@ -321,7 +260,7 @@ export default class MonitorPrimitive {
   }
 
   async _handleStock() {
-    const { ids, task, parseType, aborted, proxy, logger, events } = this._context;
+    const { task, aborted, proxy, logger } = this._context;
     const {
       product: { variation, style },
     } = task;
@@ -336,7 +275,7 @@ export default class MonitorPrimitive {
     }
 
     try {
-      const res = await this._request(`/shop/${style}.json`, {
+      const res = await this._fetch(`/shop/${style}.json`, {
         method: 'GET',
         agent: proxy,
         headers: getHeaders(),
@@ -363,38 +302,18 @@ export default class MonitorPrimitive {
         return States.ABORT;
       }
 
-      this._context.task.product.id = matchedVariation.id;
-      this._context.task.product.variants = matchedVariation.sizes;
-      this._context.task.product.currency = matchedVariation.currency;
-      this._context.task.product.image = matchedVariation.image_url;
-      this._context.task.product.chosenVariation = matchedVariation.name;
+      task.product.id = matchedVariation.id;
+      task.product.variants = matchedVariation.sizes;
+      task.product.currency = matchedVariation.currency;
+      task.product.image = matchedVariation.image_url;
+      task.product.chosenVariation = matchedVariation.name;
 
-      events.emit(TaskManagerEvents.ProductFound, ids, task.product, parseType);
-
-      const { name } = this._context.task.product;
-      if (!this._checkingStock) {
-        this._checkingStock = true;
-        this._emitMonitorEvent({ message: `Product found: ${name}` });
-      }
+      const { name } = task.product;
+      this._emitMonitorEvent({ message: `Product found: ${name}` });
       return States.DONE;
     } catch (error) {
       return this._handleError(error, States.STOCK);
     }
-  }
-
-  async _handleDone() {
-    const { ids, task, parseType, aborted, logger, events } = this._context;
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    events.emit(TaskManagerEvents.ProductFound, ids, task.product, parseType);
-
-    this._delayer = waitForDelay(1000, this._aborter.signal);
-    await this._delayer;
-
-    return States.STOCK;
   }
 
   async _handleStepLogic(currentState) {
@@ -409,7 +328,7 @@ export default class MonitorPrimitive {
       [States.PARSE]: this._handleParse,
       [States.STOCK]: this._handleStock,
       [States.SWAP]: this._handleSwapProxies,
-      [States.DONE]: this._handleDone,
+      [States.DONE]: () => States.ABORT,
       [States.ERROR]: () => States.ABORT,
       [States.ABORT]: () => States.ABORT,
     };
@@ -448,6 +367,27 @@ export default class MonitorPrimitive {
     }
 
     return false;
+  }
+
+  stop(id) {
+    const { logger } = this._context;
+
+    if (!this._context.hasId(id)) {
+      return;
+    }
+
+    logger.debug('Removing id from ids: %s, %j', id, this._context.ids);
+    this._context.removeId(id);
+
+    logger.debug('Amount of ids: %d', this._context.ids.length);
+
+    if (!this._context.isEmpty()) {
+      this._context.setAborted(true);
+      this._aborter.abort();
+      if (this._delayer) {
+        this._delayer.clear();
+      }
+    }
   }
 
   async run() {

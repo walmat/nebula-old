@@ -2,7 +2,7 @@
   "name": "@nebula/task",
   "version": "0.1.0",
   "private": true,
-  "main": "dist/build/index.js",
+  "main": "build/index.js",
   "scripts": {
     "build": "run-s build:babel build:obfuscate",
     "build:babel": "babel --root-mode upward --no-comments -d build src/",

@@ -1,6 +1,5 @@
 import EventEmitter from 'eventemitter3';
 import { isEqual } from 'lodash';
-import { CookieJar } from 'tough-cookie';
 
 // Shared includes
 import { Context, ProxyManager, WebhookManager, createLogger } from './common';
@@ -75,8 +74,6 @@ export default class TaskManager {
     this._proxyManager = new ProxyManager(this._logger);
     this._webhookManager = new WebhookManager(this._logger);
 
-    this.productInterval = null;
-
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
     this._proxyManager._events.on(Events.DeregisterProxy, this.handleDeregisterProxy, this);
   }
@@ -149,24 +146,6 @@ export default class TaskManager {
     const { site, platform } = this._tasks[id];
     const newProxy = await this._proxyManager.swap(id, proxyId, site, platform);
     this._events.emit(Events.SendProxy, id, newProxy);
-  }
-
-  async handleProduct(ids, product, parseType) {
-    const interval = setInterval(() => {
-      this._logger.debug('Notifying IDs: %j', ids);
-      return Promise.all(
-        // eslint-disable-next-line array-callback-return
-        [...ids].map(id => {
-          const task = Object.values(this._tasks).find(t => t.id === id);
-
-          if (!task || (task && task._aborted)) {
-            clearInterval(interval);
-          }
-
-          this._events.emit(Events.ProductFound, id, product, parseType);
-        }),
-      );
-    }, 500);
   }
 
   async handleDeregisterProxy(ids) {
@@ -364,12 +343,61 @@ export default class TaskManager {
 
   changeDelay(delay, type) {
     this._logger.silly('Changing %s to: %s ms', type, delay);
-    this._events.emit(Events.ChangeDelay, 'ALL', delay, type);
+    // since monitor/task pairs share the same context, we can just update the tasks' context here..
+    return Promise.all(
+      Object.values(this._tasks).map(t => {
+        const task = t;
+        task.context.task[type] = delay;
+
+        const monitor = Object.values(this._monitors).find(m => m.context.hasId(task.context.id));
+        if (monitor && monitor.delayer) {
+          monitor.delayer.clear();
+        }
+
+        if (task.delayer) {
+          task.delayer.clear();
+        }
+        return task;
+      }),
+    );
   }
 
   updateHook(hook, type) {
     this._logger.silly('Updating %s webhook to: %s', type, hook);
-    this._events.emit(Events.UpdateHook, 'ALL', hook, type);
+    // since monitor/task pairs share the same context, we can just update the tasks' context here..
+    return Promise.all(
+      Object.values(this._tasks).map(t => {
+        const task = t;
+        const { platform } = task;
+        task.context.task[type] = hook;
+
+        switch (platform) {
+          case Platforms.Shopify: {
+            if (type === HookTypes.discord) {
+              const discord = hook ? new ShopifyDiscord(hook) : null;
+              task.context.setDiscord(discord);
+            } else if (type === HookTypes.slack) {
+              const slack = hook ? new ShopifySlack(hook) : null;
+              task.context.setSlack(slack);
+            }
+            break;
+          }
+          case Platforms.Supreme: {
+            if (type === HookTypes.discord) {
+              const discord = hook ? new SupremeDiscord(hook) : null;
+              task.context.setDiscord(discord);
+            } else if (type === HookTypes.slack) {
+              const slack = hook ? new SupremeSlack(hook) : null;
+              task.context.setSlack(slack);
+            }
+            break;
+          }
+          default:
+            break;
+        }
+        return task;
+      }),
+    );
   }
 
   /**
@@ -439,24 +467,28 @@ export default class TaskManager {
   async restart(task) {
     this._logger.silly('Restarting task %s', task.id);
 
-    // TODO: Split monitor/task abort event calls up into separate events..
-    const monitorId = Object.keys(this._monitors).find(k =>
-      this._monitors[k].taskIds.some(id => id === task.id),
-    );
-    const id = Object.keys(this._tasks).find(k => this._tasks[k].id === task.id);
-    const oldTask = this._tasks[id];
-    // TODO: comparisons here.. we should only reset the monitor if the product data/site changes
-    if (monitorId) {
-      const monitor = this._monitors[monitorId];
-      // otherwise, just patch in the new task data (as we don't need to set the new defaults)
-      const parseType = getParseType(task.product, task.site, task.platform);
-      monitor._context.task = task;
-      oldTask._context.task = task;
-      monitor._parseType = parseType;
-      oldTask._parseType = parseType;
-      if (monitor._delayer) {
-        monitor._delayer.clear();
-      }
+    const oldTask = this._tasks[task.id];
+
+    if (!oldTask) {
+      this._logger.warn('Task not found! Skipping restart..');
+      return;
+    }
+
+    const monitor = Object.values(this._monitors).find(m => m.context.hasId(task.id));
+
+    if (!monitor) {
+      this._logger.warn('Task not found! Skipping restart..');
+      return;
+    }
+
+    // patch into context...
+    const parseType = getParseType(task.product, task.site, task.platform);
+    monitor.context.task = task;
+    oldTask.context.task = task;
+    monitor.context.setParseType(parseType);
+    oldTask.context.setParseType(parseType);
+    if (monitor.delayer) {
+      monitor.delayer.clear();
     }
   }
 
@@ -477,32 +509,31 @@ export default class TaskManager {
    * @param {Task} task the task to stop
    */
   stop({ id }) {
-    this._logger.silly('Attempting to stop task with id: %s', id);
+    this._logger.debug('Attempting to stop task with id: %s', id);
     const task = this._tasks[id];
 
+    this._logger.info('Found task: %j', task || false);
     if (!task) {
       this._logger.warn('This task was not previously running or has already been stopped!');
       return null;
     }
 
+    this._logger.info('Stopping task: %s', task.context.id);
     task.stop();
 
-    console.log(Object.values(this._monitors));
     const monitor = Object.values(this._monitors).find(m => m.context.hasId(id));
-    this._logger.debug('Found monitor? %j', monitor || false);
+    this._logger.debug('Found monitor: %j', monitor || false);
 
+    // this should never happen...
     if (!monitor) {
-      // Send abort signal
-      this._logger.silly('Abort signal sent');
-      this._events.emit(Events.Abort, id);
       this._logger.silly('Performing cleanup for task %s', id);
       return this._cleanup(task);
     }
 
     // Send abort signal
     this._logger.silly('Abort signal sent');
-    this._events.emit(Events.Abort, id);
-    this._logger.silly('Performing cleanup for task %s', id);
+    monitor.stop(id);
+    this._logger.silly('Performing cleanup for task and monitor %s', id);
     return this._cleanup(task, monitor);
   }
 
@@ -540,33 +571,21 @@ export default class TaskManager {
   // MARK: Private Methods
   async _setup(task, monitor) {
     const handlerGenerator = (event, sideEffects) => (id, ...params) => {
-      if (id === task.id || id === 'ALL') {
-        const args = [task.id, ...params];
+      if (id === task.context.id || id === 'ALL') {
+        const args = [task.context.id, ...params];
         if (sideEffects) {
           // Call side effect before sending message
           sideEffects.apply(this, args);
         }
-        // TODO: Respect the scope of the _events variable (issue #137)
-        task._events.emit(event, ...args);
+        task.context.events.emit(event, ...args);
         if (monitor) {
-          monitor._events.emit(event, ...args);
+          monitor.context.events.emit(event, ...args);
         }
       }
     };
 
     const handlers = {};
-    const emissions =
-      task.type === TaskTypes.ShippingRates
-        ? [Events.Abort]
-        : [
-            Events.Abort,
-            Events.Harvest,
-            Events.SendProxy,
-            Events.ChangeDelay,
-            Events.UpdateHook,
-            Events.ProductFound,
-            Events.DeregisterProxy,
-          ];
+    const emissions = task.type === TaskTypes.ShippingRates ? [Events.Abort] : [Events.Harvest];
 
     // Generate Handlers for each event
     Promise.all(
@@ -574,66 +593,12 @@ export default class TaskManager {
       emissions.map(event => {
         let handler;
         switch (event) {
-          case Events.Abort: {
-            // Abort handler has a special function so use that instead of default handler
-            handler = id => {
-              if (id === task.id || id === 'ALL') {
-                // TODO: Respect the scope of the task's methods (issue #137)
-                if (monitor && monitor.ids.some(i => i === id)) {
-                  // TODO: Also remove the task id somehow in the handle abort
-                  monitor._handleAbort(id);
-                } else {
-                  let found;
-                  // eslint-disable-next-line no-restricted-syntax
-                  for (const m of Object.values(this._monitors)) {
-                    if (m.ids.some(i => i === id)) {
-                      found = m;
-                      break;
-                    }
-                  }
-
-                  if (found) {
-                    found._handleAbort(id);
-                  }
-                }
-
-                task._handleAbort(task.id);
-              }
-            };
-            break;
-          }
-          case Events.ProductFound: {
-            handler = (id, product, parseType) => {
-              task._handleProduct(id, product, parseType);
-            };
-            break;
-          }
-          case Events.DeregisterProxy: {
-            handler = id => {
-              task._handleDeregisterProxy(id);
-              // if (monitor) {
-              //   monitor._handleDeregisterProxy(id);
-              // }
-            };
-            break;
-          }
           case Events.Harvest: {
-            // Harvest handler has a special function so use that instead of default handler
             handler = (id, token) => {
-              if (id === task.id || id === 'ALL') {
-                // TODO: Respect the scope of the task's methods (issue #137)
-                task._handleHarvest(task.id, token);
+              if (id === task.context.id || id === 'ALL') {
+                task._handleHarvest(id, token);
               }
             };
-            break;
-          }
-          case Events.SendProxy: {
-            // Send proxy has a side effect so set it then generate the handler
-            const sideEffects = (id, proxy) => {
-              // Store proxy on worker so we can release it during cleanup
-              this._tasks[id].proxy = proxy;
-            };
-            handler = handlerGenerator(TaskEvents.ReceiveProxy, sideEffects);
             break;
           }
           default: {
@@ -646,59 +611,47 @@ export default class TaskManager {
         this._events.on(event, handler, this);
       }),
     );
-    this._handlers[task.id] = handlers;
+    this._handlers[task.context.id] = handlers;
 
+    // if it's just a rate fetcher task..
     if (task.type === TaskTypes.ShippingRates) {
       task.registerForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
       return;
     }
+
     if (monitor) {
       monitor.registerForEvent(TaskEvents.MonitorStatus, this.mergeStatusUpdates);
-      monitor._events.on(Events.ProductFound, this.handleProduct, this);
-      monitor._events.on(TaskEvents.SwapMonitorProxy, this.handleSwapProxy, this);
     }
+
+    const { context: taskContext } = task;
     task.registerForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
-    task._events.on(Events.Webhook, this.handleWebhook, this);
-    task._events.on(Events.Success, this.handleSuccess, this);
-    task._events.on(Events.StartHarvest, this.handleStartHarvest, this);
-    task._events.on(Events.StopHarvest, this.handleStopHarvest, this);
-    task._events.on(TaskTypes.SwapTaskProxy, this.handleSwapProxy, this);
+    taskContext.events.on(Events.StartHarvest, this.handleStartHarvest, this);
+    taskContext.events.on(Events.StopHarvest, this.handleStopHarvest, this);
   }
 
   async _cleanup(task, monitor) {
-    const { id } = task;
+    const { context: taskContext } = task;
 
     if (monitor) {
-      const { ids } = monitor;
-      this._logger.debug('Remaining monitor ids: %j', ids);
+      const { context: monitorContext } = monitor;
+      this._logger.debug('Remaining monitor ids: %j', monitorContext.ids);
 
-      if (!ids.length) {
+      if (!monitorContext.ids.length) {
         this._logger.debug('Freeing monitor!');
         monitor.deregisterForEvent(TaskEvents.MonitorStatus, this.mergeStatusUpdates);
-        monitor._events.removeAllListeners();
-        delete this._monitors[id];
+        monitor.context.events.removeAllListeners();
+        delete this._monitors[monitorContext.id];
       }
     }
 
-    const handlers = this._handlers[id];
-    delete this._handlers[id];
+    const handlers = this._handlers[taskContext.id];
+    delete this._handlers[taskContext.id];
     // Cleanup manager handlers
     task.deregisterForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
-    // TODO: Respect the scope of the _events variable (issue #137)
-    task._events.removeAllListeners();
+    taskContext.events.removeAllListeners();
 
     // Cleanup task handlers
-    const emissions =
-      task.type === TaskTypes.ShippingRates
-        ? [Events.Abort]
-        : [
-            Events.Abort,
-            Events.ProductFound,
-            Events.Harvest,
-            Events.SendProxy,
-            Events.ChangeDelay,
-            Events.UpdateHook,
-          ];
+    const emissions = [Events.Harvest];
     await Promise.all(
       // eslint-disable-next-line array-callback-return
       emissions.map(event => {
@@ -706,14 +659,14 @@ export default class TaskManager {
       }),
     );
 
-    const { proxy, site, platform } = this._tasks[id];
-    delete this._tasks[id];
+    const { context, platform } = this._tasks[taskContext.id];
+    delete this._tasks[taskContext.id];
 
-    if (proxy) {
-      this._proxyManager.release(id, site, platform, proxy.id);
+    if (context.proxy) {
+      this._proxyManager.release(taskContext.id, context.task.site.url, platform, context.proxy.id);
     }
 
-    return task.id;
+    return taskContext.id;
   }
 
   async _start([task, proxy, type]) {
@@ -730,11 +683,9 @@ export default class TaskManager {
           const context = new Context({
             id,
             task,
+            type,
             parseType,
             proxy,
-            message: '',
-            events: new EventEmitter(),
-            jar: new CookieJar(),
             logger: createLogger({
               dir: this._logPath,
               name: `Task-${id}`,
@@ -742,17 +693,17 @@ export default class TaskManager {
             }),
             discord: new ShopifyDiscord(task.discord),
             slack: new ShopifySlack(task.slack),
-            captchaQueue: null,
-            aborted: false,
+            proxyManager: this._proxyManager,
+            webhookManager: this._webhookManager,
           });
 
           newTask = new ShopifyTask(context);
 
           const found = Object.values(this._monitors).find(async m => {
-            if (m.context.platform === platform) {
-              // eslint-disable-next-line no-await-in-loop
+            if (m.platform === platform) {
+              const { context: mContext } = m;
               const isSameProduct = await TaskManager._compareProductInput(
-                m._task.product,
+                mContext.task.product,
                 context.task.product,
                 parseType,
               );
@@ -760,10 +711,10 @@ export default class TaskManager {
               this._logger.debug(
                 'Same product data?: %j Same URL?: %j',
                 isSameProduct,
-                m._task.site.url === context.task.site.url,
+                mContext.task.site.url === context.task.site.url,
               );
 
-              if (isSameProduct && m._task.site.url === context.task.site.url) {
+              if (isSameProduct && mContext.task.site.url === context.task.site.url) {
                 return m;
               }
             }
@@ -774,12 +725,13 @@ export default class TaskManager {
 
           if (found) {
             this._logger.debug('Existing monitor found! Just adding id');
-            found.context.ids.push(id);
+            found.context.addId(id);
+            // patch the context as well..
+            context.task.product = found.context.task.product;
           } else {
             monitor = new ShopifyMonitor(context);
           }
         } else if (type === TaskTypes.ShippingRates) {
-          // TODO: THIS SHOULD BE LAUNCHED AS A WORKER_THREAD
           newTask = new RateFetcher(task, proxy, this._logPath);
         }
         break;
@@ -790,9 +742,6 @@ export default class TaskManager {
           task,
           parseType: ParseType.Keywords,
           proxy,
-          message: '',
-          events: new EventEmitter(),
-          jar: new CookieJar(),
           logger: createLogger({
             dir: this._logPath,
             name: `Task-${id}`,
@@ -800,17 +749,17 @@ export default class TaskManager {
           }),
           discord: new SupremeDiscord(task.discord),
           slack: new SupremeSlack(task.slack),
-          captchaQueue: null,
-          aborted: false,
+          proxyManager: this._proxyManager,
+          webhookManager: this._webhookManager,
         });
 
         newTask = new SupremeTask(context);
 
         const found = Object.values(this._monitors).find(async m => {
           if (m.platform === platform) {
-            // eslint-disable-next-line no-await-in-loop
+            const { context: mContext } = m;
             const isSameProduct = await TaskManager._compareProductInput(
-              m._task.product,
+              mContext.task.product,
               context.task.product,
               ParseType.Keywords,
             );
@@ -818,14 +767,14 @@ export default class TaskManager {
             this._logger.debug(
               'Same product?: %j Same category?: %j Same URL?: %j',
               isSameProduct,
-              m._task.category === context.task.category,
-              m._task.site.url === context.task.site.url,
+              mContext.task.category === context.task.category,
+              mContext.task.site.url === context.task.site.url,
             );
 
             if (
               isSameProduct &&
-              m._task.category === context.task.category &&
-              m._task.site.url === context.task.site.url
+              mContext.task.category === context.task.category &&
+              mContext.task.site.url === context.task.site.url
             ) {
               return m;
             }
@@ -837,7 +786,9 @@ export default class TaskManager {
 
         if (found) {
           this._logger.debug('Existing monitor found! Just adding ids');
-          found.context.ids.push(id);
+          found.context.addId(id);
+          // patch in the context as well..
+          context.task.product = found.context.task.product;
         } else {
           this._logger.debug('No monitor found! Creating a new monitor');
           monitor = new SupremeMonitor(context);
@@ -857,17 +808,19 @@ export default class TaskManager {
       this._monitors[id] = monitor;
     }
     this._tasks[id] = newTask;
-    this._logger.silly('Wiring up Events ...');
+
+    this._logger.silly('Wiring up Events...');
     this._setup(newTask, monitor);
 
     // Start the task asynchronously
-    this._logger.silly('Starting ...');
+    this._logger.silly('Starting...');
     try {
       if (monitor) {
+        this._logger.verbose('Monitor %s started without errors', id);
         monitor.run();
       }
       newTask.run();
-      this._logger.silly('Task %s started without errors', id);
+      this._logger.verbose('Task %s started without errors', id);
     } catch (error) {
       this._logger.error('Task %s was unable to start due to an error: %s', id, error.toString());
     }

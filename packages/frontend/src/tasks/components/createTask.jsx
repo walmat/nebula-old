@@ -241,7 +241,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
     switch (platform) {
       case PLATFORMS.Supreme: {
-        const { category, product } = task;
+        const { category, product, checkoutDelay } = task;
         const categoryValue = category ? { label: category, value: category } : null;
         return (
           <>
@@ -299,7 +299,7 @@ export class CreateTaskPrimitive extends PureComponent {
                     type="text"
                     placeholder="0"
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_CHECKOUT_DELAY, e)}
-                    value={product.checkoutDelay}
+                    value={checkoutDelay}
                     style={buildStyle(
                       false,
                       errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_CHECKOUT_DELAY]],
@@ -738,7 +738,7 @@ CreateTaskPrimitive.defaultProps = {
   onKeyPress: () => {},
 };
 
-export const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   profiles: state.profiles,
   accounts: state.settings.accounts.list,
   sites: state.sites,

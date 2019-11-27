@@ -1,14 +1,15 @@
 import validator from 'card-validator';
 import phoneFormatter from 'phone-formatter';
 
-export const ATC = (size, style, siteName) => {
-  if (/eu/i.test(siteName)) {
-    return `size=${size}&style=${style}&qty=1`;
+import { Regions } from './constants';
+
+export const ATC = (size, style, region) => {
+  switch (region) {
+    case Regions.EU:
+      return `size=${size}&style=${style}&qty=1`;
+    default:
+      return `s=${size}&st=${style}&qty=1`;
   }
-  if (/us/i.test(siteName)) {
-    return `s=${size}&st=${style}&qty=1`;
-  }
-  return `s=${size}&st=${style}&qty=1`;
 };
 
 export const parseForm = async ($, formName, wanted, billing, payment, size) => {
@@ -164,10 +165,10 @@ export const backupForm = (region, billing, payment, size) => {
   }
 
   switch (region) {
-    case 'US': {
+    case Regions.US: {
       form = `store_credit_id=&from_mobile=1&cookie-sub=${encodeURIComponent(
         cookieSub,
-      )}&same_as_billing_address=1&order%5Bbilling_name%5D=&order%5Bbn%5D=${fullName}&order%5Bemail%5D=${encodeURIComponent(
+      )}&same_as_billing_address=1&scerkhaj=CKCRSUJHXH&order%5Bbilling_name%5D=&order%5Bbn%5D=${fullName}&order%5Bemail%5D=${encodeURIComponent(
         payment.email,
       )}&order%5Btel%5D=${phoneFormatter.format(
         billing.phone,
@@ -182,12 +183,12 @@ export const backupForm = (region, billing, payment, size) => {
         '+',
       )}&order%5Bbilling_city%5D=${billing.city.replace(/\s/g, '+')}&order%5Bbilling_state%5D=${
         billing.province ? billing.province.value.replace(/\s/g, '+') : ''
-      }&order%5Bbilling_country%5D=${country}&carn=${card}&credit_card%5Bmonth%5D=${month}&credit_card%5Byear%5D=${year}&credit_card%5Bvvv%5D=${
+      }&order%5Bbilling_country%5D=${country}&riearmxa=${card}&credit_card%5Bmonth%5D=${month}&credit_card%5Byear%5D=${year}&rand=&credit_card%5Bmeknk%5D=${
         payment.cvv
       }&order%5Bterms%5D=0&order%5Bterms%5D=1`;
       break;
     }
-    case 'EU': {
+    case Regions.EU: {
       const validNumber = validator.number(payment.cardNumber);
       let cardType = validNumber.card ? validNumber.card.type : 'visa';
       if (/american/i.test(cardType)) {
@@ -223,7 +224,7 @@ export const backupForm = (region, billing, payment, size) => {
       }&order%5Bterms%5D=0&order%5Bterms%5D=1`;
       break;
     }
-    case 'JP': {
+    case Regions.JP: {
       break;
     }
     default:

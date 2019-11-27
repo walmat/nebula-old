@@ -1,11 +1,18 @@
+/* eslint-disable global-require */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
-const { TaskManager } = require('@nebula/task-built');
 
 const { IPCKeys } = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
 
 nebulaEnv.setUpEnvironment();
+let TaskManager;
+
+if (nebulaEnv.isDevelopment()) {
+  ({ TaskManager } = require('@nebula/task'));
+} else {
+  ({ TaskManager } = require('@nebula/task-built'));
+}
 
 const _TASK_EVENT_KEY = 'TaskEventKey';
 

@@ -28,6 +28,37 @@ const Platforms = {
   Mesh: 'Mesh',
 };
 
+const ErrorCodes = {
+  NoStylesFound: 'Style not found',
+  VariantNotFound: 'Variation not found',
+  ProductNotFound: 'Product not found',
+};
+
+const HarvestStates = {
+  idle: 'IDLE',
+  start: 'START',
+  suspend: 'SUSPEND',
+  stop: 'STOP',
+};
+
+const DelayTypes = {
+  checkout: 'checkoutDelay',
+  error: 'errorDelay',
+  monitor: 'monitorDelay',
+};
+
+const HookTypes = {
+  slack: 'slack',
+  discord: 'discord',
+};
+
+const ParseType = {
+  Unknown: 'UNKNOWN',
+  Variant: 'VARIANT',
+  Url: 'URL',
+  Keywords: 'KEYWORDS',
+};
+
 const SiteKeyForPlatform = {
   [Platforms.Shopify]: '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
   [Platforms.Supreme]: '6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz',
@@ -39,8 +70,18 @@ const Manager = {
   Events: TaskManagerEvents,
 };
 
-const Task = {
-  Events: TaskEvents,
+const Monitor = {
+  ParseType,
+  DelayTypes,
 };
 
-export { Manager, Task, Platforms, SiteKeyForPlatform };
+const Task = {
+  Events: TaskEvents,
+  HarvestStates,
+  ErrorCodes,
+  DelayTypes,
+  HookTypes,
+  Types: { Normal: 'normal', Rates: 'rates' },
+};
+
+export { Manager, Task, Monitor, Platforms, SiteKeyForPlatform };

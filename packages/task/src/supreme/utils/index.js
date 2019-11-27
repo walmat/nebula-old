@@ -112,7 +112,7 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
         _logger.log('silly', "Overriding filter's limit and returning all products...");
         limit = 0;
       }
-      filtered = await filterAndLimit(matches, _filter.sorter, limit, this._logger);
+      filtered = await filterAndLimit(matches, _filter.sorter, limit, _logger);
       if (!returnAll) {
         _logger.log('silly', 'Returning Matched Product: %s', filtered[0].name);
         return filtered[0];
@@ -126,11 +126,11 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
     );
     if (returnAll) {
       _logger.log('silly', 'Returning all products...');
-      filtered = await filterAndLimit(matches, 'position', 0, this._logger);
+      filtered = await filterAndLimit(matches, 'position', 0, _logger);
       _logger.log('silly', 'Returning %d Matched Products', filtered);
       return filtered;
     }
-    filtered = await filterAndLimit(matches, 'position', -1, this._logger);
+    filtered = await filterAndLimit(matches, 'position', -1, _logger);
     _logger.log('silly', 'Returning Matched Product: %s', filtered[0].name);
     return filtered[0];
   }

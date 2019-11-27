@@ -12,6 +12,7 @@
     "clean:task": "cross-env rm -rf packages/task/node_modules packages/task/build packages/task-built/node_modules packages/task-built/build packages/task-built/dist",
     "build:frontend": "yarn workspace @nebula/orion build",
     "build:task": "yarn workspace @nebula/task build",
+    "build:task:dev": "yarn workspace @nebula/task build:babel",
     "pack": "yarn workspace @nebula/orion publish",
     "dev": "concurrently \"yarn dev-server\" \"yarn dev-app\"",
     "dev-server": "yarn workspace @nebula/orion dev-server",

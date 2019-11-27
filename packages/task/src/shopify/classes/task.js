@@ -27,64 +27,37 @@ export default class TaskPrimitive {
     return this._state;
   }
 
-  constructor(context, proxy, parseType, platform = Platforms.Shopify) {
-    // Add Ids to object
-    this.id = context.id;
-    this._task = context.task;
-    this.proxy = proxy;
-    this._events = context.events;
+  get context() {
+    return this._context;
+  }
+
+  get type() {
+    return this._type;
+  }
+
+  get platform() {
+    return this._platform;
+  }
+
+  constructor(context, type = Types.Normal, platform = Platforms.Shopify) {
+    this._context = context;
+    this._type = type;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
+
     // eslint-disable-next-line global-require
-    const _request = require('fetch-cookie/node-fetch')(fetch, context.jar);
-    this._request = defaults(_request, this._task.site.url, {
+    const _fetch = require('fetch-cookie/node-fetch')(fetch, context.jar);
+    this._fetch = defaults(_fetch, context.task.site.url, {
       timeout: 35000, // to be overridden as necessary
       signal: this._aborter.signal, // generic abort signal
     });
-    this._parseType = parseType;
     this._platform = platform;
 
     this._delayer = null;
-    this._captchaQueue = null;
 
     this._timers = {
       checkout: new Timer(),
       monitor: new Timer(),
-    };
-    this._discord = new Discord(this._task.discord);
-    this._slack = new Slack(this._task.slack);
-    this._logger = context.logger;
-
-    const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
-
-    if (p) {
-      p.options.maxSockets = Infinity;
-      p.options.maxFreeSockets = Infinity;
-      p.options.keepAlive = true;
-      p.maxFreeSockets = Infinity;
-      p.maxSockets = Infinity;
-    }
-
-    /**
-     * The context of this task runner
-     *
-     * This is a wrapper that contains all data about the task runner.
-     * @type {TaskRunnerContext}
-     */
-    this._context = {
-      ...context,
-      proxy: p,
-      rawProxy: proxy ? proxy.raw : 'localhost',
-      parseType: this._parseType,
-      aborter: this._aborter,
-      delayer: this._delayer,
-      signal: this._aborter.signal,
-      request: this._request,
-      timers: this._timers,
-      discord: this._discord,
-      slack: this._slack,
-      logger: this._logger,
-      harvestState: HarvestStates.idle,
     };
 
     this._needsLogin = this._context.task.account || false;
@@ -159,26 +132,32 @@ export default class TaskPrimitive {
     this._handleProduct = this._handleProduct.bind(this);
     this._handleDeregisterProxy = this._handleDeregisterProxy.bind(this);
 
-    this._events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
-    this._events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
-    this._events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
-    this._events.on(TaskManagerEvents.DeregisterProxy, this._handleDeregisterProxy, this);
+    context.events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
+    context.events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
+    context.events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
+    context.events.on(TaskManagerEvents.DeregisterProxy, this._handleDeregisterProxy, this);
   }
 
   _handleAbort(id) {
-    if (id === this._context.id) {
-      this._context.aborted = true;
-      this._aborter.abort();
-      if (this._delayer) {
-        this._delayer.clear();
-      }
+    if (id !== this._context.id) {
+      return;
+    }
+
+    this._context.setAborted(true);
+    this._aborter.abort();
+    if (this._delayer) {
+      this._delayer.clear();
     }
   }
 
   _handleHarvest(id, token) {
-    if (id === this._context.id && this._captchaQueue) {
-      this._captchaQueue.insert(token);
+    const { id: thisId, captchaQueue } = this._context;
+
+    if (id !== thisId || !captchaQueue) {
+      return null;
     }
+
+    return captchaQueue.insert(token);
   }
 
   async _compareProductInput(product, parseType) {
@@ -200,7 +179,7 @@ export default class TaskPrimitive {
   }
 
   async _handleProduct(id, product, parseType) {
-    if (parseType === this._parseType && !this._isChecking) {
+    if (parseType === this._context.parseType && !this._isChecking) {
       this._isChecking = true;
       const isSameProductData = await this._compareProductInput(product, parseType);
 
@@ -219,131 +198,146 @@ export default class TaskPrimitive {
   }
 
   _handleDeregisterProxy(id) {
-    if (id === this._context.id) {
-      this._deregisterOverride = true;
-      if (this._delayer) {
-        this._delayer.clear();
-      }
+    if (id !== this._context.id) {
+      return;
+    }
+
+    this._deregisterOverride = true;
+    if (this._delayer) {
+      this._delayer.clear();
     }
   }
 
   _handleDelay(id, delay, type) {
-    if (id === this._context.id) {
-      if (type === DelayTypes.error) {
-        this._context.task.errorDelay = delay;
-      } else if (type === DelayTypes.monitor) {
-        this._context.task.monitorDelay = delay;
-      }
-      if (this._delayer) {
-        this._delayer.clear();
-      }
+    if (id !== this._context.id) {
+      return;
+    }
+
+    if (type === DelayTypes.error) {
+      this._context.task.errorDelay = delay;
+    } else if (type === DelayTypes.monitor) {
+      this._context.task.monitorDelay = delay;
+    }
+
+    if (this._delayer) {
+      this._delayer.clear();
     }
   }
 
   _handleUpdateHooks(id, hook, type) {
-    if (id === this._context.id) {
-      if (type === HookTypes.Discord) {
-        this._context.task.discord = hook;
-      } else if (type === HookTypes.Slack) {
-        this._context.task.slack = hook;
-      }
+    if (id !== this._context.id) {
+      return;
+    }
+
+    if (type === HookTypes.Discord) {
+      const discord = hook ? new Discord(hook) : null;
+      this._context.setDiscord(discord);
+    } else if (type === HookTypes.Slack) {
+      const slack = hook ? new Slack(hook) : null;
+      this._context.setSlack(slack);
     }
   }
 
   _cleanup() {
-    // console.log(this._history);
     this.stopHarvestCaptcha();
   }
 
   getCaptcha() {
-    if (this._context.harvestState === HarvestStates.idle) {
-      this._captchaQueue = new AsyncQueue();
-      this._events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
-      this._context.harvestState = HarvestStates.start;
+    const { id, task, harvestState, captchaQueue, logger, events } = this._context;
+    if (harvestState === HarvestStates.idle) {
+      this._context.setCaptchaQueue(new AsyncQueue());
+      this._context.setHarvestState(HarvestStates.start);
+      events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
     }
 
-    if (this._context.harvestState === HarvestStates.suspend) {
-      this._context.harvestState = HarvestStates.start;
+    if (harvestState === HarvestStates.suspend) {
+      this._context.setHarvestState(HarvestStates.start);
     }
 
-    if (this._context.harvestState === HarvestStates.start) {
-      this._logger.silly('[DEBUG]: Starting harvest...');
-      this._events.emit(
+    if (harvestState === HarvestStates.start) {
+      logger.silly('[DEBUG]: Starting harvest...');
+      events.emit(
         TaskManagerEvents.StartHarvest,
-        this._context.id,
-        this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
+        id,
+        task.site.sitekey || SiteKeyForPlatform[this._platform],
         'http://checkout.shopify.com',
         this._prevState === States.GO_TO_CHECKPOINT ? 1 : 0, // priority flag
       );
     }
 
     // return the captcha request
-    return this._captchaQueue.next();
+    return captchaQueue.next();
   }
 
   suspendHarvestCaptcha() {
-    if (this._context.harvestState === HarvestStates.start) {
-      this._logger.silly('[DEBUG]: Suspending harvest...');
-      this._events.emit(
-        TaskManagerEvents.StopHarvest,
-        this._context.id,
-        this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
-        'http://checkout.shopify.com',
-      );
-      this._context.harvestState = HarvestStates.suspend;
+    const { id, task, harvestState, logger, events } = this._context;
+
+    if (harvestState !== HarvestStates.start) {
+      return;
     }
+
+    logger.silly('[DEBUG]: Suspending harvest...');
+    events.emit(
+      TaskManagerEvents.StopHarvest,
+      context.id,
+      task.site.sitekey || SiteKeyForPlatform[this._platform],
+      'http://checkout.shopify.com',
+    );
+    this._context.setHarvestState(HarvestStates.suspend);
   }
 
   stopHarvestCaptcha() {
-    const { harvestState } = this._context;
-    if (harvestState === HarvestStates.start || harvestState === HarvestStates.suspend) {
-      this._captchaQueue.destroy();
-      this._captchaQueue = null;
-      this._logger.silly('[DEBUG]: Stopping harvest...');
-      this._events.emit(
-        TaskManagerEvents.StopHarvest,
-        this._context.id,
-        this._context.task.site.sitekey || SiteKeyForPlatform[this._platform],
-        'http://checkout.shopify.com',
-      );
-      this._events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
-      this._context.harvestState = HarvestStates.stop;
+    const { id, task, harvestState, captchaQueue, logger, events } = this._context;
+
+    if (harvestState !== HarvestStates.start && harvestState !== HarvestStates.suspend) {
+      return;
     }
+
+    captchaQueue.destroy();
+    this._context.setCaptchaQueue(null);
+    logger.silly('[DEBUG]: Stopping harvest...');
+    events.emit(
+      TaskManagerEvents.StopHarvest,
+      id,
+      task.site.sitekey || SiteKeyForPlatform[this._platform],
+      'http://checkout.shopify.com',
+    );
+    events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
+    this._context.setHarvestState(HarvestStates.stop);
   }
 
   async swapProxies() {
-    // emit the swap event
-    this._events.emit(Events.SwapTaskProxy, this.id, this.proxy, this.shouldBanProxy);
+    const { id, proxy, logger, events } = this._context;
+    events.emit(Events.SwapTaskProxy, id, proxy);
     return new Promise((resolve, reject) => {
       let timeout;
-      const proxyHandler = (id, proxy) => {
-        this._logger.silly('Reached Proxy Handler, resolving');
+      const proxyHandler = (id, newProxy) => {
+        logger.silly('Reached Proxy Handler, resolving');
         // clear the timeout interval
         clearTimeout(timeout);
         // reset the timeout
         timeout = null;
-        // reset the ban flag
-        this.shouldBanProxy = 0;
         // finally, resolve with the new proxy
-        resolve(proxy);
+        resolve(newProxy);
       };
       timeout = setTimeout(() => {
-        this._events.removeListener(Events.ReceiveProxy, proxyHandler);
-        this._logger.silly('Reached Proxy Timeout: should reject? %s', !!timeout);
+        events.removeListener(Events.ReceiveProxy, proxyHandler);
+        logger.silly('Reached Proxy Timeout: should reject? %s', !!timeout);
         // only reject if timeout has not been cleared
         if (timeout) {
           reject(new Error('Timeout'));
         }
       }, 10000); // TODO: Make this a variable delay?
-      this._events.once(Events.ReceiveProxy, proxyHandler);
+      events.once(Events.ReceiveProxy, proxyHandler);
     });
   }
 
   // MARK: Event Registration
   registerForEvent(event, callback) {
+    const { events } = this._context;
     switch (event) {
       case Events.TaskStatus: {
-        this._events.on(Events.TaskStatus, callback);
+        events.on(Events.TaskStatus, callback);
         break;
       }
       default:
@@ -352,9 +346,10 @@ export default class TaskPrimitive {
   }
 
   deregisterForEvent(event, callback) {
+    const { events } = this._context;
     switch (event) {
       case Events.TaskStatus: {
-        this._events.removeListener(Events.TaskStatus, callback);
+        events.removeListener(Events.TaskStatus, callback);
         break;
       }
       default: {
@@ -365,22 +360,25 @@ export default class TaskPrimitive {
 
   // MARK: Event Emitting
   _emitEvent(event, payload) {
+    const { id, logger, events } = this._context;
+
     switch (event) {
       // Emit supported events on their specific channel
       case Events.TaskStatus: {
-        this._events.emit(event, [this.id], payload, event);
+        events.emit(event, [id], payload, event);
         break;
       }
       default: {
         break;
       }
     }
-    this._logger.silly('Event %s emitted: %j', event, payload);
+    logger.silly('Event %s emitted: %j', event, payload);
   }
 
   _emitTaskEvent(payload = {}) {
-    if (payload && payload.message !== this._context.status) {
-      this._context.status = payload.message;
+    const { message } = payload;
+    if (message && message !== this._context.message) {
+      this._context.setMessage(message);
       this._emitEvent(Events.TaskStatus, { ...payload, type: Types.Normal });
     }
   }

@@ -1,27 +1,38 @@
+import EventEmitter from 'eventemitter3';
+import { CookieJar } from 'tough-cookie';
+
+import { Task as TaskConstants } from '../constants';
+
+const { HarvestStates } = TaskConstants;
+
 export default class Context {
   constructor({
     id,
     task,
+    type,
     parseType,
     proxy,
-    message,
-    events,
-    jar,
+    message = '',
+    events = new EventEmitter(),
+    jar = new CookieJar(),
     logger,
     discord,
     slack,
-    aborted,
-    harvestState,
-    captchaRequest,
-    captchaQueue,
-    captchaToken,
+    aborted = false,
+    proxyManager,
+    webhookManager,
+    harvestState = HarvestStates.idle,
+    captchaRequest = null,
+    captchaQueue = null,
+    captchaToken = null,
   }) {
     this.id = id;
     this.ids = [id];
     this.task = task;
+    this.type = type;
     this.parseType = parseType;
-    this.lastProxy = proxy;
     this.proxy = proxy;
+    this.lastProxy = proxy;
     this.message = message;
     this.events = events;
     this.jar = jar;
@@ -29,6 +40,8 @@ export default class Context {
     this.discord = discord;
     this.slack = slack;
     this.aborted = aborted;
+    this.proxyManager = proxyManager;
+    this.webhookManager = webhookManager;
     this.harvestState = harvestState;
     this.captchaRequest = captchaRequest;
     this.captchaQueue = captchaQueue;
@@ -39,12 +52,16 @@ export default class Context {
     this.ids.push(id);
   }
 
+  isEmpty() {
+    return !this.ids.length;
+  }
+
   hasId(id) {
     return this.ids.some(i => i === id);
   }
 
   removeId(id) {
-    this.ids.filter(i => i !== id);
+    this.ids = this.ids.filter(i => i !== id);
   }
 
   setParseType(parseType) {
@@ -87,6 +104,10 @@ export default class Context {
     this.aborted = aborted;
   }
 
+  setProductFound(productFound) {
+    this.productFound = productFound;
+  }
+
   setHarvestState(harvestState) {
     this.harvestState = harvestState;
   }
@@ -101,5 +122,12 @@ export default class Context {
 
   setCaptchaToken(captchaToken) {
     this.captchaToken = captchaToken;
+  }
+
+  updateVariant(variant) {
+    this.task.product = {
+      ...this.task.product,
+      variant,
+    };
   }
 }
