@@ -1,13 +1,19 @@
 /* eslint-disable global-require */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer, shell } = require('electron');
-const { TaskTypes } = require('@nebula/task-built');
-
 const { IPCKeys } = require('../constants');
 const nebulaEnv = require('../../_electron/env');
 const { base, util } = require('./index');
 
 nebulaEnv.setUpEnvironment();
+
+let TaskTypes;
+if (nebulaEnv.isDevelopment()) {
+  // eslint-disable-next-line import/no-extraneous-dependencies
+  ({ TaskTypes } = require('@nebula/task'));
+} else {
+  ({ TaskTypes } = require('@nebula/task-built'));
+}
 
 let rateFetcherRequest = null;
 let handlers = [];

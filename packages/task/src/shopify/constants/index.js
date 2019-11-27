@@ -1,25 +1,23 @@
+import { Constants } from '../../common';
+
+const { Task: TaskConstants, Monitor: MonitorConstants } = Constants;
+
 const MonitorStates = {
+  ...MonitorConstants.States,
   PARSE: 'PARSE',
   MATCH: 'MATCH',
-  RESTOCK: 'RESTOCK',
-  SWAP: 'SWAP',
-  DONE: 'DONE',
-  ERROR: 'ERROR',
-  ABORT: 'ABORT',
 };
 
 /**
  * Task Runner States
  */
 const CheckoutStates = {
-  STARTED: 'STARTED',
+  ...TaskConstants.States,
   LOGIN: 'LOGIN',
-  WAIT_FOR_LOGIN: 'WAIT_FOR_LOGIN',
   PAYMENT_TOKEN: 'PAYMENT_TOKEN',
-  GET_SITE_DATA: 'GET_SITE_DATA',
+  GATHER_DATA: 'GATHER_DATA',
   WAIT_FOR_PRODUCT: 'WAIT_FOR_PRODUCT',
   ADD_TO_CART: 'ADD_TO_CART',
-  CLEAR_CART: 'CLEAR_CART',
   GO_TO_CART: 'GO_TO_CART',
   GO_TO_CHECKPOINT: 'GO_TO_CHECKPOINT',
   SUBMIT_CHECKPOINT: 'SUBMIT_CHECKPOINT',
@@ -34,14 +32,6 @@ const CheckoutStates = {
   GO_TO_REVIEW: 'GO_TO_REVIEW',
   COMPLETE_PAYMENT: 'COMPLETE_PAYMENT',
   PROCESS_PAYMENT: 'PROCESS_PAYMENT',
-  BACKUP_PROCESS_PAYMENT: 'BACKUP_PROCESS_PAYMENT',
-  CAPTCHA: 'CAPTCHA',
-  RESTOCK: 'RESTOCK',
-  SWAP: 'SWAP',
-  DONE: 'DONE',
-  ERROR: 'ERROR',
-  ABORT: 'ABORT',
-  STOP: 'STOP',
 };
 
 // Runner Type will be used on frontend, so changing

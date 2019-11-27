@@ -1,13 +1,14 @@
 import delay from 'delay';
+import now from 'performance-now';
 import { isEqual } from 'lodash';
 
-import { getCaptcha, stopHarvestCaptcha, suspendHarvestCaptcha } from './captcha';
-import { Task, Monitor } from '../constants';
 import { createLogger, setLevels } from './logger';
 import rfrl from './rfrl';
-import Context from './context';
+
+import { Task, Monitor } from '../constants';
 
 const { ParseType } = Monitor;
+const { Types } = Task;
 
 export const waitForDelay = (time, signal) => delay(time, { signal });
 export const reflect = p =>
@@ -73,13 +74,14 @@ export const deregisterForEvent = (event, context, cb) => {
   events.removeListener(event, cb);
 };
 
+// don't expose this..
 const _emitEvent = (context, ids, event, payload) => {
   const { logger, events } = context;
   events.emit(event, ids, payload, event);
   logger.silly('Event %s emitted: %j', event, payload);
 };
 
-export const emitEvent = (context, ids, payload = {}, event, type = Task.Types.Normal) => {
+export const emitEvent = (context, ids, payload = {}, event, type = Types.Normal) => {
   const { message } = payload;
   if (message && message !== context.messsage) {
     context.setMessage(message);
@@ -108,10 +110,4 @@ export const compareProductData = async (product1, product2, parseType) => {
   }
 };
 
-const Captcha = {
-  getCaptcha,
-  stopHarvestCaptcha,
-  suspendHarvestCaptcha,
-};
-
-export { Captcha, Context, createLogger, setLevels, rfrl };
+export { createLogger, setLevels, rfrl, now };

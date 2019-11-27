@@ -26,6 +26,8 @@ const SharedStates = {
   DONE: 'DONE',
   ERROR: 'ERROR',
   ABORT: 'ABORT',
+  CAPTCHA: 'CAPTCHA',
+  RESTOCK: 'RESTOCK',
 };
 
 const Platforms = {

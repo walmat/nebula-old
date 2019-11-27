@@ -1,16 +1,7 @@
 import EventEmitter from 'eventemitter3';
 
 // Shared includes
-import {
-  Context,
-  ProxyManager,
-  WebhookManager,
-  createLogger,
-  registerForEvent,
-  deregisterForEvent,
-  compareProductData,
-} from './common';
-import { Platforms, Manager, Task, Monitor } from './common/constants';
+import { Utils, Classes, Constants, Context } from './common';
 
 // Shopify includes
 import {
@@ -21,7 +12,7 @@ import {
   Slack as ShopifySlack,
   TaskTypes,
 } from './shopify';
-import { getParseType } from './shopify/utils/parse';
+import { Parse } from './shopify/utils';
 
 // Supreme includes
 import {
@@ -31,6 +22,10 @@ import {
   Slack as SupremeSlack,
 } from './supreme';
 
+const { getParseType } = Parse;
+const { createLogger, registerForEvent, deregisterForEvent, compareProductData } = Utils;
+const { ProxyManager, WebhookManager } = Classes;
+const { Platforms, Manager, Task, Monitor } = Constants;
 const { ParseType } = Monitor;
 const { Events } = Manager;
 const { Events: TaskEvents, HookTypes } = Task;

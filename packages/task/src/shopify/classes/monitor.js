@@ -1,12 +1,15 @@
 import AbortController from 'abort-controller';
 import { pick } from 'lodash';
 
-import { Platforms, ErrorCodes } from '../../common/constants';
-import { getParseType } from '../utils/parse';
+import { Constants, Utils, Bases } from '../../common';
+import { Parse } from '../utils';
 import { Parser, getSpecialParser, getParsers } from '../parsers';
-import { rfrl, capitalizeFirstLetter, waitForDelay, BaseMonitor } from '../../common';
-import { Monitor, Task as TaskConstants } from '../utils/constants';
+import { Monitor, Task as TaskConstants } from '../constants';
 
+const { getParseType } = Parse;
+const { BaseMonitor } = Bases;
+const { rfrl, capitalizeFirstLetter, waitForDelay } = Utils;
+const { Platforms, ErrorCodes } = Constants;
 const { States, ParseType } = Monitor;
 const { Modes } = TaskConstants;
 

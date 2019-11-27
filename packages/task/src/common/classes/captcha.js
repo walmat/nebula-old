@@ -1,5 +1,5 @@
 import { Task, Manager, SiteKeyForPlatform } from '../constants';
-import AsyncQueue from '../classes/asyncQueue';
+import AsyncQueue from './asyncQueue';
 
 const { HarvestStates } = Task;
 const { Events } = Manager;

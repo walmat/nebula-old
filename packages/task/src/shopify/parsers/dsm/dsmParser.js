@@ -1,7 +1,10 @@
 import SpecialParser from '../specialParser';
-import { matchKeywords } from '../../utils/parse';
-import { ErrorCodes, Monitor } from '../../utils/constants';
+import { Parse } from '../../utils';
+import { Constants } from '../../../common';
+import { Monitor } from '../../constants';
 
+const { ErrorCodes } = Constants;
+const { matchKeywords } = Parse;
 const { ParseType } = Monitor;
 
 /**

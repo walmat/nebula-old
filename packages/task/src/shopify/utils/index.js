@@ -1,7 +1,24 @@
-import { userAgent } from '../../common';
-import { Task as TaskConstants } from './constants';
+import { Utils } from '../../common';
+import pickVariant from './pickVariant';
+import {
+  getAllSpecialSites,
+  getAllSupportedSites,
+  getAllSupportedSitesSorted,
+  isSpecialSite,
+} from './siteOptions';
+import {
+  clothingRegexMap,
+  urlToOptionIndex,
+  urlToTitleSegment,
+  urlToVariantOption,
+  validateVariantSize,
+} from './urlVariantMaps';
+import { addToCart, parseForm, patchCheckoutForm, patchToCart } from './forms';
+import { convertToJson, filterAndLimit, getParseType, matchKeywords, matchVariant } from './parse';
+import { Task as TaskConstants } from '../constants';
 
 const { States } = TaskConstants;
+const { userAgent } = Utils;
 
 export const stateForError = ({ status, name, errno }, { message, nextState }) => {
   // Look for errors in cause
@@ -68,3 +85,35 @@ export const getHeaders = ({ url, apiKey }) => ({
   host: `${url.split('/')[2]}`,
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
 });
+
+const SiteOptions = {
+  getAllSpecialSites,
+  getAllSupportedSites,
+  getAllSupportedSitesSorted,
+  isSpecialSite,
+};
+
+const UrlVariantMaps = {
+  clothingRegexMap,
+  urlToOptionIndex,
+  urlToTitleSegment,
+  urlToVariantOption,
+  validateVariantSize,
+};
+
+const Parse = {
+  convertToJson,
+  filterAndLimit,
+  getParseType,
+  matchKeywords,
+  matchVariant,
+};
+
+const Forms = {
+  addToCart,
+  parseForm,
+  patchCheckoutForm,
+  patchToCart,
+};
+
+export { pickVariant, Parse, SiteOptions, UrlVariantMaps, Forms };

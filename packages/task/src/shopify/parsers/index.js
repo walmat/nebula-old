@@ -5,12 +5,10 @@ import JsonParser from './standard/jsonParser';
 import XmlParser from './standard/xmlParser';
 
 // Special Parsers
-import TravisParser from './travis';
-import YeezyParser from './yeezysupply';
 import { DsmParser, DsmUkParser, DsmUsParser } from './dsm';
 
 function getSpecialParser({ name }) {
-  // TODO: Figure out a better way to do this!
+  // TODO: Figure out a better way to structure this?
   if (/dsm sg|dsm jp/i.test(name)) {
     return (...params) => new DsmParser(...params);
   }
@@ -23,15 +21,7 @@ function getSpecialParser({ name }) {
     return (...params) => new DsmUkParser(...params);
   }
 
-  if (/yeezy supply/i.test(name)) {
-    return (...params) => new YeezyParser(...params);
-  }
-
-  if (/traviss/i.test(name)) {
-    return (...params) => new TravisParser(...params);
-  }
-
-  return (...params) => new YeezyParser(...params);
+  return (...params) => [new JsonParser(...params)];
 }
 
 function getParsers(url) {

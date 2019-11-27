@@ -1,13 +1,15 @@
 import { pick } from 'lodash';
 
-import { Platforms } from '../../common/constants';
-import pickVariant from '../utils/pickVariant';
-import { rfrl, userAgent, BaseTask } from '../../common';
-import { addToCart } from '../utils/forms';
-import { getParseType } from '../utils/parse';
-import { Monitor } from '../utils/constants';
+import { Constants, Utils, Bases } from '../../common';
+import { Parse, pickVariant, Forms } from '../utils';
+import { Monitor } from '../constants';
 import { Parser, getSpecialParser, getParsers } from '../parsers';
 
+const { addToCart } = Forms;
+const { getParseType } = Parse;
+const { BaseTask } = Bases;
+const { rfrl, userAgent } = Utils;
+const { Platforms } = Constants;
 const { ParseType } = Monitor;
 
 export default class RateFetcher extends BaseTask {

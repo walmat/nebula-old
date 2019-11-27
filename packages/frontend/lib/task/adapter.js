@@ -9,6 +9,7 @@ nebulaEnv.setUpEnvironment();
 let TaskManager;
 
 if (nebulaEnv.isDevelopment()) {
+  // eslint-disable-next-line import/no-extraneous-dependencies
   ({ TaskManager } = require('@nebula/task'));
 } else {
   ({ TaskManager } = require('@nebula/task-built'));

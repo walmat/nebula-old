@@ -3,7 +3,7 @@ import { parseString } from 'xml2js';
 
 import { isSpecialSite } from './siteOptions';
 import { Platforms } from '../../common/constants';
-import { Monitor } from './constants';
+import { Monitor } from '../constants';
 
 const { ParseType } = Monitor;
 

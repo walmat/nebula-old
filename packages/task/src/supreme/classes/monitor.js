@@ -1,10 +1,12 @@
-import { capitalizeFirstLetter, waitForDelay, BaseMonitor, emitEvent } from '../../common';
+import { Bases, Constants, Utils } from '../../common';
 import getHeaders, { matchKeywords, matchVariation } from '../utils';
-import { Task as TaskContants, Platforms } from '../../common/constants';
-import { Monitor } from '../utils/constants';
+import { Monitor } from '../constants';
+
+const { BaseMonitor } = Bases;
+const { Task: TaskContants, Platforms } = Constants;
+const { emitEvent, waitForDelay, capitalizeFirstLetter } = Utils;
 
 const { States } = Monitor;
-
 const { ErrorCodes, Events } = TaskContants;
 
 // SUPREME

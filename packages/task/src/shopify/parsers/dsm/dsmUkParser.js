@@ -1,6 +1,8 @@
 import cheerio from 'cheerio';
 import DsmParser from './dsmParser';
-import { userAgent } from '../../../common';
+import { Utils } from '../../../common';
+
+const { userAgent } = Utils;
 
 export default class DsmUkParser extends DsmParser {
   constructor(request, type, task, proxy, aborter, logger) {

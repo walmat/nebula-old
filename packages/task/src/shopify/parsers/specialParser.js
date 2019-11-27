@@ -1,9 +1,11 @@
 /* eslint-disable class-methods-use-this */
 import cheerio from 'cheerio';
 import Parser from './parser';
-import { userAgent } from '../../common';
-import { ErrorCodes, Monitor } from '../utils/constants';
+import { Utils, Constants } from '../../common';
+import { Monitor } from '../constants';
 
+const { userAgent } = Utils;
+const { ErrorCodes } = Constants;
 const { ParseType } = Monitor;
 
 export default class SpecialParser extends Parser {

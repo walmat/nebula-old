@@ -1,9 +1,9 @@
 import validator from 'card-validator';
 import phoneFormatter from 'phone-formatter';
 
-import { Regions } from './constants';
+import { Regions } from '../constants';
 
-export const ATC = (size, style, region) => {
+export const cart = (size, style, region) => {
   switch (region) {
     case Regions.EU:
       return `size=${size}&style=${style}&qty=1`;

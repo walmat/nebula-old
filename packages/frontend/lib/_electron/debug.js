@@ -1,9 +1,15 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcMain } = require('electron');
-const { setLevels } = require('@nebula/task-built');
 const nebulaEnv = require('./env');
 
 nebulaEnv.setUpEnvironment();
+
+let setLevels;
+if (nebulaEnv.isDevelopment()) {
+  ({ setLevels } = require('@nebula/task'));
+} else {
+  ({ setLevels } = require('@nebula/task-built'));
+}
 
 module.exports = {};
 

@@ -2,8 +2,11 @@
 /* eslint-disable consistent-return */
 import { filter, every, some, sortBy } from 'lodash';
 
-import { getRandomIntInclusive } from '../../common';
-import { Regions } from './constants';
+import { Utils } from '../../common';
+import { Regions } from '../constants';
+import { cart, backupForm, parseForm } from './forms';
+
+const { getRandomIntInclusive } = Utils;
 
 export default () => ({
   authority: 'www.supremenewyork.com',
@@ -177,4 +180,10 @@ export const getRegion = name => {
     region = Regions.JP;
   }
   return region;
+};
+
+export const Forms = {
+  cart,
+  parseForm,
+  backupForm,
 };

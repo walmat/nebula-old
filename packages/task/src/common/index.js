@@ -1,16 +1,16 @@
-import now from 'performance-now';
+// Constants
+import { ErrorCodes, Manager, Monitor, Platforms, SiteKeyForPlatform, Task } from './constants';
 
-import Constants from './constants';
-
+// Utils
 import {
-  Captcha,
-  Context,
   capitalizeFirstLetter,
+  compareProductData,
   createLogger,
   currencyWithSymbol,
   deregisterForEvent,
   emitEvent,
   getRandomIntInclusive,
+  now,
   reflect,
   registerForEvent,
   rfrl,
@@ -18,11 +18,22 @@ import {
   trimKeywords,
   userAgent,
   waitForDelay,
-  compareProductData,
 } from './utils';
-import { AsyncQueue, ProxyManager, WebhookManager, BaseTask, BaseMonitor, Timer } from './classes';
 
-export {
+// Classes
+import {
+  AsyncQueue,
+  BaseMonitor,
+  BaseTask,
+  Captcha,
+  ProxyManager,
+  Timer,
+  WebhookManager,
+} from './classes';
+
+import Context from './context';
+
+const Utils = {
   now,
   rfrl,
   waitForDelay,
@@ -33,18 +44,35 @@ export {
   getRandomIntInclusive,
   capitalizeFirstLetter,
   currencyWithSymbol,
-  Captcha,
-  BaseTask,
-  BaseMonitor,
-  Timer,
-  Constants,
-  AsyncQueue,
-  Context,
-  ProxyManager,
-  WebhookManager,
-  createLogger,
-  setLevels,
   emitEvent,
   registerForEvent,
   deregisterForEvent,
+  createLogger,
+  setLevels,
 };
+
+const Classes = {
+  Captcha,
+  Timer,
+  AsyncQueue,
+  ProxyManager,
+  WebhookManager,
+};
+
+const Bases = {
+  BaseMonitor,
+  BaseTask,
+  Context,
+};
+
+const Constants = {
+  ErrorCodes,
+  Manager,
+  Monitor,
+  Platforms,
+  SiteKeyForPlatform,
+  Task,
+};
+
+// re-exports
+export { Utils, Classes, Context, Bases, Constants };

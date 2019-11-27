@@ -1,7 +1,8 @@
 import Parser from '../parser';
-import { userAgent } from '../../../common';
-import { Monitor } from '../../utils/constants';
+import { Utils } from '../../../common';
+import { Monitor } from '../../constants';
 
+const { userAgent } = Utils;
 const { ParseType } = Monitor;
 
 export default class AtomParser extends Parser {

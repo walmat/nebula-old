@@ -1,8 +1,10 @@
 import Parser from '../parser';
-import { userAgent } from '../../../common';
-import { convertToJson } from '../../utils/parse';
-import { Monitor } from '../../utils/constants';
+import { Utils } from '../../../common';
+import { Parse } from '../../utils';
+import { Monitor } from '../../constants';
 
+const { convertToJson } = Parse;
+const { userAgent } = Utils;
 const { ParseType } = Monitor;
 
 export default class XmlParser extends Parser {

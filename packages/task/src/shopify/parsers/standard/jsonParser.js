@@ -1,6 +1,8 @@
 import Parser from '../parser';
-import { ErrorCodes } from '../../utils/constants';
-import { userAgent, getRandomIntInclusive } from '../../../common';
+import { Constants, Utils } from '../../../common';
+
+const { ErrorCodes } = Constants;
+const { userAgent, getRandomIntInclusive } = Utils;
 
 export default class JsonParser extends Parser {
   /**

@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { Task as TaskConstants } from './constants';
+import { Task as TaskConstants } from '../constants';
 
 const { States } = TaskConstants;
 

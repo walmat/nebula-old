@@ -1,8 +1,11 @@
 /* eslint-disable class-methods-use-this */
-import { rfrl, userAgent } from '../../common';
-import { matchVariant, matchKeywords } from '../utils/parse';
-import { ErrorCodes, Monitor } from '../utils/constants';
+import { Utils, Constants } from '../../common';
+import { Parse } from '../utils';
+import { Monitor } from '../constants';
 
+const { matchVariant, matchKeywords } = Parse;
+const { ErrorCodes } = Constants;
+const { userAgent, rfrl } = Utils;
 const { ParseType } = Monitor;
 
 export default class Parser {

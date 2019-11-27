@@ -1,7 +1,9 @@
 /* eslint-disable consistent-return */
 /* eslint-disable array-callback-return */
-import { getRandomIntInclusive } from '../../common';
+import { Utils } from '../../common';
 import { urlToTitleSegment, urlToVariantOption } from './urlVariantMaps';
+
+const { getRandomIntInclusive } = Utils;
 
 export default async (variants, size, url, logger = { log: () => {} }, randomInStock = false) => {
   let variantGroup = variants;

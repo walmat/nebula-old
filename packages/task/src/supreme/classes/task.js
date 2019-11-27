@@ -1,22 +1,18 @@
 /* eslint-disable consistent-return */
 /* eslint-disable array-callback-return */
-import { Manager, Task as TaskConstants, Platforms } from '../../common/constants';
-import { Task, Regions } from '../utils/constants';
+import { Task, Regions } from '../constants';
 import notification from '../hooks';
-import { ATC, backupForm } from '../utils/forms';
-import getHeaders, { getRegion } from '../utils';
-import {
-  waitForDelay,
-  getRandomIntInclusive,
-  Captcha,
-  Timer,
-  BaseTask,
-  emitEvent,
-} from '../../common';
+import getHeaders, { getRegion, Forms } from '../utils';
+import { Utils, Bases, Classes, Constants } from '../../common';
 
+const { cart, backupForm } = Forms;
+const { Manager, Task: TaskConstants, Platforms } = Constants;
 const { Events: TaskManagerEvents } = Manager;
 const { States } = Task;
 const { Events } = TaskConstants;
+const { BaseTask } = Bases;
+const { emitEvent, waitForDelay, getRandomIntInclusive } = Utils;
+const { Timer, Captcha } = Classes;
 
 // SUPREME
 export default class TaskPrimitive extends BaseTask {
@@ -263,7 +259,7 @@ export default class TaskPrimitive extends BaseTask {
           ...getHeaders(),
           'content-type': 'application/x-www-form-urlencoded',
         },
-        body: ATC(s, st, this._region),
+        body: cart(s, st, this._region),
       });
 
       if (!res.ok) {

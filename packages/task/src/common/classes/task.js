@@ -2,7 +2,8 @@ import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
-import { waitForDelay, Captcha, emitEvent } from '../utils';
+import { waitForDelay, emitEvent } from '../utils';
+import { stopHarvestCaptcha } from './captcha';
 import { Task } from '../constants';
 
 const { States, Events } = Task;
@@ -168,6 +169,6 @@ export default class BaseTask {
   }
 
   _cleanup() {
-    Captcha.stopHarvestCaptcha(this._context, this._handleHarvest, this._platform);
+    stopHarvestCaptcha(this._context, this._handleHarvest, this._platform);
   }
 }

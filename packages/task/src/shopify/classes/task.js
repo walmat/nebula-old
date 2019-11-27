@@ -4,31 +4,28 @@ import { min, isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
 import notification from '../hooks';
-import { waitForDelay, userAgent, currencyWithSymbol, Timer, BaseTask } from '../../common';
-import { Task, Manager, Platforms } from '../../common/constants';
-import { Task as TaskConstants, Monitor } from '../utils/constants';
-import { stateForError, getHeaders } from '../utils';
-import { addToCart, parseForm, patchCheckoutForm } from '../utils/forms';
-import pickVariant from '../utils/pickVariant';
+import { Classes, Bases, Utils, Constants } from '../../common';
+import { Task as TaskConstants, Monitor } from '../constants';
+import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
+
+const { addToCart, parseForm, patchCheckoutForm } = Forms;
+const { Task, Manager, Platforms } = Constants;
+const { currencyWithSymbol, userAgent, waitForDelay } = Utils;
+const { Timer } = Classes;
+const { BaseTask } = Bases;
 
 const { Events } = Task;
 const { Events: TaskManagerEvents } = Manager;
-const { States, Types, Modes, StateMap } = TaskConstants;
+const { States, Modes, StateMap } = TaskConstants;
 const { ParseType } = Monitor;
 
 export default class TaskPrimitive extends BaseTask {
-  get type() {
-    return this._type;
-  }
-
-  constructor(context, type = Types.Normal, platform = Platforms.Shopify) {
+  constructor(context, platform = Platforms.Shopify) {
     super(context, platform);
     this._timers = {
       checkout: new Timer(),
       monitor: new Timer(),
     };
-
-    this._type = type;
 
     this._needsLogin = this._context.task.account || false;
     this._state = States.STARTED;
