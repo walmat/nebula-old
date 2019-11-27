@@ -19,6 +19,8 @@ const siteToPlatform = url => {
 };
 
 export function taskReducer(state = initialTaskStates.task, action) {
+  console.log('task reducer handling action: ', action);
+
   let change = {};
   if (action.type === TASK_ACTIONS.EDIT) {
     // Check if we are editing a new task or an existing one
@@ -109,19 +111,6 @@ export function taskReducer(state = initialTaskStates.task, action) {
               };
               break;
             }
-            // TODO: Once pre-cart mode gets finished
-            // case TASK_TYPES.FAST: {
-            //   change = {
-            //     type: TASK_TYPES.CART,
-            //   };
-            //   break;
-            // }
-            // case TASK_TYPES.CART: {
-            //   change = {
-            //     type: TASK_TYPES.SAFE,
-            //   };
-            //   break;
-            // }
             default: {
               change = {
                 type: TASK_TYPES.SAFE,
@@ -190,8 +179,10 @@ export function taskReducer(state = initialTaskStates.task, action) {
           const strValue = action.value || ''; // If action.value is empty, we'll use 0
           const amount = parseInt(strValue, 10);
 
+          console.log(amount);
+
           change = {
-            checkoutDelay: amount,
+            checkoutDelay: !Number.isNaN(amount) ? amount : 0,
             errors: Object.assign({}, state.errors, action.errors),
           };
           break;

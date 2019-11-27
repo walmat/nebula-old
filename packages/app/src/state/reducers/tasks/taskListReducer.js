@@ -37,6 +37,8 @@ function _getIndexAndId(taskList) {
 export default function taskListReducer(state = initialTaskStates.list, action) {
   let nextState = JSON.parse(JSON.stringify(state));
 
+  console.log('task list reducer handling action: ', action);
+
   switch (action.type) {
     case SERVER_ACTIONS.DESTROY_PROXIES: {
       if (!action || !action.response) {

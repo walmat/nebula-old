@@ -6,6 +6,9 @@ import initialProfileStates from '../../initial/profiles';
 import dsmlRates from '../../../constants/dsmlRates';
 
 export default function profileListReducer(state = initialProfileStates.list, action) {
+
+  console.log('profile list reducer handling action: ', action);
+
   // perform deep copy of given state
   let nextState = JSON.parse(JSON.stringify(state));
 

@@ -2,6 +2,9 @@ import { mapLocationFieldToKey, LOCATION_FIELDS } from '../../actions';
 import initialProfileStates from '../../initial/profiles';
 
 const locationReducer = (state = initialProfileStates.location, action) => {
+
+  console.log('location reducer handling action: ', action);
+
   let change = {};
   if (!mapLocationFieldToKey[action.type]) {
     // If we can't map the field to a location key, don't change anything

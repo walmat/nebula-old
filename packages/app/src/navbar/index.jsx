@@ -7,7 +7,8 @@ import PLATFORMS from '../constants/platforms';
 import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../state/actions';
 
 import { renderSvgIcon } from '../utils';
-import Bodymovin from './components/bodymovin';
+// import Bodymovin from './components/bodymovin';
+import Logo from '../styles/images/navbar/logo.png';
 import { ReactComponent as TasksIcon } from '../styles/images/navbar/tasks.svg';
 import { ReactComponent as ProfilesIcon } from '../styles/images/navbar/profiles.svg';
 import { ReactComponent as ServerIcon } from '../styles/images/navbar/server.svg';
@@ -159,7 +160,7 @@ export class NavbarPrimitive extends PureComponent {
             <div className="row row--expand">
               <div className="col col--start col--expand">
                 <div className="row row--start row--gutter navbar__logo">
-                  <Bodymovin />
+                  <img src={Logo} width={75} alt="" />
                 </div>
                 <div className="col col--expand col--no-gutter navbar__icons">
                   {this.renderNavbarIconRows()}

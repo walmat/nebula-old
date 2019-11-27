@@ -1,7 +1,5 @@
 import semver from 'semver';
 
-// TODO: Are there better names for these? Not exactly sure how to name versioned variables.
-// For now, this is the best I can do, but we have to disable the eslint for camelcase
 /* eslint-disable camelcase */
 import v0_0_0_migrator from './migrators/v0.0.0';
 import v0_1_0_migrator from './migrators/v0.1.0';

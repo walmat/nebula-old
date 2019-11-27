@@ -2,6 +2,9 @@ import { SERVER_FIELDS, SERVER_ACTIONS } from '../../actions';
 import initialServerStates from '../../initial/servers';
 
 export default function serverReducer(state = initialServerStates, action) {
+
+  console.log('server reducer handling action: ', action);
+
   // Deep copy the current state
   const nextState = JSON.parse(JSON.stringify(state));
   // Check if we are performing an edit

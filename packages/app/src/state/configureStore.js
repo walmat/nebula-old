@@ -10,9 +10,6 @@ import proxyAttributeValidationMiddlware from './middleware/settings/proxyAttrib
 import shippingFormAttributeValidationMiddleware from './middleware/settings/shippingFormAttributeValidationMiddleware';
 import settingsAttributeValidationMiddleware from './middleware/settings/settingsAttributeValidationMiddleware';
 
-// UNDONE: LogRocket implementation...
-// import stateSanitizer from './redactor';
-
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 

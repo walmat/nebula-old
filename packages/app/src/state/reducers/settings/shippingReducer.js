@@ -3,6 +3,9 @@ import { SETTINGS_ACTIONS, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../
 import initialSettingsStates from '../../initial/settings';
 
 export default function shippingReducer(state = initialSettingsStates.shipping, action) {
+
+  console.log('shipping reducer handling action: ', action);
+
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {

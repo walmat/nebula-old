@@ -60,7 +60,9 @@ const topLevelReducer = (startState, action) => {
     return { ...state, sites };
   }
 
-  // If not a global action, handle the action with sub reducers
+  console.log('top level reducer handling action: ', action);
+
+  // If not a global action, handle the action with the sub-reducers
   const changes = {
     tasks: taskListReducer(state.tasks, action),
     newTask: newTaskReducer(state.newTask, action, state.settings.defaults),

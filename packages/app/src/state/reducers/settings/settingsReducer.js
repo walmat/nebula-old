@@ -11,6 +11,9 @@ import initialSettingsStates from '../../initial/settings';
 import shippingReducer from './shippingReducer';
 
 export default function settingsReducer(state = initialSettingsStates.settings, action) {
+
+  console.log('settings reducer handling action: ', action);
+
   let change = {};
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
