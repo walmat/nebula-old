@@ -1,56 +1,18 @@
-import EventEmitter from 'eventemitter3';
-import AbortController from 'abort-controller';
-import HttpsProxyAgent from 'https-proxy-agent';
-import fetch from 'node-fetch';
-import defaults from 'fetch-defaults';
-import { CookieJar } from 'tough-cookie';
 import { pick } from 'lodash';
 
-import { Task as TaskConstants, Platforms } from '../../constants';
-import { createLogger } from '../../common/logger';
+import { Platforms } from '../../common/constants';
 import pickVariant from '../utils/pickVariant';
-import { rfrl, userAgent } from '../../common';
+import { rfrl, userAgent, BaseTask } from '../../common';
 import { addToCart } from '../utils/forms';
 import { getParseType } from '../utils/parse';
-import { Monitor, Task } from '../utils/constants';
+import { Monitor } from '../utils/constants';
 import { Parser, getSpecialParser, getParsers } from '../parsers';
 
 const { ParseType } = Monitor;
-const { Types } = Task;
-const { Events } = TaskConstants;
 
-export default class ShippingRatesRunner {
-  constructor(id, task, proxy, loggerPath, type = Types.ShippingRates) {
-    this.id = id;
-    this.task = task;
-    this.proxy = proxy;
-    this._type = type;
-
-    this._logger = createLogger({
-      dir: loggerPath,
-      name: 'ShippingRateRunner',
-      prefix: 'SRR',
-    });
-
-    this.aborted = false;
-    this.aborter = new AbortController();
-
-    // eslint-disable-next-line global-require
-    const request = require('fetch-cookie/node-fetch')(fetch, new CookieJar());
-
-    this._request = defaults(request, this.task.site.url, {
-      timeout: 12000, // to be overridden as necessary
-      signal: this.aborter.signal, // generic abort signal
-    });
-
-    this.monitorAborter = new AbortController();
-    this._monitorRequest = defaults(request, this.task.site.url, {
-      timeout: 12000,
-      signal: this.monitorAborter.signal,
-    });
-
-    this.parseType = ParseType.Unknown; // default to unknown
-    this.message = null;
+export default class RateFetcher extends BaseTask {
+  constructor(context, platform = Platforms.Shopify) {
+    super(context, platform);
     this.rate = null;
     this.shippingRates = [];
 
@@ -62,63 +24,7 @@ export default class ShippingRatesRunner {
       DONE: 'DONE',
     };
 
-    this.state = this.states.PARSE;
-
-    this._events = new EventEmitter();
-    this._handleAbort = this._handleAbort.bind(this);
-  }
-
-  // MARK: Event Registration
-  registerForEvent(event, callback) {
-    switch (event) {
-      case Events.TaskStatus: {
-        this._events.on(Events.TaskStatus, callback);
-        break;
-      }
-      default:
-        break;
-    }
-  }
-
-  deregisterForEvent(event, callback) {
-    switch (event) {
-      case Events.TaskStatus: {
-        this._events.removeListener(Events.TaskStatus, callback);
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-  }
-
-  // MARK: Event Emitting
-  _emitEvent(event, payload) {
-    switch (event) {
-      // Emit supported events on their specific channel
-      case Events.TaskStatus: {
-        this._events.emit(event, this.id, payload, event);
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-    this._logger.silly('Event %s emitted: %j', event, payload);
-  }
-
-  _emitTaskEvent(payload = {}) {
-    if (payload.message && payload.message !== this.message) {
-      this.message = payload.message;
-      this._emitEvent(Events.TaskStatus, { ...payload, type: this._type });
-    }
-  }
-
-  _handleAbort(id) {
-    if (id === this.id) {
-      this.aborted = true;
-      this.aborter.abort();
-    }
+    this._state = this.states.PARSE;
   }
 
   async keywords() {
@@ -301,7 +207,7 @@ export default class ShippingRatesRunner {
     try {
       const res = await this._request('/cart/add.js', {
         method: 'POST',
-        agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
+        agent: this.proxy,
         headers: {
           'user-agent': userAgent,
           referer: restockUrl,
@@ -352,7 +258,7 @@ export default class ShippingRatesRunner {
         )}&shipping_address[province]=${province ? province.value.replace(/\s/g, '+') : ''}`,
         {
           method: 'GET',
-          agent: this.proxy ? new HttpsProxyAgent(this.proxy.proxy) : null,
+          agent: this.proxy,
           headers: {
             Origin: url,
             'User-Agent': userAgent,

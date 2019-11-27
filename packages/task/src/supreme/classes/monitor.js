@@ -1,56 +1,20 @@
-/* eslint-disable array-callback-return */
-/* eslint-disable consistent-return */
-import AbortController from 'abort-controller';
-import fetch from 'node-fetch';
-import defaults from 'fetch-defaults';
-
-import { capitalizeFirstLetter, waitForDelay } from '../../common';
+import { capitalizeFirstLetter, waitForDelay, BaseMonitor, emitEvent } from '../../common';
 import getHeaders, { matchKeywords, matchVariation } from '../utils';
-import { Task as TaskContants, Platforms } from '../../constants';
+import { Task as TaskContants, Platforms } from '../../common/constants';
 import { Monitor } from '../utils/constants';
 
 const { States } = Monitor;
 
-const { Types, Events, ErrorCodes } = TaskContants;
+const { ErrorCodes, Events } = TaskContants;
 
 // SUPREME
-export default class MonitorPrimitive {
-  get state() {
-    return this._state;
-  }
-
-  get context() {
-    return this._context;
-  }
-
-  get platform() {
-    return this._platform;
-  }
-
-  get delayer() {
-    return this._delayer;
-  }
-
+export default class MonitorPrimitive extends BaseMonitor {
   constructor(context, platform = Platforms.Supreme) {
-    this._context = context;
-    this._aborter = new AbortController();
-    this._signal = this._aborter.signal;
-    this._platform = platform;
+    super(context, platform);
 
-    // eslint-disable-next-line global-require
-    const _fetch = require('fetch-cookie/node-fetch')(fetch, context.jar);
-    this._fetch = defaults(_fetch, context.task.site.url, {
-      timeout: 15000, // can be overridden as necessary per request
-      signal: this._aborter.signal,
-    });
-
-    this._delayer = null;
     this._state = States.PARSE;
     this._prevState = this._state;
-    this._checkingStock = false;
   }
-
-  // MARK: Handler functions
 
   async _handleError(error = {}, state) {
     const { aborted, logger } = this._context;
@@ -91,9 +55,14 @@ export default class MonitorPrimitive {
           break;
       }
     } else if (/(?!([235][0-9]))\d{3}/g.test(status)) {
-      this._emitMonitorEvent({
-        message: `${status}! Delaying ${this._context.task.errorDelay}ms (${status})`,
-      });
+      emitEvent(
+        this._context,
+        this._context.ids,
+        {
+          message: `${status}! Delaying ${this._context.task.errorDelay}ms (${status})`,
+        },
+        Events.MonitorStatus,
+      );
       this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
       await this._delayer;
     } else if (
@@ -101,89 +70,18 @@ export default class MonitorPrimitive {
       status === ErrorCodes.NoStylesFound ||
       status === ErrorCodes.VariantNotFound
     ) {
-      this._emitMonitorEvent({
-        message: `${status}! Delaying ${this._context.task.monitorDelay}ms`,
-      });
+      emitEvent(
+        this._context,
+        this._context.ids,
+        {
+          message: `${status}! Delaying ${this._context.task.monitorDelay}ms`,
+        },
+        Events.MonitorStatus,
+      );
       this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
       await this._delayer;
     }
     return state;
-  }
-
-  async swapProxies() {
-    const { id, proxy, task, logger, proxyManager } = this._context;
-    const proxyId = proxy ? proxy.id : null;
-    logger.debug('Swapping proxy with id: %j', proxyId);
-    const newProxy = await proxyManager.swap(id, proxyId, task.site.url, this._platform);
-    logger.debug('Received new proxy: %j', newProxy ? newProxy.proxy : null);
-    return newProxy;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  _cleanup() {}
-
-  // MARK: Event Registration
-  registerForEvent(event, callback) {
-    const { events } = this._context;
-    events.on(event, callback);
-  }
-
-  deregisterForEvent(event, callback) {
-    const { events } = this._context;
-    events.removeListener(event, callback);
-  }
-
-  _emitEvent(event, payload) {
-    const { ids, logger, events } = this._context;
-    events.emit(event, ids, payload, event);
-    logger.silly('Event %s emitted: %j', event, payload);
-  }
-
-  _emitMonitorEvent(payload = {}) {
-    const { message } = payload;
-    if (message && message !== this._context.message) {
-      this._context.setMessage(message);
-      this._emitEvent(Events.MonitorStatus, { ...payload, type: Types.Normal });
-    }
-  }
-
-  async _handleSwapProxies() {
-    const {
-      task: { errorDelay },
-      logger,
-    } = this._context;
-    try {
-      logger.silly('Waiting for new proxy...');
-      const proxy = await this.swapProxies();
-
-      logger.debug('Proxy in _handleSwapProxies: %j', proxy);
-      // Proxy is fine, update the references
-      if ((proxy || proxy === null) && this._context.proxy !== proxy) {
-        this._context.setLastProxy(this._context.proxy);
-        this._context.setProxy(proxy);
-
-        logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-        this._emitMonitorEvent({
-          message: `Swapped proxy to: ${proxy ? proxy.raw : 'localhost'}`,
-        });
-
-        logger.debug('Rewinding to state: %s', this._prevState);
-        return this._prevState;
-      }
-
-      // If we get a null proxy back while our previous proxy was also null.. then there aren't any available
-      // We should wait the error delay, then try again
-      this._emitMonitorEvent({
-        message: `No open proxy! Delaying ${errorDelay}ms`,
-      });
-      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
-      await this._delayer;
-    } catch (error) {
-      logger.error('Swap Proxies Handler completed with errors: %s', error.toString());
-      this._emitMonitorEvent({ message: 'Error swapping proxies! Retrying' });
-    }
-    // Go back to previous state
-    return this._prevState;
   }
 
   async _handleParse() {
@@ -195,7 +93,14 @@ export default class MonitorPrimitive {
       return States.ABORT;
     }
 
-    this._emitMonitorEvent({ message: 'Parsing products' });
+    emitEvent(
+      this._context,
+      this._context.ids,
+      {
+        message: 'Parsing products',
+      },
+      Events.MonitorStatus,
+    );
 
     try {
       const res = await this._fetch('/mobile_stock.json', {
@@ -270,9 +175,14 @@ export default class MonitorPrimitive {
       return States.ABORT;
     }
 
-    if (!this._checkingStock) {
-      this._emitMonitorEvent({ message: 'Fetching stock' });
-    }
+    emitEvent(
+      this._context,
+      this._context.ids,
+      {
+        message: 'Fetching stock',
+      },
+      Events.MonitorStatus,
+    );
 
     try {
       const res = await this._fetch(`/shop/${style}.json`, {
@@ -298,7 +208,14 @@ export default class MonitorPrimitive {
       const matchedVariation = await matchVariation(styles, variation, logger);
 
       if (!matchedVariation) {
-        this._emitMonitorEvent({ message: 'No variation matched!' });
+        emitEvent(
+          this._context,
+          this._context.ids,
+          {
+            message: 'No variation matched!',
+          },
+          Events.MonitorStatus,
+        );
         return States.ABORT;
       }
 
@@ -309,7 +226,14 @@ export default class MonitorPrimitive {
       task.product.chosenVariation = matchedVariation.name;
 
       const { name } = task.product;
-      this._emitMonitorEvent({ message: `Product found: ${name}` });
+      emitEvent(
+        this._context,
+        this._context.ids,
+        {
+          message: `Product found: ${name}`,
+        },
+        Events.MonitorStatus,
+      );
       return States.DONE;
     } catch (error) {
       return this._handleError(error, States.STOCK);
@@ -335,69 +259,5 @@ export default class MonitorPrimitive {
 
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);
-  }
-
-  // MARK: State Machine Run Loop
-  async loop() {
-    let nextState = this._state;
-
-    const { aborted, logger } = this._context;
-    if (aborted) {
-      nextState = States.ABORT;
-      return true;
-    }
-
-    try {
-      nextState = await this._handleStepLogic(this._state);
-    } catch (e) {
-      if (!/aborterror/i.test(e.name)) {
-        logger.verbose('Monitor errored out! %s', e);
-        nextState = States.ABORT;
-      }
-    }
-    logger.debug('Monitor Loop finished, state transitioned to: %s', nextState);
-
-    if (this._state !== nextState) {
-      this._prevState = this._state;
-      this._state = nextState;
-    }
-
-    if (nextState === States.ABORT) {
-      return true;
-    }
-
-    return false;
-  }
-
-  stop(id) {
-    const { logger } = this._context;
-
-    if (!this._context.hasId(id)) {
-      return;
-    }
-
-    logger.debug('Removing id from ids: %s, %j', id, this._context.ids);
-    this._context.removeId(id);
-
-    logger.debug('Amount of ids: %d', this._context.ids.length);
-
-    if (!this._context.isEmpty()) {
-      this._context.setAborted(true);
-      this._aborter.abort();
-      if (this._delayer) {
-        this._delayer.clear();
-      }
-    }
-  }
-
-  async run() {
-    let shouldStop = false;
-
-    do {
-      // eslint-disable-next-line no-await-in-loop
-      shouldStop = await this.loop();
-    } while (this._state !== States.ABORT && !shouldStop);
-
-    this._cleanup();
   }
 }

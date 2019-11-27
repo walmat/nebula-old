@@ -21,6 +21,13 @@ const TaskEvents = {
   ReceiveProxy: 'RECEIVE_PROXY',
 };
 
+const SharedStates = {
+  SWAP: 'SWAP',
+  DONE: 'DONE',
+  ERROR: 'ERROR',
+  ABORT: 'ABORT',
+};
+
 const Platforms = {
   Shopify: 'Shopify',
   Footsites: 'Footsites',
@@ -30,8 +37,11 @@ const Platforms = {
 
 const ErrorCodes = {
   NoStylesFound: 'Style not found',
+  PasswordPage: 'Password page',
+  VariantsNotAvailable: 'Variant not available',
   VariantNotFound: 'Variation not found',
   ProductNotFound: 'Product not found',
+  ProductNotLive: 'Product not live',
 };
 
 const HarvestStates = {
@@ -57,6 +67,7 @@ const ParseType = {
   Variant: 'VARIANT',
   Url: 'URL',
   Keywords: 'KEYWORDS',
+  Special: 'SPECIAL',
 };
 
 const SiteKeyForPlatform = {
@@ -73,15 +84,16 @@ const Manager = {
 const Monitor = {
   ParseType,
   DelayTypes,
+  States: SharedStates,
 };
 
 const Task = {
   Events: TaskEvents,
   HarvestStates,
-  ErrorCodes,
   DelayTypes,
   HookTypes,
   Types: { Normal: 'normal', Rates: 'rates' },
+  States: SharedStates,
 };
 
-export { Manager, Task, Monitor, Platforms, SiteKeyForPlatform };
+export { Manager, Task, Monitor, ErrorCodes, Platforms, SiteKeyForPlatform };

@@ -1,9 +1,16 @@
 import EventEmitter from 'eventemitter3';
-import { isEqual } from 'lodash';
 
 // Shared includes
-import { Context, ProxyManager, WebhookManager, createLogger } from './common';
-import { Platforms, Manager, Task } from './constants';
+import {
+  Context,
+  ProxyManager,
+  WebhookManager,
+  createLogger,
+  registerForEvent,
+  deregisterForEvent,
+  compareProductData,
+} from './common';
+import { Platforms, Manager, Task, Monitor } from './common/constants';
 
 // Shopify includes
 import {
@@ -13,8 +20,6 @@ import {
   Discord as ShopifyDiscord,
   Slack as ShopifySlack,
   TaskTypes,
-  HookTypes,
-  ParseType,
 } from './shopify';
 import { getParseType } from './shopify/utils/parse';
 
@@ -26,8 +31,9 @@ import {
   Slack as SupremeSlack,
 } from './supreme';
 
+const { ParseType } = Monitor;
 const { Events } = Manager;
-const { Events: TaskEvents } = Task;
+const { Events: TaskEvents, HookTypes } = Task;
 
 export default class TaskManager {
   get logPath() {
@@ -75,7 +81,6 @@ export default class TaskManager {
     this._webhookManager = new WebhookManager(this._logger);
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
-    this._proxyManager._events.on(Events.DeregisterProxy, this.handleDeregisterProxy, this);
   }
 
   // MARK: Event Related Methods
@@ -133,36 +138,6 @@ export default class TaskManager {
     }
   }
 
-  /**
-   * Handle Proxy Swapping Events from task
-   *
-   * @param {String} id
-   * @param {Object} proxy
-   */
-  async handleSwapProxy(id, proxy) {
-    this._logger.debug('Swapping proxy: %j for task %s', proxy, id);
-
-    const proxyId = proxy ? proxy.id : null;
-    const { site, platform } = this._tasks[id];
-    const newProxy = await this._proxyManager.swap(id, proxyId, site, platform);
-    this._events.emit(Events.SendProxy, id, newProxy);
-  }
-
-  async handleDeregisterProxy(ids) {
-    // eslint-disable-next-line array-callback-return
-    return Object.values(ids).map(id => {
-      const task = this._tasks[id];
-      // const monitor = this._monitors[id];
-
-      // if there's no task running, just exit early..
-      if (!task) {
-        return;
-      }
-
-      this._events.emit(Events.DeregisterProxy, task.id);
-    });
-  }
-
   async handleWebhook(hooks = {}) {
     if (hooks instanceof Array) {
       hooks.map(async hook => {
@@ -178,27 +153,6 @@ export default class TaskManager {
       return this._webhookManager.send();
     }
     return null;
-  }
-
-  static async _compareProductInput(product1, product2, parseType) {
-    // we only care about keywords/url matching here...
-    switch (parseType) {
-      case ParseType.Keywords: {
-        const { pos_keywords: posKeywords, neg_keywords: negKeywords } = product1;
-        const samePositiveKeywords = isEqual(product2.pos_keywords.sort(), posKeywords.sort());
-        const sameNegativeKeywords = isEqual(product2.neg_keywords.sort(), negKeywords.sort());
-        return samePositiveKeywords && sameNegativeKeywords;
-      }
-      case ParseType.Url: {
-        const { url } = product1;
-        return product2.url.toUpperCase() === url.toUpperCase();
-      }
-      case ParseType.Variant: {
-        return product1.variant === product2.variant;
-      }
-      default:
-        return false;
-    }
   }
 
   // only called when oneCheckout is enabled for that task that checks out
@@ -615,16 +569,16 @@ export default class TaskManager {
 
     // if it's just a rate fetcher task..
     if (task.type === TaskTypes.ShippingRates) {
-      task.registerForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
+      registerForEvent(TaskEvents.TaskStatus, task.context, this.mergeStatusUpdates);
       return;
     }
 
     if (monitor) {
-      monitor.registerForEvent(TaskEvents.MonitorStatus, this.mergeStatusUpdates);
+      registerForEvent(TaskEvents.MonitorStatus, monitor.context, this.mergeStatusUpdates);
     }
 
     const { context: taskContext } = task;
-    task.registerForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
+    registerForEvent(TaskEvents.TaskStatus, task.context, this.mergeStatusUpdates);
     taskContext.events.on(Events.StartHarvest, this.handleStartHarvest, this);
     taskContext.events.on(Events.StopHarvest, this.handleStopHarvest, this);
   }
@@ -638,7 +592,7 @@ export default class TaskManager {
 
       if (!monitorContext.ids.length) {
         this._logger.debug('Freeing monitor!');
-        monitor.deregisterForEvent(TaskEvents.MonitorStatus, this.mergeStatusUpdates);
+        deregisterForEvent(TaskEvents.MonitorStatus, task.context, this.mergeStatusUpdates);
         monitor.context.events.removeAllListeners();
         delete this._monitors[monitorContext.id];
       }
@@ -647,7 +601,7 @@ export default class TaskManager {
     const handlers = this._handlers[taskContext.id];
     delete this._handlers[taskContext.id];
     // Cleanup manager handlers
-    task.deregisterForEvent(TaskEvents.TaskStatus, this.mergeStatusUpdates);
+    deregisterForEvent(TaskEvents.TaskStatus, task.context, this.mergeStatusUpdates);
     taskContext.events.removeAllListeners();
 
     // Cleanup task handlers
@@ -677,32 +631,32 @@ export default class TaskManager {
 
     switch (platform) {
       case Platforms.Shopify: {
+        const parseType = getParseType(task.product, null, platform);
+
+        const context = new Context({
+          id,
+          task,
+          type,
+          parseType,
+          proxy,
+          logger: createLogger({
+            dir: this._logPath,
+            name: `Task-${id}`,
+            prefix: `task-${id}`,
+          }),
+          discord: new ShopifyDiscord(task.discord),
+          slack: new ShopifySlack(task.slack),
+          proxyManager: this._proxyManager,
+          webhookManager: this._webhookManager,
+        });
+
         if (type === TaskTypes.Normal) {
-          const parseType = getParseType(task.product, null, platform);
-
-          const context = new Context({
-            id,
-            task,
-            type,
-            parseType,
-            proxy,
-            logger: createLogger({
-              dir: this._logPath,
-              name: `Task-${id}`,
-              prefix: `task-${id}`,
-            }),
-            discord: new ShopifyDiscord(task.discord),
-            slack: new ShopifySlack(task.slack),
-            proxyManager: this._proxyManager,
-            webhookManager: this._webhookManager,
-          });
-
           newTask = new ShopifyTask(context);
 
           const found = Object.values(this._monitors).find(async m => {
             if (m.platform === platform) {
               const { context: mContext } = m;
-              const isSameProduct = await TaskManager._compareProductInput(
+              const isSameProduct = await compareProductData(
                 mContext.task.product,
                 context.task.product,
                 parseType,
@@ -732,7 +686,7 @@ export default class TaskManager {
             monitor = new ShopifyMonitor(context);
           }
         } else if (type === TaskTypes.ShippingRates) {
-          newTask = new RateFetcher(task, proxy, this._logPath);
+          newTask = new RateFetcher(context);
         }
         break;
       }
@@ -758,7 +712,7 @@ export default class TaskManager {
         const found = Object.values(this._monitors).find(async m => {
           if (m.platform === platform) {
             const { context: mContext } = m;
-            const isSameProduct = await TaskManager._compareProductInput(
+            const isSameProduct = await compareProductData(
               mContext.task.product,
               context.task.product,
               ParseType.Keywords,

@@ -1,7 +1,7 @@
 import EventEmitter from 'eventemitter3';
 import { CookieJar } from 'tough-cookie';
 
-import { Task as TaskConstants } from '../../constants';
+import { Task as TaskConstants } from '../constants';
 
 const { HarvestStates } = TaskConstants;
 

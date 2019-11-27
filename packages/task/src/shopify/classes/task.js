@@ -1,17 +1,11 @@
 /* eslint-disable no-nested-ternary */
 import cheerio from 'cheerio';
-import { isEqual, isEmpty, min } from 'lodash';
+import { min, isEmpty } from 'lodash';
 import { parse } from 'query-string';
-import HttpsProxyAgent from 'https-proxy-agent';
-import AbortController from 'abort-controller';
-import fetch from 'node-fetch';
-import defaults from 'fetch-defaults';
 
-import Timer from '../../common/timer';
-import notification, { Discord, Slack } from '../hooks';
-import AsyncQueue from '../../common/asyncQueue';
-import { waitForDelay, userAgent, currencyWithSymbol } from '../../common';
-import { Task, Manager, Platforms, SiteKeyForPlatform } from '../../constants';
+import notification from '../hooks';
+import { waitForDelay, userAgent, currencyWithSymbol, Timer, BaseTask } from '../../common';
+import { Task, Manager, Platforms } from '../../common/constants';
 import { Task as TaskConstants, Monitor } from '../utils/constants';
 import { stateForError, getHeaders } from '../utils';
 import { addToCart, parseForm, patchCheckoutForm } from '../utils/forms';
@@ -19,46 +13,22 @@ import pickVariant from '../utils/pickVariant';
 
 const { Events } = Task;
 const { Events: TaskManagerEvents } = Manager;
-const { States, Types, DelayTypes, HookTypes, Modes, StateMap, HarvestStates } = TaskConstants;
+const { States, Types, Modes, StateMap } = TaskConstants;
 const { ParseType } = Monitor;
 
-export default class TaskPrimitive {
-  get state() {
-    return this._state;
-  }
-
-  get context() {
-    return this._context;
-  }
-
+export default class TaskPrimitive extends BaseTask {
   get type() {
     return this._type;
   }
 
-  get platform() {
-    return this._platform;
-  }
-
   constructor(context, type = Types.Normal, platform = Platforms.Shopify) {
-    this._context = context;
-    this._type = type;
-    this._aborter = new AbortController();
-    this._signal = this._aborter.signal;
-
-    // eslint-disable-next-line global-require
-    const _fetch = require('fetch-cookie/node-fetch')(fetch, context.jar);
-    this._fetch = defaults(_fetch, context.task.site.url, {
-      timeout: 35000, // to be overridden as necessary
-      signal: this._aborter.signal, // generic abort signal
-    });
-    this._platform = platform;
-
-    this._delayer = null;
-
+    super(context, platform);
     this._timers = {
       checkout: new Timer(),
       monitor: new Timer(),
     };
+
+    this._type = type;
 
     this._needsLogin = this._context.task.account || false;
     this._state = States.STARTED;
@@ -126,28 +96,6 @@ export default class TaskPrimitive {
     this._isChecking = false;
     this._isRestocking = false;
     this._previousProxy = '';
-
-    this._handleAbort = this._handleAbort.bind(this);
-    this._handleDelay = this._handleDelay.bind(this);
-    this._handleProduct = this._handleProduct.bind(this);
-    this._handleDeregisterProxy = this._handleDeregisterProxy.bind(this);
-
-    context.events.on(TaskManagerEvents.ChangeDelay, this._handleDelay, this);
-    context.events.on(TaskManagerEvents.UpdateHook, this._handleUpdateHooks, this);
-    context.events.on(TaskManagerEvents.ProductFound, this._handleProduct, this);
-    context.events.on(TaskManagerEvents.DeregisterProxy, this._handleDeregisterProxy, this);
-  }
-
-  _handleAbort(id) {
-    if (id !== this._context.id) {
-      return;
-    }
-
-    this._context.setAborted(true);
-    this._aborter.abort();
-    if (this._delayer) {
-      this._delayer.clear();
-    }
   }
 
   _handleHarvest(id, token) {
@@ -158,229 +106,6 @@ export default class TaskPrimitive {
     }
 
     return captchaQueue.insert(token);
-  }
-
-  async _compareProductInput(product, parseType) {
-    // we only care about keywords/url matching here...
-    switch (parseType) {
-      case ParseType.Keywords: {
-        const { pos_keywords: posKeywords, neg_keywords: negKeywords } = this._context.task.product;
-        const samePositiveKeywords = isEqual(product.pos_keywords.sort(), posKeywords.sort());
-        const sameNegativeKeywords = isEqual(product.neg_keywords.sort(), negKeywords.sort());
-        return samePositiveKeywords && sameNegativeKeywords;
-      }
-      case ParseType.Url: {
-        const { url } = this._context.task.product;
-        return url && product.url.toUpperCase() === url.toUpperCase();
-      }
-      default:
-        return false;
-    }
-  }
-
-  async _handleProduct(id, product, parseType) {
-    if (parseType === this._context.parseType && !this._isChecking) {
-      this._isChecking = true;
-      const isSameProductData = await this._compareProductInput(product, parseType);
-
-      if (
-        (isSameProductData && !this._context.task.product.variants) ||
-        (id === this.id && !this._context.task.product.variants)
-      ) {
-        this._context.task.product = {
-          ...this._context.task.product,
-          ...product,
-        };
-      } else {
-        this._isChecking = false;
-      }
-    }
-  }
-
-  _handleDeregisterProxy(id) {
-    if (id !== this._context.id) {
-      return;
-    }
-
-    this._deregisterOverride = true;
-    if (this._delayer) {
-      this._delayer.clear();
-    }
-  }
-
-  _handleDelay(id, delay, type) {
-    if (id !== this._context.id) {
-      return;
-    }
-
-    if (type === DelayTypes.error) {
-      this._context.task.errorDelay = delay;
-    } else if (type === DelayTypes.monitor) {
-      this._context.task.monitorDelay = delay;
-    }
-
-    if (this._delayer) {
-      this._delayer.clear();
-    }
-  }
-
-  _handleUpdateHooks(id, hook, type) {
-    if (id !== this._context.id) {
-      return;
-    }
-
-    if (type === HookTypes.Discord) {
-      const discord = hook ? new Discord(hook) : null;
-      this._context.setDiscord(discord);
-    } else if (type === HookTypes.Slack) {
-      const slack = hook ? new Slack(hook) : null;
-      this._context.setSlack(slack);
-    }
-  }
-
-  _cleanup() {
-    this.stopHarvestCaptcha();
-  }
-
-  getCaptcha() {
-    const { id, task, harvestState, captchaQueue, logger, events } = this._context;
-    if (harvestState === HarvestStates.idle) {
-      this._context.setCaptchaQueue(new AsyncQueue());
-      this._context.setHarvestState(HarvestStates.start);
-      events.on(TaskManagerEvents.Harvest, this._handleHarvest, this);
-    }
-
-    if (harvestState === HarvestStates.suspend) {
-      this._context.setHarvestState(HarvestStates.start);
-    }
-
-    if (harvestState === HarvestStates.start) {
-      logger.silly('[DEBUG]: Starting harvest...');
-      events.emit(
-        TaskManagerEvents.StartHarvest,
-        id,
-        task.site.sitekey || SiteKeyForPlatform[this._platform],
-        'http://checkout.shopify.com',
-        this._prevState === States.GO_TO_CHECKPOINT ? 1 : 0, // priority flag
-      );
-    }
-
-    // return the captcha request
-    return captchaQueue.next();
-  }
-
-  suspendHarvestCaptcha() {
-    const { id, task, harvestState, logger, events } = this._context;
-
-    if (harvestState !== HarvestStates.start) {
-      return;
-    }
-
-    logger.silly('[DEBUG]: Suspending harvest...');
-    events.emit(
-      TaskManagerEvents.StopHarvest,
-      context.id,
-      task.site.sitekey || SiteKeyForPlatform[this._platform],
-      'http://checkout.shopify.com',
-    );
-    this._context.setHarvestState(HarvestStates.suspend);
-  }
-
-  stopHarvestCaptcha() {
-    const { id, task, harvestState, captchaQueue, logger, events } = this._context;
-
-    if (harvestState !== HarvestStates.start && harvestState !== HarvestStates.suspend) {
-      return;
-    }
-
-    captchaQueue.destroy();
-    this._context.setCaptchaQueue(null);
-    logger.silly('[DEBUG]: Stopping harvest...');
-    events.emit(
-      TaskManagerEvents.StopHarvest,
-      id,
-      task.site.sitekey || SiteKeyForPlatform[this._platform],
-      'http://checkout.shopify.com',
-    );
-    events.removeListener(TaskManagerEvents.Harvest, this._handleHarvest, this);
-    this._context.setHarvestState(HarvestStates.stop);
-  }
-
-  async swapProxies() {
-    const { id, proxy, logger, events } = this._context;
-    events.emit(Events.SwapTaskProxy, id, proxy);
-    return new Promise((resolve, reject) => {
-      let timeout;
-      const proxyHandler = (id, newProxy) => {
-        logger.silly('Reached Proxy Handler, resolving');
-        // clear the timeout interval
-        clearTimeout(timeout);
-        // reset the timeout
-        timeout = null;
-        // finally, resolve with the new proxy
-        resolve(newProxy);
-      };
-      timeout = setTimeout(() => {
-        events.removeListener(Events.ReceiveProxy, proxyHandler);
-        logger.silly('Reached Proxy Timeout: should reject? %s', !!timeout);
-        // only reject if timeout has not been cleared
-        if (timeout) {
-          reject(new Error('Timeout'));
-        }
-      }, 10000); // TODO: Make this a variable delay?
-      events.once(Events.ReceiveProxy, proxyHandler);
-    });
-  }
-
-  // MARK: Event Registration
-  registerForEvent(event, callback) {
-    const { events } = this._context;
-    switch (event) {
-      case Events.TaskStatus: {
-        events.on(Events.TaskStatus, callback);
-        break;
-      }
-      default:
-        break;
-    }
-  }
-
-  deregisterForEvent(event, callback) {
-    const { events } = this._context;
-    switch (event) {
-      case Events.TaskStatus: {
-        events.removeListener(Events.TaskStatus, callback);
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-  }
-
-  // MARK: Event Emitting
-  _emitEvent(event, payload) {
-    const { id, logger, events } = this._context;
-
-    switch (event) {
-      // Emit supported events on their specific channel
-      case Events.TaskStatus: {
-        events.emit(event, [id], payload, event);
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-    logger.silly('Event %s emitted: %j', event, payload);
-  }
-
-  _emitTaskEvent(payload = {}) {
-    const { message } = payload;
-    if (message && message !== this._context.message) {
-      this._context.setMessage(message);
-      this._emitEvent(Events.TaskStatus, { ...payload, type: Types.Normal });
-    }
   }
 
   async getCookie(jar, name) {
@@ -5526,102 +5251,6 @@ export default class TaskPrimitive {
     }
   }
 
-  async _handleSwapProxies() {
-    const {
-      task: { errorDelay },
-    } = this._context;
-    try {
-      this._logger.silly('Waiting for new proxy...');
-      const proxy = await this.swapProxies();
-
-      this._logger.debug(
-        'PROXY IN _handleSwapProxies: %j Should Ban?: %d',
-        proxy,
-        this.shouldBanProxy,
-      );
-      // Proxy is fine, update the references
-      if ((proxy || proxy === null) && this._previousProxy !== null) {
-        if (proxy === null) {
-          this._previousProxy = this._context.proxy;
-          this.proxy = proxy; // null
-          this._context.proxy = proxy; // null
-          this._context.rawProxy = 'localhost';
-          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-          this._emitTaskEvent({
-            message: `Swapped proxy to: localhost`,
-            proxy,
-          });
-        } else {
-          this._previousProxy = this._context.proxy;
-          this.proxy = proxy;
-          const p = proxy ? new HttpsProxyAgent(proxy.proxy) : null;
-
-          if (p) {
-            p.options.maxSockets = Infinity;
-            p.options.maxFreeSockets = Infinity;
-            p.options.keepAlive = true;
-            p.maxFreeSockets = Infinity;
-            p.maxSockets = Infinity;
-          }
-          this._context.proxy = p;
-          this._context.rawProxy = proxy.raw;
-          this.shouldBanProxy = 0; // reset ban flag
-          this._logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-          this._emitTaskEvent({
-            message: `Swapped proxy to: ${proxy.raw}`,
-            proxy: proxy.raw,
-          });
-        }
-        this._logger.debug('Rewinding to state: %s', this._prevState);
-        return this._prevState;
-      }
-
-      this._emitTaskEvent({
-        message: `No open proxy! Delaying ${errorDelay}ms`,
-      });
-      // If we get a null proxy back, there aren't any available. We should wait the error delay, then try again
-      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
-      await this._delayer;
-      this._emitTaskEvent({ message: 'Proxy banned!' });
-    } catch (err) {
-      this._logger.verbose('Swap Proxies Handler completed with errors: %s', err, err);
-      this._emitTaskEvent({
-        message: 'Error swapping proxies! Retrying...',
-      });
-    }
-
-    // Go back to previous state
-    return this._prevState;
-  }
-
-  _generateEndStateHandler(state) {
-    let status = 'stopped';
-    switch (state) {
-      case States.ABORT: {
-        status = 'aborted';
-        break;
-      }
-      case States.ERROR: {
-        status = 'errored out';
-        break;
-      }
-      case States.DONE: {
-        status = 'finished';
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-    return () => {
-      this._emitTaskEvent({
-        message: this._context.status || `Task has ${status}`,
-        done: true,
-      });
-      return States.DONE;
-    };
-  }
-
   async _handleStepLogic(currentState) {
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');
@@ -5652,65 +5281,13 @@ export default class TaskPrimitive {
       [States.PROCESS_PAYMENT]: this._handlePaymentProcess,
       [States.BACKUP_PROCESS_PAYMENT]: this._handleBackupProcessPayment,
       [States.SWAP]: this._handleSwapProxies,
-      [States.DONE]: this._generateEndStateHandler(States.DONE),
-      [States.ERROR]: this._generateEndStateHandler(States.ERROR),
-      [States.ABORT]: this._generateEndStateHandler(States.ABORT),
+      [States.DONE]: () => States.DONE,
+      [States.ERROR]: () => States.DONE,
+      [States.ABORT]: () => States.DONE,
     };
 
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);
-  }
-
-  // MARK: State Machine Run Loop
-
-  async run() {
-    let nextState = this._state;
-
-    if (this._context.aborted) {
-      nextState = States.ABORT;
-    }
-
-    try {
-      nextState = await this._handleStepLogic(this._state);
-    } catch (e) {
-      if (!/aborterror/i.test(e.name)) {
-        this._logger.verbose('Run loop errored out! %s', e);
-        nextState = States.ERROR;
-        return true;
-      }
-    }
-
-    if (this._state !== nextState) {
-      // this._history.push(this._state);
-      this._prevState = this._state;
-      this._state = nextState;
-    }
-
-    // overwrite nextState if we're deregistering proxy
-    if (this._deregisterOverride) {
-      this._state = States.SWAP;
-      this._deregisterOverride = false;
-    }
-
-    this._logger.silly('Run Loop finished, state transitioned to: %s', this._state);
-
-    if (nextState === States.ABORT) {
-      return true;
-    }
-
-    return false;
-  }
-
-  async start() {
-    this._prevState = States.STARTED;
-
-    let shouldStop = false;
-    while (this._state !== States.DONE && !shouldStop) {
-      // eslint-disable-next-line no-await-in-loop
-      shouldStop = await this.run();
-    }
-
-    this._cleanup();
   }
 }
 

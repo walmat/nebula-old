@@ -6,7 +6,6 @@ const MonitorStates = {
   DONE: 'DONE',
   ERROR: 'ERROR',
   ABORT: 'ABORT',
-  STOP: 'STOP',
 };
 
 /**
@@ -53,39 +52,11 @@ const TaskTypes = {
   ShippingRates: 'srr',
 };
 
-const TaskDelayTypes = {
-  error: 'errorDelay',
-  monitor: 'monitorDelay',
-};
-
-const TaskHookTypes = {
-  slack: 'slack',
-  discord: 'discord',
-};
-
 const Modes = {
   SAFE: 'SAFE',
   FAST: 'FAST',
   CART: 'CART',
   UNKNOWN: 'UNKNOWN',
-};
-
-const TaskHarvestStates = {
-  idle: 'IDLE',
-  start: 'START',
-  suspend: 'SUSPEND',
-  stop: 'STOP',
-};
-
-/**
- * Error Codes
- */
-const ErrorCodes = {
-  PasswordPage: 'PASSWORD_PAGE',
-  ProductNotFound: 'PRODUCT_MISSING',
-  ProductNotLive: 'PRODUCT_NOT_LIVE',
-  VariantsNotAvailable: 'VARIANTS_NOT_AVAILABLE',
-  VariantsNotMatched: 'VARIANTS_NOT_MATCHED',
 };
 
 /**
@@ -217,14 +188,6 @@ const QueueNextState = {
   },
 };
 
-const ParseType = {
-  Unknown: 'UNKNOWN',
-  Variant: 'VARIANT',
-  Url: 'URL',
-  Keywords: 'KEYWORDS',
-  Special: 'SPECIAL',
-};
-
 const CheckoutRefreshTimeout = 98000;
 
 const Task = {
@@ -233,15 +196,10 @@ const Task = {
   States: CheckoutStates,
   StateMap: QueueNextState,
   CheckoutRefresh: CheckoutRefreshTimeout,
-  DelayTypes: TaskDelayTypes,
-  HookTypes: TaskHookTypes,
-  HarvestStates: TaskHarvestStates,
 };
 
 const Monitor = {
   States: MonitorStates,
-  DelayTypes: TaskDelayTypes,
-  ParseType,
 };
 
-export { Task, Monitor, ErrorCodes };
+export { Task, Monitor };
