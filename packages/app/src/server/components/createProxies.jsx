@@ -12,8 +12,8 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
-import defns from '../../state/definitions/serverDefinitions';
-import { SERVER_FIELDS, serverActions } from '../../state/actions';
+import defns from '../../store/definitions/serverDefinitions';
+import { SERVER_FIELDS, serverActions } from '../../store/actions';
 import addTestId from '../../utils/addTestId';
 import { buildStyle } from '../../styles';
 

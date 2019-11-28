@@ -1,9 +1,12 @@
 import { render } from 'react-dom';
 import createApp from './app';
-import configureStore from './state/configureStore';
-import { globalActions } from './state/actions';
+import configureStore from './store/config';
+import { appActions } from './store/actions';
 
+const MOUNT_POINT = document.getElementById('root');
 const store = configureStore();
-store.dispatch(globalActions.migrateState());
 
-render(createApp(store), document.getElementById('root'));
+// dispatch the migrate action...
+store.dispatch(appActions.migrateState());
+
+render(createApp(store), MOUNT_POINT);

@@ -12,8 +12,8 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
-import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../state/actions';
-import sDefns from '../../state/definitions/settingsDefinitions';
+import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../store/actions';
+import sDefns from '../../store/definitions/settingsDefinitions';
 
 import addTestId from '../../utils/addTestId';
 

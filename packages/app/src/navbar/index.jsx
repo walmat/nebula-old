@@ -4,7 +4,7 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import PLATFORMS from '../constants/platforms';
-import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../state/actions';
+import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../store/actions';
 
 import { renderSvgIcon } from '../utils';
 // import Bodymovin from './components/bodymovin';

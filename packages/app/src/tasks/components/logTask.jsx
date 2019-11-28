@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
-import tDefns from '../../state/definitions/taskDefinitions';
+import tDefns from '../../store/definitions/taskDefinitions';
 import { addTestId } from '../../utils';
 
 export class LogTaskPrimitive extends PureComponent {

@@ -7,9 +7,9 @@ import ShippingRateFields from './components/shippingRates';
 import LocationFields from './components/locationFields';
 import LoadProfile from './components/loadProfile';
 import validationStatus from '../utils/validationStatus';
-import defns from '../state/definitions/profileDefinitions';
+import defns from '../store/definitions/profileDefinitions';
 
-import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../state/actions';
+import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../store/actions';
 
 import '../styles/index.scss';
 import './styles/index.scss';

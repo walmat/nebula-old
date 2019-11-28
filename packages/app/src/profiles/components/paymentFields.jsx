@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import NumberFormat from 'react-number-format';
 import PropTypes from 'prop-types';
 import validationStatus from '../../utils/validationStatus';
-import defns from '../../state/definitions/profileDefinitions';
-import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../../state/actions';
+import defns from '../../store/definitions/profileDefinitions';
+import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../../store/actions';
 import { addTestId } from '../../utils';
 
 export class PaymentFieldsPrimitive extends PureComponent {

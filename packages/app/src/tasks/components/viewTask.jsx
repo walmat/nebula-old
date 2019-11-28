@@ -12,10 +12,10 @@ import {
 import NumberFormat from 'react-number-format';
 
 import TaskRow from './taskRow';
-import sDefns from '../../state/definitions/settingsDefinitions';
-import tDefns from '../../state/definitions/taskDefinitions';
+import sDefns from '../../store/definitions/settingsDefinitions';
+import tDefns from '../../store/definitions/taskDefinitions';
 
-import { SETTINGS_FIELDS, settingsActions, taskActions } from '../../state/actions';
+import { SETTINGS_FIELDS, settingsActions, taskActions } from '../../store/actions';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { buildStyle } from '../../styles';
 

@@ -8,14 +8,14 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 
-import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../../state/actions';
+import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../../store/actions';
 import * as getAllSizes from '../../constants/getAllSizes';
 import { THEMES } from '../../constants/themes';
 import PLATFORMS from '../../constants/platforms';
 
-import sDefns from '../../state/definitions/settingsDefinitions';
-import pDefns from '../../state/definitions/profileDefinitions';
-import tDefns from '../../state/definitions/taskDefinitions';
+import sDefns from '../../store/definitions/settingsDefinitions';
+import pDefns from '../../store/definitions/profileDefinitions';
+import tDefns from '../../store/definitions/taskDefinitions';
 
 import { ReactComponent as NotInStock } from '../../styles/images/tasks/random-off.svg';
 import { ReactComponent as InStock } from '../../styles/images/tasks/random.svg';

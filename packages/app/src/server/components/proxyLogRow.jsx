@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Loader from 'react-loader-spinner';
 import { addTestId, renderSvgIcon } from '../../utils';
-import { serverActions } from '../../state/actions';
-import sDefns from '../../state/definitions/serverDefinitions';
+import { serverActions } from '../../store/actions';
+import sDefns from '../../store/definitions/serverDefinitions';
 
 import { ReactComponent as Running } from '../../styles/images/server/running.svg';
 import { ReactComponent as Test } from '../../styles/images/server/test.svg';

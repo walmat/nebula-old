@@ -4,8 +4,13 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { groupBy } from 'lodash';
 
-import defns from '../../state/definitions/serverDefinitions';
-import { SERVER_FIELDS, mapServerFieldToKey, serverActions } from '../../state/actions';
+import defns from '../../store/definitions/serverDefinitions';
+import {
+  SERVER_ACTIONS,
+  SERVER_FIELDS,
+  mapServerFieldToKey,
+  serverActions,
+} from '../../store/actions';
 import {
   DropdownIndicator,
   IndicatorSeparator,
@@ -17,7 +22,6 @@ import {
 } from '../../styles/components/select';
 import addTestId from '../../utils/addTestId';
 import { buildStyle } from '../../styles';
-import { SERVER_ACTIONS } from '../../state/actions/server/serverActions';
 
 export class AWSCredentialsPrimitive extends PureComponent {
   static maskInput(input) {

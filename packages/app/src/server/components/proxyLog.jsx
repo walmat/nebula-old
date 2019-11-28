@@ -3,7 +3,7 @@ import ScrollableFeed from 'react-scrollable-feed';
 import { connect } from 'react-redux';
 
 import ProxyLogRow from './proxyLogRow';
-import defns from '../../state/definitions/serverDefinitions';
+import defns from '../../store/definitions/serverDefinitions';
 
 export class ProxyLogPrimitive extends PureComponent {
   constructor(props) {

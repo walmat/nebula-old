@@ -10,8 +10,8 @@ import {
 } from '../../styles/components/select';
 import addTestId from '../../utils/addTestId';
 import validationStatus from '../../utils/validationStatus';
-import defns from '../../state/definitions/profileDefinitions';
-import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../state/actions';
+import defns from '../../store/definitions/profileDefinitions';
+import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../store/actions';
 
 export class ShippingRatesPrimitive extends PureComponent {
   static renderButton(type, onClick, label) {

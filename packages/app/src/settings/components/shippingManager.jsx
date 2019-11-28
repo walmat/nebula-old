@@ -14,9 +14,9 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
-import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../state/actions';
-import pDefns from '../../state/definitions/profileDefinitions';
-import sDefns from '../../state/definitions/settingsDefinitions';
+import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../store/actions';
+import pDefns from '../../store/definitions/profileDefinitions';
+import sDefns from '../../store/definitions/settingsDefinitions';
 import addTestId from '../../utils/addTestId';
 
 export class ShippingManagerPrimitive extends PureComponent {

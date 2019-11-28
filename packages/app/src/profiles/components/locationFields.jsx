@@ -2,14 +2,14 @@ import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import defns from '../../state/definitions/profileDefinitions';
+import defns from '../../store/definitions/profileDefinitions';
 import getAllCountries, { getProvinces, getCountry } from '../../constants/getAllCountries';
 import {
   LOCATION_FIELDS,
   profileActions,
   mapProfileFieldToKey,
   PROFILE_FIELDS,
-} from '../../state/actions';
+} from '../../store/actions';
 import { buildStyle } from '../../styles';
 import {
   DropdownIndicator,

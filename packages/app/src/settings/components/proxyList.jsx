@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import sanitizeHtml from 'sanitize-html';
 
-import { SETTINGS_FIELDS, settingsActions } from '../../state/actions';
-import defns from '../../state/definitions/settingsDefinitions';
+import { SETTINGS_FIELDS, settingsActions } from '../../store/actions';
+import defns from '../../store/definitions/settingsDefinitions';
 import { addTestId } from '../../utils';
 
 export class ProxyListPrimitive extends Component {

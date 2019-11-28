@@ -11,9 +11,9 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
-import { profileActions } from '../../state/actions';
+import { profileActions } from '../../store/actions';
 import { buildStyle } from '../../styles';
-import defns from '../../state/definitions/profileDefinitions';
+import defns from '../../store/definitions/profileDefinitions';
 
 export class LoadProfilePrimitive extends PureComponent {
   constructor(props) {

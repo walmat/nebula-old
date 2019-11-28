@@ -13,16 +13,16 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
-import sDefns from '../../state/definitions/settingsDefinitions';
-import tDefns from '../../state/definitions/taskDefinitions';
-import pDefns from '../../state/definitions/profileDefinitions';
+import sDefns from '../../store/definitions/settingsDefinitions';
+import tDefns from '../../store/definitions/taskDefinitions';
+import pDefns from '../../store/definitions/profileDefinitions';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { ReactComponent as EditIcon } from '../../styles/images/tasks/edit.svg';
 import { ReactComponent as CopyIcon } from '../../styles/images/tasks/copy.svg';
 import { ReactComponent as StartIcon } from '../../styles/images/tasks/start.svg';
 import { ReactComponent as StopIcon } from '../../styles/images/tasks/stop.svg';
 import { ReactComponent as DestroyIcon } from '../../styles/images/tasks/destroy.svg';
-import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../../state/actions';
+import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../../store/actions';
 import { buildStyle } from '../../styles';
 
 export class TaskRowPrimitive extends PureComponent {

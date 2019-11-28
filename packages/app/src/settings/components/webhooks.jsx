@@ -2,8 +2,8 @@ import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { buildStyle } from '../../styles';
-import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../state/actions';
-import sDefns from '../../state/definitions/settingsDefinitions';
+import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../store/actions';
+import sDefns from '../../store/definitions/settingsDefinitions';
 
 export class WebhooksPrimitive extends PureComponent {
   static renderWebhookButton(type, onClick, onKeyPress) {
