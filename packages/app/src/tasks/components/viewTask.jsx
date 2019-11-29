@@ -15,6 +15,7 @@ import TaskRow from './taskRow';
 import sDefns from '../../store/definitions/settingsDefinitions';
 import tDefns from '../../store/definitions/taskDefinitions';
 
+import { makeTasks, makeSelectedTask } from '../../store/selectors/tasks';
 import { SETTINGS_FIELDS, settingsActions, taskActions } from '../../store/actions';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { buildStyle } from '../../styles';
@@ -60,15 +61,11 @@ export class ViewTaskPrimitive extends PureComponent {
     });
   }
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this._handleKeyDown);
-  }
-
   componentDidMount() {
     window.addEventListener('keydown', this._handleKeyDown);
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     const {
       selectedTask: { id },
     } = this.props;
@@ -79,6 +76,10 @@ export class ViewTaskPrimitive extends PureComponent {
         this._list.recomputeRowHeights();
       }
     }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this._handleKeyDown);
   }
 
   isRowLoaded({ index }) {
@@ -181,23 +182,6 @@ export class ViewTaskPrimitive extends PureComponent {
     }
   }
 
-  renderDelay(field, value) {
-    const { className, delayType, label, placeholder } = this.delays[field];
-    return (
-      <div className={className}>
-        <p className="tasks__label">{label}</p>
-        <NumberFormat
-          value={value}
-          placeholder={placeholder}
-          className={`bulk-action-sidebar__${delayType}-delay`}
-          style={buildStyle(false)}
-          onChange={e => this.createOnChangeHandler(field, e)}
-          required
-        />
-      </div>
-    );
-  }
-
   createTable() {
     const { tasks } = this.props;
     return (
@@ -219,7 +203,9 @@ export class ViewTaskPrimitive extends PureComponent {
                   ref={this._setListRef}
                   deferredMeasurementCache={this.cache}
                   rowHeight={this.cache.rowHeight}
-                  rowRenderer={({ index, key, style, parent, isVisible }) => this.renderRow({ index, key, style, parent, isVisible, task: tasks[index] })}
+                  rowRenderer={({ index, key, style, parent, isVisible }) =>
+                    this.renderRow({ index, key, style, parent, isVisible, task: tasks[index] })
+                  }
                   rowCount={tasks.length}
                   overscanRowCount={50}
                 />
@@ -234,6 +220,23 @@ export class ViewTaskPrimitive extends PureComponent {
   _setListRef(ref) {
     this._list = ref;
     this._registerList(ref);
+  }
+
+  renderDelay(field, value) {
+    const { className, delayType, label, placeholder } = this.delays[field];
+    return (
+      <div className={className}>
+        <p className="tasks__label">{label}</p>
+        <NumberFormat
+          value={value}
+          placeholder={placeholder}
+          className={`bulk-action-sidebar__${delayType}-delay`}
+          style={buildStyle(false)}
+          onChange={e => this.createOnChangeHandler(field, e)}
+          required
+        />
+      </div>
+    );
   }
 
   renderRow({ index, key, style, parent, isVisible, task }) {
@@ -256,7 +259,7 @@ export class ViewTaskPrimitive extends PureComponent {
   }
 
   render() {
-    const { onKeyPress, monitorDelay, errorDelay } = this.props;
+    const { onKeyPress, monitor, error } = this.props;
     return (
       <div className="row row--expand row--start" style={{ width: '100%' }}>
         <div className="col col--expand col--start">
@@ -338,22 +341,22 @@ export class ViewTaskPrimitive extends PureComponent {
                 </div>
               </div>
               <div className="row row--start">
-                {this.renderDelay(SETTINGS_FIELDS.EDIT_MONITOR_DELAY, monitorDelay)}
+                {this.renderDelay(SETTINGS_FIELDS.EDIT_MONITOR_DELAY, monitor)}
               </div>
               <div className="row row--start">
-                {this.renderDelay(SETTINGS_FIELDS.EDIT_ERROR_DELAY, errorDelay)}
+                {this.renderDelay(SETTINGS_FIELDS.EDIT_ERROR_DELAY, error)}
               </div>
             </div>
           </div>
         </div>
       </div>
-    )
+    );
   }
 }
 
 ViewTaskPrimitive.propTypes = {
-  monitorDelay: PropTypes.number.isRequired,
-  errorDelay: PropTypes.number.isRequired,
+  monitor: PropTypes.number.isRequired,
+  error: PropTypes.number.isRequired,
   proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
   tasks: tDefns.taskList.isRequired,
   selectedTask: tDefns.task.isRequired,
@@ -370,11 +373,11 @@ ViewTaskPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  monitorDelay: state.settings.monitorDelay,
-  errorDelay: state.settings.errorDelay,
-  tasks: state.tasks,
-  selectedTask: state.selectedTask,
-  proxies: state.settings.proxies,
+  monitor: state.Settings.monitor,
+  error: state.Settings.error,
+  tasks: makeTasks(state),
+  selectedTask: makeSelectedTask(state),
+  proxies: state.Settings.proxies,
 });
 
 export const mapDispatchToProps = dispatch => ({
@@ -395,4 +398,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ViewTaskPrimitive);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ViewTaskPrimitive);

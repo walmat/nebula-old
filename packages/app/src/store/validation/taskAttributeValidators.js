@@ -60,7 +60,7 @@ const taskAttributeValidators = {
   [TASK_FIELDS.EDIT_PRODUCT]: validateProduct,
   [TASK_FIELDS.EDIT_SITE]: validateSite,
   [TASK_FIELDS.EDIT_PROFILE]: validateProfile,
-  [TASK_FIELDS.EDIT_SIZES]: validateNonEmpty,
+  [TASK_FIELDS.EDIT_SIZE]: validateNonEmpty,
   [TASK_FIELDS.EDIT_TASK_CATEGORY]: validateNonEmpty,
   [TASK_FIELDS.EDIT_PRODUCT_VARIATION]: validateNonEmpty,
   [TASK_FIELDS.EDIT_CHECKOUT_DELAY]: validateNonEmpty,

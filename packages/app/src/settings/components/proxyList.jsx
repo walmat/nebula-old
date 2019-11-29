@@ -198,8 +198,8 @@ ProxyListPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  proxies: state.settings.proxies,
-  errors: state.settings.errors.proxies ? state.settings.errors.proxies : [],
+  proxies: state.Settings.proxies,
+  errors: state.Settings.errors.proxies ? state.Settings.errors.proxies : [],
 });
 
 export const mapDispatchToProps = dispatch => ({

@@ -185,7 +185,7 @@ ShippingRatesPrimitive.propTypes = {
 };
 
 export const mapStateToProps = (state, ownProps) => ({
-  theme: state.theme,
+  theme: state.App.theme,
   value: ownProps.profileToEdit,
 });
 

@@ -491,14 +491,14 @@ TaskRowPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = (state, ownProps) => ({
-  profiles: state.profiles,
-  proxies: state.settings.proxies,
+  profiles: state.Profiles,
+  proxies: state.Settings.proxies,
   task: ownProps.task,
-  sites: (state.sites || []).filter(site => site.label === ownProps.task.platform),
+  sites: (state.Sites || []).filter(site => site.label === ownProps.task.platform),
   style: ownProps.style,
   edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
-  theme: state.theme,
+  theme: state.App.theme,
   errors: ownProps.task.edits.errors,
 });
 

@@ -310,11 +310,11 @@ ShippingManagerPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  profiles: state.profiles,
-  sites: (state.sites || []).filter(site => site.label === 'Shopify'),
-  shipping: state.settings.shipping,
-  errors: state.settings.shipping.errors,
-  theme: state.theme,
+  profiles: state.Profiles,
+  sites: (state.Sites || []).filter(site => site.label === 'Shopify'),
+  shipping: state.Settings.shipping,
+  errors: state.Settings.shipping.errors,
+  theme: state.App.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

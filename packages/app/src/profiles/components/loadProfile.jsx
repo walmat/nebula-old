@@ -136,9 +136,9 @@ LoadProfilePrimitive.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  profiles: state.profiles,
-  selectedProfile: state.selectedProfile,
-  theme: state.theme,
+  profiles: state.Profiles,
+  selectedProfile: state.SelectedProfile,
+  theme: state.App.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

@@ -1,12 +1,11 @@
 /**
  * This file is a shared import point for all actions.
  */
-import * as app from '../app/actions';
-import * as profiles from '../profiles/actions';
-import * as task from '../tasks/actions';
-import * as settings from '../settings/actions';
-import * as server from '../server/actions';
-import * as navbar from '../navbar/actions';
+import * as app from '../app/state/actions';
+import * as profiles from '../profiles/state/actions';
+import * as task from '../tasks/state/actions';
+import * as settings from '../settings/state/actions';
+import * as navbar from '../navbar/state/actions';
 
 // Reimports
 export const {
@@ -23,14 +22,6 @@ export const {
 } = profiles;
 
 export const { taskActions, mapTaskFieldsToKey, TASK_ACTIONS, TASK_FIELDS } = task;
-
-export const {
-  serverActions,
-  mapServerFieldToKey,
-  subMapToKey,
-  SERVER_ACTIONS,
-  SERVER_FIELDS,
-} = server;
 
 export const {
   settingsActions,

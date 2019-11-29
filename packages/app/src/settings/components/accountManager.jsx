@@ -235,7 +235,7 @@ export class AccountManagerPrimitive extends PureComponent {
 }
 
 AccountManagerPrimitive.propTypes = {
-  accounts: sDefns.settings.accounts,
+  accounts: sDefns.accountList.isRequired,
   onSelectAccount: PropTypes.func.isRequired,
   onSettingsChange: PropTypes.func.isRequired,
   onSaveAccount: PropTypes.func.isRequired,
@@ -250,9 +250,9 @@ AccountManagerPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  accounts: state.settings.accounts,
-  errors: state.settings.shipping.errors,
-  theme: state.theme,
+  accounts: state.Settings.accounts,
+  errors: state.Settings.shipping.errors,
+  theme: state.App.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

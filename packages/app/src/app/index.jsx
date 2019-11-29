@@ -8,7 +8,6 @@ import PropTypes from 'prop-types';
 import Navbar from '../navbar';
 import Tasks from '../tasks';
 import Profiles from '../profiles';
-import Server from '../server';
 import Settings from '../settings';
 import { ROUTES, taskActions, appActions } from '../store/actions';
 import { THEMES, mapBackgroundThemeToColor, mapToNextTheme } from '../constants/themes';
@@ -69,7 +68,9 @@ export class App extends PureComponent {
   componentDidMount() {
     if (window.Bridge) {
       const { store } = this.props;
-      const { theme } = store.getState();
+      const {
+        App: { theme },
+      } = store.getState();
       const backgroundColor = mapBackgroundThemeToColor[theme];
       window.Bridge.setTheme({ backgroundColor });
       window.Bridge.registerForTaskEvents(this.taskHandler);
@@ -87,7 +88,9 @@ export class App extends PureComponent {
   }
 
   setTheme(store) {
-    const { theme } = store.getState();
+    const {
+      App: { theme },
+    } = store.getState();
     const nextTheme = mapToNextTheme[theme] || THEMES.LIGHT;
     store.dispatch(appActions.setTheme(nextTheme));
     if (window.Bridge) {
@@ -111,7 +114,7 @@ export class App extends PureComponent {
 
   _cleanupTaskLog() {
     const { store } = this.props;
-    const { tasks } = store.getState();
+    const { Tasks: tasks } = store.getState();
     tasks.forEach(t => {
       if (t.status === 'running' || t.status === 'used') {
         store.dispatch(taskActions.stop(t));
@@ -148,8 +151,8 @@ export class App extends PureComponent {
   render() {
     const { store, onKeyPress } = this.props;
     const {
-      theme,
-      navbar: { location: stateLocation },
+      App: { theme },
+      Navbar: { location: stateLocation },
     } = store.getState();
     const windowLocation = window.location.pathname;
     let redirectRoute = ROUTES.TASKS;
@@ -231,7 +234,6 @@ export class App extends PureComponent {
               <Switch>
                 <Route component={Tasks} path={ROUTES.TASKS} />
                 <Route component={Profiles} path={ROUTES.PROFILES} />
-                <Route component={Server} path={ROUTES.SERVER} />
                 <Route component={Settings} path={ROUTES.SETTINGS} />
                 <Route path="/">
                   <Redirect to={redirectRoute} />

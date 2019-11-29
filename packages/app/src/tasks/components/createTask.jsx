@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 
+import { makeNewTask } from '../../store/selectors/tasks';
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../../store/actions';
 import * as getAllSizes from '../../constants/getAllSizes';
 import { THEMES } from '../../constants/themes';
@@ -727,6 +728,7 @@ CreateTaskPrimitive.propTypes = {
   onFieldChange: PropTypes.func.isRequired,
   profiles: pDefns.profileList.isRequired,
   accounts: sDefns.accountList.isRequired,
+  sites: PropTypes.objectOf(PropTypes.any).isRequired,
   task: tDefns.task.isRequired,
   theme: PropTypes.string.isRequired,
   errors: tDefns.taskErrors.isRequired,
@@ -739,12 +741,12 @@ CreateTaskPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  profiles: state.profiles,
-  accounts: state.settings.accounts.list,
-  sites: state.sites,
-  task: state.newTask,
-  theme: state.theme,
-  errors: state.newTask.errors,
+  profiles: state.Profiles,
+  accounts: state.Settings.accounts,
+  sites: state.Sites,
+  task: makeNewTask(state),
+  theme: state.App.theme,
+  errors: state.NewTask.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({

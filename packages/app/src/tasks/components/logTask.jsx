@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
+import { makeTasks } from '../../store/selectors/tasks';
 import tDefns from '../../store/definitions/taskDefinitions';
 import { addTestId } from '../../utils';
 
@@ -58,7 +59,9 @@ export class LogTaskPrimitive extends PureComponent {
     return (
       <InfiniteLoader
         isRowLoaded={({ index }) => this.isRowLoaded({ index, tasks: runningTasks })}
-        loadMoreRows={({ startIndex, stopIndex }) => this.loadMoreRows({ startIndex, stopIndex, tasks: runningTasks })}
+        loadMoreRows={({ startIndex, stopIndex }) =>
+          this.loadMoreRows({ startIndex, stopIndex, tasks: runningTasks })
+        }
         rowCount={runningTasks.length}
       >
         {({ onRowsRendered, registerChild }) => (
@@ -70,7 +73,9 @@ export class LogTaskPrimitive extends PureComponent {
                 onRowsRendered={onRowsRendered}
                 ref={registerChild}
                 rowHeight={30}
-                rowRenderer={({ index, key, style, isVisible }) => this.renderRow(({ key, style, isVisible, task: runningTasks[index] }))}
+                rowRenderer={({ index, key, style, isVisible }) =>
+                  this.renderRow({ key, style, isVisible, task: runningTasks[index] })
+                }
                 rowCount={runningTasks.length}
                 overscanRowCount={0}
               />
@@ -85,7 +90,7 @@ export class LogTaskPrimitive extends PureComponent {
     const { fullscreen } = this.state;
 
     if (!isVisible) {
-      return;
+      return null;
     }
     return (
       <LogTaskRow key={key} style={style} task={task} fullscreen={fullscreen} selected={false} />
@@ -202,7 +207,7 @@ LogTaskPrimitive.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  tasks: state.tasks,
+  tasks: makeTasks(state),
 });
 
 export default connect(mapStateToProps)(LogTaskPrimitive);

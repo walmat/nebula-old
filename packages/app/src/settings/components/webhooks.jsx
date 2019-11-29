@@ -103,9 +103,9 @@ WebhooksPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  discord: state.settings.discord,
-  slack: state.settings.slack,
-  errors: state.settings.errors,
+  discord: state.Settings.discord,
+  slack: state.Settings.slack,
+  errors: state.Settings.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({

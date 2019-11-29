@@ -7,11 +7,9 @@ import PLATFORMS from '../constants/platforms';
 import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../store/actions';
 
 import { renderSvgIcon } from '../utils';
-// import Bodymovin from './components/bodymovin';
 import Logo from '../styles/images/navbar/logo.png';
 import { ReactComponent as TasksIcon } from '../styles/images/navbar/tasks.svg';
 import { ReactComponent as ProfilesIcon } from '../styles/images/navbar/profiles.svg';
-import { ReactComponent as ServerIcon } from '../styles/images/navbar/server.svg';
 import { ReactComponent as SettingsIcon } from '../styles/images/navbar/settings.svg';
 import { mapBackgroundThemeToColor } from '../constants/themes';
 
@@ -72,11 +70,6 @@ export class NavbarPrimitive extends PureComponent {
         Icon: ProfilesIcon,
         iconName: 'profiles',
         classNameGenerator: classNameCalc(ROUTES.PROFILES),
-      },
-      [NAVBAR_ACTIONS.ROUTE_SERVER]: {
-        Icon: ServerIcon,
-        iconName: 'server',
-        classNameGenerator: classNameCalc(ROUTES.SERVER),
       },
       [NAVBAR_ACTIONS.ROUTE_SETTINGS]: {
         Icon: SettingsIcon,
@@ -146,7 +139,6 @@ export class NavbarPrimitive extends PureComponent {
     return [
       NAVBAR_ACTIONS.ROUTE_TASKS,
       NAVBAR_ACTIONS.ROUTE_PROFILES,
-      NAVBAR_ACTIONS.ROUTE_SERVER,
       NAVBAR_ACTIONS.ROUTE_SETTINGS,
     ].map(route => this.renderNavbarIconRow(route, this.defaultIconProps[route]));
   }
@@ -215,8 +207,8 @@ NavbarPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  location: state.navbar.location,
-  theme: state.theme,
+  location: state.Navbar.location,
+  theme: state.App.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

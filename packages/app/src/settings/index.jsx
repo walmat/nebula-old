@@ -24,7 +24,6 @@ export default () => (
           </div>
           <div className="col col--start settings__extras" style={{ flexGrow: 0 }}>
             <Webhooks />
-            {/* <Defaults /> */}
             <ShippingManager />
             <AccountManager />
             <StateFunctions />

@@ -342,9 +342,9 @@ export const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
   header: ownProps.header,
   className: ownProps.className,
-  theme: state.theme,
+  theme: state.App.theme,
   disabled: ownProps.disabled,
-  currentProfile: state.currentProfile,
+  currentProfile: state.CurrentProfile,
   errors: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]].errors,
   value: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]],
 });
