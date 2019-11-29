@@ -1,13 +1,7 @@
 import { mapActionsToRoutes } from '../actions';
-import { initialState } from '../../../store/migrators';
+import Navbar from '../initial';
 
-const initialNavbarState = initialState.Navbar;
-
-export default function navbarReducer(state = initialNavbarState, action) {
+export default function navbarReducer(state = Navbar, action) {
   console.log('navbar reducer handling action: ', action);
-
-  const change = {
-    location: mapActionsToRoutes[action.type] || state.location,
-  };
-  return Object.assign({}, state, change);
+  return { ...state, location: mapActionsToRoutes[action.type] || state.location };
 }

@@ -2,50 +2,34 @@
  * Container for all state reducers. Reducers are available in their specific
  * files, this is just a shared import point.
  */
-import { isEmpty } from 'lodash';
 import { APP_ACTIONS } from '../actions';
-import topLevelMigrator, { initialState } from '../../../store/migrators';
+import { App } from '../initial';
 
-export default (state = initialState.App, action) => {
+export default (state = App, action) => {
   // Return State if a null/undefined action is given
   if (!action) {
-    return state || initialState;
+    return state || App;
   }
 
-  switch (action.type) {
-    // case APP_ACTIONS.IMPORT: {
-    //   const { state: newState } = action;
+  const { type } = action;
 
-    //   // boundary checks
-    //   if (!newState || isEmpty(newState) || (newState && !newState.version)) {
-    //     return state;
-    //   }
-
-    //   return topLevelMigrator(newState);
-    // }
-    // case APP_ACTIONS.MIGRATE_STATE:
-    // case APP_ACTIONS.INIT: {
-    //   return topLevelMigrator(state);
-    // }
+  switch (type) {
     case APP_ACTIONS.RESET:
-      return { ...initialState };
+      return { ...App };
     case APP_ACTIONS.SET_THEME: {
-      if (!action.theme) {
+      const { theme } = action;
+      if (!theme || (theme && theme === state.theme)) {
         return state;
       }
 
-      const { theme } = action;
-      return {
-        ...state,
-        theme,
-      };
+      return { ...state, theme };
     }
     case APP_ACTIONS.FETCH_SITES: {
-      if (!action.sites) {
+      const { sites } = action;
+      if (!sites || (sites && sites === state.sites)) {
         return state;
       }
 
-      const { sites } = action;
       return { ...state, sites };
     }
     default:

@@ -1,3 +1,4 @@
+import makeActionCreator from './creator';
 /**
  * This file is a shared import point for all actions.
  */
@@ -6,6 +7,21 @@ import * as profiles from '../profiles/state/actions';
 import * as task from '../tasks/state/actions';
 import * as settings from '../settings/state/actions';
 import * as navbar from '../navbar/state/actions';
+
+export const GLOBAL_ACTIONS = {
+  RESET: '@@RESET',
+  IMPORT: '@@IMPORT',
+  FETCH_SITES: '@@FETCH_SITES',
+  MIGRATE_STATE: '@@MIGRATE_STATE',
+  INIT: '@@INIT',
+};
+
+export const globalActions = {
+  migrateState: makeActionCreator(GLOBAL_ACTIONS.MIGRATE_STATE),
+  fetchSites: makeActionCreator(GLOBAL_ACTIONS.FETCH_SITES, 'sites'),
+  reset: makeActionCreator(GLOBAL_ACTIONS.RESET),
+  import: makeActionCreator(GLOBAL_ACTIONS.IMPORT, 'state'),
+}
 
 // Reimports
 export const {

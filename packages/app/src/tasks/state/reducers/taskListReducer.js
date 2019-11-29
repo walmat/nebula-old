@@ -9,12 +9,123 @@ import {
   mapSettingsFieldToKey,
 } from '../../../store/actions';
 import { taskReducer } from './taskReducer';
-import initialTaskStates from '../../../store/initial/tasks';
+import { Tasks } from '../initial';
 
-export default function taskListReducer(state = initialTaskStates.list, action) {
-  let nextState = JSON.parse(JSON.stringify(state));
-
+export default function taskListReducer(state = Tasks, action) {
   console.log('task list reducer handling action: ', action);
+
+  const { type } = action;
+
+  if (type === TASK_ACTIONS.CREATE) {
+    const { response } = action;
+
+    if (!response) {
+      return state;
+    }
+
+    const { task, amount } = response;
+
+    if (!task || !amount) {
+      return state;
+    }
+
+    const parsedProduct = parseProductType(task.product);
+    if (!parsedProduct) {
+      return state;
+    }
+
+    const newTask = task;
+    newTask.product = parsedProduct;
+
+    // remove unnecessary fields from Tasks
+    delete newTask.amount;
+    delete newTask.errors;
+
+    switch (newTask.platform) {
+      case PLATFORMS.Supreme: {
+        delete newTask.type;
+        delete newTask.account;
+        break;
+      }
+      case PLATFORMS.Shopify: {
+        delete newTask.product.variation;
+        delete newTask.checkoutDelay;
+        delete newTask.category;
+        break;
+      }
+      default:
+        break;
+    }
+
+    [...Array(amount)].forEach(() => {
+      const { index, id } = _getIndexAndId(state);
+      return [...state, { ...newTask, id, index }];
+    });
+  }
+
+  if (type === TASK_ACTIONS.REMOVE) {
+    const { id } = action;
+
+    if (!id) {
+      return state;
+    }
+
+    return state.filter(t => t.id !== id);
+  }
+
+  if (type === TASK_ACTIONS.REMOVE_ALL) {
+    return Tasks;
+  }
+
+  if (type === TASK_ACTIONS.UPDATE) {
+    const { response } = action;
+
+    if (!response) {
+      return state;
+    }
+
+    const { id, task } = response;
+
+    if (!id || !task) {
+      return state;
+    }
+
+    const parsedProduct = parseProductType(task.product);
+    if (!parsedProduct) {
+      return state;
+    }
+
+    task.product = parsedProduct;
+
+    if (window.Bridge) {
+      window.Bridge.restartTasks(task, { override: false });
+    }
+
+    return state.map(t => {
+      if (t.id === task.id) {
+        return task;
+      }
+      return t;
+    });
+  }
+
+  if (type === TASK_ACTIONS.UPDATE_ALL) {
+    // TODO;
+  }
+
+  if (type === TASK_ACTIONS.MESSAGE) {
+    const { message } = action;
+
+    if (!message) {
+      return state;
+    }
+
+    return state.map(t => {
+      const task = t;
+      task.message = message;
+      return task;
+    });
+  }
 
   switch (action.type) {
     // patch to check for settings updates
@@ -106,213 +217,6 @@ export default function taskListReducer(state = initialTaskStates.list, action) 
         tasks.forEach(task => {
           nextState = nextState.filter(t => t.id !== task.id);
         });
-      }
-      break;
-    }
-    case TASK_ACTIONS.ADD: {
-      // Check for valid payload structure
-      if (
-        action.errors ||
-        !action.response ||
-        (action.response && !action.response.task) ||
-        (action.response && !action.response.amount) ||
-        (action.response && action.response.amount && Number.isNaN(action.response.amount))
-      ) {
-        break;
-      }
-
-      const { amount } = action.response;
-
-      // perform a deep copy of given task
-      const newTask = JSON.parse(JSON.stringify(action.response.task));
-
-      const parsedProduct = parseProductType(newTask.product);
-      if (!parsedProduct) {
-        break;
-      }
-
-      newTask.product = parsedProduct;
-
-      // copy over edits
-      newTask.edits = {
-        ...newTask.edits,
-        profile: newTask.profile,
-        product: newTask.product,
-        size: newTask.size,
-        site: newTask.site,
-      };
-
-      // delete unnecessary fields
-      delete newTask.amount;
-
-      switch (newTask.platform) {
-        case PLATFORMS.Supreme: {
-          delete newTask.type;
-          delete newTask.account;
-          break;
-        }
-        case PLATFORMS.Shopify: {
-          delete newTask.product.variation;
-          delete newTask.checkoutDelay;
-          delete newTask.category;
-          break;
-        }
-        default:
-          break;
-      }
-
-      [...Array(amount)].forEach(() => {
-        // add new task
-        const { index, id } = _getIndexAndId(nextState);
-        nextState.push({ ...newTask, id, index });
-      });
-
-      break;
-    }
-    case TASK_ACTIONS.REMOVE: {
-      // Check for valid payload structure
-      if (!action.response) {
-        break;
-      }
-
-      const { task } = action.response;
-      let taskId = -1;
-      // Check if we are removing all tasks or just a single task
-      if (task || task === null) {
-        taskId = task && task.id;
-      }
-
-      // filter out task from list now
-      nextState = nextState.filter(t => t.id !== (taskId || t.id));
-
-      // Check if we have adjusted the array and need to recalculate ids
-      if (nextState.length !== state.length && nextState.length !== 0) {
-        // adjust the id of each following task to shift down one when a task is deleted
-        for (let i = task.index - 1; i < nextState.length; i += 1) {
-          nextState[i].index -= 1;
-        }
-      }
-      break;
-    }
-    case TASK_ACTIONS.REMOVE_ALL: {
-      if (!action.response || (action.response && !action.response.tasks)) {
-        break;
-      }
-
-      nextState = [];
-      break;
-    }
-    case TASK_ACTIONS.UPDATE: {
-      // Check if payload has correct structure or any errors
-      if (action.errors || !action.response || !action.response.id || !action.response.task) {
-        break;
-      }
-
-      const updateId = action.response.id;
-      const updateTask = JSON.parse(JSON.stringify(action.response.task));
-
-      // Check for the task to update
-      const idxToUpdate = nextState.findIndex(t => t.id === updateId);
-      if (idxToUpdate < 0) {
-        break;
-      }
-
-      // Check if current task has been setup properly
-      if (updateTask.edits) {
-        updateTask.platform = updateTask.edits.platform || updateTask.platform;
-        updateTask.profile = updateTask.edits.profile || updateTask.profile;
-        updateTask.product = updateTask.edits.product || updateTask.product;
-        updateTask.site = updateTask.edits.site || updateTask.site;
-        updateTask.size = updateTask.edits.size || updateTask.size;
-      }
-
-      const parsedProduct = parseProductType(updateTask.product);
-      if (!parsedProduct) {
-        break;
-      }
-
-      updateTask.product = parsedProduct;
-
-      // copy over to edits
-      updateTask.edits = {
-        ...updateTask.edits,
-        platform: updateTask.platform,
-        profile: updateTask.profile,
-        product: updateTask.product,
-        size: updateTask.size,
-        site: updateTask.site,
-        errors: {
-          profile: null,
-          product: null,
-          size: null,
-          site: null,
-        },
-      };
-
-      // restart the task with the newly given data
-      if (window.Bridge) {
-        window.Bridge.restartTasks(updateTask, { override: false });
-      }
-
-      // Update the task
-      nextState[idxToUpdate] = updateTask;
-      break;
-    }
-    case TASK_ACTIONS.EDIT_ALL: {
-      if (!action || (action && !action.edits) || (action && !action.tasks.length)) {
-        break;
-      }
-
-      const {
-        tasks,
-        edits: { url, password },
-      } = action;
-
-      if (window.Bridge) {
-        tasks.forEach(t => {
-          const idx = nextState.findIndex(task => task.id === t.id);
-
-          if (idx >= 0) {
-            let newTask;
-            if (url) {
-              newTask = {
-                ...t,
-                product: {
-                  ...t.product,
-                  raw: url,
-                  url,
-                },
-                edits: {
-                  ...t.edits,
-                  product: {
-                    ...t.edits.product,
-                    raw: url,
-                    url,
-                  },
-                },
-              };
-            } else {
-              newTask = {
-                ...t,
-                site: {
-                  ...t.site,
-                  password,
-                },
-                edits: {
-                  ...t.edits,
-                  site: {
-                    ...t.edits.site,
-                    password,
-                  },
-                },
-              };
-            }
-
-            nextState[idx] = newTask;
-          }
-        });
-
-        window.Bridge.restartTasks(tasks, { override: false });
       }
       break;
     }

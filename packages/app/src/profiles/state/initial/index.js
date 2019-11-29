@@ -34,7 +34,7 @@ export const payment = {
   },
 };
 
-export const rates = [];
+export const Rates = [];
 
 const baseProfile = {
   id: null,

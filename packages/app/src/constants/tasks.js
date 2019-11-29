@@ -23,4 +23,15 @@ export const _getIndexAndId = list => {
   }
 
   return { index: newIndex, id: generate() };
-}
+};
+
+export const mapTypeToNextType = type => {
+  switch (type) {
+    case Types.SAFE:
+      return Types.FAST;
+    case Types.FAST:
+      return Types.SAFE;
+    default:
+      return Types.SAFE;
+  }
+};
