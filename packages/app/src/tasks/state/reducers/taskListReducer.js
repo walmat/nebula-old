@@ -1,8 +1,5 @@
-/* eslint-disable array-callback-return */
-/* eslint-disable no-case-declarations */
-import shortId from 'shortid';
-
 import PLATFORMS from '../../../constants/platforms';
+import { _getIndexAndId } from '../../../constants/tasks';
 import parseProductType from '../../../utils/parseProductType';
 import {
   TASK_ACTIONS,
@@ -13,26 +10,6 @@ import {
 } from '../../../store/actions';
 import { taskReducer } from './taskReducer';
 import initialTaskStates from '../../../store/initial/tasks';
-
-function _getIndexAndId(taskList) {
-  let _num = taskList.length + 1;
-  // if the tasksList is empty, reset the numbering
-  if (taskList.length === 0) {
-    _num = 1;
-  }
-
-  // assign new index
-  let newIndex = _num;
-
-  // check if generate id already exists
-  const idCheck = t => t.index === newIndex;
-  while (taskList.some(idCheck)) {
-    _num += 1;
-    newIndex = _num;
-  }
-
-  return { index: newIndex, id: shortId.generate() };
-}
 
 export default function taskListReducer(state = initialTaskStates.list, action) {
   let nextState = JSON.parse(JSON.stringify(state));

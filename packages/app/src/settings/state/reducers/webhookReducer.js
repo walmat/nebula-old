@@ -1,7 +1,7 @@
 import { SETTINGS_ACTIONS, SETTINGS_FIELDS } from '../../../store/actions';
 import { CurrentWebhook } from '../initial';
 
-export default function accountReducer(state = CurrentWebhook, action) {
+export default function webhookReducer(state = CurrentWebhook, action) {
   if (action.type === SETTINGS_ACTIONS.EDIT) {
     switch (action.field) {
       case SETTINGS_FIELDS.EDIT_WEBHOOK_NAME:

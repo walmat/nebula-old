@@ -5,27 +5,27 @@ import { Shipping } from '../initial';
 export default function shippingReducer(state = Shipping, action) {
   console.log('shipping reducer handling action: ', action);
 
-  let change = {};
-  if (action.type === SETTINGS_ACTIONS.EDIT) {
-    switch (action.field) {
+  const { type, field } = action;
+
+  if (type === SETTINGS_ACTIONS.EDIT) {
+    switch (field) {
       case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
-        change = {
-          product: {
-            ...state.product,
-            raw: action.value || '',
-          },
-          errors: Object.assign({}, state.errors, action.errors),
+        const { value, sites } = action;
+
+        let change = {
+          ...state.product,
+          raw: value || '',
         };
 
-        if (!action.value || !action.value.startsWith('http')) {
-          break;
+        if (!value || !value.startsWith('http')) {
+          return { ...state, ...change };
         }
-        const URL = parseURL(action.value);
+
+        const URL = parseURL(value);
         if (!URL || !URL.host) {
-          break;
+          return { ...state, ...change };
         }
         let newSite;
-        const { sites } = action;
 
         sites.forEach(category => {
           const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
@@ -35,7 +35,7 @@ export default function shippingReducer(state = Shipping, action) {
         });
 
         if (!newSite || newSite.label === state.site.name) {
-          break;
+          return { ...state, ...change };
         }
 
         change = {
@@ -45,33 +45,40 @@ export default function shippingReducer(state = Shipping, action) {
             name: newSite.label,
             apiKey: newSite.apiKey,
           },
-          errors: Object.assign({}, state.errors, action.errors),
         };
-        break;
+        return { ...state, ...change };
       }
       case SETTINGS_FIELDS.EDIT_SHIPPING_SITE: {
-        if (action.value) {
-          if (state.site && action.value.name && action.value.name === state.site.name) {
-            break;
-          }
-          change = {
-            site: action.value,
-            errors: Object.assign({}, state.errors, action.errors),
-          };
-        } else {
-          change = {
-            site: Shipping.site,
-          };
+        const { value } = action;
+        if (!value) {
+          return { ...state, site: Shipping.site };
         }
-        break;
+
+        // if we're selecting the same site...
+        if (value.name === state.site.name) {
+          return state;
+        }
+
+        return { ...state, site: value };
       }
-      default: {
-        change = {
-          [mapSettingsFieldToKey[action.field]]: action.value,
-          errors: Object.assign({}, state.errors, action.errors),
-        };
-      }
+      default:
+        return { ...state, [mapSettingsFieldToKey[action.field]]: action.value };
     }
   }
-  return Object.assign({}, state, change);
+
+  if (type === SETTINGS_ACTIONS.SETUP_SHIPPING) {
+    const { message } = action;
+    return { ...state, message, status: 'inprogress' };
+  }
+
+  if (type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
+    return Shipping;
+  }
+
+  if (type === SETTINGS_ACTIONS.CLEANUP_SHIPPING) {
+    const { message } = action;
+    return { ...state, message, status: 'idle' };
+  }
+
+  return state;
 }

@@ -7,8 +7,13 @@ import {
   selectedProfileReducer as SelectedProfile,
 } from '../../profiles/state/reducers';
 import {
-  settingsReducer as Settings,
+  accountListReducer as Accounts,
+  accountReducer as CurrentAccount,
+  delayReducer as Delays,
+  proxiesReducer as Proxies,
   shippingReducer as Shipping,
+  webhookListReducer as Webhooks,
+  webhookReducer as CurrentWebhook,
 } from '../../settings/state/reducers';
 import {
   newTaskReducer as NewTask,
@@ -19,15 +24,20 @@ import {
 const rootReducer = asyncReducers =>
   combineReducers({
     App,
-    Navbar,
+    Accounts,
+    CurrentAccount,
     CurrentProfile,
+    CurrentWebhook,
+    Delays,
+    Navbar,
     SelectedProfile,
     Profiles,
-    Settings,
+    Proxies,
     Shipping,
     Tasks,
     NewTask,
     SelectedTask,
+    Webhooks,
     ...asyncReducers,
   });
 

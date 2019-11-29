@@ -6,7 +6,6 @@ export const CurrentWebhook = {
 };
 
 export const Proxies = [];
-
 export const Accounts = [];
 export const CurrentAccount = {
   name: '',
@@ -15,13 +14,12 @@ export const CurrentAccount = {
 };
 
 export const Shipping = {
-  name: '',
   product: null,
   site: null,
   profile: null,
 };
 
-export const Settings = {
+export const Delays = {
   monitor: 1500,
   error: 1500,
 };

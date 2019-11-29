@@ -9,17 +9,8 @@ import {
   mapSettingsFieldToKey,
 } from '../../../store/actions';
 import initialTaskStates from '../../../store/initial/tasks';
-import PLATFORMS from '../../../constants/platforms';
-import TASK_TYPES from '../../../constants/taskTypes';
-
-const siteToPlatform = url => {
-  if (/supreme/i.test(url)) {
-    return PLATFORMS.Supreme;
-  }
-
-  // TODO: more checks for other platforms here...
-  return PLATFORMS.Shopify;
-};
+import { platformForSite } from '../../../constants/platforms';
+import TASK_TYPES from '../../../constants/tasks';
 
 export function taskReducer(state = initialTaskStates.task, action) {
   console.log('task reducer handling action: ', action);
@@ -69,7 +60,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
               special: newSite.special || false,
               auth: newSite.auth,
             },
-            platform: siteToPlatform(newSite.value),
+            platform: platformForSite(newSite.value),
             errors: Object.assign({}, state.errors, action.errors),
           };
           break;
@@ -80,7 +71,7 @@ export function taskReducer(state = initialTaskStates.task, action) {
               break;
             }
             change = {
-              platform: siteToPlatform(action.value.url),
+              platform: platformForSite(action.value.url),
               site: action.value,
               errors: Object.assign({}, state.errors, action.errors),
             };
