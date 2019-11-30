@@ -1,30 +1,34 @@
-import { rates } from '../initial';
+import { Rates } from '../initial';
 import { mapRateFieldToKey, RATES_FIELDS } from '../../../store/actions';
 
-const ShippingRates = (state = rates, action) => {
-  console.log('rates reducer handling action: ', action);
+const ratesReducer = (state = Rates, action) => {
+  const { type, value } = action;
 
-  const nextState = JSON.parse(JSON.stringify(state));
-  // If we can't map the field to a rates key or there's no type or value, don't change anything
-  if (!action || !action.type || !mapRateFieldToKey[action.type]) {
-    return nextState;
+  if (!action || !type || !mapRateFieldToKey[type]) {
+    return state;
   }
-  switch (action.type) {
-    case RATES_FIELDS.RATE: {
-      if (!action.value || !action.value.site || !action.value.rate) {
-        break;
-      }
-      const rateObjectForSite = nextState.find(s => s.site.url === action.value.site.value);
-      if (!rateObjectForSite) {
-        break;
-      }
-      const idx = nextState.indexOf(rateObjectForSite);
-      nextState[idx].selectedRate = action.value.rate;
-      break;
+
+  if (type === RATES_FIELDS.RATE) {
+    if (!value) {
+      return state;
     }
-    default:
-      break;
+
+    const { site, rate } = value;
+
+    if (!site || !rate) {
+      return state;
+    }
+
+    return state.map(r => {
+      if (r.site.url === site.value) {
+        const newRate = r;
+        newRate.selectedRate = rate;
+        return newRate;
+      }
+      return r;
+    });
   }
-  return nextState;
+
+  return state;
 };
-export default ShippingRates;
+export default ratesReducer;

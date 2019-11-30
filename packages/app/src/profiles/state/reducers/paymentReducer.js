@@ -1,24 +1,16 @@
 import { mapPaymentFieldToKey } from '../../../store/actions';
-import { payment } from '../initial';
 
-const Payment = (state = payment, action) => {
+const Payment = (state, action) => {
   console.log('payment reducer handling action: ', action);
 
-  let change = {};
-  // If we can't map the field to a payment key, don't change anything
-  if (!mapPaymentFieldToKey[action.type]) {
-    return Object.assign({}, state);
+  const { type, value } = action;
+  if (!type || !mapPaymentFieldToKey[type]) {
+    return state;
   }
-  switch (action.type) {
-    default: {
-      change = {
-        [mapPaymentFieldToKey[action.type]]:
-          action.value || payment[mapPaymentFieldToKey[action.type]],
-        errors: action.errors || state.errors,
-      };
-      break;
-    }
+
+  switch (type) {
+    default:
+      return { ...state, [mapPaymentFieldToKey[type]]: value }; 
   }
-  return Object.assign({}, state, change);
 };
 export default Payment;

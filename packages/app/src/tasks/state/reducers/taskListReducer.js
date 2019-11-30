@@ -77,9 +77,9 @@ export default (state = Tasks, action) => {
       return state;
     }
 
-    const { id, task } = response;
+    const { task } = response;
 
-    if (!id || !task) {
+    if (!task) {
       return state;
     }
 

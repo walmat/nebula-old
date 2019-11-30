@@ -4,7 +4,7 @@ import makeActionCreator from '../../../store/creator';
 export const TASK_ACTIONS = {
   EDIT: 'EDIT_TASK',
   CREATE: 'CREATE_TASK',
-  UPDATE_ALL: 'UPDATE_ALL_TASKS',
+  UPDATE: 'UPDATE_TASK',
   SELECT: 'SELECT_TASK',
   SELECT_ALL: 'SELECT_ALL_TASKS',
   DUPLICATE: 'DUPLICATE_TASK',
@@ -104,7 +104,7 @@ const _stopAllTasks = makeActionCreator(TASK_ACTIONS.STOP_ALL, 'response');
 // Public Actions
 const createTask = makeActionCreator(TASK_ACTIONS.CREATE, 'response');
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value', 'sites');
-const updateAllTasks = makeActionCreator(TASK_ACTIONS.UPDATE_ALL, 'tasks', 'edits');
+const updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'task', 'edits');
 const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
 const selectAllTasks = makeActionCreator(TASK_ACTIONS.SELECT_ALL, 'tasks');
 const messageTask = makeActionCreator(TASK_ACTIONS.STATUS, 'message');
@@ -174,7 +174,7 @@ export const TASK_FIELDS = {
 export const taskActions = {
   edit: editTask,
   create: createTask,
-  updateAll: updateAllTasks,
+  update: updateTask,
   select: selectTask,
   selectAll: selectAllTasks,
   message: messageTask,

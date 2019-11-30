@@ -1,4 +1,4 @@
-export const location = {
+const location = {
   firstName: '',
   lastName: '',
   address: '',
@@ -21,7 +21,7 @@ export const location = {
   },
 };
 
-export const payment = {
+const payment = {
   email: '',
   card: '',
   exp: '',

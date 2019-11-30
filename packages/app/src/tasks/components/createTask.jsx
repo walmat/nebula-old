@@ -8,15 +8,14 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
 
-import { makeNewTask } from '../../store/selectors/tasks';
+import { makeTheme, makeSites } from '../../app/state/selectors';
+import { makeAccounts } from '../../settings/state/selectors';
+import { makeProfiles } from '../../profiles/state/selectors';
+import { makeCurrentTask } from '../state/selectors';
 import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../../store/actions';
 import * as getAllSizes from '../../constants/getAllSizes';
 import { THEMES } from '../../constants/themes';
 import PLATFORMS from '../../constants/platforms';
-
-import sDefns from '../../store/definitions/settingsDefinitions';
-import pDefns from '../../store/definitions/profileDefinitions';
-import tDefns from '../../store/definitions/taskDefinitions';
 
 import { ReactComponent as NotInStock } from '../../styles/images/tasks/random-off.svg';
 import { ReactComponent as InStock } from '../../styles/images/tasks/random.svg';
@@ -557,7 +556,7 @@ export class CreateTaskPrimitive extends PureComponent {
   }
 
   render() {
-    const { task, sites, errors, theme, onKeyPress } = this.props;
+    const { task, sites, theme, onKeyPress } = this.props;
     const { isLoadingSite, isLoadingSize } = this.state;
     let newTaskProfileValue = null;
     if (task.profile.id) {
@@ -726,12 +725,11 @@ export class CreateTaskPrimitive extends PureComponent {
 
 CreateTaskPrimitive.propTypes = {
   onFieldChange: PropTypes.func.isRequired,
-  profiles: pDefns.profileList.isRequired,
-  accounts: sDefns.accountList.isRequired,
+  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
+  accounts: PropTypes.arrayOf(PropTypes.any).isRequired,
   sites: PropTypes.objectOf(PropTypes.any).isRequired,
-  task: tDefns.task.isRequired,
+  task: PropTypes.objectOf(PropTypes.any).isRequired,
   theme: PropTypes.string.isRequired,
-  errors: tDefns.taskErrors.isRequired,
   onAddNewTask: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
@@ -741,12 +739,11 @@ CreateTaskPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  profiles: state.Profiles,
-  accounts: state.Settings.accounts,
-  sites: state.Sites,
-  task: makeNewTask(state),
-  theme: state.App.theme,
-  errors: state.NewTask.errors,
+  profiles: makeProfiles(state),
+  accounts: makeAccounts(state),
+  sites: makeSites(state),
+  task: makeCurrentTask(state),
+  theme: makeTheme(state),
 });
 
 export const mapDispatchToProps = dispatch => ({

@@ -1,8 +1,8 @@
-import makeActionCreator from '../../store/creator';
+import makeActionCreator from '../../../store/creator';
 
 // Top level Actions
 export const PROFILE_ACTIONS = {
-  ADD: 'ADD_PROFILE',
+  CREATE: 'CREATE_PROFILE',
   REMOVE: 'REMOVE_PROFILE',
   DELETE_RATE: 'DELETE_RATE',
   EDIT: 'EDIT_PROFILE',
@@ -13,36 +13,11 @@ export const PROFILE_ACTIONS = {
   TRANSFER: 'TRANSFER_SHIPPING',
 };
 
-const _addProfileRequest = async profile =>
-  new Promise((resolve, reject) => {
-    if (profile) {
-      const copy = JSON.parse(JSON.stringify(profile));
-      resolve(copy);
-    }
-    reject(new Error('Invalid profile!'));
-  });
-
-const _updateProfileRequest = async (id, profile) =>
-  new Promise((resolve, reject) => {
-    if (profile) {
-      const copy = JSON.parse(JSON.stringify(profile));
-      copy.id = id;
-      resolve(copy);
-    }
-    reject(new Error('Invalid profile!'));
-  });
-
-const _removeProfileRequest = async id =>
-  new Promise((resolve, reject) => {
-    if (id) {
-      resolve(id);
-    }
-    reject(new Error('Invalid profile!'));
-  });
+const _updateProfileRequest = async (id, profile) => ({ ...profile, id });
 
 // Private Actions
-const _addProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
-const _removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
+const createProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
+const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
 const _updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE, 'id', 'profile');
 
 // Public Actions
@@ -53,27 +28,14 @@ const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
 const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
 const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'site', 'rate');
 
-// Public Thunks
-const addProfile = profile => dispatch =>
-  _addProfileRequest(profile).then(
-    newProfile => dispatch(_addProfile(newProfile)),
-    error => dispatch(handleError(PROFILE_ACTIONS.ADD, error)),
-  );
-
-const removeProfile = id => dispatch =>
-  _removeProfileRequest(id).then(
-    removedId => dispatch(_removeProfile(removedId)),
-    error => dispatch(handleError(PROFILE_ACTIONS.REMOVE, error)),
-  );
-
 const updateProfile = (id, profile) => dispatch =>
   _updateProfileRequest(id, profile).then(
-    updatedProfile => dispatch(_updateProfile(updatedProfile.id, updatedProfile)),
+    updatedProfile => dispatch(_updateProfile(updatedProfile)),
     error => dispatch(handleError(PROFILE_ACTIONS.UPDATE, error)),
   );
 
 export const profileActions = {
-  add: addProfile,
+  create: createProfile,
   remove: removeProfile,
   edit: editProfile,
   select: selectProfile,
@@ -91,8 +53,7 @@ export const PROFILE_FIELDS = {
   EDIT_PAYMENT: 'EDIT_PAYMENT',
   EDIT_RATES: 'EDIT_RATES',
   EDIT_SELECTED_SITE: 'EDIT_SELECTED_SITE',
-  EDIT_BILLING_MATCHES_SHIPPING: 'EDIT_BILLING_MATCHES_SHIPPING',
-  TOGGLE_BILLING_MATCHES_SHIPPING: 'TOGGLE_BILLING_MATCHES_SHIPPING',
+  TOGGLE_MATCHES: 'TOGGLE_BILLING_MATCHES_SHIPPING',
   EDIT_NAME: 'EDIT_NAME',
 };
 
@@ -102,8 +63,8 @@ export const LOCATION_FIELDS = {
   ADDRESS: 'address',
   APT: 'apt',
   CITY: 'city',
-  ZIP_CODE: 'zipCode',
-  PHONE_NUMBER: 'phone',
+  ZIP: 'zip',
+  PHONE: 'phone',
   COUNTRY: 'country',
   PROVINCE: 'province',
 };
@@ -138,15 +99,15 @@ export const mapLocationFieldToKey = {
   [LOCATION_FIELDS.ADDRESS]: 'address',
   [LOCATION_FIELDS.APT]: 'apt',
   [LOCATION_FIELDS.CITY]: 'city',
-  [LOCATION_FIELDS.ZIP_CODE]: 'zipCode',
-  [LOCATION_FIELDS.PHONE_NUMBER]: 'phone',
+  [LOCATION_FIELDS.ZIP]: 'zip',
+  [LOCATION_FIELDS.PHONE]: 'phone',
   [LOCATION_FIELDS.COUNTRY]: 'country',
   [LOCATION_FIELDS.PROVINCE]: 'province',
 };
 
 export const mapPaymentFieldToKey = {
   [PAYMENT_FIELDS.EMAIL]: 'email',
-  [PAYMENT_FIELDS.CARD_NUMBER]: 'cardNumber',
+  [PAYMENT_FIELDS.CARD]: 'card',
   [PAYMENT_FIELDS.EXP]: 'exp',
   [PAYMENT_FIELDS.CVV]: 'cvv',
 };
