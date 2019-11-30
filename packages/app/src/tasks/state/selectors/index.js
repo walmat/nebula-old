@@ -1,17 +1,17 @@
 import { createSelector } from 'reselect';
-import { initialState } from '../../../store/migrators';
+import { CurrentTask, SelectedTask, Tasks } from '../initial';
 
 export const makeTasks = createSelector(
-  (state, props) => state.Tasks || initialState.Tasks,
-  state => state || initialState.Tasks,
+  state => state.Tasks || Tasks,
+  state => state || Tasks,
 );
 
-export const makeNewTask = createSelector(
-  (state, props) => state.NewTask || initialState.NewTask,
-  state => state || initialState.NewTasks,
-)
+export const makeCurrentTask = createSelector(
+  state => state.CurrentTask || CurrentTask,
+  state => state || CurrentTask,
+);
 
 export const makeSelectedTask = createSelector(
-  (state, props) => state.SelectedTasks || initialState.SelectedTasks,
-  state => state || initialState.SelectedTasks,
+  state => state.SelectedTasks || SelectedTask,
+  state => state || SelectedTask,
 );

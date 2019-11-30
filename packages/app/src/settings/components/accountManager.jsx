@@ -12,8 +12,10 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
-import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../store/actions';
-import sDefns from '../../store/definitions/settingsDefinitions';
+
+import { makeTheme } from '../../app/state/selectors';
+import { makeAccounts, makeCurrentAccount } from '../state/selectors';
+import { settingsActions, SETTINGS_FIELDS } from '../../store/actions';
 
 import addTestId from '../../utils/addTestId';
 
@@ -103,18 +105,8 @@ export class AccountManagerPrimitive extends PureComponent {
   }
 
   render() {
-    const { accounts, errors, theme } = this.props;
-    const { selectedAccount, currentAccount } = accounts;
+    const { currentAccount, theme } = this.props;
     const { username, password, name } = currentAccount;
-
-    let accountValue = null;
-    if (selectedAccount) {
-      const { name: accountName, id } = selectedAccount;
-      accountValue = {
-        label: accountName,
-        value: id,
-      };
-    }
 
     return (
       <>
@@ -147,10 +139,6 @@ export class AccountManagerPrimitive extends PureComponent {
                             SETTINGS_FIELDS.EDIT_ACCOUNT_USERNAME,
                           )}
                           value={username}
-                          style={buildStyle(
-                            false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ACCOUNT_USERNAME]],
-                          )}
                           required
                         />
                       </div>
@@ -164,10 +152,6 @@ export class AccountManagerPrimitive extends PureComponent {
                             SETTINGS_FIELDS.EDIT_ACCOUNT_PASSWORD,
                           )}
                           value={password}
-                          style={buildStyle(
-                            false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ACCOUNT_PASSWORD]],
-                          )}
                           required
                         />
                       </div>
@@ -181,10 +165,6 @@ export class AccountManagerPrimitive extends PureComponent {
                           placeholder="Test Account"
                           onChange={this.createOnChangeHandler(SETTINGS_FIELDS.EDIT_ACCOUNT_NAME)}
                           value={name}
-                          style={buildStyle(
-                            false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_ACCOUNT_NAME]],
-                          )}
                           required
                         />
                       </div>
@@ -235,14 +215,16 @@ export class AccountManagerPrimitive extends PureComponent {
 }
 
 AccountManagerPrimitive.propTypes = {
-  accounts: sDefns.accountList.isRequired,
+  // props...
+  accounts: PropTypes.arrayOf(PropTypes.any).isRequired,
+  currentAccount: PropTypes.objectOf(PropTypes.any).isRequired,
+  theme: PropTypes.string.isRequired,
+  // funcs...
   onSelectAccount: PropTypes.func.isRequired,
   onSettingsChange: PropTypes.func.isRequired,
   onSaveAccount: PropTypes.func.isRequired,
   onDeleteAccount: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
-  theme: PropTypes.string.isRequired,
-  errors: sDefns.shippingErrors.isRequired,
 };
 
 AccountManagerPrimitive.defaultProps = {
@@ -250,9 +232,9 @@ AccountManagerPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  accounts: state.Settings.accounts,
-  errors: state.Settings.shipping.errors,
-  theme: state.App.theme,
+  accounts: makeAccounts(state),
+  currentAccount: makeCurrentAccount(state),
+  theme: makeTheme(state),
 });
 
 export const mapDispatchToProps = dispatch => ({
@@ -263,10 +245,9 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(settingsActions.selectAccount(account));
   },
   onSaveAccount: account => {
-    dispatch(settingsActions.saveAccount(account));
+    dispatch(settingsActions.addAccount(account));
   },
   onDeleteAccount: account => {
-    console.log(account);
     dispatch(settingsActions.deleteAccount(account));
   },
 });

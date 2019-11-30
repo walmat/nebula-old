@@ -1,7 +1,6 @@
 import { parseURL } from 'whatwg-url';
 import {
   PROFILE_ACTIONS,
-  SETTINGS_ACTIONS,
   TASK_ACTIONS,
   TASK_FIELDS,
   mapTaskFieldsToKey,
@@ -155,7 +154,7 @@ export const currentTaskReducer = (state = CurrentTask, action) => {
   return state;
 };
 
-export function selectedTaskReducer(state = SelectedTask, action) {
+export const selectedTaskReducer = (state = SelectedTask, action) => {
   const { type } = action;
 
   if (type === TASK_ACTIONS.EDIT) {
@@ -203,4 +202,4 @@ export function selectedTaskReducer(state = SelectedTask, action) {
   }
 
   return state;
-}
+};

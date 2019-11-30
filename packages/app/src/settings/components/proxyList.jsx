@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import sanitizeHtml from 'sanitize-html';
 
+import { makeProxies } from '../state/selectors';
 import { SETTINGS_FIELDS, settingsActions } from '../../store/actions';
-import defns from '../../store/definitions/settingsDefinitions';
 import { addTestId } from '../../utils';
 
 export class ProxyListPrimitive extends Component {
@@ -120,7 +120,6 @@ export class ProxyListPrimitive extends Component {
   }
 
   renderProxies() {
-    const { errors } = this.props;
     const { editing, proxies } = this.state;
     // If we don't have any proxies, return an empty list
     if (proxies.length === 0) {
@@ -131,15 +130,8 @@ export class ProxyListPrimitive extends Component {
     if (editing) {
       return proxies.map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`).join('');
     }
-    // Return proxies, styled in red if that proxy is invalid
-    return proxies
-      .map(
-        (proxy, idx) =>
-          `<div${errors.includes(idx) ? ' class="invalidProxy"' : ''}>${ProxyListPrimitive.sanitize(
-            proxy,
-          )}</div>`,
-      )
-      .join('');
+
+    return proxies.map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`).join('');
   }
 
   renderProxyInputDiv() {
@@ -187,9 +179,8 @@ export class ProxyListPrimitive extends Component {
 }
 
 ProxyListPrimitive.propTypes = {
+  proxies: PropTypes.arrayOf(PropTypes.object).isRequired,
   className: PropTypes.string,
-  proxies: PropTypes.arrayOf(defns.proxy).isRequired,
-  errors: defns.proxyErrors.isRequired,
   onUpdateProxies: PropTypes.func.isRequired,
 };
 
@@ -198,8 +189,7 @@ ProxyListPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  proxies: state.Settings.proxies,
-  errors: state.Settings.errors.proxies ? state.Settings.errors.proxies : [],
+  proxies: makeProxies(state),
 });
 
 export const mapDispatchToProps = dispatch => ({

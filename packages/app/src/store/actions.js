@@ -11,17 +11,15 @@ import * as navbar from '../navbar/state/actions';
 export const GLOBAL_ACTIONS = {
   RESET: '@@RESET',
   IMPORT: '@@IMPORT',
-  FETCH_SITES: '@@FETCH_SITES',
-  MIGRATE_STATE: '@@MIGRATE_STATE',
+  MIGRATE: '@@MIGRATE',
   INIT: '@@INIT',
 };
 
 export const globalActions = {
-  migrateState: makeActionCreator(GLOBAL_ACTIONS.MIGRATE_STATE),
-  fetchSites: makeActionCreator(GLOBAL_ACTIONS.FETCH_SITES, 'sites'),
+  migrate: makeActionCreator(GLOBAL_ACTIONS.MIGRATE),
   reset: makeActionCreator(GLOBAL_ACTIONS.RESET),
   import: makeActionCreator(GLOBAL_ACTIONS.IMPORT, 'state'),
-}
+};
 
 // Reimports
 export const {

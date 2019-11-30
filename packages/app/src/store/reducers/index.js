@@ -21,10 +21,11 @@ import {
   webhookListReducer as Webhooks,
   webhookReducer as CurrentWebhook,
 } from '../../settings/state/reducers';
+
 import {
-  newTaskReducer as NewTask,
-  selectedTaskReducer as SelectedTask,
   taskListReducer as Tasks,
+  currentTaskReducer as CurrentTask,
+  selectedTaskReducer as SelectedTask,
 } from '../../tasks/state/reducers';
 
 const reducers = asyncReducers =>
@@ -41,7 +42,7 @@ const reducers = asyncReducers =>
     Proxies,
     Shipping,
     Tasks,
-    NewTask,
+    CurrentTask,
     SelectedTask,
     Webhooks,
     ...asyncReducers,

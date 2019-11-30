@@ -1,4 +1,4 @@
-import { newTaskReducer, selectedTaskReducer, taskReducer } from './taskReducer';
+import { currentTaskReducer, selectedTaskReducer } from './taskReducer';
 import taskListReducer from './taskListReducer';
 
-export { taskReducer, newTaskReducer, selectedTaskReducer, taskListReducer };
+export { currentTaskReducer, selectedTaskReducer, taskListReducer };

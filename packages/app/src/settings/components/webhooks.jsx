@@ -2,8 +2,9 @@ import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { buildStyle } from '../../styles';
-import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../store/actions';
-import sDefns from '../../store/definitions/settingsDefinitions';
+import withReducer from '../../store/reducers/withReducer';
+import { webhookReducer } from '../state/reducers';
+import { settingsActions, SETTINGS_FIELDS } from '../../store/actions';
 
 export class WebhooksPrimitive extends PureComponent {
   static renderWebhookButton(type, onClick, onKeyPress) {
@@ -49,7 +50,7 @@ export class WebhooksPrimitive extends PureComponent {
   }
 
   renderWebhookInput(field, value) {
-    const { errors, onTestDiscord, onTestSlack, onKeyPress } = this.props;
+    const { onTestDiscord, onTestSlack, onKeyPress } = this.props;
     const { placeholder, label, type } = this.inputs[field];
     const onClick = () =>
       field === SETTINGS_FIELDS.EDIT_DISCORD ? onTestDiscord(value) : onTestSlack(value);
@@ -62,7 +63,7 @@ export class WebhooksPrimitive extends PureComponent {
               className={`settings__input-group--webhook__${type}`}
               placeholder={placeholder}
               onChange={this.createOnChangeHandler(field)}
-              style={buildStyle(false, errors[mapSettingsFieldToKey[field]])}
+              style={buildStyle(false, null)}
               value={value}
               data-private
             />
@@ -95,7 +96,6 @@ WebhooksPrimitive.propTypes = {
   discord: PropTypes.string.isRequired,
   slack: PropTypes.string.isRequired,
   onKeyPress: PropTypes.func,
-  errors: sDefns.settingsErrors.isRequired,
 };
 
 WebhooksPrimitive.defaultProps = {
@@ -105,7 +105,6 @@ WebhooksPrimitive.defaultProps = {
 export const mapStateToProps = state => ({
   discord: state.Settings.discord,
   slack: state.Settings.slack,
-  errors: state.Settings.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({
@@ -120,7 +119,9 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(WebhooksPrimitive);
+export default withReducer('Webhooks', webhookReducer)(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(WebhooksPrimitive),
+);

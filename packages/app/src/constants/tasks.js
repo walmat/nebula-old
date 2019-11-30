@@ -5,24 +5,16 @@ export const Types = {
   FAST: 'FAST',
 };
 
-export const _getIndexAndId = list => {
-  let _num = list.length + 1;
-  // if the tasksList is empty, reset the numbering
-  if (list.length === 0) {
-    _num = 1;
-  }
+export const _getId = list => {
+  let id;
 
-  // assign new index
-  let newIndex = _num;
+  const idCheck = tasks => tasks.some(t => t.id === id);
 
-  // check if generate id already exists
-  const idCheck = t => t.index === newIndex;
-  while (list.some(idCheck)) {
-    _num += 1;
-    newIndex = _num;
-  }
+  do {
+    id = generate();
+  } while (idCheck(list));
 
-  return { index: newIndex, id: generate() };
+  return { id };
 };
 
 export const mapTypeToNextType = type => {

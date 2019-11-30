@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { appActions } from '../../store/actions';
+import { globalActions } from '../../store/actions';
 
 export class StateFunctionsPrimitive extends PureComponent {
   constructor(props) {
@@ -13,14 +13,10 @@ export class StateFunctionsPrimitive extends PureComponent {
   }
 
   async onExport() {
-    const exportedState = { ...this.props };
-    delete exportedState.exportState;
-    delete exportedState.importState;
-    delete exportedState.onKeyPress;
-    delete exportedState.theme;
+    const { state } = this.props;
 
     if (window.Bridge) {
-      await window.Bridge.showSave(exportedState);
+      await window.Bridge.showSave(state);
     }
   }
 
@@ -67,6 +63,7 @@ export class StateFunctionsPrimitive extends PureComponent {
 }
 
 StateFunctionsPrimitive.propTypes = {
+  state: PropTypes.objectOf(PropTypes.any).isRequired,
   importState: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
@@ -75,13 +72,15 @@ StateFunctionsPrimitive.defaultProps = {
   onKeyPress: () => {},
 };
 
+export const mapStateToProps = state => ({ state });
+
 export const mapDispatchToProps = dispatch => ({
   importState: state => {
-    dispatch(appActions.import(state));
+    dispatch(globalActions.import(state));
   },
 });
 
 export default connect(
-  state => state,
+  mapStateToProps,
   mapDispatchToProps,
 )(StateFunctionsPrimitive);

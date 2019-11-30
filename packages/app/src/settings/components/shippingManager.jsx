@@ -14,9 +14,11 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
-import { settingsActions, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../store/actions';
-import pDefns from '../../store/definitions/profileDefinitions';
-import sDefns from '../../store/definitions/settingsDefinitions';
+
+import { makeProfiles } from '../../profiles/state/selectors';
+import { makeTheme, makeShopifySites } from '../../app/state/selectors';
+import { makeShipping } from '../state/selectors';
+import { settingsActions, SETTINGS_FIELDS } from '../../store/actions';
 import addTestId from '../../utils/addTestId';
 
 export class ShippingManagerPrimitive extends PureComponent {
@@ -162,7 +164,7 @@ export class ShippingManagerPrimitive extends PureComponent {
 
   renderSelect(field, value, options) {
     const { isLoading } = this.state;
-    const { errors, theme } = this.props;
+    const { theme } = this.props;
     const { label, placeholder, className, type } = this.selects[field];
     return (
       <div className={className}>
@@ -179,7 +181,7 @@ export class ShippingManagerPrimitive extends PureComponent {
             isMulti={false}
             className={`settings--shipping-manager__input-group--${type}`}
             classNamePrefix="select"
-            styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
+            styles={colourStyles(theme, buildStyle(false, null))}
             onChange={this.createOnChangeHandler(field)}
             onCreateOption={v => this.handleCreate(field, v)}
             value={value}
@@ -194,7 +196,7 @@ export class ShippingManagerPrimitive extends PureComponent {
             isClearable={false}
             className={`settings--shipping-manager__input-group--${type}`}
             classNamePrefix="select"
-            styles={colourStyles(theme, buildStyle(false, errors[mapSettingsFieldToKey[field]]))}
+            styles={colourStyles(theme, buildStyle(false, null))}
             onChange={this.createOnChangeHandler(field)}
             value={value}
             options={options}
@@ -206,7 +208,7 @@ export class ShippingManagerPrimitive extends PureComponent {
   }
 
   render() {
-    const { shipping, sites, errors } = this.props;
+    const { shipping, sites } = this.props;
     const { profile, site, product } = shipping;
     let shippingProfileValue = null;
     if (profile && profile.id !== null) {
@@ -253,10 +255,6 @@ export class ShippingManagerPrimitive extends PureComponent {
                             SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT,
                           )}
                           value={product.raw}
-                          style={buildStyle(
-                            false,
-                            errors[mapSettingsFieldToKey[SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT]],
-                          )}
                           required
                         />
                       </div>
@@ -294,15 +292,17 @@ export class ShippingManagerPrimitive extends PureComponent {
 }
 
 ShippingManagerPrimitive.propTypes = {
+  // props...
+  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
+  sites: PropTypes.arrayOf(PropTypes.any).isRequired,
+  shipping: PropTypes.objectOf(PropTypes.any).isRequired,
+  theme: PropTypes.string.isRequired,
+  // funcs...
   onSettingsChange: PropTypes.func.isRequired,
   onFetchShippingMethods: PropTypes.func.isRequired,
   onStopShippingMethods: PropTypes.func.isRequired,
   onClearShippingFields: PropTypes.func.isRequired,
-  profiles: pDefns.profileList.isRequired,
-  shipping: sDefns.shipping.isRequired,
   onKeyPress: PropTypes.func,
-  theme: PropTypes.string.isRequired,
-  errors: sDefns.shippingErrors.isRequired,
 };
 
 ShippingManagerPrimitive.defaultProps = {
@@ -310,11 +310,10 @@ ShippingManagerPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  profiles: state.Profiles,
-  sites: (state.Sites || []).filter(site => site.label === 'Shopify'),
-  shipping: state.Settings.shipping,
-  errors: state.Settings.shipping.errors,
-  theme: state.App.theme,
+  profiles: makeProfiles(state),
+  sites: makeShopifySites(state),
+  shipping: makeShipping(state),
+  theme: makeTheme(state),
 });
 
 export const mapDispatchToProps = dispatch => ({
