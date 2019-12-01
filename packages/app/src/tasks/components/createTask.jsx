@@ -82,10 +82,10 @@ export class CreateTaskPrimitive extends PureComponent {
   }
 
   buildProfileOptions() {
-    // eslint-disable-next-line react/destructuring-assignment
-    return this.props.profiles.map(profile => ({
+    const { profiles } = this.props;
+    return profiles.map(profile => ({
       value: profile.id,
-      label: profile.profileName,
+      label: profile.name,
     }));
   }
 

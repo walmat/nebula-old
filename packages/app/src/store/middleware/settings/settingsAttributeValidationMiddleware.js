@@ -1,10 +1,10 @@
-import { SETTINGS_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
+import { SHARED_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
 import settingsAttributeValidatorMap from '../../validation/settingsAttributeValidators';
 
 const settingsAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing settings
   if (
-    action.type !== SETTINGS_ACTIONS.EDIT ||
+    action.type !== SHARED_ACTIONS.EDIT ||
     (action.field !== SETTINGS_FIELDS.EDIT_DISCORD &&
       action.field !== SETTINGS_FIELDS.EDIT_SLACK &&
       action.field !== SETTINGS_FIELDS.EDIT_ACCOUNT_NAME &&

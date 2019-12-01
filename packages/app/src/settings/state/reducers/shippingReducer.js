@@ -1,13 +1,21 @@
 import { parseURL } from 'whatwg-url';
-import { SETTINGS_ACTIONS, mapSettingsFieldToKey, SETTINGS_FIELDS } from '../../../store/actions';
+import {
+  SHARED_ACTIONS,
+  SHIPPING_ACTIONS,
+  GLOBAL_ACTIONS,
+  mapSettingsFieldToKey,
+  SETTINGS_FIELDS,
+} from '../../../store/actions';
 import { Shipping } from '../initial';
 
-export default function shippingReducer(state = Shipping, action) {
-  console.log('shipping reducer handling action: ', action);
-
+export default function shippingReducer(state = Shipping, action = {}) {
   const { type, field } = action;
 
-  if (type === SETTINGS_ACTIONS.EDIT) {
+  if (type === GLOBAL_ACTIONS.RESET) {
+    return Shipping;
+  }
+
+  if (type === SHARED_ACTIONS.EDIT) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
         const { value, sites } = action;
@@ -66,16 +74,16 @@ export default function shippingReducer(state = Shipping, action) {
     }
   }
 
-  if (type === SETTINGS_ACTIONS.SETUP_SHIPPING) {
+  if (type === SHIPPING_ACTIONS.SETUP_SHIPPING) {
     const { message } = action;
     return { ...state, message, status: 'inprogress' };
   }
 
-  if (type === SETTINGS_ACTIONS.CLEAR_SHIPPING) {
+  if (type === SHIPPING_ACTIONS.CLEAR_SHIPPING) {
     return Shipping;
   }
 
-  if (type === SETTINGS_ACTIONS.CLEANUP_SHIPPING) {
+  if (type === SHIPPING_ACTIONS.CLEANUP_SHIPPING) {
     const { message } = action;
     return { ...state, message, status: 'idle' };
   }

@@ -2,7 +2,7 @@ $themes: (
   light: (
     background: #f4f4f4,
     navbarDividerColor: #efefef,
-    inputBackground: #f4f4f4,
+    inputBackground: #eff1ed,
     inputBackgroundDisabled: #dcdcdc,
     liveLogtableRowSelected: #dfdfdf,
     liveLogTableBorderTop: #6d6e70,
@@ -22,9 +22,9 @@ $themes: (
     iconPositionRight: 6px,
   ),
   dark: (
-    background: #313236,
-    navbarDividerColor: #3c3d42,
-    inputBackground: #393c3f,
+    background: #23272a,
+    navbarDividerColor: #2c2f33,
+    inputBackground: #2c2f33,
     inputBackgroundDisabled: #262626,
     liveLogtableRowSelected: #262626,
     liveLogTableBorderTop: #161318,

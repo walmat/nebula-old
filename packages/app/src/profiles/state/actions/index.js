@@ -1,37 +1,44 @@
 import makeActionCreator from '../../../store/creator';
+import prefixer from '../../../store/reducers/prefixer';
 
-// Top level Actions
-export const PROFILE_ACTIONS = {
-  CREATE: 'CREATE_PROFILE',
-  REMOVE: 'REMOVE_PROFILE',
-  DELETE_RATE: 'DELETE_RATE',
-  EDIT: 'EDIT_PROFILE',
-  ERROR: 'PROFILE_HANDLE_ERROR',
-  SELECT: 'SELECT_PROFILE',
-  LOAD: 'LOAD_PROFILE',
-  UPDATE: 'UPDATE_PROFILE',
-  TRANSFER: 'TRANSFER_SHIPPING',
-};
+const prefix = '@@Profile';
+const actionsList = [
+  'CREATE_PROFILE',
+  'REMOVE_PROFILE',
+  'EDIT_PROFILE',
+  'SELECT_PROFILE',
+  'LOAD_PROFILE',
+  'UPDATE_PROFILE',
+  'DELETE_RATE',
+  'TRANSFER_SHIPPING',
+];
+
+export const PROFILE_ACTIONS = prefixer(prefix, actionsList);
 
 const _updateProfileRequest = async (id, profile) => ({ ...profile, id });
 
 // Private Actions
-const createProfile = makeActionCreator(PROFILE_ACTIONS.ADD, 'profile');
-const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE, 'id');
-const _updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE, 'id', 'profile');
+const createProfile = makeActionCreator(PROFILE_ACTIONS.CREATE_PROFILE, 'profile');
+const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE_PROFILE, 'id');
+const _updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE_PROFILE, 'id', 'profile');
 
 // Public Actions
-const editProfile = makeActionCreator(PROFILE_ACTIONS.EDIT, 'id', 'field', 'value', 'subField');
-const transferProfile = makeActionCreator(PROFILE_ACTIONS.TRANSFER);
-const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT, 'profile');
-const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD, 'profile');
-const handleError = makeActionCreator(PROFILE_ACTIONS.ERROR, 'action', 'error');
+const editProfile = makeActionCreator(
+  PROFILE_ACTIONS.EDIT_PROFILE,
+  'id',
+  'field',
+  'value',
+  'subField',
+);
+const transferProfile = makeActionCreator(PROFILE_ACTIONS.TRANSFER_SHIPPING);
+const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT_PROFILE, 'profile');
+const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD_PROFILE, 'profile');
 const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'site', 'rate');
 
 const updateProfile = (id, profile) => dispatch =>
   _updateProfileRequest(id, profile).then(
     updatedProfile => dispatch(_updateProfile(updatedProfile)),
-    error => dispatch(handleError(PROFILE_ACTIONS.UPDATE, error)),
+    error => {},
   );
 
 export const profileActions = {
@@ -41,7 +48,6 @@ export const profileActions = {
   select: selectProfile,
   load: loadProfile,
   update: updateProfile,
-  error: handleError,
   deleteRate,
   transfer: transferProfile,
 };

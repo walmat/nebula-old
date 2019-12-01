@@ -1,9 +1,9 @@
-import { SETTINGS_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
+import { SHARED_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
 import proxyAttributeValidatorMap from '../../validation/proxyAttributeValidators';
 
 const proxyAttributeValidationMiddleware = store => next => action => {
   // Only activate this middleware when the action is editing settings
-  if (action.type !== SETTINGS_ACTIONS.EDIT || action.field !== SETTINGS_FIELDS.EDIT_PROXIES) {
+  if (action.type !== SHARED_ACTIONS.EDIT || action.field !== SETTINGS_FIELDS.EDIT_PROXIES) {
     return next(action);
   }
 

@@ -112,9 +112,6 @@ export class ProfilesPrimitive extends Component {
                 required
                 onChange={onProfileNameChange}
                 value={currentProfile.profileName}
-                style={validationStatus(
-                  currentProfile.errors[mapProfileFieldToKey[PROFILE_FIELDS.EDIT_NAME]],
-                )}
                 placeholder="Profile Name"
                 data-private
               />

@@ -1,15 +1,16 @@
 import uuidv4 from 'uuid/v4';
 
-import { SETTINGS_ACTIONS } from '../../../store/actions';
+import { WEBHOOK_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Webhooks } from '../initial';
 
-export default function webhookListReducer(state = Webhooks, action) {
-  // short circuit for malformed action...
-  if (!action.type) {
-    return state;
+export default function webhookListReducer(state = Webhooks, action = {}) {
+  const { type } = action;
+
+  if (type === GLOBAL_ACTIONS.RESET) {
+    return Webhooks;
   }
 
-  if (action.type === SETTINGS_ACTIONS.ADD_WEBHOOK) {
+  if (type === WEBHOOK_ACTIONS.ADD_WEBHOOK) {
     const { webhook } = action;
 
     // new webhook...
@@ -33,7 +34,7 @@ export default function webhookListReducer(state = Webhooks, action) {
     });
   }
 
-  if (action.type === SETTINGS_ACTIONS.DELETE_WEBHOOK) {
+  if (type === WEBHOOK_ACTIONS.DELETE_WEBHOOK) {
     const { webhook } = action;
 
     if (!webhook || (webhook && !webhook.id)) {

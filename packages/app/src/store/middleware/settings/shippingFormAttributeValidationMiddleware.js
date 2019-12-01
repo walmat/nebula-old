@@ -1,4 +1,4 @@
-import { SETTINGS_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
+import { SHARED_ACTIONS, SETTINGS_FIELDS, mapSettingsFieldToKey } from '../../actions';
 import shippingFormAttributeValidatorMap from '../../validation/shippingFormAttributeValidators';
 
 const shippingFormAttributeValidationMiddleware = store => next => action => {
@@ -12,7 +12,7 @@ const shippingFormAttributeValidationMiddleware = store => next => action => {
     SETTINGS_FIELDS.EDIT_SHIPPING_PASSWORD,
   ].includes(action.field);
 
-  if (action.type !== SETTINGS_ACTIONS.EDIT || !validField) {
+  if (action.type !== SHARED_ACTIONS.EDIT || !validField) {
     return next(action);
   }
 

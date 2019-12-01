@@ -1,11 +1,13 @@
 import { isEmpty } from 'lodash';
 import { combineReducers } from 'redux';
+import { filterActions } from 'redux-ignore';
 
 // global actions
 import { GLOBAL_ACTIONS } from '../actions';
 
 // reducers
 import App from '../../app/state/reducers';
+import Sites from '../../app/state/reducers/sitesReducer';
 import Navbar from '../../navbar/state/reducers';
 import {
   currentProfileReducer as CurrentProfile,
@@ -30,21 +32,34 @@ import {
 
 const reducers = asyncReducers =>
   combineReducers({
-    App,
-    Accounts,
-    CurrentAccount,
-    CurrentProfile,
-    CurrentWebhook,
-    Delays,
-    Navbar,
-    SelectedProfile,
-    Profiles,
-    Proxies,
-    Shipping,
-    Tasks,
-    CurrentTask,
-    SelectedTask,
-    Webhooks,
+    App: filterActions(App, action => action.type.match(/@@App|@@Global/)),
+    Accounts: filterActions(Accounts, action =>
+      action.type.match(/@@Accounts|@@Settings|@@Global/),
+    ),
+    CurrentAccount: filterActions(CurrentAccount, action =>
+      action.type.match(/@@Accounts|@@Settings|@@Global/),
+    ),
+    CurrentProfile: filterActions(CurrentProfile, action =>
+      action.type.match(/@@Profile|@@Global/),
+    ),
+    CurrentWebhook: filterActions(CurrentWebhook, action =>
+      action.type.match(/@@Webhook|@@Settings|@@Global/),
+    ),
+    Delays: filterActions(Delays, action => action.type.match(/@@Delay/)),
+    Navbar: filterActions(Navbar, action => action.type.match(/@@Navbar/)),
+    SelectedProfile: filterActions(SelectedProfile, action =>
+      action.type.match(/@@Profile|@@Global/),
+    ),
+    Profiles: filterActions(Profiles, action => action.type.match(/@@Profile|@@Global/)),
+    Proxies: filterActions(Proxies, action => action.type.match(/@@Proxies|@@Global/)),
+    Sites: filterActions(Sites, action => action.type.match(/@@App/)),
+    Shipping: filterActions(Shipping, action =>
+      action.type.match(/@@Shipping|@@Settings|@@Global/),
+    ),
+    Tasks: filterActions(Tasks, action => action.type.match(/@@Task|@@Global/)),
+    CurrentTask: filterActions(CurrentTask, action => action.type.match(/@@Task|@@Global/)),
+    SelectedTask: filterActions(SelectedTask, action => action.type.match(/@@Task|@@Global/)),
+    Webhooks: filterActions(Webhooks, action => action.type.match(/@@Webhook|@@Settings|@@Global/)),
     ...asyncReducers,
   });
 

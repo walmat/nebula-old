@@ -1,19 +1,15 @@
 import makeActionCreator from '../../../store/creator';
+import prefixer from '../../../store/reducers/prefixer';
 
 // Top Level Actions
-export const NAVBAR_ACTIONS = {
-  ROUTE_HOME: 'ROUTE_HOME',
-  ROUTE_TASKS: 'ROUTE_TASKS',
-  ROUTE_PROFILES: 'ROUTE_PROFILES',
-  ROUTE_SERVER: 'ROUTE_SERVER',
-  ROUTE_SETTINGS: 'ROUTE_SETTINGS',
-};
+const prefix = '@@Navbar';
+const actionsList = ['ROUTE_HOME', 'ROUTE_TASKS', 'ROUTE_PROFILES', 'ROUTE_SETTINGS'];
+export const NAVBAR_ACTIONS = prefixer(prefix, actionsList);
 
 export const ROUTES = {
   HOME: '/',
   TASKS: '/tasks',
   PROFILES: '/profiles',
-  SERVER: '/server',
   SETTINGS: '/settings',
 };
 
@@ -21,7 +17,6 @@ export const mapActionsToRoutes = {
   [NAVBAR_ACTIONS.ROUTE_HOME]: ROUTES.HOME,
   [NAVBAR_ACTIONS.ROUTE_TASKS]: ROUTES.TASKS,
   [NAVBAR_ACTIONS.ROUTE_PROFILES]: ROUTES.PROFILES,
-  [NAVBAR_ACTIONS.ROUTE_SERVER]: ROUTES.SERVER,
   [NAVBAR_ACTIONS.ROUTE_SETTINGS]: ROUTES.SETTINGS,
 };
 
@@ -46,6 +41,5 @@ export const navbarActions = {
   routeHome: routeAction(NAVBAR_ACTIONS.ROUTE_TASKS),
   routeTasks: routeAction(NAVBAR_ACTIONS.ROUTE_TASKS),
   routeProfiles: routeAction(NAVBAR_ACTIONS.ROUTE_PROFILES),
-  routeServer: routeAction(NAVBAR_ACTIONS.ROUTE_SERVER),
   routeSettings: routeAction(NAVBAR_ACTIONS.ROUTE_SETTINGS),
 };

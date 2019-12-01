@@ -1,19 +1,30 @@
-import { SETTINGS_ACTIONS, SETTINGS_FIELDS } from '../../../store/actions';
+import {
+  SHARED_ACTIONS,
+  WEBHOOK_ACTIONS,
+  GLOBAL_ACTIONS,
+  SETTINGS_FIELDS,
+} from '../../../store/actions';
 import { CurrentWebhook } from '../initial';
 
-export default function webhookReducer(state = CurrentWebhook, action) {
-  if (action.type === SETTINGS_ACTIONS.EDIT) {
-    switch (action.field) {
+export default function webhookReducer(state = CurrentWebhook, action = {}) {
+  const { type, field, value } = action;
+
+  if (type === GLOBAL_ACTIONS.RESET) {
+    return CurrentWebhook;
+  }
+
+  if (type === SHARED_ACTIONS.EDIT) {
+    switch (field) {
       case SETTINGS_FIELDS.EDIT_WEBHOOK_NAME:
-        return { ...state, name: action.value };
+        return { ...state, name: value };
       case SETTINGS_FIELDS.EDIT_WEBHOOK_URL:
-        return { ...state, username: action.value };
+        return { ...state, username: value };
       default:
         return state;
     }
   }
 
-  if (action.type === SETTINGS_ACTIONS.SELECT_WEBHOOK) {
+  if (type === WEBHOOK_ACTIONS.SELECT_WEBHOOK) {
     const { webhook } = action;
 
     // account without id means it hasn't been saved yet..

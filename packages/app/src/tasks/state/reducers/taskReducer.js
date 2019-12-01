@@ -2,15 +2,16 @@ import { parseURL } from 'whatwg-url';
 import {
   PROFILE_ACTIONS,
   TASK_ACTIONS,
+  GLOBAL_ACTIONS,
   TASK_FIELDS,
   mapTaskFieldsToKey,
 } from '../../../store/actions';
-import { CurrentTask, SelectedTask, task } from '../initial';
+import { CurrentTask, SelectedTask, task as TaskState } from '../initial';
 import { platformForSite } from '../../../constants/platforms';
 import { mapTypeToNextType } from '../../../constants/tasks';
 
 // shared reducer for editing current/selected task...
-export const taskReducer = (state = task, { field, value, sites }) => {
+export const taskReducer = (state = TaskState, { field, value, sites }) => {
   // exit early if the payload is improper...
   if (!field) {
     return state;
@@ -131,8 +132,12 @@ export const taskReducer = (state = task, { field, value, sites }) => {
   }
 };
 
-export const currentTaskReducer = (state = CurrentTask, action) => {
+export const currentTaskReducer = (state = CurrentTask, action = {}) => {
   const { type } = action;
+
+  if (type === GLOBAL_ACTIONS.RESET) {
+    return CurrentTask;
+  }
 
   if (type === TASK_ACTIONS.EDIT) {
     const { id } = action;
@@ -154,8 +159,12 @@ export const currentTaskReducer = (state = CurrentTask, action) => {
   return state;
 };
 
-export const selectedTaskReducer = (state = SelectedTask, action) => {
+export const selectedTaskReducer = (state = SelectedTask, action = {}) => {
   const { type } = action;
+
+  if (type === GLOBAL_ACTIONS.RESET) {
+    return SelectedTask;
+  }
 
   if (type === TASK_ACTIONS.EDIT) {
     const { id } = action;

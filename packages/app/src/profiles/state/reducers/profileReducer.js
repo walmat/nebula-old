@@ -1,12 +1,19 @@
-import { PROFILE_FIELDS, PROFILE_ACTIONS, mapProfileFieldToKey } from '../../../store/actions';
+import {
+  PROFILE_FIELDS,
+  PROFILE_ACTIONS,
+  GLOBAL_ACTIONS,
+  mapProfileFieldToKey,
+} from '../../../store/actions';
 import locationReducer from './locationReducer';
 import paymentReducer from './paymentReducer';
-import { CurrentProfile, SelectedProfile, profile } from '../initial';
+import { CurrentProfile, SelectedProfile, profile as profileState } from '../initial';
 import ratesReducer from './ratesReducer';
 
 // shared reducer for current, and selected task
-export const profileReducer = (state = profile, action) => {
+export const profileReducer = (state = profileState, action) => {
   const { type, field, value, subField } = action;
+
+  console.log(type, field, value, subField);
 
   if (!type || !mapProfileFieldToKey[field] || type !== PROFILE_ACTIONS.EDIT) {
     return state;
@@ -37,6 +44,10 @@ export const profileReducer = (state = profile, action) => {
 
 export const currentProfileReducer = (state = CurrentProfile, action) => {
   const { type } = action;
+
+  if (type === GLOBAL_ACTIONS.RESET) {
+    return CurrentProfile;
+  }
 
   if (type === PROFILE_ACTIONS.EDIT) {
     const { id } = action;
@@ -89,6 +100,10 @@ export const currentProfileReducer = (state = CurrentProfile, action) => {
 
 export const selectedProfileReducer = (state = SelectedProfile, action) => {
   const { type } = action;
+
+  if (type === GLOBAL_ACTIONS.RESET) {
+    return SelectedProfile;
+  }
 
   if (type === PROFILE_ACTIONS.SELECT) {
     const { profile } = action;

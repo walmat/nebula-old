@@ -1,4 +1,6 @@
 import makeActionCreator from './creator';
+import prefixer from './reducers/prefixer';
+
 /**
  * This file is a shared import point for all actions.
  */
@@ -8,17 +10,16 @@ import * as task from '../tasks/state/actions';
 import * as settings from '../settings/state/actions';
 import * as navbar from '../navbar/state/actions';
 
-export const GLOBAL_ACTIONS = {
-  RESET: '@@RESET',
-  IMPORT: '@@IMPORT',
-  MIGRATE: '@@MIGRATE',
-  INIT: '@@INIT',
-};
+
+const prefix = '@@Global';
+const globalActionsList = ['RESET', 'IMPORT', 'MIGRATE'];
+
+export const GLOBAL_ACTIONS = prefixer(prefix, globalActionsList);
 
 export const globalActions = {
-  migrate: makeActionCreator(GLOBAL_ACTIONS.MIGRATE),
   reset: makeActionCreator(GLOBAL_ACTIONS.RESET),
   import: makeActionCreator(GLOBAL_ACTIONS.IMPORT, 'state'),
+  migrate: makeActionCreator(GLOBAL_ACTIONS.MIGRATE),
 };
 
 // Reimports
@@ -40,7 +41,10 @@ export const { taskActions, mapTaskFieldsToKey, TASK_ACTIONS, TASK_FIELDS } = ta
 export const {
   settingsActions,
   mapSettingsFieldToKey,
-  SETTINGS_ACTIONS,
+  SHARED_ACTIONS,
+  ACCOUNT_ACTIONS,
+  WEBHOOK_ACTIONS,
+  SHIPPING_ACTIONS,
   SETTINGS_FIELDS,
 } = settings;
 

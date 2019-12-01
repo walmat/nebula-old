@@ -39,10 +39,9 @@ export class LoadProfilePrimitive extends PureComponent {
     onLoadProfile(selectedProfile);
   }
 
-  deleteProfile(e) {
+  deleteProfile() {
     const { onDestroyProfile, selectedProfile } = this.props;
 
-    e.preventDefault();
     onDestroyProfile(selectedProfile);
   }
 

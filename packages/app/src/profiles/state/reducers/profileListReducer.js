@@ -1,11 +1,14 @@
 import uuidv4 from 'uuid/v4';
 
-import { PROFILE_ACTIONS } from '../../../store/actions';
+import { PROFILE_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Profiles, Rates } from '../initial';
 
 export default (state = Profiles, action) => {
-  console.log('profile list reducer handling action: ', action);
   const { type } = action;
+
+  if (type === GLOBAL_ACTIONS.RESET) {
+    return Profiles;
+  }
 
   if (type === PROFILE_ACTIONS.CREATE) {
     const { profile } = action;

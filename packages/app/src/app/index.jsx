@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { AppContainer } from 'react-hot-loader';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 import { sortBy, isEmpty } from 'lodash';
@@ -9,7 +10,7 @@ import Navbar from '../navbar';
 import Tasks from '../tasks';
 import Profiles from '../profiles';
 import Settings from '../settings';
-import { ROUTES, taskActions, appActions } from '../store/actions';
+import { ROUTES, taskActions, appActions, globalActions } from '../store/actions';
 import { THEMES, mapBackgroundThemeToColor, mapToNextTheme } from '../constants/themes';
 
 import { addTestId, renderSvgIcon } from '../utils';
@@ -50,7 +51,7 @@ export class App extends PureComponent {
           'Confirm',
         );
         if (confirm) {
-          store.dispatch(appActions.reset());
+          store.dispatch(globalActions.reset());
           window.Bridge.deactivate();
         }
       }
@@ -115,11 +116,9 @@ export class App extends PureComponent {
   _cleanupTaskLog() {
     const { store } = this.props;
     const { Tasks: tasks } = store.getState();
-    tasks.forEach(t => {
-      if (t.status === 'running' || t.status === 'used') {
-        store.dispatch(taskActions.stop(t));
-      }
-    });
+
+    const runningTasks = tasks.filter(t => t.status !== 'running');
+    store.dispatch(taskActions.stopAll(runningTasks));
   }
 
   _cleanupTaskEvents() {
@@ -141,7 +140,7 @@ export class App extends PureComponent {
 
       if (sites && sites.length) {
         const sorted = sortBy(sites, site => site.index);
-        store.dispatch(appActions.fetchSites(sorted));
+        store.dispatch(appActions.sites(sorted));
       }
     } catch (error) {
       // silently fail...
@@ -160,89 +159,91 @@ export class App extends PureComponent {
       redirectRoute = stateLocation;
     }
     return (
-      <Provider store={store}>
-        <BrowserRouter>
-          <div id="container-wrapper" className={`theme-${theme}`}>
-            <div className="titlebar">
-              <div
-                className="deactivate-button"
-                role="button"
-                tabIndex={0}
-                title="deactivate"
-                onKeyPress={onKeyPress}
-                onClick={App.deactivate(store)}
-                draggable="false"
-                data-testid={addTestId('App.button.deactivate')}
-              >
-                {renderSvgIcon(DeactivateIcon, {
-                  alt: '',
-                  style: { marginTop: '6px', marginLeft: '6px' },
-                })}
+      <AppContainer>
+        <Provider store={store}>
+          <BrowserRouter>
+            <div id="container-wrapper" className={`theme-${theme}`}>
+              <div className="titlebar">
+                <div
+                  className="deactivate-button"
+                  role="button"
+                  tabIndex={0}
+                  title="deactivate"
+                  onKeyPress={onKeyPress}
+                  onClick={App.deactivate(store)}
+                  draggable="false"
+                  data-testid={addTestId('App.button.deactivate')}
+                >
+                  {renderSvgIcon(DeactivateIcon, {
+                    alt: '',
+                    style: { marginTop: '6px', marginLeft: '6px' },
+                  })}
+                </div>
+                <div
+                  className="minimize-button"
+                  role="button"
+                  tabIndex={0}
+                  title="minimize"
+                  onKeyPress={onKeyPress}
+                  onClick={App.minimize}
+                  draggable="false"
+                  data-testid={addTestId('App.button.minimize')}
+                >
+                  {renderSvgIcon(MinimizeIcon)}
+                </div>
+                <div
+                  className="close-button"
+                  role="button"
+                  tabIndex={0}
+                  title="close"
+                  onKeyPress={onKeyPress}
+                  onClick={App.close}
+                  draggable="false"
+                  data-testid={addTestId('App.button.close')}
+                >
+                  {renderSvgIcon(CloseIcon, {
+                    alt: '',
+                    style: { marginTop: '6px', marginLeft: '6px' },
+                  })}
+                </div>
+                <div
+                  className="theme-icon"
+                  role="button"
+                  tabIndex={0}
+                  title="theme"
+                  onKeyPress={onKeyPress}
+                  onClick={() => this.setTheme(store)}
+                  draggable="false"
+                  data-testid={addTestId('App.button.theme')}
+                >
+                  {theme === THEMES.LIGHT
+                    ? renderSvgIcon(NightModeIcon, {
+                        alt: 'night mode',
+                        'data-testid': addTestId('App.button.theme.light-mode'),
+                        style: { marginTop: '5px', marginLeft: '5px' },
+                      })
+                    : renderSvgIcon(LightModeIcon, {
+                        alt: 'light mode',
+                        'data-testid': addTestId('App.button.theme.dark-mode'),
+                        style: { marginTop: '6px', marginLeft: '4px' },
+                      })}
+                </div>
               </div>
-              <div
-                className="minimize-button"
-                role="button"
-                tabIndex={0}
-                title="minimize"
-                onKeyPress={onKeyPress}
-                onClick={App.minimize}
-                draggable="false"
-                data-testid={addTestId('App.button.minimize')}
-              >
-                {renderSvgIcon(MinimizeIcon)}
-              </div>
-              <div
-                className="close-button"
-                role="button"
-                tabIndex={0}
-                title="close"
-                onKeyPress={onKeyPress}
-                onClick={App.close}
-                draggable="false"
-                data-testid={addTestId('App.button.close')}
-              >
-                {renderSvgIcon(CloseIcon, {
-                  alt: '',
-                  style: { marginTop: '6px', marginLeft: '6px' },
-                })}
-              </div>
-              <div
-                className="theme-icon"
-                role="button"
-                tabIndex={0}
-                title="theme"
-                onKeyPress={onKeyPress}
-                onClick={() => this.setTheme(store)}
-                draggable="false"
-                data-testid={addTestId('App.button.theme')}
-              >
-                {theme === THEMES.LIGHT
-                  ? renderSvgIcon(NightModeIcon, {
-                      alt: 'night mode',
-                      'data-testid': addTestId('App.button.theme.light-mode'),
-                      style: { marginTop: '5px', marginLeft: '5px' },
-                    })
-                  : renderSvgIcon(LightModeIcon, {
-                      alt: 'light mode',
-                      'data-testid': addTestId('App.button.theme.dark-mode'),
-                      style: { marginTop: '6px', marginLeft: '4px' },
-                    })}
+              <Navbar />
+              <div className="main-container">
+                <Switch>
+                  <Route component={Tasks} path={ROUTES.TASKS} />
+                  <Route component={Profiles} path={ROUTES.PROFILES} />
+                  <Route component={Settings} path={ROUTES.SETTINGS} />
+                  <Route path="/">
+                    <Redirect to={redirectRoute} />
+                  </Route>
+                </Switch>
               </div>
             </div>
-            <Navbar />
-            <div className="main-container">
-              <Switch>
-                <Route component={Tasks} path={ROUTES.TASKS} />
-                <Route component={Profiles} path={ROUTES.PROFILES} />
-                <Route component={Settings} path={ROUTES.SETTINGS} />
-                <Route path="/">
-                  <Redirect to={redirectRoute} />
-                </Route>
-              </Switch>
-            </div>
-          </div>
-        </BrowserRouter>
-      </Provider>
+          </BrowserRouter>
+        </Provider>
+      </AppContainer>
     );
   }
 }

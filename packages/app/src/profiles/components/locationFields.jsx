@@ -20,6 +20,7 @@ import {
   colourStyles,
 } from '../../styles/components/select';
 import { makeTheme } from '../../app/state/selectors';
+import { makeCurrentProfile } from '../state/selectors';
 import { addTestId, renderSvgIcon } from '../../utils';
 
 import { ReactComponent as BillingMatchesShippingIcon } from '../../styles/images/profiles/matches.svg';
@@ -106,7 +107,7 @@ export class LocationFieldsPrimitive extends PureComponent {
               onKeyPress={onKeyPress}
               onClick={onClickBillingMatchesShipping}
             >
-              {currentProfile.billingMatchesShipping
+              {currentProfile.matches
                 ? renderSvgIcon(BillingMatchesShippingIcon, {
                     title: 'Billing Matches Shipping',
                     alt: 'Billing Matches Shipping',
@@ -255,7 +256,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         className={`${id}-profiles-location__input-group--zip-code`}
                         required
                         placeholder="Zip Code"
-                        onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)}
+                        onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP)}
                         value={value.zipCode}
                         style={buildStyle(disabled, null)}
                         disabled={disabled}
@@ -293,7 +294,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         className={`${id}-profiles-location__input-group--phone`}
                         required
                         placeholder="Phone"
-                        onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
+                        onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE)}
                         value={value.phone}
                         style={buildStyle(disabled, null)}
                         disabled={disabled}
@@ -337,7 +338,7 @@ export const mapStateToProps = (state, ownProps) => ({
   className: ownProps.className,
   theme: makeTheme(state),
   disabled: ownProps.disabled,
-  currentProfile: state.CurrentProfile,
+  currentProfile: makeCurrentProfile(state),
   value: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]],
 });
 
