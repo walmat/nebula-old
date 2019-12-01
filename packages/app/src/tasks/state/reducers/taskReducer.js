@@ -5,12 +5,12 @@ import {
   TASK_FIELDS,
   mapTaskFieldsToKey,
 } from '../../../store/actions';
-import { CurrentTask, SelectedTask } from '../initial';
+import { CurrentTask, SelectedTask, task } from '../initial';
 import { platformForSite } from '../../../constants/platforms';
 import { mapTypeToNextType } from '../../../constants/tasks';
 
 // shared reducer for editing current/selected task...
-export const taskReducer = (state, { field, value, sites }) => {
+export const taskReducer = (state = task, { field, value, sites }) => {
   // exit early if the payload is improper...
   if (!field) {
     return state;

@@ -44,11 +44,9 @@ export class AccountManagerPrimitive extends PureComponent {
   }
 
   buildAccountOptions() {
-    const {
-      accounts: { list },
-    } = this.props;
+    const { accounts } = this.props;
     const opts = [];
-    list.forEach(acc => {
+    accounts.forEach(acc => {
       opts.push({ value: acc.id, label: acc.name });
     });
     return opts;
@@ -106,7 +104,15 @@ export class AccountManagerPrimitive extends PureComponent {
 
   render() {
     const { currentAccount, theme } = this.props;
-    const { username, password, name } = currentAccount;
+    const { username, password, name, id } = currentAccount;
+
+    let accountValue = null;
+    if (name && id) {
+      accountValue = {
+        label: name,
+        value: id,
+      };
+    }
 
     return (
       <>
@@ -200,7 +206,7 @@ export class AccountManagerPrimitive extends PureComponent {
                         {this.renderButton(SETTINGS_FIELDS.SAVE_ACCOUNT, currentAccount)}
                       </div>
                       <div className="col col--end col--gutter-left">
-                        {this.renderButton(SETTINGS_FIELDS.DELETE_ACCOUNT, selectedAccount)}
+                        {this.renderButton(SETTINGS_FIELDS.DELETE_ACCOUNT, currentAccount)}
                       </div>
                     </div>
                   </div>

@@ -2,7 +2,6 @@
 /* eslint-disable react/forbid-prop-types */
 import React from 'react';
 import PropTypes from 'prop-types';
-import tDefns from '../../store/definitions/taskDefinitions';
 import { addTestId } from '../../utils';
 
 const OutputCol = ({ message, classMap, checkoutUrl }) => {
@@ -120,7 +119,7 @@ const LogTaskRow = ({
 };
 
 LogTaskRow.propTypes = {
-  task: tDefns.taskLog.isRequired,
+  task: PropTypes.objectOf(PropTypes.any).isRequired,
   style: PropTypes.objectOf(PropTypes.any).isRequired,
   onClick: PropTypes.func,
   selected: PropTypes.bool.isRequired,

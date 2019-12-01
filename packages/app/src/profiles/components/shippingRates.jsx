@@ -10,7 +10,6 @@ import {
 } from '../../styles/components/select';
 import addTestId from '../../utils/addTestId';
 import validationStatus from '../../utils/validationStatus';
-import defns from '../../store/definitions/profileDefinitions';
 import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../store/actions';
 
 export class ShippingRatesPrimitive extends PureComponent {
@@ -181,7 +180,7 @@ ShippingRatesPrimitive.propTypes = {
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   onDeleteShippingRate: PropTypes.func.isRequired,
-  value: defns.profile.isRequired,
+  value: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 export const mapStateToProps = (state, ownProps) => ({

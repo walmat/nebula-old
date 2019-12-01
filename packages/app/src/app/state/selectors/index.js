@@ -3,7 +3,7 @@ import { App, Sites } from '../initial';
 
 export const makeTheme = createSelector(
   state => state.App || App,
-  state => state.App.theme || App.theme,
+  state => state.theme || App.theme,
 );
 
 export const makeSites = createSelector(

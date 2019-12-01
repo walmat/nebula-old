@@ -1,4 +1,4 @@
-const location = {
+export const location = {
   firstName: '',
   lastName: '',
   address: '',
@@ -21,7 +21,7 @@ const location = {
   },
 };
 
-const payment = {
+export const payment = {
   email: '',
   card: '',
   exp: '',
@@ -36,7 +36,7 @@ const payment = {
 
 export const Rates = [];
 
-const baseProfile = {
+export const profile = {
   id: null,
   name: '',
   matches: false,
@@ -48,6 +48,6 @@ const baseProfile = {
   },
 };
 
-export const CurrentProfile = { ...baseProfile };
-export const SelectedProfile = { ...baseProfile };
+export const CurrentProfile = { ...profile };
+export const SelectedProfile = { ...profile };
 export const Profiles = [];

@@ -2,15 +2,13 @@ import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import NumberFormat from 'react-number-format';
 import PropTypes from 'prop-types';
-import validationStatus from '../../utils/validationStatus';
-import defns from '../../store/definitions/profileDefinitions';
 import { PROFILE_FIELDS, PAYMENT_FIELDS, profileActions } from '../../store/actions';
 import { addTestId } from '../../utils';
 
 export class PaymentFieldsPrimitive extends PureComponent {
   createOnChangeHandler(field) {
     const { onChange } = this.props;
-    if (field === PAYMENT_FIELDS.CARD_NUMBER) {
+    if (field === PAYMENT_FIELDS.CARD) {
       return event => {
         onChange({ field, value: event.target.value.replace(/\s/g, '') });
       };
@@ -21,7 +19,7 @@ export class PaymentFieldsPrimitive extends PureComponent {
   }
 
   render() {
-    const { errors, value } = this.props;
+    const { value } = this.props;
     return (
       <div className="col col--gutter col--start col--expand">
         <div className="row row--start">
@@ -40,7 +38,6 @@ export class PaymentFieldsPrimitive extends PureComponent {
                     placeholder="Email Address"
                     onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EMAIL)}
                     value={value.email}
-                    style={validationStatus(errors[PAYMENT_FIELDS.EMAIL])}
                     data-testid={addTestId(`PaymentFieldsPrimitive.email`)}
                     data-private
                   />
@@ -50,9 +47,8 @@ export class PaymentFieldsPrimitive extends PureComponent {
                     format="#### #### #### #### ##"
                     placeholder="XXXX XXXX XXXX XXXX"
                     className="row row--start row--expand profiles-payment__input-group--card-number"
-                    onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD_NUMBER)}
-                    value={value.cardNumber}
-                    style={validationStatus(errors[PAYMENT_FIELDS.CARD_NUMBER])}
+                    onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CARD)}
+                    value={value.card}
                     data-testid={addTestId(`PaymentFieldsPrimitive.card-number`)}
                     data-private
                   />
@@ -64,7 +60,6 @@ export class PaymentFieldsPrimitive extends PureComponent {
                     placeholder="MM/YY"
                     onChange={this.createOnChangeHandler(PAYMENT_FIELDS.EXP)}
                     value={value.exp}
-                    style={validationStatus(errors[PAYMENT_FIELDS.EXP])}
                     mask={['M', 'M', 'Y', 'Y']}
                     data-testid={addTestId(`PaymentFieldsPrimitive.expiration`)}
                     data-private
@@ -75,7 +70,6 @@ export class PaymentFieldsPrimitive extends PureComponent {
                     placeholder="CVV"
                     onChange={this.createOnChangeHandler(PAYMENT_FIELDS.CVV)}
                     value={value.cvv}
-                    style={validationStatus(errors[PAYMENT_FIELDS.CVV])}
                     data-testid={addTestId(`PaymentFieldsPrimitive.cvv`)}
                     data-private
                   />
@@ -90,13 +84,11 @@ export class PaymentFieldsPrimitive extends PureComponent {
 }
 
 PaymentFieldsPrimitive.propTypes = {
-  errors: defns.paymentStateErrors.isRequired,
   onChange: PropTypes.func.isRequired,
-  value: defns.paymentState.isRequired,
+  value: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 export const mapStateToProps = (state, ownProps) => ({
-  errors: ownProps.profileToEdit.payment.errors,
   value: ownProps.profileToEdit.payment,
 });
 

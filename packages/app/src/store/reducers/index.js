@@ -50,7 +50,7 @@ const reducers = asyncReducers =>
 
 // Wrapped context to allow global actions
 // e.g. - reset, import, etc..
-export default (state, action) => {
+export default (state = undefined, action = {}) => {
   const { type } = action;
   if (type === GLOBAL_ACTIONS.RESET) {
     // Forces a state refresh here to the initial state of each reducer

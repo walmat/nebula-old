@@ -4,24 +4,24 @@ import thunk from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import rootReducer from '../reducers';
 
-import profileAttributeValidationMiddleware from '../middleware/profiles/profileAttributeValidationMiddleware';
-import profileFormValidationMiddleware from '../middleware/profiles/profileFormValidationMiddleware';
-import tasksFormValidationMiddleware from '../middleware/tasks/tasksFormValidationMiddleware';
-import tasksAttributeValidationMiddleware from '../middleware/tasks/tasksAttributeValidationMiddleware';
-import proxyAttributeValidationMiddlware from '../middleware/settings/proxyAttributeValidationMiddleware';
-import shippingFormAttributeValidationMiddleware from '../middleware/settings/shippingFormAttributeValidationMiddleware';
-import settingsAttributeValidationMiddleware from '../middleware/settings/settingsAttributeValidationMiddleware';
+// import profileAttributeValidationMiddleware from '../middleware/profiles/profileAttributeValidationMiddleware';
+// import profileFormValidationMiddleware from '../middleware/profiles/profileFormValidationMiddleware';
+// import tasksFormValidationMiddleware from '../middleware/tasks/tasksFormValidationMiddleware';
+// import tasksAttributeValidationMiddleware from '../middleware/tasks/tasksAttributeValidationMiddleware';
+// import proxyAttributeValidationMiddlware from '../middleware/settings/proxyAttributeValidationMiddleware';
+// import shippingFormAttributeValidationMiddleware from '../middleware/settings/shippingFormAttributeValidationMiddleware';
+// import settingsAttributeValidationMiddleware from '../middleware/settings/settingsAttributeValidationMiddleware';
 
-const configureStore = () => {
+const configureStore = initialState => {
   // Redux Configuration
   const middleware = [
-    profileAttributeValidationMiddleware,
-    profileFormValidationMiddleware,
-    tasksAttributeValidationMiddleware,
-    tasksFormValidationMiddleware,
-    proxyAttributeValidationMiddlware,
-    settingsAttributeValidationMiddleware,
-    shippingFormAttributeValidationMiddleware,
+    // profileAttributeValidationMiddleware,
+    // profileFormValidationMiddleware,
+    // tasksAttributeValidationMiddleware,
+    // tasksFormValidationMiddleware,
+    // proxyAttributeValidationMiddlware,
+    // settingsAttributeValidationMiddleware,
+    // shippingFormAttributeValidationMiddleware,
   ];
   const enhancers = [];
 
@@ -50,7 +50,7 @@ const configureStore = () => {
   const enhancer = composeEnhancers(...enhancers, persistState());
 
   // Create Store
-  const store = createStore(rootReducer(), null, enhancer);
+  const store = createStore(rootReducer(), initialState, enhancer);
 
   store.asyncReducers = {};
   store.injectReducer = (key, reducer) => {

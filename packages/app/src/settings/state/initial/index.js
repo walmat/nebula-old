@@ -14,7 +14,13 @@ export const CurrentAccount = {
 };
 
 export const Shipping = {
-  product: null,
+  product: {
+    raw: '',
+    variant: null,
+    pos: null,
+    neg: null,
+    url: null,
+  },
   site: null,
   profile: null,
 };

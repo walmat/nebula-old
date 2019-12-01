@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import Select from 'react-select';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import defns from '../../store/definitions/profileDefinitions';
 import getAllCountries, { getProvinces, getCountry } from '../../constants/getAllCountries';
 import {
   LOCATION_FIELDS,
@@ -20,6 +19,7 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
+import { makeTheme } from '../../app/state/selectors';
 import { addTestId, renderSvgIcon } from '../../utils';
 
 import { ReactComponent as BillingMatchesShippingIcon } from '../../styles/images/profiles/matches.svg';
@@ -140,7 +140,7 @@ export class LocationFieldsPrimitive extends PureComponent {
   }
 
   render() {
-    const { id, header, className, value, errors, disabled, theme } = this.props;
+    const { id, header, className, value, disabled, theme } = this.props;
 
     return (
       <div className={className}>
@@ -161,7 +161,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       placeholder="First Name"
                       onChange={this.createOnChangeHandler(LOCATION_FIELDS.FIRST_NAME)}
                       value={value.firstName}
-                      style={buildStyle(disabled, errors[LOCATION_FIELDS.FIRST_NAME])}
+                      style={buildStyle(disabled, null)}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-firstName`)}
                       data-private
@@ -172,7 +172,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       placeholder="Last Name"
                       onChange={this.createOnChangeHandler(LOCATION_FIELDS.LAST_NAME)}
                       value={value.lastName}
-                      style={buildStyle(disabled, errors[LOCATION_FIELDS.LAST_NAME])}
+                      style={buildStyle(disabled, null)}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-lastName`)}
                       data-private
@@ -185,7 +185,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       placeholder="Address Line 1"
                       onChange={this.createOnChangeHandler(LOCATION_FIELDS.ADDRESS)}
                       value={value.address}
-                      style={buildStyle(disabled, errors[LOCATION_FIELDS.ADDRESS])}
+                      style={buildStyle(disabled, null)}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-address`)}
                       data-private
@@ -197,7 +197,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                       placeholder="Address Line 2"
                       onChange={this.createOnChangeHandler(LOCATION_FIELDS.APT)}
                       value={value.apt}
-                      style={buildStyle(disabled, errors[LOCATION_FIELDS.APT])}
+                      style={buildStyle(disabled, null)}
                       disabled={disabled}
                       data-testid={addTestId(`LocationFieldsPrimitive.${id}-apt`)}
                       data-private
@@ -214,7 +214,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         placeholder="City"
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.CITY)}
                         value={value.city}
-                        style={buildStyle(disabled, errors[LOCATION_FIELDS.CITY])}
+                        style={buildStyle(disabled, null)}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-city`)}
                         data-private
@@ -239,10 +239,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         }
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.PROVINCE)}
                         value={value.province}
-                        styles={colourStyles(
-                          theme,
-                          buildStyle(disabled, errors[LOCATION_FIELDS.PROVINCE]),
-                        )}
+                        styles={colourStyles(theme, buildStyle(disabled, null))}
                         isDisabled={this.isProvinceFieldDisabled()}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-province`)}
                         data-private
@@ -260,7 +257,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         placeholder="Zip Code"
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP_CODE)}
                         value={value.zipCode}
-                        style={buildStyle(disabled, errors[LOCATION_FIELDS.ZIP_CODE])}
+                        style={buildStyle(disabled, null)}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-zipCode`)}
                         data-private
@@ -283,10 +280,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         options={LocationFieldsPrimitive.buildCountryOptions()}
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.COUNTRY)}
                         value={value.country}
-                        styles={colourStyles(
-                          theme,
-                          buildStyle(disabled, errors[LOCATION_FIELDS.COUNTRY]),
-                        )}
+                        styles={colourStyles(theme, buildStyle(disabled, null))}
                         isDisabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-country`)}
                         data-private
@@ -301,7 +295,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         placeholder="Phone"
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.PHONE_NUMBER)}
                         value={value.phone}
-                        style={buildStyle(disabled, errors[LOCATION_FIELDS.PHONE_NUMBER])}
+                        style={buildStyle(disabled, null)}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-phone`)}
                         data-private
@@ -320,15 +314,14 @@ export class LocationFieldsPrimitive extends PureComponent {
 }
 
 LocationFieldsPrimitive.propTypes = {
-  currentProfile: defns.profile.isRequired,
-  errors: defns.locationStateErrors.isRequired,
+  currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
   onChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool.isRequired,
   header: PropTypes.string.isRequired,
   className: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,
   theme: PropTypes.string.isRequired,
-  value: defns.locationState.isRequired,
+  value: PropTypes.objectOf(PropTypes.any).isRequired,
   onClickBillingMatchesShipping: PropTypes.func.isRequired,
   onClickTransferShippingInformation: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
@@ -342,10 +335,9 @@ export const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
   header: ownProps.header,
   className: ownProps.className,
-  theme: state.App.theme,
+  theme: makeTheme(state),
   disabled: ownProps.disabled,
   currentProfile: state.CurrentProfile,
-  errors: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]].errors,
   value: ownProps.profileToEdit[mapProfileFieldToKey[ownProps.fieldToEdit]],
 });
 

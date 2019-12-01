@@ -13,9 +13,6 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
-import sDefns from '../../store/definitions/settingsDefinitions';
-import tDefns from '../../store/definitions/taskDefinitions';
-import pDefns from '../../store/definitions/profileDefinitions';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { ReactComponent as EditIcon } from '../../styles/images/tasks/edit.svg';
 import { ReactComponent as CopyIcon } from '../../styles/images/tasks/copy.svg';
@@ -468,10 +465,9 @@ export class TaskRowPrimitive extends PureComponent {
 
 TaskRowPrimitive.propTypes = {
   isEditing: PropTypes.bool.isRequired,
-  proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
-  profiles: pDefns.profileList.isRequired,
-  task: tDefns.task.isRequired,
-  edits: tDefns.taskEdit.isRequired,
+  proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
+  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
+  task: PropTypes.objectOf(PropTypes.any).isRequired,
   onSelectTask: PropTypes.func.isRequired,
   onCopyTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
@@ -483,7 +479,6 @@ TaskRowPrimitive.propTypes = {
   onKeyPress: PropTypes.func,
   theme: PropTypes.string.isRequired,
   style: PropTypes.objectOf(PropTypes.any).isRequired,
-  errors: tDefns.taskEditErrors.isRequired,
 };
 
 TaskRowPrimitive.defaultProps = {
@@ -496,7 +491,6 @@ export const mapStateToProps = (state, ownProps) => ({
   task: ownProps.task,
   sites: (state.Sites || []).filter(site => site.label === ownProps.task.platform),
   style: ownProps.style,
-  edits: ownProps.task.edits,
   isEditing: ownProps.task.id === state.selectedTask.id,
   theme: state.App.theme,
   errors: ownProps.task.edits.errors,

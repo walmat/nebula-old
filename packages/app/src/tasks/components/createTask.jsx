@@ -12,7 +12,7 @@ import { makeTheme, makeSites } from '../../app/state/selectors';
 import { makeAccounts } from '../../settings/state/selectors';
 import { makeProfiles } from '../../profiles/state/selectors';
 import { makeCurrentTask } from '../state/selectors';
-import { TASK_FIELDS, mapTaskFieldsToKey, taskActions } from '../../store/actions';
+import { TASK_FIELDS, taskActions } from '../../store/actions';
 import * as getAllSizes from '../../constants/getAllSizes';
 import { THEMES } from '../../constants/themes';
 import PLATFORMS from '../../constants/platforms';
@@ -221,7 +221,7 @@ export class CreateTaskPrimitive extends PureComponent {
   }
 
   renderExtraInputs() {
-    const { task, errors, onKeyPress, theme } = this.props;
+    const { task, onKeyPress, theme } = this.props;
 
     let account = null;
     if (task.account) {
@@ -259,13 +259,10 @@ export class CreateTaskPrimitive extends PureComponent {
                       DropdownIndicator: props =>
                         DropdownIndicator({
                           ...props,
-                          errors: errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_TASK_CATEGORY]],
+                          errors: null,
                         }),
                     }}
-                    styles={colourStyles(
-                      theme,
-                      buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_TASK_CATEGORY]]),
-                    )}
+                    styles={colourStyles(theme, buildStyle(false, null))}
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_TASK_CATEGORY, e)}
                     value={categoryValue}
                     options={CreateTaskPrimitive.buildCategories()}
@@ -284,10 +281,7 @@ export class CreateTaskPrimitive extends PureComponent {
                       this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT_VARIATION, e)
                     }
                     value={product.variation}
-                    style={buildStyle(
-                      false,
-                      errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT_VARIATION]],
-                    )}
+                    style={buildStyle(false, null)}
                     required
                     data-testid={addTestId('CreateTask.variation')}
                   />
@@ -300,10 +294,7 @@ export class CreateTaskPrimitive extends PureComponent {
                     placeholder="0"
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_CHECKOUT_DELAY, e)}
                     value={checkoutDelay}
-                    style={buildStyle(
-                      false,
-                      errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_CHECKOUT_DELAY]],
-                    )}
+                    style={buildStyle(false, null)}
                     required
                     data-testid={addTestId('CreateTask.variation')}
                   />
@@ -367,7 +358,7 @@ export class CreateTaskPrimitive extends PureComponent {
                     className="tasks-create__amount"
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_AMOUNT, e)}
                     value={task.amount}
-                    style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_AMOUNT]])}
+                    style={buildStyle(false, null)}
                     tabIndex={0}
                     onKeyPress={onKeyPress}
                     data-testid={addTestId('CreateTask.amountInput')}
@@ -526,7 +517,7 @@ export class CreateTaskPrimitive extends PureComponent {
                     className="tasks-create__amount"
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_AMOUNT, e)}
                     value={amount}
-                    style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_AMOUNT]])}
+                    style={buildStyle(false, null)}
                     tabIndex={0}
                     onKeyPress={onKeyPress}
                     data-testid={addTestId('CreateTask.amountInput')}
@@ -559,7 +550,7 @@ export class CreateTaskPrimitive extends PureComponent {
     const { task, sites, theme, onKeyPress } = this.props;
     const { isLoadingSite, isLoadingSize } = this.state;
     let newTaskProfileValue = null;
-    if (task.profile.id) {
+    if (task.profile) {
       newTaskProfileValue = {
         value: task.profile.id,
         label: task.profile.profileName,
@@ -595,7 +586,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 placeholder="Variant, Keywords, Link"
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT, e)}
                 value={task.product.raw}
-                style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
+                style={buildStyle(false, null)}
                 required
                 data-testid={addTestId('CreateTask.productInput')}
               />
@@ -615,13 +606,10 @@ export class CreateTaskPrimitive extends PureComponent {
                   DropdownIndicator: props =>
                     DropdownIndicator({
                       ...props,
-                      errors: errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]],
+                      errors: null,
                     }),
                 }}
-                styles={colourStyles(
-                  theme,
-                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
-                )}
+                styles={colourStyles(theme, buildStyle(false, null))}
                 isOptionDisabled={option => !option.supported && option.supported !== undefined}
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
                 onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SITE, v)}
@@ -646,13 +634,10 @@ export class CreateTaskPrimitive extends PureComponent {
                   DropdownIndicator: props =>
                     DropdownIndicator({
                       ...props,
-                      errors: errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]],
+                      errors: null,
                     }),
                 }}
-                styles={colourStyles(
-                  theme,
-                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
-                )}
+                styles={colourStyles(theme, buildStyle(false, null))}
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE, e)}
                 value={newTaskProfileValue}
                 options={this.buildProfileOptions()}
@@ -675,13 +660,10 @@ export class CreateTaskPrimitive extends PureComponent {
                   DropdownIndicator: props =>
                     DropdownIndicator({
                       ...props,
-                      errors: errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]],
+                      errors: null,
                     }),
                 }}
-                styles={colourStyles(
-                  theme,
-                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
-                )}
+                styles={colourStyles(theme, buildStyle(false, null))}
                 onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SIZES, v)}
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES, e)}
                 value={newSizeValue}

@@ -1,4 +1,4 @@
-const baseTask = {
+export const task = {
   id: null,
   site: null,
   product: {
@@ -13,16 +13,8 @@ const baseTask = {
   account: null,
   status: 'idle',
   message: '',
-  error: 3500,
-  monitor: 3500,
-  errors: {
-    site: null,
-    product: null,
-    profile: null,
-    size: null,
-  },
 };
 
-export const CurrentTask = { ...baseTask };
-export const SelectedTask = { ...baseTask };
+export const CurrentTask = { ...task };
+export const SelectedTask = { ...task };
 export const Tasks = [];

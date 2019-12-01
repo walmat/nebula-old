@@ -1,6 +1,7 @@
 import { mapPaymentFieldToKey } from '../../../store/actions';
+import { payment } from '../initial';
 
-const Payment = (state, action) => {
+const Payment = (state = payment, action) => {
   console.log('payment reducer handling action: ', action);
 
   const { type, value } = action;

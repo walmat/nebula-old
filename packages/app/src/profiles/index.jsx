@@ -7,7 +7,6 @@ import ShippingRateFields from './components/shippingRates';
 import LocationFields from './components/locationFields';
 import LoadProfile from './components/loadProfile';
 import validationStatus from '../utils/validationStatus';
-import defns from '../store/definitions/profileDefinitions';
 
 import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../store/actions';
 
@@ -135,8 +134,8 @@ export class ProfilesPrimitive extends Component {
 }
 
 ProfilesPrimitive.propTypes = {
-  profiles: defns.profileList.isRequired,
-  currentProfile: defns.profile.isRequired,
+  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
+  currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
   onProfileNameChange: PropTypes.func.isRequired,
   onAddNewProfile: PropTypes.func.isRequired,
   onUpdateProfile: PropTypes.func.isRequired,

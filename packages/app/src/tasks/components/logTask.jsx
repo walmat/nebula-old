@@ -1,9 +1,9 @@
 import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
-import { makeTasks } from '../../store/selectors/tasks';
-import tDefns from '../../store/definitions/taskDefinitions';
+import { makeTasks } from '../state/selectors';
 import { addTestId } from '../../utils';
 
 export class LogTaskPrimitive extends PureComponent {
@@ -31,36 +31,43 @@ export class LogTaskPrimitive extends PureComponent {
     );
   }
 
+  static renderRow({ key, style, isVisible, task, fullscreen }) {
+    if (!isVisible) {
+      return null;
+    }
+    return (
+      <LogTaskRow key={key} style={style} task={task} fullscreen={fullscreen} selected={false} />
+    );
+  }
+
+  static isRowLoaded({ index, tasks }) {
+    return !!tasks[index];
+  }
+
+  static loadMoreRows({ startIndex, stopIndex, tasks }) {
+    return tasks.slice(startIndex, stopIndex);
+  }
+
   constructor(props) {
     super(props);
 
     this.createTable = this.createTable.bind(this);
-    this.renderRow = this.renderRow.bind(this);
-    this.isRowLoaded = this.isRowLoaded.bind(this);
-    this.loadMoreRows = this.loadMoreRows.bind(this);
 
     this.state = {
       fullscreen: false, // fullscreen toggle
     };
   }
 
-  isRowLoaded({ index, tasks }) {
-    return !!tasks[index];
-  }
-
-  loadMoreRows({ startIndex, stopIndex, tasks }) {
-    return tasks.slice(startIndex, stopIndex);
-  }
-
   createTable() {
+    const { fullscreen } = this.state;
     const { tasks } = this.props;
-    const runningTasks = tasks.filter(t => t.status !== 'stopped' && t.status !== 'idle');
+    const runningTasks = tasks.filter(t => t.status === 'running');
 
     return (
       <InfiniteLoader
-        isRowLoaded={({ index }) => this.isRowLoaded({ index, tasks: runningTasks })}
+        isRowLoaded={({ index }) => LogTaskPrimitive.isRowLoaded({ index, tasks: runningTasks })}
         loadMoreRows={({ startIndex, stopIndex }) =>
-          this.loadMoreRows({ startIndex, stopIndex, tasks: runningTasks })
+          LogTaskPrimitive.loadMoreRows({ startIndex, stopIndex, tasks: runningTasks })
         }
         rowCount={runningTasks.length}
       >
@@ -74,7 +81,13 @@ export class LogTaskPrimitive extends PureComponent {
                 ref={registerChild}
                 rowHeight={30}
                 rowRenderer={({ index, key, style, isVisible }) =>
-                  this.renderRow({ key, style, isVisible, task: runningTasks[index] })
+                  LogTaskPrimitive.renderRow({
+                    key,
+                    style,
+                    isVisible,
+                    task: runningTasks[index],
+                    fullscreen,
+                  })
                 }
                 rowCount={runningTasks.length}
                 overscanRowCount={0}
@@ -83,17 +96,6 @@ export class LogTaskPrimitive extends PureComponent {
           </AutoSizer>
         )}
       </InfiniteLoader>
-    );
-  }
-
-  renderRow({ key, style, isVisible, task }) {
-    const { fullscreen } = this.state;
-
-    if (!isVisible) {
-      return null;
-    }
-    return (
-      <LogTaskRow key={key} style={style} task={task} fullscreen={fullscreen} selected={false} />
     );
   }
 
@@ -203,7 +205,7 @@ export class LogTaskPrimitive extends PureComponent {
 }
 
 LogTaskPrimitive.propTypes = {
-  tasks: tDefns.taskList.isRequired,
+  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 export const mapStateToProps = state => ({

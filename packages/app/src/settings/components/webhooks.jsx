@@ -119,9 +119,7 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default withReducer('Webhooks', webhookReducer)(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(WebhooksPrimitive),
-);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(WebhooksPrimitive);

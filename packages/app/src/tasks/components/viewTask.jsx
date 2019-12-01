@@ -12,10 +12,9 @@ import {
 import NumberFormat from 'react-number-format';
 
 import TaskRow from './taskRow';
-import sDefns from '../../store/definitions/settingsDefinitions';
-import tDefns from '../../store/definitions/taskDefinitions';
 
-import { makeTasks, makeSelectedTask } from '../../store/selectors/tasks';
+import { makeProxies, makeDelays } from '../../settings/state/selectors';
+import { makeTasks, makeSelectedTask } from '../state/selectors';
 import { SETTINGS_FIELDS, settingsActions, taskActions } from '../../store/actions';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { buildStyle } from '../../styles';
@@ -355,11 +354,13 @@ export class ViewTaskPrimitive extends PureComponent {
 }
 
 ViewTaskPrimitive.propTypes = {
+  // props...
   monitor: PropTypes.number.isRequired,
   error: PropTypes.number.isRequired,
-  proxies: PropTypes.arrayOf(sDefns.proxy).isRequired,
-  tasks: tDefns.taskList.isRequired,
-  selectedTask: tDefns.task.isRequired,
+  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
+  proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
+  // funcs...
   onSettingsChange: PropTypes.func.isRequired,
   onMassEdit: PropTypes.func.isRequired,
   onDestroyAllTasks: PropTypes.func.isRequired,
@@ -373,11 +374,11 @@ ViewTaskPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  monitor: state.Settings.monitor,
-  error: state.Settings.error,
+  monitor: makeDelays(state).monitor,
+  error: makeDelays(state).error,
   tasks: makeTasks(state),
   selectedTask: makeSelectedTask(state),
-  proxies: state.Settings.proxies,
+  proxies: makeProxies(state),
 });
 
 export const mapDispatchToProps = dispatch => ({

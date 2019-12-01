@@ -11,9 +11,11 @@ import {
   Option,
   colourStyles,
 } from '../../styles/components/select';
+
+import { makeTheme } from '../../app/state/selectors';
+import { makeSelectedProfile, makeProfiles } from '../state/selectors';
 import { profileActions } from '../../store/actions';
 import { buildStyle } from '../../styles';
-import defns from '../../store/definitions/profileDefinitions';
 
 export class LoadProfilePrimitive extends PureComponent {
   constructor(props) {
@@ -127,29 +129,31 @@ export class LoadProfilePrimitive extends PureComponent {
 }
 
 LoadProfilePrimitive.propTypes = {
+  // props...
   theme: PropTypes.string.isRequired,
-  profiles: defns.profileList.isRequired,
-  selectedProfile: defns.profile.isRequired,
+  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
+  selectedProfile: PropTypes.objectOf(PropTypes.any).isRequired,
+  // funcs...
   onLoadProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
   onDestroyProfile: PropTypes.func.isRequired,
 };
 
 export const mapStateToProps = state => ({
-  profiles: state.Profiles,
-  selectedProfile: state.SelectedProfile,
-  theme: state.App.theme,
+  theme: makeTheme(state),
+  profiles: makeProfiles(state),
+  selectedProfile: makeSelectedProfile(state),
 });
 
 export const mapDispatchToProps = dispatch => ({
   onLoadProfile: profile => {
     dispatch(profileActions.load(profile));
   },
-  onDestroyProfile: profile => {
-    dispatch(profileActions.remove(profile.id));
-  },
   onSelectProfile: profile => {
     dispatch(profileActions.select(profile));
+  },
+  onDestroyProfile: profile => {
+    dispatch(profileActions.remove(profile.id));
   },
 });
 

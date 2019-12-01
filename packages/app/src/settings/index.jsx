@@ -1,7 +1,6 @@
 import React from 'react';
 import ProxyList from './components/proxyList';
-import Webhooks from './components/webhooks';
-// import Defaults from './components/defaults';
+// import Webhooks from './components/webhooks';
 import ShippingManager from './components/shippingManager';
 import AccountManager from './components/accountManager';
 import StateFunctions from './components/stateFunctions';
@@ -23,7 +22,7 @@ export default () => (
             <ProxyList />
           </div>
           <div className="col col--start settings__extras" style={{ flexGrow: 0 }}>
-            <Webhooks />
+            {/* <Webhooks /> */}
             <ShippingManager />
             <AccountManager />
             <StateFunctions />
