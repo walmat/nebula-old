@@ -1,11 +1,15 @@
 import PLATFORMS from '../../../constants/platforms';
 import { _getId } from '../../../constants/tasks';
 import parseProductType from '../../../utils/parseProductType';
-import { TASK_LIST_ACTIONS } from '../../../store/actions';
+import { TASK_LIST_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Tasks } from '../initial';
 
 export default (state = Tasks, action) => {
   const { type } = action;
+
+  if (type === GLOBAL_ACTIONS.RESET) {
+    return Tasks;
+  }
 
   if (type === TASK_LIST_ACTIONS.CREATE_TASK) {
     const { response } = action;
@@ -21,7 +25,6 @@ export default (state = Tasks, action) => {
     }
 
     const parsedProduct = parseProductType(task.product);
-    console.log(parsedProduct);
 
     if (!parsedProduct) {
       return state;
@@ -32,7 +35,6 @@ export default (state = Tasks, action) => {
 
     // remove unnecessary fields from Tasks
     delete newTask.amount;
-    delete newTask.errors;
 
     switch (newTask.platform) {
       case PLATFORMS.Supreme: {
@@ -105,17 +107,29 @@ export default (state = Tasks, action) => {
   }
 
   if (type === TASK_LIST_ACTIONS.UPDATE_MESSAGE) {
-    const { message } = action;
+    const { buffer } = action;
 
-    if (!message) {
+    if (!buffer) {
       return state;
     }
 
-    return state.map(t => {
-      const task = t;
-      task.message = message;
-      return task;
+    const taskMap = {};
+    state.forEach(t => {
+      taskMap[t.id] = t;
     });
+
+    Object.entries(buffer).forEach(([taskId, msg]) => {
+      const { type: taskType, message } = msg;
+      if (taskType !== 'srr') {
+        const task = taskMap[taskId];
+
+        if (task && task.message !== message) {
+          task.message = message;
+        }
+      }
+    });
+
+    return state;
   }
 
   if (type === TASK_LIST_ACTIONS.DUPLICATE_TASK) {

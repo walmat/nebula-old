@@ -47,7 +47,7 @@ OutputCol.defaultProps = {
 };
 
 const LogTaskRow = ({
-  key,
+  id,
   index,
   style,
   onClick,
@@ -83,7 +83,7 @@ const LogTaskRow = ({
 
   return (
     <div
-      key={index}
+      key={id}
       style={style}
       className="tasks-row-container col col--no-gutter"
       data-testid={addTestId('LogTaskRow.container')}
@@ -119,6 +119,8 @@ const LogTaskRow = ({
 };
 
 LogTaskRow.propTypes = {
+  id: PropTypes.any.isRequired,
+  index: PropTypes.number.isRequired,
   task: PropTypes.objectOf(PropTypes.any).isRequired,
   style: PropTypes.objectOf(PropTypes.any).isRequired,
   onClick: PropTypes.func,

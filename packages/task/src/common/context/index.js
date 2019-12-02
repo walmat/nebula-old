@@ -3,13 +3,13 @@ import { CookieJar } from 'tough-cookie';
 
 import { Task as TaskConstants } from '../constants';
 
-const { HarvestStates } = TaskConstants;
+const { HarvestStates, Types } = TaskConstants;
 
 export default class Context {
   constructor({
     id,
     task,
-    type,
+    type = Types.Normal,
     parseType,
     proxy,
     message = '',

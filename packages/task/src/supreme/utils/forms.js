@@ -62,7 +62,7 @@ export const parseForm = async ($, formName, wanted, billing, payment, size) => 
       }
     }
     if (/zip/i.test(name)) {
-      val = billing.zipCode;
+      val = billing.zip;
     }
     if (/city/i.test(name)) {
       val = billing.city.replace(/\s/g, '+');
@@ -81,7 +81,7 @@ export const parseForm = async ($, formName, wanted, billing, payment, size) => 
       val = fullName;
     }
     if (/carn|card|riearmxa/i.test(name) && !/month|year|vv|meknk|type/i.test(name)) {
-      val = payment.cardNumber.match(/.{1,4}/g).join('+');
+      val = payment.card.match(/.{1,4}/g).join('+');
     }
     if (/card/i.test(name) && /month/i.test(name)) {
       let month = payment.exp.slice(0, 2);
@@ -94,7 +94,7 @@ export const parseForm = async ($, formName, wanted, billing, payment, size) => 
       val = `20${payment.exp.slice(3, 5)}`;
     }
     if (/card/i.test(name) && /type/i.test(name)) {
-      const validNumber = validator.number(payment.cardNumber);
+      const validNumber = validator.number(payment.card);
       let cardType = validNumber.card ? validNumber.card.type : 'visa';
       if (/american/i.test(cardType)) {
         cardType = 'american_express';
@@ -139,7 +139,7 @@ export const backupForm = (region, billing, payment, size) => {
     '+',
   )}`;
 
-  const card = payment.cardNumber.match(/.{1,4}/g).join('+');
+  const card = payment.card.match(/.{1,4}/g).join('+');
   const month =
     payment.exp.slice(0, 2).length < 2 ? `0${payment.exp.slice(0, 2)}` : payment.exp.slice(0, 2);
   const year = `20${payment.exp.slice(3, 5)}`;
@@ -178,7 +178,7 @@ export const backupForm = (region, billing, payment, size) => {
         '+',
       )}&order%5Bbilling_address_2%5D=${
         billing.apt ? billing.apt.replace(/\s/g, '+') : ''
-      }&order%5Bbilling_zip%5D=${billing.zipCode.replace(
+      }&order%5Bbilling_zip%5D=${billing.zip.replace(
         /\s/g,
         '+',
       )}&order%5Bbilling_city%5D=${billing.city.replace(/\s/g, '+')}&order%5Bbilling_state%5D=${
@@ -189,7 +189,7 @@ export const backupForm = (region, billing, payment, size) => {
       break;
     }
     case Regions.EU: {
-      const validNumber = validator.number(payment.cardNumber);
+      const validNumber = validator.number(payment.card);
       let cardType = validNumber.card ? validNumber.card.type : 'visa';
       if (/american/i.test(cardType)) {
         cardType = 'american_express';
@@ -216,7 +216,7 @@ export const backupForm = (region, billing, payment, size) => {
       }&order%5Bbilling_address_3%5D=&order%5Bbilling_city%5D=${billing.city.replace(
         /\s/g,
         '+',
-      )}&atok=sckrsarur&order%5Bbilling_zip%5D=${billing.zipCode.replace(
+      )}&atok=sckrsarur&order%5Bbilling_zip%5D=${billing.zip.replace(
         /\s/g,
         '+',
       )}&order%5Bbilling_country%5D=${country}&store_address=1&credit_card%5Btype%5D=${cardType}&credit_card%5Bcnb%5D=${card}&credit_card%5Bmonth%5D=${month}&credit_card%5Byear%5D=${year}&credit_card%5Bovv%5D=${

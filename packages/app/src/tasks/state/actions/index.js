@@ -127,7 +127,7 @@ const editTask = makeActionCreator(TASK_ACTIONS.EDIT_TASK, 'id', 'field', 'value
 const updateTask = makeActionCreator(TASK_ACTIONS.UPDATE_TASK, 'task', 'edits');
 const selectTask = makeActionCreator(TASK_LIST_ACTIONS.SELECT_TASK, 'task');
 const selectAllTasks = makeActionCreator(TASK_LIST_ACTIONS.SELECT_ALL_TASKS, 'tasks');
-const messageTask = makeActionCreator(TASK_LIST_ACTIONS.UPDATE_MESSAGE, 'message');
+const messageTask = makeActionCreator(TASK_LIST_ACTIONS.UPDATE_MESSAGE, 'buffer');
 
 // Public Thunks
 const removeTask = (task, type) => dispatch =>

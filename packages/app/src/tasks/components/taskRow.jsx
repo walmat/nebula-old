@@ -1,26 +1,13 @@
 import React, { PureComponent } from 'react';
-import Select from 'react-select';
-import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { parseURL } from 'whatwg-url';
-import { getAllSizesStripped } from '../../constants/getAllSizes';
-import {
-  DropdownIndicator,
-  Control,
-  Menu,
-  MenuList,
-  Option,
-  colourStyles,
-} from '../../styles/components/select';
 import { addTestId, renderSvgIcon } from '../../utils';
-import { ReactComponent as EditIcon } from '../../styles/images/tasks/edit.svg';
 import { ReactComponent as CopyIcon } from '../../styles/images/tasks/copy.svg';
 import { ReactComponent as StartIcon } from '../../styles/images/tasks/start.svg';
 import { ReactComponent as StopIcon } from '../../styles/images/tasks/stop.svg';
 import { ReactComponent as DestroyIcon } from '../../styles/images/tasks/destroy.svg';
-import { taskActions, mapTaskFieldsToKey, TASK_FIELDS } from '../../store/actions';
-import { buildStyle } from '../../styles';
+import { taskActions } from '../../store/actions';
 
 export class TaskRowPrimitive extends PureComponent {
   static createSite(value) {
@@ -41,10 +28,6 @@ export class TaskRowPrimitive extends PureComponent {
   constructor(props) {
     super(props);
 
-    this.handleCreate = this.handleCreate.bind(this);
-    this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
-    this.buildProfileOptions = this.buildProfileOptions.bind(this);
-    this.saveTask = this.saveTask.bind(this);
     this.selectTask = this.selectTask.bind(this);
     this.renderTableRowButton = this.renderTableRowButton.bind(this);
     this.renderTableRowActionButton = this.renderTableRowActionButton.bind(this);
@@ -52,104 +35,18 @@ export class TaskRowPrimitive extends PureComponent {
     this.renderTableRowStartStopActionButton = this.renderTableRowStartStopActionButton.bind(this);
     this.renderTableRowDestroyActionButton = this.renderTableRowDestroyActionButton.bind(this);
     this.renderTableRow = this.renderTableRow.bind(this);
-
-    this.state = {
-      isLoadingSite: false,
-      isLoadingSize: false,
-    };
   }
 
-  createOnChangeHandler(field, event) {
-    const { onEditTask, task, sites } = this.props;
-    switch (field) {
-      case TASK_FIELDS.EDIT_SITE: {
-        const site = {
-          name: event.label,
-          url: event.value,
-          apiKey: event.apiKey,
-          localCheckout: event.localCheckout || false,
-          special: event.special || false,
-          auth: event.auth,
-        };
-        return onEditTask(task, { field, value: site });
-      }
-      case TASK_FIELDS.EDIT_PROFILE: {
-        const { profiles } = this.props;
-        const value = profiles.find(p => p.id === event.value);
-        if (value) {
-          return onEditTask(task, { field, value });
-        }
-        return null;
-      }
-      case TASK_FIELDS.EDIT_SIZES: {
-        return onEditTask(task, { field, value: event.value });
-      }
-      case TASK_FIELDS.EDIT_PRODUCT:
-        return onEditTask(task, { field, value: event.target.value, sites });
-      default: {
-        return onEditTask(task, { field, value: event.target.value });
-      }
-    }
-  }
-
-  handleCreate(value, field) {
-    const { onEditTask, task } = this.props;
-
-    switch (field) {
-      case TASK_FIELDS.EDIT_SITE: {
-        this.setState({ isLoadingSite: true });
-        setTimeout(() => {
-          const newOption = TaskRowPrimitive.createSite(value);
-          if (newOption) {
-            onEditTask(task, { field, value: newOption });
-          }
-          this.setState({
-            isLoadingSite: false,
-          });
-        }, 150);
-        break;
-      }
-      case TASK_FIELDS.EDIT_SIZES: {
-        this.setState({ isLoadingSize: true });
-        setTimeout(() => {
-          const newSize = TaskRowPrimitive.createSize(value);
-          if (newSize) {
-            onEditTask(task, { field, value: newSize });
-          }
-          this.setState({
-            isLoadingSize: false,
-          });
-        }, 150);
-        break;
-      }
-      default:
-        break;
-    }
-  }
-
-  saveTask() {
-    const { task, onCommitEdits } = this.props;
-    onCommitEdits(task);
-  }
-
-  cancelEdits() {
-    const { task, onCancelEdits } = this.props;
-    onCancelEdits(task);
-  }
-
+  // TODO!
+  // eslint-disable-next-line class-methods-use-this
   selectTask() {
-    const { onSelectTask, task } = this.props;
+    // const { onSelectTask, task } = this.props;
     // if (!) {
     //   onSelectTask(task);
     // } else {
     //   // deselect current task (or toggle it)
     //   onSelectTask(null);
     // }
-  }
-
-  buildProfileOptions() {
-    const { profiles } = this.props;
-    return profiles.map(profile => ({ value: profile.id, label: profile.profileName }));
   }
 
   renderTableRowButton(tag, desc, src, className, onClick) {
@@ -216,7 +113,7 @@ export class TaskRowPrimitive extends PureComponent {
   }
 
   renderTableRow() {
-    const { task, index, theme } = this.props;
+    const { task, index } = this.props;
     return (
       <div key={task.id} className="tasks-row row row--expand row--gutter">
         <div
@@ -260,7 +157,6 @@ export class TaskRowPrimitive extends PureComponent {
 
 TaskRowPrimitive.propTypes = {
   proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
-  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   index: PropTypes.number.isRequired,
   task: PropTypes.objectOf(PropTypes.any).isRequired,
   onSelectTask: PropTypes.func.isRequired,
@@ -268,11 +164,7 @@ TaskRowPrimitive.propTypes = {
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
   onDestroyTask: PropTypes.func.isRequired,
-  onEditTask: PropTypes.func.isRequired,
-  onCommitEdits: PropTypes.func.isRequired,
-  onCancelEdits: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
-  theme: PropTypes.string.isRequired,
   style: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
@@ -285,9 +177,7 @@ export const mapStateToProps = (state, ownProps) => ({
   proxies: state.Proxies,
   index: ownProps.index,
   task: ownProps.task,
-  sites: (state.Sites || []).filter(site => site.label === ownProps.task.platform),
   style: ownProps.style,
-  theme: state.App.theme,
 });
 
 export const mapDispatchToProps = dispatch => ({

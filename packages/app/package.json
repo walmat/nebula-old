@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.4.5",
+    "@manaflair/redux-batch": "^1.0.0",
     "@nebula/task-built": "*",
     "aws-sdk": "^2.477.0",
     "bodymovin": "^4.13.0",

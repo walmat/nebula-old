@@ -707,7 +707,7 @@ CreateTaskPrimitive.propTypes = {
   onFieldChange: PropTypes.func.isRequired,
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   accounts: PropTypes.arrayOf(PropTypes.any).isRequired,
-  sites: PropTypes.objectOf(PropTypes.any).isRequired,
+  sites: PropTypes.arrayOf(PropTypes.any).isRequired,
   task: PropTypes.objectOf(PropTypes.any).isRequired,
   theme: PropTypes.string.isRequired,
   onAddNewTask: PropTypes.func.isRequired,

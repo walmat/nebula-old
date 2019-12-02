@@ -1,5 +1,6 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import persistState from 'redux-localstorage';
+import { reduxBatch } from '@manaflair/redux-batch';
 import thunk from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import rootReducer from '../reducers';
@@ -11,6 +12,9 @@ const configureStore = initialState => {
 
   // Thunk Middleware
   middleware.push(thunk);
+
+  // Batch Enhancer
+  enhancers.push(reduxBatch);
 
   // Logging Middleware
   const logger = createLogger({

@@ -11,6 +11,7 @@ export const task = {
     neg: null,
     url: null,
   },
+  captcha: false,
   profile: null,
   size: null,
   account: null,

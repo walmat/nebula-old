@@ -141,8 +141,8 @@ export default class MonitorPrimitive extends BaseMonitor {
       }
 
       const keywords = {
-        pos: product.pos_keywords,
-        neg: product.neg_keywords,
+        pos: product.pos,
+        neg: product.neg,
       };
 
       const matchedProduct = await matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter...

@@ -460,6 +460,7 @@ export default class TaskManager {
   stop({ id }) {
     this._logger.debug('Attempting to stop task with id: %s', id);
     const task = this._tasks[id];
+    delete this._tasks[id];
 
     this._logger.info('Found task: %j', task || false);
     if (!task) {
@@ -608,11 +609,13 @@ export default class TaskManager {
       }),
     );
 
-    const { context, platform } = this._tasks[taskContext.id];
-    delete this._tasks[taskContext.id];
-
-    if (context.proxy) {
-      this._proxyManager.release(taskContext.id, context.task.site.url, platform, context.proxy.id);
+    if (taskContext.proxy) {
+      this._proxyManager.release(
+        taskContext.id,
+        taskContext.task.site.url,
+        task.platform,
+        taskContext.proxy.id,
+      );
     }
 
     return taskContext.id;

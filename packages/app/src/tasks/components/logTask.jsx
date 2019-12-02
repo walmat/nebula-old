@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
-import { makeTasks } from '../state/selectors';
+import { makeRunningTasks } from '../state/selectors';
 import { addTestId } from '../../utils';
 
 export class LogTaskPrimitive extends PureComponent {
@@ -32,19 +32,17 @@ export class LogTaskPrimitive extends PureComponent {
   }
 
   static renderRow({ key, index, style, isVisible, task, fullscreen }) {
-    if (!isVisible) {
-      return null;
-    }
-    return (
+    return isVisible ? (
       <LogTaskRow
         key={key}
+        id={key}
         index={index}
         style={style}
         task={task}
         fullscreen={fullscreen}
         selected={false}
       />
-    );
+    ) : null;
   }
 
   static isRowLoaded({ index, tasks }) {
@@ -217,7 +215,7 @@ LogTaskPrimitive.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  tasks: makeTasks(state),
+  tasks: makeRunningTasks(state),
 });
 
 export default connect(mapStateToProps)(LogTaskPrimitive);
