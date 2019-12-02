@@ -2,19 +2,14 @@ import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import { parseURL } from 'whatwg-url';
 import PropTypes from 'prop-types';
-import {
-  InfiniteLoader,
-  List,
-  AutoSizer,
-  CellMeasurer,
-  CellMeasurerCache,
-} from 'react-virtualized';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { FixedSizeList as List } from 'react-window';
 import NumberFormat from 'react-number-format';
 
 import TaskRow from './taskRow';
 
 import { makeProxies, makeDelays } from '../../settings/state/selectors';
-import { makeTasks, makeSelectedTask } from '../state/selectors';
+import { makeTasks } from '../state/selectors';
 import { SETTINGS_FIELDS, settingsActions, taskActions } from '../../store/actions';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { buildStyle } from '../../styles';
@@ -24,6 +19,12 @@ import { ReactComponent as StopAllIcon } from '../../styles/images/tasks/stop-al
 import { ReactComponent as DestroyAllIcon } from '../../styles/images/tasks/destroy-all.svg';
 
 export class ViewTaskPrimitive extends PureComponent {
+  static renderRow({ data, index, style }) {
+    const task = data[index];
+
+    return <TaskRow task={task} index={index} style={style} />;
+  }
+
   constructor(props) {
     super(props);
 
@@ -43,52 +44,20 @@ export class ViewTaskPrimitive extends PureComponent {
     };
 
     this.createTable = this.createTable.bind(this);
-    this.renderRow = this.renderRow.bind(this);
-    this.isRowLoaded = this.isRowLoaded.bind(this);
-    this.loadMoreRows = this.loadMoreRows.bind(this);
-    this._setListRef = this._setListRef.bind(this);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.startAllTasks = this.startAllTasks.bind(this);
     this.stopAllTasks = this.stopAllTasks.bind(this);
     this.destroyAllTasks = this.destroyAllTasks.bind(this);
     this.renderDelay = this.renderDelay.bind(this);
     this._handleKeyDown = this._handleKeyDown.bind(this);
-
-    this.cache = new CellMeasurerCache({
-      fixedWidth: true,
-      defaultHeight: 30,
-    });
   }
 
   componentDidMount() {
     window.addEventListener('keydown', this._handleKeyDown);
   }
 
-  componentDidUpdate(prevProps) {
-    const {
-      selectedTask: { id },
-    } = this.props;
-
-    if (id !== prevProps.selectedTask.id) {
-      this.cache.clearAll();
-      if (this._list) {
-        this._list.recomputeRowHeights();
-      }
-    }
-  }
-
   componentWillUnmount() {
     window.removeEventListener('keydown', this._handleKeyDown);
-  }
-
-  isRowLoaded({ index }) {
-    const { tasks } = this.props;
-    return !!tasks[index];
-  }
-
-  loadMoreRows({ start, stop }) {
-    const { tasks } = this.props;
-    return tasks.slice(start, stop);
   }
 
   createOnChangeHandler(field, event) {
@@ -181,38 +150,27 @@ export class ViewTaskPrimitive extends PureComponent {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  toggleSelected(task) {
+    // todo...
+  }
+
   createTable() {
     const { tasks } = this.props;
     return (
-      <InfiniteLoader
-        isRowLoaded={this.isRowLoaded}
-        loadMoreRows={this.loadMoreRows}
-        rowCount={tasks.length}
-      >
-        {({ onRowsRendered, registerChild }) => {
-          this._registerList = registerChild;
-
-          return (
-            <AutoSizer>
-              {({ width, height }) => (
-                <List
-                  width={width}
-                  height={height}
-                  onRowsRendered={onRowsRendered}
-                  ref={this._setListRef}
-                  deferredMeasurementCache={this.cache}
-                  rowHeight={this.cache.rowHeight}
-                  rowRenderer={({ index, key, style, parent, isVisible }) =>
-                    this.renderRow({ index, key, style, parent, isVisible, task: tasks[index] })
-                  }
-                  rowCount={tasks.length}
-                  overscanRowCount={50}
-                />
-              )}
-            </AutoSizer>
-          );
-        }}
-      </InfiniteLoader>
+      <AutoSizer>
+        {({ height, width }) => (
+          <List
+            height={height}
+            width={width}
+            itemSize={30}
+            itemData={tasks}
+            itemCount={tasks.length}
+          >
+            {ViewTaskPrimitive.renderRow}
+          </List>
+        )}
+      </AutoSizer>
     );
   }
 
@@ -235,25 +193,6 @@ export class ViewTaskPrimitive extends PureComponent {
           required
         />
       </div>
-    );
-  }
-
-  renderRow({ index, key, style, parent, isVisible, task }) {
-    if (!isVisible) {
-      return <></>;
-    }
-
-    return (
-      <CellMeasurer
-        key={key}
-        style={style}
-        cache={this.cache}
-        parent={parent}
-        columnIndex={0}
-        rowIndex={index}
-      >
-        <TaskRow key={key} task={task} index={index} style={style} />
-      </CellMeasurer>
     );
   }
 
@@ -357,7 +296,6 @@ ViewTaskPrimitive.propTypes = {
   monitor: PropTypes.number.isRequired,
   error: PropTypes.number.isRequired,
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
-  selectedTask: PropTypes.objectOf(PropTypes.any).isRequired,
   proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
   // funcs...
   onSettingsChange: PropTypes.func.isRequired,
@@ -376,7 +314,6 @@ export const mapStateToProps = state => ({
   monitor: makeDelays(state).monitor,
   error: makeDelays(state).error,
   tasks: makeTasks(state),
-  selectedTask: makeSelectedTask(state),
   proxies: makeProxies(state),
 });
 

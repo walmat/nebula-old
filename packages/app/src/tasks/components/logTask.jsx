@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { InfiniteLoader, List, AutoSizer } from 'react-virtualized';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { FixedSizeList as List } from 'react-window';
 import { connect } from 'react-redux';
 import LogTaskRow from './logTaskRow';
 import { makeRunningTasks } from '../state/selectors';
@@ -31,32 +32,11 @@ export class LogTaskPrimitive extends PureComponent {
     );
   }
 
-  static renderRow({ key, index, style, isVisible, task, fullscreen }) {
-    return isVisible ? (
-      <LogTaskRow
-        key={key}
-        id={key}
-        index={index}
-        style={style}
-        task={task}
-        fullscreen={fullscreen}
-        selected={false}
-      />
-    ) : null;
-  }
-
-  static isRowLoaded({ index, tasks }) {
-    return !!tasks[index];
-  }
-
-  static loadMoreRows({ startIndex, stopIndex, tasks }) {
-    return tasks.slice(startIndex, stopIndex);
-  }
-
   constructor(props) {
     super(props);
 
     this.createTable = this.createTable.bind(this);
+    this.renderRow = this.renderRow.bind(this);
 
     this.state = {
       fullscreen: false, // fullscreen toggle
@@ -64,44 +44,37 @@ export class LogTaskPrimitive extends PureComponent {
   }
 
   createTable() {
-    const { fullscreen } = this.state;
     const { tasks } = this.props;
-    const runningTasks = tasks.filter(t => t.status === 'running');
 
     return (
-      <InfiniteLoader
-        isRowLoaded={({ index }) => LogTaskPrimitive.isRowLoaded({ index, tasks: runningTasks })}
-        loadMoreRows={({ startIndex, stopIndex }) =>
-          LogTaskPrimitive.loadMoreRows({ startIndex, stopIndex, tasks: runningTasks })
-        }
-        rowCount={runningTasks.length}
-      >
-        {({ onRowsRendered, registerChild }) => (
-          <AutoSizer>
-            {({ width, height }) => (
-              <List
-                width={width}
-                height={height}
-                onRowsRendered={onRowsRendered}
-                ref={registerChild}
-                rowHeight={30}
-                rowRenderer={({ index, key, style, isVisible }) =>
-                  LogTaskPrimitive.renderRow({
-                    key,
-                    index,
-                    style,
-                    isVisible,
-                    task: runningTasks[index],
-                    fullscreen,
-                  })
-                }
-                rowCount={runningTasks.length}
-                overscanRowCount={0}
-              />
-            )}
-          </AutoSizer>
+      <AutoSizer>
+        {({ height, width }) => (
+          <List
+            height={height}
+            width={width}
+            itemSize={30}
+            itemData={tasks}
+            itemCount={tasks.length}
+          >
+            {this.renderRow}
+          </List>
         )}
-      </InfiniteLoader>
+      </AutoSizer>
+    );
+  }
+
+  renderRow({ data, index, style }) {
+    const { fullscreen } = this.state;
+
+    const task = data[index];
+    return (
+      <LogTaskRow
+        index={index}
+        style={style}
+        task={task}
+        fullscreen={fullscreen}
+        selected={false}
+      />
     );
   }
 

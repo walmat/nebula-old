@@ -1,4 +1,4 @@
-import { Types } from '../../../constants/tasks';
+import { Types, States } from '../../../constants/tasks';
 
 export const task = {
   id: null,
@@ -15,8 +15,8 @@ export const task = {
   profile: null,
   size: null,
   account: null,
-  amount: 0,
-  status: 'idle',
+  amount: 1,
+  state: States.Stopped,
   message: '',
 };
 

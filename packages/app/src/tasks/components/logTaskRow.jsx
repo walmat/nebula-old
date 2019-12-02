@@ -47,11 +47,8 @@ OutputCol.defaultProps = {
 };
 
 const LogTaskRow = ({
-  id,
   index,
   style,
-  onClick,
-  selected,
   task: {
     site: { name },
     product: { found, raw },
@@ -61,6 +58,7 @@ const LogTaskRow = ({
     checkoutUrl,
   },
   fullscreen,
+  selected,
 }) => {
   const classMap = {
     id: ['col', 'col--no-gutter', 'tasks-row__log--id'],
@@ -83,13 +81,11 @@ const LogTaskRow = ({
 
   return (
     <div
-      key={id}
       style={style}
       className="tasks-row-container col col--no-gutter"
       data-testid={addTestId('LogTaskRow.container')}
       role="button"
       tabIndex={0}
-      onClick={onClick}
       onKeyPress={() => {}}
     >
       <div className={tasksRow}>
@@ -119,17 +115,11 @@ const LogTaskRow = ({
 };
 
 LogTaskRow.propTypes = {
-  id: PropTypes.any.isRequired,
   index: PropTypes.number.isRequired,
   task: PropTypes.objectOf(PropTypes.any).isRequired,
   style: PropTypes.objectOf(PropTypes.any).isRequired,
-  onClick: PropTypes.func,
   selected: PropTypes.bool.isRequired,
   fullscreen: PropTypes.bool.isRequired,
-};
-
-LogTaskRow.defaultProps = {
-  onClick: () => {},
 };
 
 OutputCol.openDefaultBrowser = url => {

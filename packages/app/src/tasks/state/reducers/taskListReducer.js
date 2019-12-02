@@ -33,9 +33,7 @@ export default (state = Tasks, action) => {
     const newTask = task;
     newTask.product = parsedProduct;
 
-    // remove unnecessary fields from Tasks
-    delete newTask.amount;
-
+    // trim some fat off the task object..
     switch (newTask.platform) {
       case PLATFORMS.Supreme: {
         delete newTask.type;

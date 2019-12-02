@@ -93,9 +93,9 @@ export const compareProductData = async (product1, product2, parseType) => {
   // we only care about keywords/url matching here...
   switch (parseType) {
     case ParseType.Keywords: {
-      const { pos_keywords: posKeywords, neg_keywords: negKeywords } = product1;
-      const samePositiveKeywords = isEqual(product2.pos_keywords.sort(), posKeywords.sort());
-      const sameNegativeKeywords = isEqual(product2.neg_keywords.sort(), negKeywords.sort());
+      const { pos: posKeywords, pos: negKeywords } = product1;
+      const samePositiveKeywords = isEqual(product2.pos.sort(), posKeywords.sort());
+      const sameNegativeKeywords = isEqual(product2.neg.sort(), negKeywords.sort());
       return samePositiveKeywords && sameNegativeKeywords;
     }
     case ParseType.Url: {

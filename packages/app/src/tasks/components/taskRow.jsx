@@ -28,25 +28,12 @@ export class TaskRowPrimitive extends PureComponent {
   constructor(props) {
     super(props);
 
-    this.selectTask = this.selectTask.bind(this);
     this.renderTableRowButton = this.renderTableRowButton.bind(this);
     this.renderTableRowActionButton = this.renderTableRowActionButton.bind(this);
     this.renderTableRowCopyActionButton = this.renderTableRowCopyActionButton.bind(this);
     this.renderTableRowStartStopActionButton = this.renderTableRowStartStopActionButton.bind(this);
     this.renderTableRowDestroyActionButton = this.renderTableRowDestroyActionButton.bind(this);
     this.renderTableRow = this.renderTableRow.bind(this);
-  }
-
-  // TODO!
-  // eslint-disable-next-line class-methods-use-this
-  selectTask() {
-    // const { onSelectTask, task } = this.props;
-    // if (!) {
-    //   onSelectTask(task);
-    // } else {
-    //   // deselect current task (or toggle it)
-    //   onSelectTask(null);
-    // }
   }
 
   renderTableRowButton(tag, desc, src, className, onClick) {
@@ -159,7 +146,6 @@ TaskRowPrimitive.propTypes = {
   proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
   index: PropTypes.number.isRequired,
   task: PropTypes.objectOf(PropTypes.any).isRequired,
-  onSelectTask: PropTypes.func.isRequired,
   onCopyTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,

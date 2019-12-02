@@ -5,6 +5,11 @@ export const Types = {
   FAST: 'FAST',
 };
 
+export const States = {
+  Running: 'RUNNING',
+  Stopped: 'STOPPED',
+};
+
 export const _getId = list => {
   let id;
 
