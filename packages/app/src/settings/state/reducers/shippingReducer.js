@@ -3,7 +3,6 @@ import {
   SHARED_ACTIONS,
   SHIPPING_ACTIONS,
   GLOBAL_ACTIONS,
-  mapSettingsFieldToKey,
   SETTINGS_FIELDS,
 } from '../../../store/actions';
 import { Shipping } from '../initial';
