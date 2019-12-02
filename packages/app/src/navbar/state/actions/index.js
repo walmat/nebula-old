@@ -1,9 +1,15 @@
 import makeActionCreator from '../../../store/creator';
 import prefixer from '../../../store/reducers/prefixer';
 
-// Top Level Actions
 const prefix = '@@Navbar';
 const actionsList = ['ROUTE_HOME', 'ROUTE_TASKS', 'ROUTE_PROFILES', 'ROUTE_SETTINGS'];
+export const navbarActionsList = [
+  '@@Navbar/ROUTE_HOME',
+  '@@Navbar/ROUTE_TASKS',
+  '@@Navbar/ROUTE_PROFILES',
+  '@@Navbar/ROUTE_SETTINGS',
+];
+
 export const NAVBAR_ACTIONS = prefixer(prefix, actionsList);
 
 export const ROUTES = {

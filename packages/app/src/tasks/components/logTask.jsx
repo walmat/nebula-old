@@ -31,12 +31,19 @@ export class LogTaskPrimitive extends PureComponent {
     );
   }
 
-  static renderRow({ key, style, isVisible, task, fullscreen }) {
+  static renderRow({ key, index, style, isVisible, task, fullscreen }) {
     if (!isVisible) {
       return null;
     }
     return (
-      <LogTaskRow key={key} style={style} task={task} fullscreen={fullscreen} selected={false} />
+      <LogTaskRow
+        key={key}
+        index={index}
+        style={style}
+        task={task}
+        fullscreen={fullscreen}
+        selected={false}
+      />
     );
   }
 
@@ -83,6 +90,7 @@ export class LogTaskPrimitive extends PureComponent {
                 rowRenderer={({ index, key, style, isVisible }) =>
                   LogTaskPrimitive.renderRow({
                     key,
+                    index,
                     style,
                     isVisible,
                     task: runningTasks[index],

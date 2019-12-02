@@ -13,9 +13,7 @@ import ratesReducer from './ratesReducer';
 export const profileReducer = (state = profileState, action) => {
   const { type, field, value, subField } = action;
 
-  console.log(type, field, value, subField);
-
-  if (!type || !mapProfileFieldToKey[field] || type !== PROFILE_ACTIONS.EDIT) {
+  if (!type || !mapProfileFieldToKey[field] || type !== PROFILE_ACTIONS.EDIT_PROFILE) {
     return state;
   }
 
@@ -35,6 +33,10 @@ export const profileReducer = (state = profileState, action) => {
     return { ...state, rates: ratesReducer(state.rates, { type: subField, value }) };
   }
 
+  if (field === PROFILE_FIELDS.EDIT_NAME) {
+    return { ...state, name: value };
+  }
+
   if (field === PROFILE_FIELDS.TOGGLE_MATCHES) {
     return { ...state, matches: !state.matches };
   }
@@ -49,7 +51,7 @@ export const currentProfileReducer = (state = CurrentProfile, action) => {
     return CurrentProfile;
   }
 
-  if (type === PROFILE_ACTIONS.EDIT) {
+  if (type === PROFILE_ACTIONS.EDIT_PROFILE) {
     const { id } = action;
 
     if (!id) {
@@ -58,7 +60,7 @@ export const currentProfileReducer = (state = CurrentProfile, action) => {
     return state;
   }
 
-  if (type === PROFILE_ACTIONS.CREATE || type === PROFILE_ACTIONS.UPDATE) {
+  if (type === PROFILE_ACTIONS.CREATE_PROFILE || type === PROFILE_ACTIONS.UPDATE_PROFILE) {
     const { profile } = action;
 
     if (!profile) {
@@ -69,11 +71,11 @@ export const currentProfileReducer = (state = CurrentProfile, action) => {
     return CurrentProfile;
   }
 
-  if (type === PROFILE_ACTIONS.TRANSFER) {
+  if (type === PROFILE_ACTIONS.TRANSFER_SHIPPING) {
     return { ...state, billing: state.shipping };
   }
 
-  if (type === PROFILE_ACTIONS.LOAD) {
+  if (type === PROFILE_ACTIONS.LOAD_PROFILE) {
     const { profile } = action;
 
     if (!profile || (profile && !profile.id)) {
@@ -85,7 +87,7 @@ export const currentProfileReducer = (state = CurrentProfile, action) => {
     return profile;
   }
 
-  if (type === PROFILE_ACTIONS.REMOVE) {
+  if (type === PROFILE_ACTIONS.REMOVE_PROFILE) {
     const { id } = action;
 
     if (!id || (id && action.id !== (state.id || state.editId))) {
@@ -105,7 +107,7 @@ export const selectedProfileReducer = (state = SelectedProfile, action) => {
     return SelectedProfile;
   }
 
-  if (type === PROFILE_ACTIONS.SELECT) {
+  if (type === PROFILE_ACTIONS.SELECT_PROFILE) {
     const { profile } = action;
 
     if (!profile) {
@@ -115,7 +117,7 @@ export const selectedProfileReducer = (state = SelectedProfile, action) => {
     return profile;
   }
 
-  if (type === PROFILE_ACTIONS.REMOVE) {
+  if (type === PROFILE_ACTIONS.REMOVE_PROFILE) {
     const { id } = action;
 
     if (!id || id !== state.id) {
@@ -126,7 +128,7 @@ export const selectedProfileReducer = (state = SelectedProfile, action) => {
     return SelectedProfile;
   }
 
-  if (type === PROFILE_ACTIONS.UPDATE) {
+  if (type === PROFILE_ACTIONS.UPDATE_PROFILE) {
     const { id, profile } = action;
 
     if (!profile || state.id !== (id || profile.id)) {

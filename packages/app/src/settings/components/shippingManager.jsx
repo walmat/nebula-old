@@ -66,7 +66,7 @@ export class ShippingManagerPrimitive extends PureComponent {
     const { profiles } = this.props;
     const opts = [];
     profiles.forEach(profile => {
-      opts.push({ value: profile.id, label: profile.profileName });
+      opts.push({ value: profile.id, label: profile.name });
     });
     return opts;
   }

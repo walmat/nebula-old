@@ -25,7 +25,7 @@ import { addTestId, renderSvgIcon } from '../../utils';
 
 import { ReactComponent as BillingMatchesShippingIcon } from '../../styles/images/profiles/matches.svg';
 import { ReactComponent as CopyShippingInfoToBilling } from '../../styles/images/profiles/transfer.svg';
-import { ReactComponent as BillingDoesNotMatchShippingIcon } from '../../styles/images/profiles/no-match.svg';
+import { ReactComponent as BillingDoesNotMatchShippingIcon } from '../../styles/images/profiles/not-matches.svg';
 
 export class LocationFieldsPrimitive extends PureComponent {
   static buildCountryOptions() {
@@ -97,6 +97,7 @@ export class LocationFieldsPrimitive extends PureComponent {
       onKeyPress,
       currentProfile,
     } = this.props;
+
     if (id === 'shipping') {
       return (
         <div className="row row--start row--expand row--gutter">
@@ -145,7 +146,7 @@ export class LocationFieldsPrimitive extends PureComponent {
 
     return (
       <div className={className}>
-        <div className="row row--start">
+        <div className="row row--gutter row--start">
           <p className="row row--start row--expand body-text section-header profiles-location__section-header">
             {header}
           </p>
@@ -257,7 +258,7 @@ export class LocationFieldsPrimitive extends PureComponent {
                         required
                         placeholder="Zip Code"
                         onChange={this.createOnChangeHandler(LOCATION_FIELDS.ZIP)}
-                        value={value.zipCode}
+                        value={value.zip}
                         style={buildStyle(disabled, null)}
                         disabled={disabled}
                         data-testid={addTestId(`LocationFieldsPrimitive.${id}-zipCode`)}
@@ -357,7 +358,7 @@ export const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(profileActions.transfer());
   },
   onClickBillingMatchesShipping: () => {
-    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''));
+    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_MATCHES, ''));
   },
 });
 

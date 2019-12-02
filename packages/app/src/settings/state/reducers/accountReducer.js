@@ -13,7 +13,8 @@ export default function accountReducer(state = CurrentAccount, action = {}) {
     return CurrentAccount;
   }
 
-  if (type === SHARED_ACTIONS.EDIT) {
+  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
+    console.log('editing settings!');
     switch (field) {
       case SETTINGS_FIELDS.EDIT_ACCOUNT_NAME:
         return { ...state, name: value };
@@ -36,5 +37,16 @@ export default function accountReducer(state = CurrentAccount, action = {}) {
 
     return account;
   }
+
+  if (type === ACCOUNT_ACTIONS.DELETE_ACCOUNT) {
+    const { account } = action;
+
+    if (!account || (account && !account.id)) {
+      return state;
+    }
+
+    return CurrentAccount;
+  }
+
   return state;
 }

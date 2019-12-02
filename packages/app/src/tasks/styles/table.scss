@@ -26,16 +26,10 @@
       height: 26px;
       min-height: 26px;
 
-      .tasks-table__header__edit {
-        @include header-field;
-        flex-grow: 0;
-      }
-
       .tasks-table__header__id {
         @include header-field;
         width: 26px;
         flex-grow: 0;
-        margin-left: 15px;
 
         & > p {
           text-align: center;
@@ -183,21 +177,13 @@
           @include image;
         }
 
-        &__edit {
-          width: 20px;
-          flex-grow: 0;
-        }
-
         &__id {
           width: 26px;
           text-align: center;
-          margin-left: -5px !important;
-          width: 26px;
           flex-grow: 0;
 
           &--FAST {
             width: 26px;
-            margin-left: -5px !important;
             flex-grow: 0;
             text-align: center;
             color: #858dbb;
@@ -205,7 +191,6 @@
 
           &--CART {
             width: 26px;
-            margin-left: -5px !important;
             flex-grow: 0;
             text-align: center;
             color: #c7b8ea;
@@ -213,7 +198,6 @@
 
           &--SAFE {
             width: 26px;
-            margin-left: -5px !important;
             flex-grow: 0;
             text-align: center;
             color: #8aa27d;

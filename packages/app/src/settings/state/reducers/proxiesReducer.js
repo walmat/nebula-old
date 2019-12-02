@@ -8,20 +8,20 @@ export default function proxiesReducer(state = Proxies, action = {}) {
     return Proxies;
   }
 
-  if (type === SHARED_ACTIONS.EDIT) {
+  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_PROXIES: {
-        const { proxies } = action;
+        const { value } = action;
 
         // if we aren't receiving any proxies
         // or if we aren't connected to the preload
         // just return the current proxies list
-        if (!proxies || !window.Bridge) {
+        if (!value || !window.Bridge) {
           return state;
         }
 
-        const removed = state.filter(p => !proxies.includes(p));
-        const added = proxies.filter(p => !state.includes(p));
+        const removed = state.filter(p => !value.includes(p));
+        const added = value.filter(p => !state.includes(p));
 
         if (removed.length) {
           window.Bridge.removeProxies(removed);
@@ -32,7 +32,7 @@ export default function proxiesReducer(state = Proxies, action = {}) {
         }
 
         // return the new proxies array...
-        return proxies;
+        return value;
       }
       default:
         return state;

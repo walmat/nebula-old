@@ -7,10 +7,10 @@ const accountPrefix = '@@Account';
 const webhookPrefix = '@@Webhook';
 const shippingPrefix = '@@Shipping';
 
-const sharedActionsList = ['EDIT_SETTINGS'];
-const accountActionsList = ['ADD_ACCOUNT', 'DELETE_ACCOUNT', 'SELECT_ACCOUNT'];
-const webhookActionsList = ['ADD_WEBHOOK', 'DELETE_WEBHOOK', 'SELECT_WEBHOOK'];
-const shippingActionsList = [
+const sharedList = ['EDIT_SETTINGS'];
+const accountList = ['ADD_ACCOUNT', 'DELETE_ACCOUNT', 'SELECT_ACCOUNT'];
+const webhooksList = ['ADD_WEBHOOK', 'DELETE_WEBHOOK', 'SELECT_WEBHOOK'];
+const shippingList = [
   'CLEAR_SHIPPING',
   'SETUP_SHIPPING',
   'FETCH_SHIPPING',
@@ -18,10 +18,29 @@ const shippingActionsList = [
   'CLEANUP_SHIPPING',
 ];
 
-export const SHARED_ACTIONS = prefixer(sharedPrefix, sharedActionsList);
-export const ACCOUNT_ACTIONS = prefixer(accountPrefix, accountActionsList);
-export const WEBHOOK_ACTIONS = prefixer(webhookPrefix, webhookActionsList);
-export const SHIPPING_ACTIONS = prefixer(shippingPrefix, shippingActionsList);
+export const sharedActionsList = ['@@Settings/EDIT_SETTINGS'];
+export const accountActionsList = [
+  '@@Account/ADD_ACCOUNT',
+  '@@Account/DELETE_ACCOUNT',
+  '@@Account/SELECT_ACCOUNT',
+];
+export const webhookActionsList = [
+  '@@Webhook/ADD_WEBHOOK',
+  '@@Webhook/DELETE_WEBHOOK',
+  '@@Webhook/SELECT_WEBHOOK',
+];
+export const shippingActionsList = [
+  '@@Shipping/CLEAR_SHIPPING',
+  '@@Shipping/SETUP_SHIPPING',
+  '@@Shipping/FETCH_SHIPPING',
+  '@@Shipping/STOP_SHIPPING',
+  '@@Shipping/CLEANUP_SHIPPING',
+];
+
+export const SHARED_ACTIONS = prefixer(sharedPrefix, sharedList);
+export const ACCOUNT_ACTIONS = prefixer(accountPrefix, accountList);
+export const WEBHOOK_ACTIONS = prefixer(webhookPrefix, webhooksList);
+export const SHIPPING_ACTIONS = prefixer(shippingPrefix, shippingList);
 
 const waitFor = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -71,7 +90,7 @@ const _setupShipping = makeActionCreator(SHIPPING_ACTIONS.SETUP_SHIPPING, 'messa
 const _cleanupShipping = makeActionCreator(SHIPPING_ACTIONS.CLEANUP_SHIPPING, 'message');
 const _stopShipping = makeActionCreator(SHIPPING_ACTIONS.STOP_SHIPPING);
 
-const editSettings = makeActionCreator(SHARED_ACTIONS.EDIT, 'field', 'value', 'sites');
+const editSettings = makeActionCreator(SHARED_ACTIONS.EDIT_SETTINGS, 'field', 'value', 'sites');
 const addAccount = makeActionCreator(ACCOUNT_ACTIONS.ADD_ACCOUNT, 'account');
 const deleteAccount = makeActionCreator(ACCOUNT_ACTIONS.DELETE_ACCOUNT, 'account');
 const selectAccount = makeActionCreator(ACCOUNT_ACTIONS.SELECT_ACCOUNT, 'account');
@@ -136,6 +155,8 @@ export const SETTINGS_FIELDS = {
   EDIT_ERROR_DELAY: 'EDIT_ERROR_DELAY',
   EDIT_MONITOR_DELAY: 'EDIT_MONITOR_DELAY',
 
+  CREATE_ACCOUNT: 'CREATE_ACCOUNT',
+  REMOVE_ACCOUNT: 'REMOVE_ACCOUNT',
   FETCH_SHIPPING_METHODS: 'FETCH_SHIPPING_METHODS',
   CLEAR_SHIPPING_FIELDS: 'CLEAR_SHIPPING_FIELDS',
   EDIT_SHIPPING_PRODUCT: 'EDIT_SHIPPING_PRODUCT',

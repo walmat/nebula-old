@@ -13,7 +13,7 @@ export default function delayReducer(state = Delays, action = {}) {
     return Delays;
   }
 
-  if (type === SHARED_ACTIONS.EDIT) {
+  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_ERROR_DELAY:
       case SETTINGS_FIELDS.EDIT_MONITOR_DELAY: {

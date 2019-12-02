@@ -1,22 +1,42 @@
 import makeActionCreator from '../../../store/creator';
+import prefixer from '../../../store/reducers/prefixer';
 
-// Top level Actions
-export const TASK_ACTIONS = {
-  EDIT: 'EDIT_TASK',
-  CREATE: 'CREATE_TASK',
-  UPDATE: 'UPDATE_TASK',
-  SELECT: 'SELECT_TASK',
-  SELECT_ALL: 'SELECT_ALL_TASKS',
-  DUPLICATE: 'DUPLICATE_TASK',
-  MESSAGE: 'UPDATE_MESSAGE',
-  START: 'START_TASK',
-  START_ALL: 'START_ALL_TASKS',
-  STOP: 'STOP_TASK',
-  STOP_ALL: 'STOP_ALL_TASKS',
-  REMOVE: 'REMOVE_TASK',
-  REMOVE_ALL: 'REMOVE_ALL_TASKS',
-  ERROR: 'TASK_HANDLE_ERROR',
-};
+const prefix = '@@Task';
+const tasksActions = ['EDIT_TASK'];
+export const taskActionsList = ['@@Task/EDIT_TASK'];
+
+const tasksListActions = [
+  'CREATE_TASK',
+  'UPDATE_TASK',
+  'DUPLICATE_TASK',
+  'UPDATE_MESSAGE',
+  'SELECT_TASK',
+  'SELECT_ALL_TASKS',
+  'START_TASK',
+  'START_ALL_TASKS',
+  'STOP_TASK',
+  'STOP_ALL_TASKS',
+  'REMOVE_TASK',
+  'REMOVE_ALL_TASKS',
+];
+
+export const taskListActionsList = [
+  '@@Task/CREATE_TASK',
+  '@@Task/UPDATE_TASK',
+  '@@Task/DUPLICATE_TASK',
+  '@@Task/UPDATE_MESSAGE',
+  '@@Task/SELECT_TASK',
+  '@@Task/SELECT_ALL_TASKS',
+  '@@Task/START_TASK',
+  '@@Task/START_ALL_TASKS',
+  '@@Task/STOP_TASK',
+  '@@Task/STOP_ALL_TASKS',
+  '@@Task/REMOVE_TASK',
+  '@@Task/REMOVE_ALL_TASKS',
+];
+
+export const TASK_ACTIONS = prefixer(prefix, tasksActions);
+export const TASK_LIST_ACTIONS = prefixer(prefix, tasksListActions);
 
 const _duplicateTaskRequest = async task => ({ task });
 
@@ -93,65 +113,43 @@ const _removeAllTasksRequest = async tasks => {
 };
 
 // Private Actions
-const _removeTask = makeActionCreator(TASK_ACTIONS.REMOVE, 'response');
-const _removeAllTasks = makeActionCreator(TASK_ACTIONS.REMOVE_ALL, 'response');
-const _duplicateTask = makeActionCreator(TASK_ACTIONS.COPY, 'response');
-const _startTask = makeActionCreator(TASK_ACTIONS.START, 'response');
-const _startAllTasks = makeActionCreator(TASK_ACTIONS.START_ALL, 'response');
-const _stopTask = makeActionCreator(TASK_ACTIONS.STOP, 'response');
-const _stopAllTasks = makeActionCreator(TASK_ACTIONS.STOP_ALL, 'response');
+const _removeTask = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_TASK, 'response');
+const _removeAllTasks = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_ALL_TASKS, 'response');
+const _duplicateTask = makeActionCreator(TASK_LIST_ACTIONS.DUPLICATE_TASK, 'response');
+const _startTask = makeActionCreator(TASK_LIST_ACTIONS.START_TASK, 'response');
+const _startAllTasks = makeActionCreator(TASK_LIST_ACTIONS.START_ALL_TASKS, 'response');
+const _stopTask = makeActionCreator(TASK_LIST_ACTIONS.STOP_TASK, 'response');
+const _stopAllTasks = makeActionCreator(TASK_LIST_ACTIONS.STOP_ALL_TASKS, 'response');
 
 // Public Actions
-const createTask = makeActionCreator(TASK_ACTIONS.CREATE, 'response');
-const editTask = makeActionCreator(TASK_ACTIONS.EDIT, 'id', 'field', 'value', 'sites');
-const updateTask = makeActionCreator(TASK_ACTIONS.UPDATE, 'task', 'edits');
-const selectTask = makeActionCreator(TASK_ACTIONS.SELECT, 'task');
-const selectAllTasks = makeActionCreator(TASK_ACTIONS.SELECT_ALL, 'tasks');
-const messageTask = makeActionCreator(TASK_ACTIONS.STATUS, 'message');
-const handleError = makeActionCreator(TASK_ACTIONS.ERROR, 'action', 'error');
+const createTask = makeActionCreator(TASK_LIST_ACTIONS.CREATE_TASK, 'response');
+const editTask = makeActionCreator(TASK_ACTIONS.EDIT_TASK, 'id', 'field', 'value', 'sites');
+const updateTask = makeActionCreator(TASK_ACTIONS.UPDATE_TASK, 'task', 'edits');
+const selectTask = makeActionCreator(TASK_LIST_ACTIONS.SELECT_TASK, 'task');
+const selectAllTasks = makeActionCreator(TASK_LIST_ACTIONS.SELECT_ALL_TASKS, 'tasks');
+const messageTask = makeActionCreator(TASK_LIST_ACTIONS.UPDATE_MESSAGE, 'message');
 
 // Public Thunks
 const removeTask = (task, type) => dispatch =>
-  _removeTaskRequest(task, type).then(
-    response => dispatch(_removeTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.REMOVE, error)),
-  );
+  _removeTaskRequest(task, type).then(response => dispatch(_removeTask(response)));
 
 const removeAllTasks = tasks => dispatch =>
-  _removeAllTasksRequest(tasks).then(
-    response => dispatch(_removeAllTasks(response)),
-    error => dispatch(handleError(TASK_ACTIONS.REMOVE_ALL, error)),
-  );
+  _removeAllTasksRequest(tasks).then(response => dispatch(_removeAllTasks(response)));
 
 const duplicateTask = task => dispatch =>
-  _duplicateTaskRequest(task).then(
-    response => dispatch(_duplicateTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.DUPLICATE, error)),
-  );
+  _duplicateTaskRequest(task).then(response => dispatch(_duplicateTask(response)));
 
 const startTask = (task, proxies) => dispatch =>
-  _startTaskRequest(task, proxies).then(
-    response => dispatch(_startTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.START, error)),
-  );
+  _startTaskRequest(task, proxies).then(response => dispatch(_startTask(response)));
 
 const startAllTasks = (tasks, proxies) => dispatch =>
-  _startAllTasksRequest(tasks, proxies).then(
-    response => dispatch(_startAllTasks(response)),
-    error => dispatch(handleError(TASK_ACTIONS.START_ALL, error)),
-  );
+  _startAllTasksRequest(tasks, proxies).then(response => dispatch(_startAllTasks(response)));
 
 const stopTask = task => dispatch =>
-  _stopTaskRequest(task).then(
-    response => dispatch(_stopTask(response)),
-    error => dispatch(handleError(TASK_ACTIONS.STOP, error)),
-  );
+  _stopTaskRequest(task).then(response => dispatch(_stopTask(response)));
 
 const stopAllTasks = tasks => dispatch =>
-  _stopAllTasksRequest(tasks).then(
-    response => dispatch(_stopAllTasks(response)),
-    error => dispatch(handleError(TASK_ACTIONS.STOP_ALL, error)),
-  );
+  _stopAllTasksRequest(tasks).then(response => dispatch(_stopAllTasks(response)));
 
 // Field Edits
 export const TASK_FIELDS = {
@@ -185,7 +183,6 @@ export const taskActions = {
   stopAll: stopAllTasks,
   remove: removeTask,
   removeAll: removeAllTasks,
-  error: handleError,
 };
 
 export const mapTaskFieldsToKey = {

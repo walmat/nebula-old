@@ -32,11 +32,11 @@ export class AccountManagerPrimitive extends PureComponent {
       },
     };
     this.buttons = {
-      [SETTINGS_FIELDS.DELETE_ACCOUNT]: {
+      [SETTINGS_FIELDS.REMOVE_ACCOUNT]: {
         label: 'Delete',
         type: 'delete',
       },
-      [SETTINGS_FIELDS.SAVE_ACCOUNT]: {
+      [SETTINGS_FIELDS.CREATE_ACCOUNT]: {
         label: 'Save',
         type: 'save',
       },
@@ -75,11 +75,11 @@ export class AccountManagerPrimitive extends PureComponent {
     const { label } = this.buttons[field];
     let onClick;
     switch (field) {
-      case SETTINGS_FIELDS.SAVE_ACCOUNT: {
+      case SETTINGS_FIELDS.CREATE_ACCOUNT: {
         onClick = () => onSaveAccount(value);
         break;
       }
-      case SETTINGS_FIELDS.DELETE_ACCOUNT: {
+      case SETTINGS_FIELDS.REMOVE_ACCOUNT: {
         onClick = () => onDeleteAccount(value);
         break;
       }
@@ -203,10 +203,10 @@ export class AccountManagerPrimitive extends PureComponent {
                         />
                       </div>
                       <div className="col col--end col--no-gutter-right">
-                        {this.renderButton(SETTINGS_FIELDS.SAVE_ACCOUNT, currentAccount)}
+                        {this.renderButton(SETTINGS_FIELDS.CREATE_ACCOUNT, currentAccount)}
                       </div>
                       <div className="col col--end col--gutter-left">
-                        {this.renderButton(SETTINGS_FIELDS.DELETE_ACCOUNT, currentAccount)}
+                        {this.renderButton(SETTINGS_FIELDS.REMOVE_ACCOUNT, currentAccount)}
                       </div>
                     </div>
                   </div>

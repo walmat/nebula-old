@@ -150,12 +150,12 @@ export class CreateTaskPrimitive extends PureComponent {
         }, 150);
         break;
       }
-      case TASK_FIELDS.EDIT_SIZES: {
+      case TASK_FIELDS.EDIT_SIZE: {
         this.setState({ isLoadingSize: true });
         setTimeout(() => {
           const newSize = CreateTaskPrimitive.createSize(value);
           if (newSize) {
-            onFieldChange({ field: TASK_FIELDS.EDIT_SIZES, value: newSize });
+            onFieldChange({ field: TASK_FIELDS.EDIT_SIZE, value: newSize });
           }
           this.setState({
             isLoadingSize: false,
@@ -176,9 +176,7 @@ export class CreateTaskPrimitive extends PureComponent {
           name: event.label,
           url: event.value,
           apiKey: event.apiKey,
-          localCheckout: event.localCheckout || false,
           special: event.special || false,
-          auth: event.auth,
         };
         return onFieldChange({ field, value: site });
       }
@@ -202,7 +200,7 @@ export class CreateTaskPrimitive extends PureComponent {
         }
         return null;
       }
-      case TASK_FIELDS.EDIT_SIZES:
+      case TASK_FIELDS.EDIT_SIZE:
         return onFieldChange({ field, value: event.value });
       case TASK_FIELDS.EDIT_PRODUCT:
         return onFieldChange({ field, value: event.target.value, sites });
@@ -237,7 +235,7 @@ export class CreateTaskPrimitive extends PureComponent {
       };
     }
 
-    const { forceCaptcha, platform } = task;
+    const { captcha, platform } = task;
 
     switch (platform) {
       case PLATFORMS.Supreme: {
@@ -305,7 +303,7 @@ export class CreateTaskPrimitive extends PureComponent {
               <div className="row row--gutter">
                 <div className="col col--expand col--no-gutter">
                   <Switch
-                    checked={forceCaptcha}
+                    checked={captcha}
                     checkedIcon={
                       <svg width="16" height="16" viewBox="-5 -1 16 16" version="1.1">
                         <g id="surface1">
@@ -465,7 +463,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 </div>
                 <div className="col col--expand col--no-gutter">
                   <Switch
-                    checked={forceCaptcha}
+                    checked={captcha}
                     checkedIcon={
                       <svg width="16" height="16" viewBox="-5 -1 16 16" version="1.1">
                         <g id="surface1">
@@ -553,7 +551,7 @@ export class CreateTaskPrimitive extends PureComponent {
     if (task.profile) {
       newTaskProfileValue = {
         value: task.profile.id,
-        label: task.profile.profileName,
+        label: task.profile.name,
       };
     }
 
@@ -664,8 +662,8 @@ export class CreateTaskPrimitive extends PureComponent {
                     }),
                 }}
                 styles={colourStyles(theme, buildStyle(false, null))}
-                onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SIZES, v)}
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES, e)}
+                onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SIZE, v)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZE, e)}
                 value={newSizeValue}
                 options={getAllSizes.default()}
                 className="tasks-create__input tasks-create__input--field__short"
@@ -732,8 +730,8 @@ export const mapDispatchToProps = dispatch => ({
   onFieldChange: changes => {
     dispatch(taskActions.edit(null, changes.field, changes.value, changes.sites));
   },
-  onAddNewTask: (newTask, amount) => {
-    dispatch(taskActions.add(newTask, amount));
+  onAddNewTask: (task, amount) => {
+    dispatch(taskActions.create({ task , amount }));
   },
 });
 

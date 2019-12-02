@@ -47,19 +47,19 @@ OutputCol.defaultProps = {
 };
 
 const LogTaskRow = ({
+  key,
+  index,
+  style,
   onClick,
   selected,
   task: {
-    index,
     site: { name },
     product: { found, raw },
-    chosenSize,
-    sizes,
+    size,
     proxy,
     message,
     checkoutUrl,
   },
-  style,
   fullscreen,
 }) => {
   const classMap = {
@@ -94,7 +94,7 @@ const LogTaskRow = ({
     >
       <div className={tasksRow}>
         <div className={classMap.id.join(' ')} data-testid={addTestId('LogTaskRow.id')}>
-          {index < 10 ? `0${index}` : index}
+          {index}
         </div>
         <div className={storeCss} data-testid={addTestId('LogTaskRow.store')}>
           {name}
@@ -103,7 +103,7 @@ const LogTaskRow = ({
           {found || raw}
         </div>
         <div className={classMap.size.join(' ')} data-testid={addTestId('LogTaskRow.size')}>
-          {chosenSize || sizes}
+          {size}
         </div>
         <div
           className={classMap.proxy.join(' ')}

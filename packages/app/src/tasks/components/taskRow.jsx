@@ -45,15 +45,12 @@ export class TaskRowPrimitive extends PureComponent {
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.buildProfileOptions = this.buildProfileOptions.bind(this);
     this.saveTask = this.saveTask.bind(this);
-    this.cancelEdits = this.cancelEdits.bind(this);
     this.selectTask = this.selectTask.bind(this);
     this.renderTableRowButton = this.renderTableRowButton.bind(this);
     this.renderTableRowActionButton = this.renderTableRowActionButton.bind(this);
-    this.renderEditMenu = this.renderEditMenu.bind(this);
     this.renderTableRowCopyActionButton = this.renderTableRowCopyActionButton.bind(this);
     this.renderTableRowStartStopActionButton = this.renderTableRowStartStopActionButton.bind(this);
     this.renderTableRowDestroyActionButton = this.renderTableRowDestroyActionButton.bind(this);
-    this.renderTableRowEditButton = this.renderTableRowEditButton.bind(this);
     this.renderTableRow = this.renderTableRow.bind(this);
 
     this.state = {
@@ -141,13 +138,13 @@ export class TaskRowPrimitive extends PureComponent {
   }
 
   selectTask() {
-    const { isEditing, onSelectTask, task } = this.props;
-    if (!isEditing) {
-      onSelectTask(task);
-    } else {
-      // deselect current task (or toggle it)
-      onSelectTask(null);
-    }
+    const { onSelectTask, task } = this.props;
+    // if (!) {
+    //   onSelectTask(task);
+    // } else {
+    //   // deselect current task (or toggle it)
+    //   onSelectTask(null);
+    // }
   }
 
   buildProfileOptions() {
@@ -175,148 +172,6 @@ export class TaskRowPrimitive extends PureComponent {
     return (
       <div className="col col--no-gutter col--center tasks-row__actions__button">
         {this.renderTableRowButton(`action.${tag}`, desc, src, className, onClick)}
-      </div>
-    );
-  }
-
-  renderEditMenu() {
-    const { isEditing, task, sites, onKeyPress, theme } = this.props;
-    const { isLoadingSite, isLoadingSize } = this.state;
-    if (!isEditing) {
-      return null;
-    }
-    const testIdBase = 'TaskRow.edit';
-    const { edits, errors } = this.props;
-    let editProduct = null;
-    let editProfile = null;
-    let editSizes = null;
-    let editSite = null;
-    if (edits.product && edits.product.raw) {
-      editProduct = edits.product.raw;
-    }
-    if (edits.profile && edits.profile.id !== null) {
-      editProfile = {
-        value: edits.profile.id,
-        label: edits.profile.profileName,
-      };
-    }
-    if (edits.size) {
-      editSizes = { value: edits.size, label: edits.size };
-    }
-    if (edits.site) {
-      editSite = {
-        value: edits.site.url,
-        label: edits.site.name,
-      };
-    }
-    return (
-      <div key={`${task.id}-edit`} className="row row--start row--expand tasks-row tasks-row--edit">
-        <div className="col col--start col--expand">
-          <div className="row row--start row--expand">
-            <div className="col col--start col--expand edit-field" style={{ flexGrow: 2 }}>
-              <p className="edit-field__label">Product</p>
-              <input
-                className="edit-field__input"
-                type="text"
-                placeholder="Variant, Keywords, Link"
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT, e)}
-                value={editProduct}
-                title={editProduct}
-                style={buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PRODUCT]])}
-                required
-                data-testid={addTestId(`${testIdBase}.productInput`)}
-              />
-            </div>
-            <div className="col col--start col--expand edit-field" style={{ flexGrow: 1 }}>
-              <p className="edit-field__label">Site</p>
-              <CreatableSelect
-                isClearable={false}
-                isDisabled={isLoadingSite}
-                isLoading={isLoadingSite}
-                required
-                className="edit-field__select"
-                classNamePrefix="select"
-                placeholder="Choose Site"
-                components={{ DropdownIndicator }}
-                styles={colourStyles(
-                  theme,
-                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SITE]]),
-                )}
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
-                isOptionDisabled={option => !option.supported && option.supported !== undefined}
-                onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SITE)}
-                value={editSite}
-                options={sites}
-                data-testid={addTestId(`${testIdBase}.siteSelect`)}
-              />
-            </div>
-            <div className="col col--start col--expand edit-field" style={{ flexGrow: 1 }}>
-              <p className="edit-field__label">Billing Profile</p>
-              <Select
-                required
-                classNamePrefix="select"
-                className="edit-field__select"
-                placeholder="Choose Profile"
-                components={{ DropdownIndicator, Control, Option, Menu, MenuList }}
-                styles={colourStyles(
-                  theme,
-                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_PROFILE]]),
-                )}
-                value={editProfile}
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE, e)}
-                options={this.buildProfileOptions()}
-                data-testid={addTestId(`${testIdBase}.profileSelect`)}
-                data-private
-              />
-            </div>
-            <div className="col col--start col--expand edit-field" style={{ flexGrow: 1 }}>
-              <p className="edit-field__label">Size</p>
-              <CreatableSelect
-                required
-                isDisabled={isLoadingSize}
-                isLoading={isLoadingSize}
-                isClearable={false}
-                placeholder="Choose Size"
-                components={{ DropdownIndicator }}
-                styles={colourStyles(
-                  theme,
-                  buildStyle(false, errors[mapTaskFieldsToKey[TASK_FIELDS.EDIT_SIZES]]),
-                )}
-                onCreateOption={v => this.handleCreate(v, TASK_FIELDS.EDIT_SIZES)}
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZES, e)}
-                value={editSizes}
-                options={getAllSizesStripped()}
-                className="edit-field__select"
-                classNamePrefix="select"
-                data-testid={addTestId(`${testIdBase}.sizesSelect`)}
-              />
-            </div>
-            <div className="col col--start col--expand action" style={{ flexGrow: 0 }}>
-              <button
-                type="button"
-                className="action__button action__button--save"
-                tabIndex={0}
-                onKeyPress={onKeyPress}
-                onClick={() => this.saveTask()}
-                data-testid={addTestId(`${testIdBase}.button.save`)}
-              >
-                Save
-              </button>
-            </div>
-            <div className="col col--start col--expand action" style={{ flexGrow: 0 }}>
-              <button
-                type="button"
-                className="action__button action__button--cancel"
-                tabIndex={0}
-                onKeyPress={onKeyPress}
-                onClick={() => this.cancelEdits()}
-                data-testid={addTestId(`${testIdBase}.button.cancel`)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     );
   }
@@ -360,32 +215,10 @@ export class TaskRowPrimitive extends PureComponent {
     });
   }
 
-  renderTableRowEditButton() {
-    const { isEditing } = this.props;
-    return this.renderTableRowButton(
-      'edit',
-      'Edit Task',
-      EditIcon,
-      isEditing ? 'active' : '',
-      () => {
-        this.selectTask();
-      },
-    );
-  }
-
   renderTableRow() {
-    const { task, theme } = this.props;
-    let id = '--';
-
-    const { isQueueBypass } = task;
-
-    if (task.index) {
-      id = task.index < 10 ? `0${task.index}` : task.index;
-    }
-
+    const { task, index, theme } = this.props;
     return (
       <div key={task.id} className="tasks-row row row--expand row--gutter">
-        <div className="col col--no-gutter tasks-row__edit">{this.renderTableRowEditButton()}</div>
         <div
           className={
             task.type
@@ -393,52 +226,15 @@ export class TaskRowPrimitive extends PureComponent {
               : 'col col--no-gutter tasks-row__id'
           }
         >
-          {id}
+          {index}
         </div>
-        <div
-          className={
-            isQueueBypass
-              ? `col col--no-gutter tasks-row__product--checkout-ready-${theme}`
-              : 'col col--no-gutter tasks-row__product'
-          }
-          title={task.product.raw}
-        >
+        <div className="col col--no-gutter tasks-row__product" title={task.product.raw}>
           {`${task.product.raw} ${task.product.variation ? `/ ${task.product.variation}` : ''}`}
         </div>
-        <div
-          className={
-            isQueueBypass
-              ? `col col--no-gutter tasks-row__sites--checkout-ready-${theme}`
-              : 'col col--no-gutter tasks-row__sites'
-          }
-        >
-          {task.site.name || 'None'}
-        </div>
-        <div
-          className={
-            isQueueBypass
-              ? `col col--no-gutter tasks-row__profile--checkout-ready-${theme}`
-              : 'col col--no-gutter tasks-row__profile'
-          }
-        >
-          {task.profile.profileName || 'None'}
-        </div>
-        <div
-          className={
-            isQueueBypass
-              ? `col col--no-gutter tasks-row__sizes--checkout-ready-${theme}`
-              : 'col col--no-gutter tasks-row__sizes'
-          }
-        >
-          {task.size}
-        </div>
-        <div
-          className={
-            isQueueBypass
-              ? `col col--no-gutter tasks-row__account--checkout-ready-${theme}`
-              : 'col col--no-gutter tasks-row__account'
-          }
-        >
+        <div className="col col--no-gutter tasks-row__sites">{task.site.name}</div>
+        <div className="col col--no-gutter tasks-row__profile">{task.profile.name}</div>
+        <div className="col col--no-gutter tasks-row__sizes">{task.size}</div>
+        <div className="col col--no-gutter tasks-row__account">
           {task.account ? task.account.name : 'None'}
         </div>
         <div className="col col--no-gutter tasks-row__actions">
@@ -457,16 +253,15 @@ export class TaskRowPrimitive extends PureComponent {
     return (
       <div style={style} className="col col--expand col--no-gutter tasks-row-container">
         {this.renderTableRow()}
-        {this.renderEditMenu()}
       </div>
     );
   }
 }
 
 TaskRowPrimitive.propTypes = {
-  isEditing: PropTypes.bool.isRequired,
   proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
+  index: PropTypes.number.isRequired,
   task: PropTypes.objectOf(PropTypes.any).isRequired,
   onSelectTask: PropTypes.func.isRequired,
   onCopyTask: PropTypes.func.isRequired,
@@ -487,30 +282,20 @@ TaskRowPrimitive.defaultProps = {
 
 export const mapStateToProps = (state, ownProps) => ({
   profiles: state.Profiles,
-  proxies: state.Settings.proxies,
+  proxies: state.Proxies,
+  index: ownProps.index,
   task: ownProps.task,
   sites: (state.Sites || []).filter(site => site.label === ownProps.task.platform),
   style: ownProps.style,
-  isEditing: ownProps.task.id === state.selectedTask.id,
   theme: state.App.theme,
-  errors: ownProps.task.edits.errors,
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onEditTask: (task, changes) => {
-    dispatch(taskActions.edit(task.id, changes.field, changes.value, changes.sites));
-  },
-  onCancelEdits: task => {
-    dispatch(taskActions.clearEdits(task.id, task));
-  },
-  onCommitEdits: task => {
-    dispatch(taskActions.update(task.id, task));
-  },
   onSelectTask: task => {
     dispatch(taskActions.select(task));
   },
   onCopyTask: task => {
-    dispatch(taskActions.copy(task));
+    dispatch(taskActions.duplicate(task));
   },
   onStartTask: (task, proxies) => {
     dispatch(taskActions.start(task, proxies));
@@ -519,7 +304,7 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.stop(task));
   },
   onDestroyTask: task => {
-    dispatch(taskActions.destroy(task, 'one'));
+    dispatch(taskActions.remove(task, 'one'));
   },
 });
 

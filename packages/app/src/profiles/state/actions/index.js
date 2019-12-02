@@ -13,6 +13,17 @@ const actionsList = [
   'TRANSFER_SHIPPING',
 ];
 
+export const profileActionsList = [
+  '@@Profile/CREATE_PROFILE',
+  '@@Profile/REMOVE_PROFILE',
+  '@@Profile/EDIT_PROFILE',
+  '@@Profile/SELECT_PROFILE',
+  '@@Profile/LOAD_PROFILE',
+  '@@Profile/UPDATE_PROFILE',
+  '@@Profile/DELETE_RATE',
+  '@@Profile/TRANSFER_SHIPPING',
+];
+
 export const PROFILE_ACTIONS = prefixer(prefix, actionsList);
 
 const _updateProfileRequest = async (id, profile) => ({ ...profile, id });
@@ -36,9 +47,8 @@ const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD_PROFILE, 'profile');
 const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'site', 'rate');
 
 const updateProfile = (id, profile) => dispatch =>
-  _updateProfileRequest(id, profile).then(
-    updatedProfile => dispatch(_updateProfile(updatedProfile)),
-    error => {},
+  _updateProfileRequest(id, profile).then(updatedProfile =>
+    dispatch(_updateProfile(updatedProfile)),
   );
 
 export const profileActions = {
@@ -59,7 +69,7 @@ export const PROFILE_FIELDS = {
   EDIT_PAYMENT: 'EDIT_PAYMENT',
   EDIT_RATES: 'EDIT_RATES',
   EDIT_SELECTED_SITE: 'EDIT_SELECTED_SITE',
-  TOGGLE_MATCHES: 'TOGGLE_BILLING_MATCHES_SHIPPING',
+  TOGGLE_MATCHES: 'TOGGLE_MATCHES',
   EDIT_NAME: 'EDIT_NAME',
 };
 
@@ -94,8 +104,7 @@ export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.EDIT_PAYMENT]: 'payment',
   [PROFILE_FIELDS.EDIT_RATES]: 'rates',
   [PROFILE_FIELDS.EDIT_SELECTED_SITE]: 'selectedSite',
-  [PROFILE_FIELDS.EDIT_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
-  [PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING]: 'billingMatchesShipping',
+  [PROFILE_FIELDS.TOGGLE_MATCHES]: 'matches',
   [PROFILE_FIELDS.EDIT_NAME]: 'profileName',
 };
 

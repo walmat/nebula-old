@@ -6,9 +6,8 @@ import PaymentFields from './components/paymentFields';
 import ShippingRateFields from './components/shippingRates';
 import LocationFields from './components/locationFields';
 import LoadProfile from './components/loadProfile';
-import validationStatus from '../utils/validationStatus';
 
-import { profileActions, mapProfileFieldToKey, PROFILE_FIELDS } from '../store/actions';
+import { profileActions, PROFILE_FIELDS } from '../store/actions';
 
 import '../styles/index.scss';
 import './styles/index.scss';
@@ -33,7 +32,7 @@ export class ProfilesPrimitive extends Component {
       // make sure the profile id exists in profiles before call in the load
       if (profiles.some(p => p.id === currentProfile.editId)) {
         // first off, check to see if the profileName is taken..
-        const profileExists = profiles.find(p => p.profileName === currentProfile.profileName);
+        const profileExists = profiles.find(p => p.name === currentProfile.name);
 
         if (profileExists) {
           const { id } = profileExists;
@@ -88,11 +87,9 @@ export class ProfilesPrimitive extends Component {
             className="col col--start col--expand"
             profileToEdit={currentProfile}
             fieldToEdit={
-              currentProfile.billingMatchesShipping
-                ? PROFILE_FIELDS.EDIT_SHIPPING
-                : PROFILE_FIELDS.EDIT_BILLING
+              currentProfile.matches ? PROFILE_FIELDS.EDIT_SHIPPING : PROFILE_FIELDS.EDIT_BILLING
             }
-            disabled={currentProfile.billingMatchesShipping}
+            disabled={currentProfile.matches}
           />
           <div className="col col--start col--expand">
             <div className="row row--start">
@@ -111,7 +108,7 @@ export class ProfilesPrimitive extends Component {
                 className="profiles__fields--name"
                 required
                 onChange={onProfileNameChange}
-                value={currentProfile.profileName}
+                value={currentProfile.name}
                 placeholder="Profile Name"
                 data-private
               />
@@ -145,13 +142,13 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onClickBillingMatchesShipping: () => {
-    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_BILLING_MATCHES_SHIPPING, ''));
+    dispatch(profileActions.edit(null, PROFILE_FIELDS.TOGGLE_MATCHES, ''));
   },
   onProfileNameChange: event => {
     dispatch(profileActions.edit(null, PROFILE_FIELDS.EDIT_NAME, event.target.value));
   },
   onAddNewProfile: newProfile => {
-    dispatch(profileActions.add(newProfile));
+    dispatch(profileActions.create(newProfile));
   },
   onUpdateProfile: profile => {
     dispatch(profileActions.update(profile.editId, profile));

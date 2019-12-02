@@ -10,6 +10,7 @@ import { THEMES, mapThemeToColor, mapToNextTheme } from '../../constants/themes'
 import { renderSvgIcon } from '../../utils/index';
 
 export const DropdownIndicator = props => {
+
   const {
     selectProps: { menuIsOpen },
     errors,

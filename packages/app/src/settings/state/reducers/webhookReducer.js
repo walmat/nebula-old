@@ -13,7 +13,7 @@ export default function webhookReducer(state = CurrentWebhook, action = {}) {
     return CurrentWebhook;
   }
 
-  if (type === SHARED_ACTIONS.EDIT) {
+  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_WEBHOOK_NAME:
         return { ...state, name: value };

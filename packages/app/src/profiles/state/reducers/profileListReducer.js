@@ -10,7 +10,7 @@ export default (state = Profiles, action) => {
     return Profiles;
   }
 
-  if (type === PROFILE_ACTIONS.CREATE) {
+  if (type === PROFILE_ACTIONS.CREATE_PROFILE) {
     const { profile } = action;
 
     if (!profile) {
@@ -36,7 +36,7 @@ export default (state = Profiles, action) => {
     return [...state, profile];
   }
 
-  if (type === PROFILE_ACTIONS.REMOVE) {
+  if (type === PROFILE_ACTIONS.REMOVE_PROFILE) {
     const { id } = action;
 
     if (!id) {
@@ -46,7 +46,7 @@ export default (state = Profiles, action) => {
     return state.filter(p => p.id !== id);
   }
 
-  if (type === PROFILE_ACTIONS.UPDATE) {
+  if (type === PROFILE_ACTIONS.UPDATE_PROFILE) {
     const { profile } = action;
 
     if (!profile) {

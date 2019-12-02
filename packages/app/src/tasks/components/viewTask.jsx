@@ -252,7 +252,7 @@ export class ViewTaskPrimitive extends PureComponent {
         columnIndex={0}
         rowIndex={index}
       >
-        <TaskRow key={key} task={task} style={style} />
+        <TaskRow key={key} task={task} index={index} style={style} />
       </CellMeasurer>
     );
   }
@@ -268,7 +268,6 @@ export class ViewTaskPrimitive extends PureComponent {
           <div className="row row--start row--expand">
             <div className="col col--expand col--start tasks-table-container">
               <div className="row row--start row--no-gutter tasks-table__header">
-                <div className="col tasks-table__header__edit" />
                 <div className="col tasks-table__header__id">
                   <p>#</p>
                 </div>
@@ -386,7 +385,7 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(settingsActions.edit(changes.field, changes.value));
   },
   onDestroyAllTasks: tasks => {
-    dispatch(taskActions.destroyAll(tasks));
+    dispatch(taskActions.removeAll(tasks));
   },
   onStartAllTasks: (tasks, proxies) => {
     dispatch(taskActions.startAll(tasks, proxies));

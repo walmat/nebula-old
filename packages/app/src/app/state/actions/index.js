@@ -4,6 +4,8 @@ import prefixer from '../../../store/reducers/prefixer';
 const prefix = '@@App';
 const actionsList = ['SET_THEME', 'FETCH_SITES'];
 
+export const appActionsList = ['@@App/SET_THEME', '@@App/FETCH_SITES'];
+
 // App Actions
 export const APP_ACTIONS = prefixer(prefix, actionsList);
 

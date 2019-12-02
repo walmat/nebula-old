@@ -15,7 +15,7 @@ export default function shippingReducer(state = Shipping, action = {}) {
     return Shipping;
   }
 
-  if (type === SHARED_ACTIONS.EDIT) {
+  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
         const { value, sites } = action;
@@ -26,12 +26,12 @@ export default function shippingReducer(state = Shipping, action = {}) {
         };
 
         if (!value || !value.startsWith('http')) {
-          return { ...state, ...change };
+          return { ...state, product: { ...change } };
         }
 
         const URL = parseURL(value);
         if (!URL || !URL.host) {
-          return { ...state, ...change };
+          return { ...state, product: { ...change } };
         }
         let newSite;
 
@@ -43,7 +43,7 @@ export default function shippingReducer(state = Shipping, action = {}) {
         });
 
         if (!newSite || newSite.label === state.site.name) {
-          return { ...state, ...change };
+          return { ...state, product: { ...change } };
         }
 
         change = {
@@ -54,7 +54,7 @@ export default function shippingReducer(state = Shipping, action = {}) {
             apiKey: newSite.apiKey,
           },
         };
-        return { ...state, ...change };
+        return { ...state, product: { ...change } };
       }
       case SETTINGS_FIELDS.EDIT_SHIPPING_SITE: {
         const { value } = action;
@@ -63,14 +63,14 @@ export default function shippingReducer(state = Shipping, action = {}) {
         }
 
         // if we're selecting the same site...
-        if (value.name === state.site.name) {
+        if (state.site && value.name === state.site.name) {
           return state;
         }
 
         return { ...state, site: value };
       }
       default:
-        return { ...state, [mapSettingsFieldToKey[action.field]]: action.value };
+        return state;
     }
   }
 

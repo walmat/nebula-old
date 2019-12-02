@@ -10,11 +10,11 @@ import * as task from '../tasks/state/actions';
 import * as settings from '../settings/state/actions';
 import * as navbar from '../navbar/state/actions';
 
-
 const prefix = '@@Global';
-const globalActionsList = ['RESET', 'IMPORT', 'MIGRATE'];
+const globalList = ['RESET', 'IMPORT', 'MIGRATE'];
+export const globalActionsList = ['@@Global/RESET', '@@Global/IMPORT', '@@Global/MIGRATE'];
 
-export const GLOBAL_ACTIONS = prefixer(prefix, globalActionsList);
+export const GLOBAL_ACTIONS = prefixer(prefix, globalList);
 
 export const globalActions = {
   reset: makeActionCreator(GLOBAL_ACTIONS.RESET),
@@ -25,6 +25,7 @@ export const globalActions = {
 // Reimports
 export const {
   profileActions,
+  profileActionsList,
   mapProfileFieldToKey,
   mapLocationFieldToKey,
   mapPaymentFieldToKey,
@@ -36,10 +37,22 @@ export const {
   LOCATION_FIELDS,
 } = profiles;
 
-export const { taskActions, mapTaskFieldsToKey, TASK_ACTIONS, TASK_FIELDS } = task;
+export const {
+  taskActions,
+  taskActionsList,
+  taskListActionsList,
+  mapTaskFieldsToKey,
+  TASK_ACTIONS,
+  TASK_LIST_ACTIONS,
+  TASK_FIELDS,
+} = task;
 
 export const {
   settingsActions,
+  accountActionsList,
+  sharedActionsList,
+  shippingActionsList,
+  webhookActionsList,
   mapSettingsFieldToKey,
   SHARED_ACTIONS,
   ACCOUNT_ACTIONS,
@@ -48,6 +61,12 @@ export const {
   SETTINGS_FIELDS,
 } = settings;
 
-export const { navbarActions, mapActionsToRoutes, NAVBAR_ACTIONS, ROUTES } = navbar;
+export const {
+  navbarActions,
+  navbarActionsList,
+  mapActionsToRoutes,
+  NAVBAR_ACTIONS,
+  ROUTES,
+} = navbar;
 
-export const { APP_ACTIONS, appActions } = app;
+export const { APP_ACTIONS, appActionsList, appActions } = app;

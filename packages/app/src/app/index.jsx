@@ -118,7 +118,9 @@ export class App extends PureComponent {
     const { Tasks: tasks } = store.getState();
 
     const runningTasks = tasks.filter(t => t.status !== 'running');
-    store.dispatch(taskActions.stopAll(runningTasks));
+    if (runningTasks.length) {
+      store.dispatch(taskActions.stopAll(runningTasks));
+    }
   }
 
   _cleanupTaskEvents() {

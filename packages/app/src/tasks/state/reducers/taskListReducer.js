@@ -1,15 +1,13 @@
 import PLATFORMS from '../../../constants/platforms';
 import { _getId } from '../../../constants/tasks';
 import parseProductType from '../../../utils/parseProductType';
-import { TASK_ACTIONS } from '../../../store/actions';
+import { TASK_LIST_ACTIONS } from '../../../store/actions';
 import { Tasks } from '../initial';
 
 export default (state = Tasks, action) => {
-  console.log('task list reducer handling action: ', action);
-
   const { type } = action;
 
-  if (type === TASK_ACTIONS.CREATE) {
+  if (type === TASK_LIST_ACTIONS.CREATE_TASK) {
     const { response } = action;
 
     if (!response) {
@@ -23,6 +21,8 @@ export default (state = Tasks, action) => {
     }
 
     const parsedProduct = parseProductType(task.product);
+    console.log(parsedProduct);
+
     if (!parsedProduct) {
       return state;
     }
@@ -50,13 +50,15 @@ export default (state = Tasks, action) => {
         break;
     }
 
-    [...Array(amount)].forEach(() => {
+    const newTasks = [...Array(amount)].map(() => {
       const { id } = _getId(state);
-      return [...state, { ...newTask, id }];
+      return { ...newTask, id };
     });
+
+    return [...state, ...newTasks];
   }
 
-  if (type === TASK_ACTIONS.REMOVE) {
+  if (type === TASK_LIST_ACTIONS.REMOVE_TASK) {
     const { id } = action;
 
     if (!id) {
@@ -66,11 +68,11 @@ export default (state = Tasks, action) => {
     return state.filter(t => t.id !== id);
   }
 
-  if (type === TASK_ACTIONS.REMOVE_ALL) {
+  if (type === TASK_LIST_ACTIONS.REMOVE_ALL_TASKS) {
     return Tasks;
   }
 
-  if (type === TASK_ACTIONS.UPDATE) {
+  if (type === TASK_LIST_ACTIONS.UPDATE_TASK) {
     const { response } = action;
 
     if (!response) {
@@ -102,7 +104,7 @@ export default (state = Tasks, action) => {
     });
   }
 
-  if (type === TASK_ACTIONS.MESSAGE) {
+  if (type === TASK_LIST_ACTIONS.UPDATE_MESSAGE) {
     const { message } = action;
 
     if (!message) {
@@ -116,7 +118,7 @@ export default (state = Tasks, action) => {
     });
   }
 
-  if (type === TASK_ACTIONS.DUPLICATE) {
+  if (type === TASK_LIST_ACTIONS.DUPLICATE_TASK) {
     const { response } = action;
 
     if (!response) {
@@ -136,15 +138,15 @@ export default (state = Tasks, action) => {
     return [...state, task];
   }
 
-  if (type === TASK_ACTIONS.SELECT) {
+  if (type === TASK_LIST_ACTIONS.SELECT_TASK) {
     // TODO;
   }
 
-  if (type === TASK_ACTIONS.SELECT_ALL) {
+  if (type === TASK_LIST_ACTIONS.SELECT_ALL_TASKS) {
     // TODO;
   }
 
-  if (type === TASK_ACTIONS.START) {
+  if (type === TASK_LIST_ACTIONS.START_TASK) {
     const { response } = action;
     if (!response) {
       return state;
@@ -169,7 +171,7 @@ export default (state = Tasks, action) => {
     });
   }
 
-  if (type === TASK_ACTIONS.STOP) {
+  if (type === TASK_LIST_ACTIONS.STOP_TASK) {
     const { response } = action;
     if (!response) {
       return state;
@@ -194,7 +196,7 @@ export default (state = Tasks, action) => {
     });
   }
 
-  if (type === TASK_ACTIONS.START_ALL || type === TASK_ACTIONS.STOP_ALL) {
+  if (type === TASK_LIST_ACTIONS.START_ALL_TASKS || type === TASK_LIST_ACTIONS.STOP_ALL_TASKS) {
     const { response } = action;
     if (!response) {
       return state;

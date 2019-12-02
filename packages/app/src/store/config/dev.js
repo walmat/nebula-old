@@ -4,25 +4,9 @@ import thunk from 'redux-thunk';
 import { createLogger } from 'redux-logger';
 import rootReducer from '../reducers';
 
-// import profileAttributeValidationMiddleware from '../middleware/profiles/profileAttributeValidationMiddleware';
-// import profileFormValidationMiddleware from '../middleware/profiles/profileFormValidationMiddleware';
-// import tasksFormValidationMiddleware from '../middleware/tasks/tasksFormValidationMiddleware';
-// import tasksAttributeValidationMiddleware from '../middleware/tasks/tasksAttributeValidationMiddleware';
-// import proxyAttributeValidationMiddlware from '../middleware/settings/proxyAttributeValidationMiddleware';
-// import shippingFormAttributeValidationMiddleware from '../middleware/settings/shippingFormAttributeValidationMiddleware';
-// import settingsAttributeValidationMiddleware from '../middleware/settings/settingsAttributeValidationMiddleware';
-
 const configureStore = initialState => {
   // Redux Configuration
-  const middleware = [
-    // profileAttributeValidationMiddleware,
-    // profileFormValidationMiddleware,
-    // tasksAttributeValidationMiddleware,
-    // tasksFormValidationMiddleware,
-    // proxyAttributeValidationMiddlware,
-    // settingsAttributeValidationMiddleware,
-    // shippingFormAttributeValidationMiddleware,
-  ];
+  const middleware = [];
   const enhancers = [];
 
   // Thunk Middleware

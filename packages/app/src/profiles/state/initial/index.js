@@ -4,7 +4,10 @@ export const location = {
   address: '',
   apt: '',
   city: '',
-  country: null,
+  country: {
+    label: 'United States',
+    value: 'US',
+  },
   province: null,
   zip: '',
   phone: '',

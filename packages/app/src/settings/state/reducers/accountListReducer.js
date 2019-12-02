@@ -13,7 +13,12 @@ export default function accountListReducer(state = Accounts, action = {}) {
   if (type === ACCOUNT_ACTIONS.ADD_ACCOUNT) {
     const { account } = action;
 
-    if (!account) {
+    if (
+      !account ||
+      (account && !account.name) ||
+      (account && !account.username) ||
+      (account && !account.password)
+    ) {
       return state;
     }
 
@@ -28,7 +33,7 @@ export default function accountListReducer(state = Accounts, action = {}) {
       } while (state.some(idCheck));
 
       account.id = newId;
-      return state.push(account);
+      return [...state, account];
     }
 
     // existing account...

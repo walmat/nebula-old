@@ -3,7 +3,19 @@ import { combineReducers } from 'redux';
 import { filterActions } from 'redux-ignore';
 
 // global actions
-import { GLOBAL_ACTIONS } from '../actions';
+import {
+  GLOBAL_ACTIONS,
+  globalActionsList,
+  accountActionsList,
+  appActionsList,
+  navbarActionsList,
+  profileActionsList,
+  sharedActionsList,
+  shippingActionsList,
+  taskActionsList,
+  taskListActionsList,
+  webhookActionsList,
+} from '../actions';
 
 // reducers
 import App from '../../app/state/reducers';
@@ -32,34 +44,38 @@ import {
 
 const reducers = asyncReducers =>
   combineReducers({
-    App: filterActions(App, action => action.type.match(/@@App|@@Global/)),
-    Accounts: filterActions(Accounts, action =>
-      action.type.match(/@@Accounts|@@Settings|@@Global/),
-    ),
-    CurrentAccount: filterActions(CurrentAccount, action =>
-      action.type.match(/@@Accounts|@@Settings|@@Global/),
-    ),
-    CurrentProfile: filterActions(CurrentProfile, action =>
-      action.type.match(/@@Profile|@@Global/),
-    ),
-    CurrentWebhook: filterActions(CurrentWebhook, action =>
-      action.type.match(/@@Webhook|@@Settings|@@Global/),
-    ),
-    Delays: filterActions(Delays, action => action.type.match(/@@Delay/)),
-    Navbar: filterActions(Navbar, action => action.type.match(/@@Navbar/)),
-    SelectedProfile: filterActions(SelectedProfile, action =>
-      action.type.match(/@@Profile|@@Global/),
-    ),
-    Profiles: filterActions(Profiles, action => action.type.match(/@@Profile|@@Global/)),
-    Proxies: filterActions(Proxies, action => action.type.match(/@@Proxies|@@Global/)),
-    Sites: filterActions(Sites, action => action.type.match(/@@App/)),
-    Shipping: filterActions(Shipping, action =>
-      action.type.match(/@@Shipping|@@Settings|@@Global/),
-    ),
-    Tasks: filterActions(Tasks, action => action.type.match(/@@Task|@@Global/)),
-    CurrentTask: filterActions(CurrentTask, action => action.type.match(/@@Task|@@Global/)),
-    SelectedTask: filterActions(SelectedTask, action => action.type.match(/@@Task|@@Global/)),
-    Webhooks: filterActions(Webhooks, action => action.type.match(/@@Webhook|@@Settings|@@Global/)),
+    App: filterActions(App, [...appActionsList, ...globalActionsList]),
+    Accounts: filterActions(Accounts, [...accountActionsList, ...globalActionsList]),
+    CurrentAccount: filterActions(CurrentAccount, [
+      ...accountActionsList,
+      ...sharedActionsList,
+      ...globalActionsList,
+    ]),
+    CurrentProfile: filterActions(CurrentProfile, [...profileActionsList, ...globalActionsList]),
+    CurrentWebhook: filterActions(CurrentWebhook, [
+      ...webhookActionsList,
+      ...sharedActionsList,
+      ...globalActionsList,
+    ]),
+    Delays: filterActions(Delays, sharedActionsList),
+    Navbar: filterActions(Navbar, navbarActionsList),
+    SelectedProfile: filterActions(SelectedProfile, [...profileActionsList, ...globalActionsList]),
+    Profiles: filterActions(Profiles, [...profileActionsList, ...globalActionsList]),
+    Proxies: filterActions(Proxies, [...sharedActionsList, ...globalActionsList]),
+    Sites: filterActions(Sites, appActionsList),
+    Shipping: filterActions(Shipping, [
+      ...shippingActionsList,
+      ...sharedActionsList,
+      ...globalActionsList,
+    ]),
+    Tasks: filterActions(Tasks, [...taskListActionsList, ...globalActionsList]),
+    CurrentTask: filterActions(CurrentTask, [...taskActionsList, ...globalActionsList]),
+    SelectedTask: filterActions(SelectedTask, [...taskActionsList, ...globalActionsList]),
+    Webhooks: filterActions(Webhooks, [
+      ...webhookActionsList,
+      ...sharedActionsList,
+      ...globalActionsList,
+    ]),
     ...asyncReducers,
   });
 

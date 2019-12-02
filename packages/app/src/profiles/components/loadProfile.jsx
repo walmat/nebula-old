@@ -49,7 +49,7 @@ export class LoadProfilePrimitive extends PureComponent {
     const { profiles } = this.props;
     const opts = [];
     profiles.forEach(profile => {
-      opts.push({ value: profile.id, label: profile.profileName });
+      opts.push({ value: profile.id, label: profile.name });
     });
     return opts;
   }
@@ -72,7 +72,7 @@ export class LoadProfilePrimitive extends PureComponent {
     if (selectedProfile.id !== null) {
       selectProfileValue = {
         value: selectedProfile.id,
-        label: selectedProfile.profileName,
+        label: selectedProfile.name,
       };
     }
     return (
@@ -152,6 +152,7 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(profileActions.select(profile));
   },
   onDestroyProfile: profile => {
+    console.log(profile);
     dispatch(profileActions.remove(profile.id));
   },
 });

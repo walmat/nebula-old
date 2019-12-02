@@ -36,8 +36,8 @@ export default product => {
     });
     return {
       ...product,
-      pos_keywords: posKeywords,
-      neg_keywords: negKeywords,
+      pos: posKeywords,
+      neg: negKeywords,
     };
   }
   return null;

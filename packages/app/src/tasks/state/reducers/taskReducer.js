@@ -26,11 +26,21 @@ export const taskReducer = (state = TaskState, { field, value, sites }) => {
       };
 
       if (!value || !value.startsWith('http')) {
-        return { ...state, ...change };
+        return {
+          ...state,
+          product: {
+            ...change,
+          },
+        };
       }
       const URL = parseURL(value);
       if (!URL || !URL.host) {
-        return { ...state, ...change };
+        return {
+          ...state,
+          product: {
+            ...change,
+          },
+        };
       }
       let newSite;
 
@@ -42,7 +52,12 @@ export const taskReducer = (state = TaskState, { field, value, sites }) => {
       });
 
       if (!newSite || newSite.label === state.site.name) {
-        return { ...state, ...change };
+        return {
+          ...state,
+          product: {
+            ...change,
+          },
+        };
       }
       change = {
         ...change,
@@ -76,7 +91,7 @@ export const taskReducer = (state = TaskState, { field, value, sites }) => {
       return { ...state, type: mapTypeToNextType(state.type) };
 
     case TASK_FIELDS.TOGGLE_CAPTCHA:
-      return { ...state, captcha: !state.captcha || true };
+      return { ...state, captcha: !state.captcha };
 
     case TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK:
       return {
@@ -139,7 +154,7 @@ export const currentTaskReducer = (state = CurrentTask, action = {}) => {
     return CurrentTask;
   }
 
-  if (type === TASK_ACTIONS.EDIT) {
+  if (type === TASK_ACTIONS.EDIT_TASK) {
     const { id } = action;
     if (!id) {
       return taskReducer(state, action);
@@ -147,7 +162,7 @@ export const currentTaskReducer = (state = CurrentTask, action = {}) => {
     return state;
   }
 
-  if (type === PROFILE_ACTIONS.REMOVE) {
+  if (type === PROFILE_ACTIONS.REMOVE_PROFILE) {
     const { id } = action;
     if (!id || !state.profile || state.profile.id !== id) {
       return state;
@@ -166,7 +181,7 @@ export const selectedTaskReducer = (state = SelectedTask, action = {}) => {
     return SelectedTask;
   }
 
-  if (type === TASK_ACTIONS.EDIT) {
+  if (type === TASK_ACTIONS.EDIT_TASK) {
     const { id } = action;
     if (id) {
       return taskReducer(state, action);
@@ -174,7 +189,7 @@ export const selectedTaskReducer = (state = SelectedTask, action = {}) => {
     return state;
   }
 
-  if (type === TASK_ACTIONS.SELECT) {
+  if (type === TASK_ACTIONS.SELECT_TASK) {
     const { task } = action;
 
     if (!task) {
@@ -184,7 +199,7 @@ export const selectedTaskReducer = (state = SelectedTask, action = {}) => {
     return task;
   }
 
-  if (type === TASK_ACTIONS.REMOVE) {
+  if (type === TASK_ACTIONS.REMOVE_TASK) {
     const { response } = action;
 
     if (!response) {
