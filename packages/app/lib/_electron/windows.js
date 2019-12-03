@@ -174,44 +174,6 @@ if (nebulaEnv.isDevelopment()) {
 }
 urls.set('auth', authUrl);
 
-const createSplashWindow = () =>
-  _createWindow({
-    width: 450,
-    height: 350,
-    show: true,
-    frame: false,
-    transparent: true,
-  });
-
-let splashUrl = `file:///${Path.join(__dirname, '../../build/splash.html')}`;
-if (nebulaEnv.isDevelopment()) {
-  splashUrl = `file:///${Path.join(__dirname, '../../public/splash.html')}`;
-}
-urls.set('splash', splashUrl);
-
-/**
- * Creates an About Window
- *
- * @return {BrowserWindow} About Window
- */
-const createAboutWindow = () =>
-  _createWindow({
-    width: 300,
-    height: 215,
-    transparent: true,
-    frame: false,
-    webPreferences: {
-      ..._defaultWebPreferences,
-      preload: Path.join(__dirname, '../common/bridge/aboutPreload.js'),
-    },
-  });
-
-let aboutUrl = `file:///${Path.join(__dirname, '../../build/about.html')}`;
-if (nebulaEnv.isDevelopment()) {
-  aboutUrl = `file:///${Path.join(__dirname, '../../public/about.html')}`;
-}
-urls.set('about', aboutUrl);
-
 /**
  * Creates an Captcha Window
  *
@@ -301,8 +263,6 @@ const mainUrl =
 urls.set('main', mainUrl);
 
 module.exports = {
-  createAboutWindow,
-  createSplashWindow,
   createAuthWindow,
   createCaptchaWindow,
   createMainWindow,

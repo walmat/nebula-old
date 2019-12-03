@@ -1,5 +1,5 @@
 import PLATFORMS from '../../../constants/platforms';
-import { _getId } from '../../../constants/tasks';
+import { _getId, States } from '../../../constants/tasks';
 import parseProductType from '../../../utils/parseProductType';
 import { TASK_LIST_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Tasks } from '../initial';
@@ -175,7 +175,7 @@ export default (state = Tasks, action) => {
     return state.map(t => {
       if (t.id === id) {
         const newTask = t;
-        newTask.status = 'running';
+        newTask.state = States.Running;
         newTask.message = 'Starting task!';
         return newTask;
       }
@@ -200,7 +200,7 @@ export default (state = Tasks, action) => {
     return state.map(t => {
       if (t.id === id) {
         const newTask = t;
-        newTask.status = 'stopped';
+        newTask.state = States.Stopped;
         newTask.message = '';
         return newTask;
       }

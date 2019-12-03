@@ -7,7 +7,7 @@ import {
   mapTaskFieldsToKey,
 } from '../../../store/actions';
 import { CurrentTask, SelectedTask, task as TaskState } from '../initial';
-import { platformForSite } from '../../../constants/platforms';
+import { platformForStore } from '../../../constants/platforms';
 import { mapTypeToNextType } from '../../../constants/tasks';
 
 // shared reducer for editing current/selected task...
@@ -42,16 +42,16 @@ export const taskReducer = (state = TaskState, { field, value, sites }) => {
           },
         };
       }
-      let newSite;
+      let newStore;
 
       sites.forEach(category => {
         const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
         if (exists) {
-          newSite = exists;
+          newStore = exists;
         }
       });
 
-      if (!newSite || newSite.label === state.site.name) {
+      if (!newStore || newStore.label === state.store.name) {
         return {
           ...state,
           product: {
@@ -61,28 +61,28 @@ export const taskReducer = (state = TaskState, { field, value, sites }) => {
       }
       change = {
         ...change,
-        site: {
-          url: newSite.value,
-          name: newSite.label,
-          apiKey: newSite.apiKey,
+        store: {
+          url: newStore.value,
+          name: newStore.label,
+          apiKey: newStore.apiKey,
         },
-        platform: platformForSite(newSite.value),
+        platform: platformForStore(newStore.value),
       };
 
       return { ...state, ...change };
     }
-    case TASK_FIELDS.EDIT_SITE: {
+    case TASK_FIELDS.EDIT_STORE: {
       if (!value) {
         return state;
       }
 
-      // if we're selecting the same site...
+      // if we're selecting the same store...
       // TODO: Should we do a shallow compare instead of just comparing the names?
-      if (state.site && value.name && value.name === state.site.name) {
+      if (state.store && value.name && value.name === state.store.name) {
         return state;
       }
 
-      return { ...state, platform: platformForSite(value.url), site: value };
+      return { ...state, platform: platformForStore(value.url), store: value };
     }
     case TASK_FIELDS.EDIT_SIZE:
       return { ...state, size: value };

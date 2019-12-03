@@ -7,7 +7,7 @@ const Platforms = {
   Other: 'Other',
 };
 
-export const platformForSite = url => {
+export const platformForStore = url => {
   if (/supreme/i.test(url)) {
     return Platforms.Supreme;
   }

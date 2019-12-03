@@ -20,6 +20,10 @@ require('v8-compile-cache');
  * Application entry point.
  */
 class App {
+
+  get windowManager() {
+    return this._windowManager;
+  }
   /**
    * Initialize instance.
    */
@@ -141,14 +145,7 @@ class App {
       await App.installExtensions();
     }
 
-    const session = await this._authManager.getSession();
-    // create splash page if not in dev mode
-    if (session && !nebulaEnv.isDevelopment()) {
-      await this._windowManager.createNewWindow('splash');
-      await this._authManager.createActiveSession();
-    }
-
-    // security check for http loggers
+    // Security check for http loggers
     if (!nebulaEnv.isDevelopment()) {
       // attach an interval to check for any logging applications
       this._loggerInterval = setInterval(async () => {
@@ -159,30 +156,18 @@ class App {
       }, 1500);
     }
 
-    // discord Rich Presence API
+    // Create the main window
+    await this._windowManager.createNewWindow('main');
+
+    // Apply the menu
+    const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
+    Electron.Menu.setApplicationMenu(menu);
+
+    // Discord Rich Presence
     this._rpc.client.on('ready', () => {
       this._rpc.setActivity().catch(console.error);
       this._rpcInterval = setInterval(() => this._rpc.setActivity().catch(console.error), 15e3);
     });
-
-    // if we're in dev mode, don't wait on splash page
-    if (nebulaEnv.isDevelopment()) {
-      // create the main window
-      await this._windowManager.createNewWindow('main');
-      // set the menu
-      const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
-      Electron.Menu.setApplicationMenu(menu);
-      return;
-    }
-
-    // wait 3 seconds to start the main window (for splash page buffering)
-    setTimeout(async () => {
-      // create the window
-      await this._windowManager.createNewWindow('main');
-      // set the menu
-      const menu = Electron.Menu.buildFromTemplate(MainMenu.menu(this));
-      Electron.Menu.setApplicationMenu(menu);
-    }, 3000);
   }
 
   /**

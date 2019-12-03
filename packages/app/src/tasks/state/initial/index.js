@@ -2,7 +2,7 @@ import { Types, States } from '../../../constants/tasks';
 
 export const task = {
   id: null,
-  site: null,
+  store: null,
   type: Types.SAFE,
   product: {
     raw: '',

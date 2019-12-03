@@ -33,7 +33,7 @@ import { addTestId, renderSvgIcon } from '../../utils';
 import { buildStyle } from '../../styles';
 
 export class CreateTaskPrimitive extends PureComponent {
-  static createSite(value) {
+  static createStore(value) {
     const URL = parseURL(value);
     if (!URL || !URL.host) {
       return null;
@@ -76,7 +76,7 @@ export class CreateTaskPrimitive extends PureComponent {
     this.saveTask = this.saveTask.bind(this);
 
     this.state = {
-      isLoadingSite: false,
+      isLoadingStore: false,
       isLoadingSize: false,
     };
   }
@@ -137,15 +137,15 @@ export class CreateTaskPrimitive extends PureComponent {
     const { onFieldChange } = this.props;
 
     switch (field) {
-      case TASK_FIELDS.EDIT_SITE: {
-        this.setState({ isLoadingSite: true });
+      case TASK_FIELDS.EDIT_STORE: {
+        this.setState({ isLoadingStore: true });
         setTimeout(() => {
-          const newOption = CreateTaskPrimitive.createSite(value);
+          const newOption = CreateTaskPrimitive.createStore(value);
           if (newOption) {
-            onFieldChange({ field: TASK_FIELDS.EDIT_SITE, value: newOption });
+            onFieldChange({ field: TASK_FIELDS.EDIT_STORE, value: newOption });
           }
           this.setState({
-            isLoadingSite: false,
+            isLoadingStore: false,
           });
         }, 150);
         break;
@@ -171,14 +171,14 @@ export class CreateTaskPrimitive extends PureComponent {
   createOnChangeHandler(field, event) {
     const { onFieldChange, profiles, sites } = this.props;
     switch (field) {
-      case TASK_FIELDS.EDIT_SITE: {
-        const site = {
+      case TASK_FIELDS.EDIT_STORE: {
+        const store = {
           name: event.label,
           url: event.value,
           apiKey: event.apiKey,
           special: event.special || false,
         };
-        return onFieldChange({ field, value: site });
+        return onFieldChange({ field, value: store });
       }
       case TASK_FIELDS.EDIT_TASK_CATEGORY:
       case TASK_FIELDS.EDIT_TASK_ACCOUNT: {
@@ -546,7 +546,7 @@ export class CreateTaskPrimitive extends PureComponent {
 
   render() {
     const { task, sites, theme, onKeyPress } = this.props;
-    const { isLoadingSite, isLoadingSize } = this.state;
+    const { isLoadingStore, isLoadingSize } = this.state;
     let newTaskProfileValue = null;
     if (task.profile) {
       newTaskProfileValue = {
@@ -564,11 +564,11 @@ export class CreateTaskPrimitive extends PureComponent {
         value: task.size,
       };
     }
-    let newTaskSiteValue = null;
-    if (task.site && task.site.name !== null) {
-      newTaskSiteValue = {
-        value: task.site.url,
-        label: task.site.name,
+    let newTaskStoreValue = null;
+    if (task.store && task.store.name !== null) {
+      newTaskStoreValue = {
+        value: task.store.url,
+        label: task.store.name,
       };
     }
 
@@ -589,16 +589,16 @@ export class CreateTaskPrimitive extends PureComponent {
                 data-testid={addTestId('CreateTask.productInput')}
               />
             </div>
-            <div className="col col--expand col--no-gutter tasks-create__input-group--site">
-              <p className="tasks-create__label">Site</p>
+            <div className="col col--expand col--no-gutter tasks-create__input-group--store">
+              <p className="tasks-create__label">Store</p>
               <CreatableSelect
                 isClearable={false}
-                isDisabled={isLoadingSite}
-                isLoading={isLoadingSite}
+                isDisabled={isLoadingStore}
+                isLoading={isLoadingStore}
                 required
                 className="tasks-create__input tasks-create__input--field"
                 classNamePrefix="select"
-                placeholder="Choose Site"
+                placeholder="Choose Store"
                 components={{
                   IndicatorSeparator,
                   DropdownIndicator: props =>
@@ -609,10 +609,10 @@ export class CreateTaskPrimitive extends PureComponent {
                 }}
                 styles={colourStyles(theme, buildStyle(false, null))}
                 isOptionDisabled={option => !option.supported && option.supported !== undefined}
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SITE, e)}
-                onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SITE, v)}
+                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_STORE, e)}
+                onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_STORE, v)}
                 options={sites}
-                value={newTaskSiteValue}
+                value={newTaskStoreValue}
                 data-testid={addTestId('CreateTask.siteSelect')}
               />
             </div>
@@ -644,7 +644,7 @@ export class CreateTaskPrimitive extends PureComponent {
               />
             </div>
             <div
-              className="col col--expand col--no-gutter tasks-create__input-group--site"
+              className="col col--expand col--no-gutter tasks-create__input-group--size"
               style={{ flexGrow: 3 }}
             >
               <p className="tasks-create__label">Size</p>

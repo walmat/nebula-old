@@ -156,8 +156,8 @@ export default class Parser {
       case ParseType.Keywords: {
         this._logger.silly('%s: parsing type %s detected', this._name, this._type);
         const keywords = {
-          pos: this._task.product.pos_keywords,
-          neg: this._task.product.neg_keywords,
+          pos: this._task.product.pos,
+          neg: this._task.product.neg,
         };
 
         const product = matchKeywords(products, keywords, null, this._logger, false, this._random); // no need to use a custom filter at this point...

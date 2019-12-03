@@ -76,11 +76,11 @@ export default class MonitorPrimitive extends BaseMonitor {
         this._context,
         this._context.ids,
         {
-          message: `${status}! Delaying ${this._context.task.monitorDelay}ms`,
+          message: `${status}! Delaying ${this._context.task.monitor}ms`,
         },
         Events.MonitorStatus,
       );
-      this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+      this._delayer = waitForDelay(this._context.task.monitor, this._aborter.signal);
       await this._delayer;
     }
     return state;

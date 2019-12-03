@@ -1,6 +1,8 @@
 import makeActionCreator from '../../../store/creator';
 import prefixer from '../../../store/reducers/prefixer';
 
+import { States } from '../../../constants/tasks';
+
 const prefix = '@@Task';
 const tasksActions = ['EDIT_TASK'];
 export const taskActionsList = ['@@Task/EDIT_TASK'];
@@ -41,8 +43,8 @@ export const TASK_LIST_ACTIONS = prefixer(prefix, tasksListActions);
 const _duplicateTaskRequest = async task => ({ task });
 
 const _startTaskRequest = async (task, proxies = []) => {
-  if (task.status === 'running') {
-    throw new Error('Previously running!');
+  if (task.state === States.Running) {
+    return null;
   }
 
   if (window.Bridge) {
@@ -54,19 +56,21 @@ const _startTaskRequest = async (task, proxies = []) => {
 };
 
 const _startAllTasksRequest = async (tasks, proxies = []) => {
-  const newTasks = tasks.filter(t => t.status !== 'running');
+  const newTasks = tasks.filter(t => t.state !== States.Running);
 
   if (window.Bridge) {
     window.Bridge.addProxies(proxies);
     window.Bridge.startTasks(newTasks, {});
   }
 
-  return { tasks: newTasks.map(t => ({ ...t, status: 'running', message: 'Starting task!' })) };
+  return {
+    tasks: newTasks.map(t => ({ ...t, state: States.Running, message: 'Starting task!' })),
+  };
 };
 
 const _stopTaskRequest = async task => {
-  if (task.status !== 'running') {
-    throw new Error('Already stopped');
+  if (task.state !== States.Running) {
+    return null;
   }
 
   if (window.Bridge) {
@@ -77,7 +81,8 @@ const _stopTaskRequest = async task => {
 };
 
 const _stopAllTasksRequest = async tasks => {
-  const runningTasks = tasks.filter(t => t.status === 'running');
+  const runningTasks = tasks.filter(t => t.state === States.Running);
+  console.log(runningTasks);
   if (!runningTasks.length) {
     throw new Error('No tasks running');
   }
@@ -86,7 +91,7 @@ const _stopAllTasksRequest = async tasks => {
     window.Bridge.stopTasks(runningTasks);
   }
 
-  return { tasks: runningTasks.map(t => ({ ...t, status: 'stopped', message: '' })) };
+  return { tasks: runningTasks.map(t => ({ ...t, state: States.Stopped, message: '' })) };
 };
 
 const _removeTaskRequest = async (task, type) => {
@@ -158,7 +163,7 @@ export const TASK_FIELDS = {
   EDIT_TASK_CATEGORY: 'EDIT_TASK_CATEGORY',
   EDIT_PRODUCT_VARIATION: 'EDIT_PRODUCT_VARIATION',
   EDIT_CHECKOUT_DELAY: 'EDIT_CHECKOUT_DELAY',
-  EDIT_SITE: 'EDIT_SITE',
+  EDIT_STORE: 'EDIT_STORE',
   EDIT_PROFILE: 'EDIT_PROFILE',
   EDIT_SIZE: 'EDIT_SIZE',
   EDIT_AMOUNT: 'EDIT_AMOUNT',
@@ -191,7 +196,7 @@ export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_TASK_CATEGORY]: 'category',
   [TASK_FIELDS.EDIT_PRODUCT_VARIATION]: 'variation',
   [TASK_FIELDS.EDIT_CHECKOUT_DELAY]: 'checkoutDelay',
-  [TASK_FIELDS.EDIT_SITE]: 'site',
+  [TASK_FIELDS.EDIT_STORE]: 'store',
   [TASK_FIELDS.EDIT_PROFILE]: 'profile',
   [TASK_FIELDS.EDIT_SIZE]: 'size',
   [TASK_FIELDS.EDIT_AMOUNT]: 'amount',

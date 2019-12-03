@@ -230,7 +230,7 @@ export default class TaskPrimitive extends BaseTask {
         id: st,
         variant: { id: s },
       },
-      monitorDelay,
+      monitor,
       forceCaptcha,
     } = this._context.task;
 
@@ -277,12 +277,12 @@ export default class TaskPrimitive extends BaseTask {
           this._context,
           this._context.ids,
           {
-            message: `Out of stock, delaying ${monitorDelay}ms`,
+            message: `Out of stock, delaying ${monitor}ms`,
           },
           Events.TaskStatus,
         );
 
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
         emitEvent(
           this._context,
@@ -386,7 +386,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       logger,
       proxy,
-      task: { checkoutDelay, monitorDelay },
+      task: { checkoutDelay, monitor },
     } = this._context;
 
     if (aborted) {
@@ -492,12 +492,12 @@ export default class TaskPrimitive extends BaseTask {
           this._context,
           this._context.ids,
           {
-            message: `Out of stock! Delaying ${monitorDelay}ms`,
+            message: `Out of stock! Delaying ${monitor}ms`,
           },
           Events.TaskStatus,
         );
 
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
 
         emitEvent(
@@ -635,12 +635,12 @@ export default class TaskPrimitive extends BaseTask {
             this._context,
             this._context.ids,
             {
-              message: `Delaying ${this._context.task.monitorDelay}ms`,
+              message: `Delaying ${this._context.task.monitor}ms`,
             },
             Events.TaskStatus,
           );
 
-          this._delayer = waitForDelay(this._context.task.monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(this._context.task.monitor, this._aborter.signal);
           await this._delayer;
 
           return States.SUBMIT_CHECKOUT;
