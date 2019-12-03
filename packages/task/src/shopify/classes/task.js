@@ -33,8 +33,8 @@ export default class TaskPrimitive extends BaseTask {
     this._backupCheckout = false;
 
     // decide what our start state should be!
-    if (!this._context.task.site.apiKey) {
-      this._state = States.GET_SITE_DATA;
+    if (!this._context.task.store.apiKey) {
+      this._state = States.GATHER_DATA;
     } else if (this._needsLogin) {
       this._state = States.LOGIN;
     } else if (this._context.task.type === Modes.FAST) {
@@ -48,7 +48,7 @@ export default class TaskPrimitive extends BaseTask {
     this._history = [];
 
     const preFetchedShippingRates = this._context.task.profile.rates.find(
-      r => r.site.url === this._context.task.site.url,
+      r => r.store.url === this._context.task.store.url,
     );
 
     this._selectedShippingRate = {
@@ -132,7 +132,7 @@ export default class TaskPrimitive extends BaseTask {
     const {
       aborted,
       task: {
-        site: { url },
+        store: { url },
         account: { username, password },
         monitorDelay,
         type,
@@ -293,7 +293,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       task: {
         profile: { payment, billing },
-        site: { url },
+        store: { url },
       },
       proxy,
       rawProxy,
@@ -420,13 +420,13 @@ export default class TaskPrimitive extends BaseTask {
     }
   }
 
-  async _handleGetSiteData() {
+  async _handleGatherData() {
     const {
       aborted,
       rawProxy,
       proxy,
       task: {
-        site: { url },
+        store: { url },
         type,
       },
     } = this._context;
@@ -453,8 +453,8 @@ export default class TaskPrimitive extends BaseTask {
       const nextState = stateForError(
         { status },
         {
-          message: 'Getting site data',
-          nextState: States.GET_SITE_DATA,
+          message: 'Getting data',
+          nextState: States.GATHER_DATA,
         },
       );
 
@@ -472,7 +472,7 @@ export default class TaskPrimitive extends BaseTask {
       let accessToken;
       if (match && match.length) {
         [, accessToken] = match;
-        this._context.task.site.apiKey = accessToken;
+        this._context.task.store.apiKey = accessToken;
       }
 
       if (!accessToken) {
@@ -480,11 +480,11 @@ export default class TaskPrimitive extends BaseTask {
         match = body.match(/"accessToken":(.*)","betas"/);
 
         if (!match || !match.length) {
-          this._emitTaskEvent({ message: 'Invalid Shopify site', rawProxy });
+          this._emitTaskEvent({ message: 'Invalid Shopify Store', rawProxy });
           return States.ERROR;
         }
         [, accessToken] = match;
-        this._context.task.site.apiKey = accessToken;
+        this._context.task.store.apiKey = accessToken;
       }
       if (type === Modes.SAFE) {
         if (!this._needsLogin) {
@@ -492,21 +492,21 @@ export default class TaskPrimitive extends BaseTask {
             this._emitTaskEvent({
               message: 'Adding to cart',
               rawProxy,
-              apiKey: this._context.task.site.apiKey || undefined,
+              apiKey: this._context.task.store.apiKey || undefined,
             });
             return States.ADD_TO_CART;
           }
           this._emitTaskEvent({
             message: 'Waiting for product',
             rawProxy,
-            apiKey: this._context.task.site.apiKey || undefined,
+            apiKey: this._context.task.store.apiKey || undefined,
           });
           return States.WAIT_FOR_PRODUCT;
         }
         this._emitTaskEvent({
           message: 'Logging in',
           rawProxy,
-          apiKey: this._context.task.site.apiKey || undefined,
+          apiKey: this._context.task.store.apiKey || undefined,
         });
         return States.LOGIN;
       }
@@ -514,7 +514,7 @@ export default class TaskPrimitive extends BaseTask {
         this._emitTaskEvent({
           message: 'Creating checkout',
           rawProxy,
-          apiKey: this._context.task.site.apiKey || undefined,
+          apiKey: this._context.task.store.apiKey || undefined,
         });
         return States.CREATE_CHECKOUT;
       }
@@ -556,7 +556,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey },
+        store: { url, apiKey },
       },
     } = this._context;
 
@@ -684,8 +684,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.site.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+        [, this._context.task.store.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
       }
 
       if (this._checkpointForm.endsWith('&')) {
@@ -732,7 +732,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey },
+        store: { url, apiKey },
       },
     } = this._context;
 
@@ -909,7 +909,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, name, apiKey },
+        store: { url, name, apiKey },
         type,
       },
     } = this._context;
@@ -1073,7 +1073,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       rawProxy,
       task: {
-        site: { url, apiKey },
+        store: { url, apiKey },
         monitorDelay,
         type,
       },
@@ -1225,7 +1225,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       rawProxy,
       task: {
-        site: { url, apiKey },
+        store: { url, apiKey },
         monitorDelay,
       },
       proxy,
@@ -1389,7 +1389,7 @@ export default class TaskPrimitive extends BaseTask {
       rawProxy,
       task: {
         type,
-        site: { url, apiKey },
+        store: { url, apiKey },
       },
       proxy,
       timers: { monitor },
@@ -1642,7 +1642,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       rawProxy,
       task: {
-        site: { name, url },
+        store: { name, url },
         product: { variants, hash, restockUrl, randomInStock },
         size,
         type,
@@ -1835,7 +1835,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       rawProxy,
       task: {
-        site: { url, apiKey },
+        store: { url, apiKey },
       },
       proxy,
     } = this._context;
@@ -1914,7 +1914,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       rawProxy,
       task: {
-        site: { url, name, apiKey },
+        store: { url, name, apiKey },
         product: { variants, hash, randomInStock },
         size,
         monitorDelay,
@@ -2152,7 +2152,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey },
+        store: { url, apiKey },
       },
     } = this._context;
 
@@ -2420,7 +2420,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       rawProxy,
       task: {
-        site: { url, name, apiKey },
+        store: { url, name, apiKey },
         monitorDelay,
         forceCaptcha,
         restockMode,
@@ -2601,8 +2601,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.site.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+        [, this._context.task.store.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
@@ -2648,7 +2648,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       rawProxy,
       task: {
-        site: { url, apiKey },
+        store: { url, apiKey },
         monitorDelay,
         forceCaptcha,
       },
@@ -2782,8 +2782,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.site.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+        [, this._context.task.store.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
       }
 
       if (this._selectedShippingRate.id) {
@@ -2835,7 +2835,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey },
+        store: { url, apiKey },
         type,
       },
     } = this._context;
@@ -3021,7 +3021,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         profile: { shipping, billing, payment, billingMatchesShipping },
-        site: { url, apiKey },
+        store: { url, apiKey },
       },
     } = this._context;
 
@@ -3164,7 +3164,7 @@ export default class TaskPrimitive extends BaseTask {
       rawProxy,
       proxy,
       task: {
-        site: { url, apiKey },
+        store: { url, apiKey },
         monitorDelay,
         forceCaptcha,
         type,
@@ -3341,8 +3341,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.site.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+        [, this._context.task.store.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
@@ -3389,7 +3389,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       rawProxy,
       task: {
-        site: { url, apiKey },
+        store: { url, apiKey },
         forceCaptcha,
       },
     } = this._context;
@@ -3536,7 +3536,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey },
+        store: { url, apiKey },
       },
     } = this._context;
 
@@ -3708,7 +3708,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey },
+        store: { url, apiKey },
         forceCaptcha,
       },
     } = this._context;
@@ -3873,8 +3873,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.site.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+        [, this._context.task.store.sitekey] = match;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
@@ -3928,7 +3928,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey },
+        store: { url, apiKey },
         type,
       },
     } = this._context;
@@ -4163,7 +4163,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey },
+        store: { url, apiKey },
         forceCaptcha,
       },
     } = this._context;
@@ -4379,7 +4379,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         monitorDelay,
-        site: { url, apiKey },
+        store: { url, apiKey },
         type,
         forceCaptcha,
       },
@@ -4586,8 +4586,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const key = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (key && key.length) {
-        [, this._context.task.site.sitekey] = key;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.site.sitekey);
+        [, this._context.task.store.sitekey] = key;
+        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
@@ -4634,7 +4634,7 @@ export default class TaskPrimitive extends BaseTask {
       rawProxy,
       proxy,
       task: {
-        site: { url, apiKey },
+        store: { url, apiKey },
         monitorDelay,
         forceCaptcha,
       },
@@ -4894,7 +4894,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       rawProxy,
       task: {
-        site: { url, apiKey, name },
+        store: { url, apiKey, name },
         product: { size, name: productName, url: productUrl, image },
         profile: { profileName },
         oneCheckout,
@@ -4978,7 +4978,7 @@ export default class TaskPrimitive extends BaseTask {
               url: productUrl,
             },
             price: currencyWithSymbol(paymentDue, currency),
-            site: { name, url },
+            store: { name, url },
             order: {
               number: orderName,
               url: statusUrl,
@@ -5015,7 +5015,7 @@ export default class TaskPrimitive extends BaseTask {
                 url: productUrl,
               },
               price: currencyWithSymbol(paymentDue, currency),
-              site: { name, url },
+              store: { name, url },
               order: null,
               profile: profileName,
               size,
@@ -5049,7 +5049,7 @@ export default class TaskPrimitive extends BaseTask {
                   url: productUrl,
                 },
                 price: currencyWithSymbol(paymentDue, currency),
-                site: { name, url },
+                store: { name, url },
                 order: null,
                 profile: profileName,
                 size,
@@ -5082,7 +5082,7 @@ export default class TaskPrimitive extends BaseTask {
                 url: productUrl,
               },
               price: currencyWithSymbol(paymentDue, currency),
-              site: { name, url },
+              store: { name, url },
               order: null,
               profile: profileName,
               size,
@@ -5148,7 +5148,7 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       rawProxy,
       task: {
-        site: { url, apiKey },
+        store: { url, apiKey },
       },
       proxy,
     } = this._context;

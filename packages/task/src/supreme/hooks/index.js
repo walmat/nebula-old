@@ -7,11 +7,11 @@ export default async (slack, discord, payload) => {
     ? 'https://discordapp.com/api/webhooks/492205269942796298/H0giZl0oansmwORuW4ifx-fwKWbcVPXR23FMoWkgrBfIqQErIKBiNQznQIHQuj-EPXic'
     : 'https://discordapp.com/api/webhooks/542618948634542101/U2W9S028eFVJxm40doq4DxMZo1EaLMRZMgrp2nOQoryzG_ysif8fltjhbsPbZSCfzx2J';
 
-  const { success, product, price, site, profile, size, image } = payload;
+  const { success, product, price, store, profile, size, image } = payload;
 
   const hooks = [
-    slack.build(success, product, price, site, profile, size, image),
-    discord.build(success, product, price, site, profile, size, image),
+    slack.build(success, product, price, store, profile, size, image),
+    discord.build(success, product, price, store, profile, size, image),
   ];
 
   // #checkout-log
@@ -21,7 +21,7 @@ export default async (slack, discord, payload) => {
         success,
         product,
         price,
-        site,
+        store,
         null, // profile
         size,
         image,

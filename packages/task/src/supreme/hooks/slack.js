@@ -7,7 +7,7 @@ export default class Slack {
     }
   }
 
-  build(success = false, product, price, site, profile, size, image) {
+  build(success = false, product, price, store, profile, size, image) {
     if (this.hook) {
       let fallback;
 
@@ -46,17 +46,17 @@ export default class Slack {
         });
       }
 
-      if (site) {
-        if (site.url) {
+      if (store) {
+        if (store.url) {
           embed.attachments[0].fields.push({
             title: 'Store',
-            value: `<${site.url}|${site.name}>`,
+            value: `<${store.url}|${store.name}>`,
             short: true,
           });
-        } else if (site.name) {
+        } else if (store.name) {
           embed.attachments[0].fields.push({
             title: 'Store',
-            value: site.name,
+            value: store.name,
             short: true,
           });
         }

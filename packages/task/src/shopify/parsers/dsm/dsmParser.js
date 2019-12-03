@@ -8,14 +8,14 @@ const { matchKeywords } = Parse;
 const { ParseType } = Monitor;
 
 /**
- * Base Special Parser for all DSM Sites
+ * Base Special Parser for all DSM stores
  */
 export default class DsmParser extends SpecialParser {
   constructor(request, type, task, proxy, aborter, logger, name = 'DsmParser') {
     super(request, type, task, proxy, aborter, logger, name);
 
     /**
-     * Some Dsm Sites requires specific hashes to be attached when adding
+     * Some Dsm stores requires specific hashes to be attached when adding
      * to cart. We store all parsed hashes in a map (keyed by product id)
      * so they can be used. By default, this map is not used, but
      * subclasses can extend this class and add support in the following ways:
@@ -71,7 +71,7 @@ export default class DsmParser extends SpecialParser {
     }
 
     // Convert items to full urls
-    const productUrls = items.map(({ link }) => new URL(link, this._task.site.url).href);
+    const productUrls = items.map(({ link }) => new URL(link, this._task.store.url).href);
 
     // Parse for hash
     const hash = await this.parseInitialPageForHash($);
@@ -108,7 +108,7 @@ export default class DsmParser extends SpecialParser {
 
     const parsedProduct = JSON.parse(product.html());
     // Calcalate and store hash for this product
-    const hash = await this.parseProductInfoPageForHash($, this._task.site);
+    const hash = await this.parseProductInfoPageForHash($, this._task.store);
     if (hash) {
       this._hashIds[parsedProduct.id] = hash;
       this._logger.silly(

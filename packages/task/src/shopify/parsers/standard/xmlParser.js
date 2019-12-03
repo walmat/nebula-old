@@ -29,7 +29,7 @@ export default class XmlParser extends Parser {
       this._logger.silly(
         '%s: Making request for %s/sitemap_products_1.xml?from=1&to=299999999999999999 ...',
         this._name,
-        this._task.site.url,
+        this._task.store.url,
       );
 
       const res = await this._request('/sitemap_products_1.xml?from=1&to=299999999999999999', {

@@ -24,7 +24,7 @@ export default class TaskPrimitive extends BaseTask {
     this._state = States.WAIT_FOR_PRODUCT;
     this._prevState = this._state;
     this._timer = new Timer();
-    this._region = getRegion(context.task.site.name);
+    this._region = getRegion(context.task.store.name);
     this._slug = null;
     this._form = null;
   }
@@ -210,8 +210,8 @@ export default class TaskPrimitive extends BaseTask {
 
       const { jar, task } = this._context;
 
-      jar.setCookieSync(`lastid=${lastid}`, task.site.url);
-      return body.cookies.map(cookie => jar.setCookieSync(`${cookie};`, task.site.url));
+      jar.setCookieSync(`lastid=${lastid}`, task.store.url);
+      return body.cookies.map(cookie => jar.setCookieSync(`${cookie};`, task.store.url));
     } catch (err) {
       throw err;
     }
@@ -602,7 +602,7 @@ export default class TaskPrimitive extends BaseTask {
               currency,
               variant: { name: size },
             },
-            site: { name: siteName, url: siteUrl },
+            store: { name: storeName, url: storeUrl },
             profile: { profileName },
           },
           slack,
@@ -617,7 +617,7 @@ export default class TaskPrimitive extends BaseTask {
             price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
               price.toString().slice(0, -2),
             ),
-            site: { name: siteName, url: siteUrl },
+            store: { name: storeName, url: storeUrl },
             profile: profileName,
             size,
             image: `${image}`.startsWith('http') ? image : `https:${image}`,
@@ -668,7 +668,7 @@ export default class TaskPrimitive extends BaseTask {
               currency,
               variant: { name: size },
             },
-            site: { name: siteName, url: siteUrl },
+            store: { name: storeName, url: storeUrl },
             profile: { profileName },
           },
           slack,
@@ -681,7 +681,7 @@ export default class TaskPrimitive extends BaseTask {
           price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
             price.toString().slice(0, -2),
           ),
-          site: { name: siteName, url: siteUrl },
+          store: { name: storeName, url: storeUrl },
           profile: profileName,
           size,
           image: `${image}`.startsWith('http') ? image : `https:${image}`,

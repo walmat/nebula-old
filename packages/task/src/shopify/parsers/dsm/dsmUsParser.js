@@ -9,7 +9,7 @@ export default class DsmUsParser extends DsmParser {
     const regex = /\$\(\s*atob\(\s*'PGlucHV0IHR5cGU9ImhpZGRlbiIgbmFtZT0icHJvcGVydGllc1tfSEFTSF0iIC8\+'\s*\)\s*\)\s*\.val\(\s*'(.+)'\s*\)/;
     if (!regex) {
       this._logger.silly(
-        '%s: Parsing for hash is not required for this site, skipping...',
+        '%s: Parsing for hash is not required for this store, skipping...',
         this._name,
       );
       return null;
@@ -55,7 +55,7 @@ export default class DsmUsParser extends DsmParser {
       this._logger.error(
         '%s: ERROR parsing %s hash property: %s %s',
         this._name,
-        this._task.site.name,
+        this._task.store.name,
         err.statusCode || err.status,
         err.message,
       );

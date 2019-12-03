@@ -32,7 +32,7 @@ export default class RateFetcher extends BaseTask {
   async keywords() {
     let parsed;
 
-    const Parsers = getParsers(this.task.site.url);
+    const Parsers = getParsers(this.task.store.url);
 
     const parsers = Parsers(
       this._monitorRequest,
@@ -65,7 +65,7 @@ export default class RateFetcher extends BaseTask {
       ),
     );
 
-    this.task.product.url = `${this.task.site.url}/products/${parsed.handle}`;
+    this.task.product.url = `${this.task.store.url}/products/${parsed.handle}`;
 
     return { nextState: this.states.CART, message: 'Adding to cart' };
   }
@@ -110,7 +110,7 @@ export default class RateFetcher extends BaseTask {
 
   async special() {
     const { product } = this.task;
-    const ParserCreator = getSpecialParser(this.task.site);
+    const ParserCreator = getSpecialParser(this.task.store);
     const parseType = getParseType(product, null, Platforms.Shopify);
     const parser = ParserCreator(
       this._monitorRequest,
@@ -188,7 +188,7 @@ export default class RateFetcher extends BaseTask {
 
   async cart() {
     const {
-      site: { name, url },
+      store: { name, url },
       product: { variants, hash, restockUrl },
       size,
     } = this.task;
@@ -240,7 +240,7 @@ export default class RateFetcher extends BaseTask {
 
   async rates() {
     const {
-      site: { url },
+      store: { url },
       profile: {
         shipping: { country, province, zipCode },
       },
@@ -337,7 +337,7 @@ export default class RateFetcher extends BaseTask {
     let nextState;
     let message;
 
-    this.parseType = getParseType(this.task.product, this.task.site);
+    this.parseType = getParseType(this.task.product, this.task.store);
 
     while (nextState !== this.states.ERROR && !this.aborted) {
       // eslint-disable-next-line no-await-in-loop

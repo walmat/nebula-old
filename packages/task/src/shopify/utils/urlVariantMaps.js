@@ -166,7 +166,7 @@ export const urlToTitleSegment = (function generateUTTS() {
   const utts = {};
   Object.keys(urlToOptionIndex).forEach(key => {
     // attach a function for each url
-    const siteOption = urlToOptionIndex[key] ? urlToOptionIndex[key] : 1;
+    const storeOption = urlToOptionIndex[key] ? urlToOptionIndex[key] : 1;
     utts[key] = title => {
       if (!title) {
         return null;
@@ -174,9 +174,9 @@ export const urlToTitleSegment = (function generateUTTS() {
       // split the title into segments based the `/` delimiter
       const segments = title.split('/');
       // Check if we have a valid number of segments
-      if (segments.length >= siteOption) {
+      if (segments.length >= storeOption) {
         // return the correct 0-indexed segment (trimming the surrounding whitespace)
-        return segments[siteOption - 1].trim();
+        return segments[storeOption - 1].trim();
       }
       // Invalid segment length, return null
       return null;

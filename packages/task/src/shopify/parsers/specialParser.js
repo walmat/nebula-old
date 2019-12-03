@@ -23,14 +23,14 @@ export default class SpecialParser extends Parser {
   async run() {
     this._logger.silly('%s: Starting run...', this._name);
 
-    // If parse type is url, use the product's url, otherwise use the site url
-    const { url: siteUrl } = this._task.site;
-    let initialUrl = siteUrl;
+    // If parse type is url, use the product's url, otherwise use the store url
+    const { url: storeUrl } = this._task.store;
+    let initialUrl = storeUrl;
     if (this._type === ParseType.Url) {
       initialUrl = this._task.product.url;
     }
 
-    // Make initial request to site
+    // Make initial request to store
     let response;
     try {
       this._logger.silly('%s: Making request for %s ...', this._name, initialUrl);
@@ -221,14 +221,14 @@ export default class SpecialParser extends Parser {
     this._logger.silly('%s: Product Found!', this._name);
     return {
       // Backup method to add product url for restocking purposes
-      url: `${siteUrl}/products/${matchedProduct.handle}`,
+      url: `${storeUrl}/products/${matchedProduct.handle}`,
       ...matchedProduct,
     };
   }
 
   /**
-   * Getter to signify whether or not the specific site has product info in the
-   * initial site page, or if product specific pages need to be parsed.
+   * Getter to signify whether or not the specific store has product info in the
+   * initial store page, or if product specific pages need to be parsed.
    *
    * If this is set to true, then `parseInitialPageForProducts()` will get called
    * If this is set to false, then `parseInitialPageForUrls()` will get called
@@ -239,7 +239,7 @@ export default class SpecialParser extends Parser {
 
   /**
    * Parse the given html (loaded by cheerio) for a list of
-   * products available. This is a site dependent method, so it should be
+   * products available. This is a store dependent method, so it should be
    * implemented by subclasses of this class
    *
    * This method should return a list of products that should be matched
@@ -255,7 +255,7 @@ export default class SpecialParser extends Parser {
 
   /**
    * Parse the given html (loaded by cheerio) for a list of
-   * product pages to visit. This is a site dependent method, so it should be
+   * product pages to visit. This is a store dependent method, so it should be
    * implemented by subclasses of this class
    *
    * This method should return a list of product urls that should be visited for more info
@@ -271,7 +271,7 @@ export default class SpecialParser extends Parser {
 
   /**
    * Parse the given html (loaded by cheerio) as the product info page
-   * for one product of interest. This is a site dependent method, so it should be
+   * for one product of interest. This is a store dependent method, so it should be
    * implemented by subclasses of this class
    *
    * This method should a valid product object that can be further matched
@@ -310,7 +310,7 @@ export default class SpecialParser extends Parser {
       const body = await res.text();
 
       // for traviss let's use regex instead of cheerio..
-      if (/travis/i.test(this._task.site.url)) {
+      if (/travis/i.test(this._task.store.url)) {
         return body;
       }
 

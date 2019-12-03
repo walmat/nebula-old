@@ -61,7 +61,7 @@ const QueueNextState = {
       };
     }
 
-    if (type === Modes.SAFE && /dsm sg|dsm jp|dsm uk/i.test(task.site.name)) {
+    if (type === Modes.SAFE && /dsm sg|dsm jp|dsm uk/i.test(task.store.name)) {
       if (shippingMethod && shippingMethod.id) {
         return {
           message: 'Submitting payment',
@@ -85,7 +85,7 @@ const QueueNextState = {
     nextState: CheckoutStates.CREATE_CHECKOUT,
   }),
   [CheckoutStates.CREATE_CHECKOUT]: (type, task) => {
-    if (type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(task.site.name)) {
+    if (type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(task.store.name)) {
       return {
         message: 'Submitting information',
         nextState: CheckoutStates.SUBMIT_CUSTOMER,
@@ -122,7 +122,7 @@ const QueueNextState = {
     };
   },
   [CheckoutStates.SUBMIT_CUSTOMER]: (type, task) => {
-    if (type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(task.site.name)) {
+    if (type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(task.store.name)) {
       if (!task.product.variants) {
         return {
           message: 'Waiting for product',

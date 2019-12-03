@@ -1,11 +1,11 @@
 import { Utils } from '../../common';
 import pickVariant from './pickVariant';
 import {
-  getAllSpecialSites,
-  getAllSupportedSites,
-  getAllSupportedSitesSorted,
-  isSpecialSite,
-} from './siteOptions';
+  getAllSpecialStores,
+  getAllSupportedStores,
+  getAllSupportedStoresSorted,
+  isSpecialStore,
+} from './storeOptions';
 import {
   clothingRegexMap,
   urlToOptionIndex,
@@ -86,11 +86,11 @@ export const getHeaders = ({ url, apiKey }) => ({
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
 });
 
-const SiteOptions = {
-  getAllSpecialSites,
-  getAllSupportedSites,
-  getAllSupportedSitesSorted,
-  isSpecialSite,
+const StoreOptions = {
+  getAllSpecialStores,
+  getAllSupportedStores,
+  getAllSupportedStoresSorted,
+  isSpecialStore,
 };
 
 const UrlVariantMaps = {
@@ -116,4 +116,4 @@ const Forms = {
   patchToCart,
 };
 
-export { pickVariant, Parse, SiteOptions, UrlVariantMaps, Forms };
+export { pickVariant, Parse, StoreOptions, UrlVariantMaps, Forms };

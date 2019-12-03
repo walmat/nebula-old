@@ -17,7 +17,7 @@ export default class JsonParser extends Parser {
 
   async run() {
     this._logger.silly('%s: Starting run...', this._name);
-    const { url, name } = this._task.site;
+    const { url, name } = this._task.store;
     let products;
     let res;
     try {

@@ -158,13 +158,13 @@ export default class TaskManager {
       this._logger.debug(
         'ONE CHECKOUT: Same profile?: %j, Same site?: %j, Same product?: %j',
         r.task.profile.id === task.profile.id,
-        r.task.site === task.site.url,
+        r.task.store === task.store.url,
         TaskManager._compareProductInput(task.product, r.task.product),
       );
 
       if (
         r.task.profile.id === task.profile.id &&
-        r.task.site === task.site.url &&
+        r.task.store === task.store.url &&
         TaskManager._compareProductInput(task.product, r.task.product)
       ) {
         this._events.emit(
@@ -389,7 +389,7 @@ export default class TaskManager {
    *   - type - The task type to start
    */
   async start(task, { type = TaskTypes.Normal }) {
-    const proxy = await this._proxyManager.reserve(task.id, task.site.url, task.platform);
+    const proxy = await this._proxyManager.reserve(task.id, task.store.url, task.platform);
 
     this._logger.silly('Starting task for %s with proxy %j', task.id, proxy);
     return this._start([task, proxy, type]);
@@ -431,7 +431,7 @@ export default class TaskManager {
     }
 
     // patch into context...
-    const parseType = getParseType(task.product, task.site, task.platform);
+    const parseType = getParseType(task.product, task.store, task.platform);
     monitor.context.task = task;
     oldTask.context.task = task;
     monitor.context.setParseType(parseType);
@@ -612,7 +612,7 @@ export default class TaskManager {
     if (taskContext.proxy) {
       this._proxyManager.release(
         taskContext.id,
-        taskContext.task.site.url,
+        taskContext.task.store.url,
         task.platform,
         taskContext.proxy.id,
       );
@@ -663,10 +663,10 @@ export default class TaskManager {
               this._logger.debug(
                 'Same product data?: %j Same URL?: %j',
                 isSameProduct,
-                mContext.task.site.url === context.task.site.url,
+                mContext.task.store.url === context.task.store.url,
               );
 
-              if (isSameProduct && mContext.task.site.url === context.task.site.url) {
+              if (isSameProduct && mContext.task.store.url === context.task.store.url) {
                 return m;
               }
             }
@@ -720,13 +720,13 @@ export default class TaskManager {
               'Same product?: %j Same category?: %j Same URL?: %j',
               isSameProduct,
               mContext.task.category === context.task.category,
-              mContext.task.site.url === context.task.site.url,
+              mContext.task.store.url === context.task.store.url,
             );
 
             if (
               isSameProduct &&
               mContext.task.category === context.task.category &&
-              mContext.task.site.url === context.task.site.url
+              mContext.task.store.url === context.task.store.url
             ) {
               return m;
             }

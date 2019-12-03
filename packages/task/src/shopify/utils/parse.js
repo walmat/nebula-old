@@ -1,7 +1,7 @@
 import { sortBy, map, find, flatten, filter, every, some } from 'lodash';
 import { parseString } from 'xml2js';
 
-import { isSpecialSite } from './siteOptions';
+import { isSpecialStore } from './storeOptions';
 import { Platforms } from '../../common/constants';
 import { Monitor } from '../constants';
 
@@ -14,7 +14,7 @@ const { ParseType } = Monitor;
  *
  * @param {TaskProduct} product
  */
-export function getParseType(product, site, platform = Platforms.Shopify) {
+export function getParseType(product, store, platform = Platforms.Shopify) {
   if (!product) {
     return ParseType.Unknown;
   }
@@ -25,7 +25,7 @@ export function getParseType(product, site, platform = Platforms.Shopify) {
         return ParseType.Variant;
       }
 
-      if ((site && isSpecialSite(site)) || (site && /traviss/i.test(site.name))) {
+      if ((store && isSpecialStore(store)) || (store && /travis/i.test(store.name))) {
         return ParseType.Special;
       }
 

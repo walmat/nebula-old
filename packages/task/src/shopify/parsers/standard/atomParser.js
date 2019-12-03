@@ -19,7 +19,7 @@ export default class AtomParser extends Parser {
 
   async run() {
     this._logger.silly('%s: starting run...', this._name);
-    const { url } = this._task.site;
+    const { url } = this._task.store;
     if (this._type !== ParseType.Keywords) {
       throw new Error('Atom parsing is only supported for keyword searching');
     }
@@ -29,7 +29,7 @@ export default class AtomParser extends Parser {
       this._logger.silly(
         '%s: Making request for %s/collections/all/products.json ...',
         this._name,
-        this._task.site.url,
+        this._task.store.url,
       );
       res = await this._request('/collections/all/products.json', {
         method: 'GET',

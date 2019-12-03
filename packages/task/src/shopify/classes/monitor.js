@@ -44,7 +44,7 @@ export default class MonitorPrimitive extends BaseMonitor {
         this._logger.debug('Changing to backup parser!');
         this._parseType = getParseType(
           this._context.task.product,
-          this._context.task.site,
+          this._context.task.store,
           Platforms.Shopify,
         );
         setImmediate = true;
@@ -54,7 +54,7 @@ export default class MonitorPrimitive extends BaseMonitor {
         this._logger.debug('Changing to backup parser!');
         this._parseType = getParseType(
           this._context.task.product,
-          this._context.task.site,
+          this._context.task.store,
           Platforms.Shopify,
         );
         setImmediate = true;
@@ -118,7 +118,7 @@ export default class MonitorPrimitive extends BaseMonitor {
 
   async _parseAll() {
     // Create the parsers and start the async run methods
-    const Parsers = getParsers(this._context.task.site.url);
+    const Parsers = getParsers(this._context.task.store.url);
 
     const parsers = Parsers(
       this._request,
@@ -146,7 +146,7 @@ export default class MonitorPrimitive extends BaseMonitor {
       return States.ABORT;
     }
 
-    const { site } = this._context.task;
+    const { store } = this._context.task;
     let parsed;
     try {
       // Try parsing all files and wait for the first response
@@ -162,7 +162,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     this._context.task.product.image = parsed.featured_image;
     this._context.task.product.hash = parsed.hash || '';
-    this._context.task.product.url = `${site.url}/products/${parsed.handle}`;
+    this._context.task.product.url = `${store.url}/products/${parsed.handle}`;
     this._context.task.product.name = capitalizeFirstLetter(parsed.title);
     this._context.task.product.variants = parsed.variants.map(v =>
       pick(
@@ -259,9 +259,9 @@ export default class MonitorPrimitive extends BaseMonitor {
     }
 
     const { task, proxy, logger } = this._context;
-    const { site, product } = task;
+    const { store, product } = task;
     // Get the correct special parser
-    const ParserCreator = getSpecialParser(site);
+    const ParserCreator = getSpecialParser(store);
     const parseType = getParseType(product, null, Platforms.Shopify);
     const parser = ParserCreator(this._request, parseType, task, proxy, this._aborter, logger);
 

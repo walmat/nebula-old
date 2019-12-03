@@ -8,7 +8,7 @@ class Discord {
     }
   }
 
-  build(success = false, type, checkoutUrl, product, price, site, order, profile, size, image) {
+  build(success = false, type, checkoutUrl, product, price, store, order, profile, size, image) {
     if (this.hook) {
       const embed = new RichEmbed()
         .setTitle(success ? `Successful checkout (${type})` : `Payment failed! (${type})`)
@@ -35,11 +35,11 @@ class Discord {
         embed.addField('Price', price, true);
       }
 
-      if (site) {
-        if (site.url) {
-          embed.addField('Store', `[${site.name}](${site.url})`, true);
-        } else if (site.name) {
-          embed.addField('Store', site.name, true);
+      if (store) {
+        if (store.url) {
+          embed.addField('Store', `[${store.name}](${store.url})`, true);
+        } else if (store.name) {
+          embed.addField('Store', store.name, true);
         }
       }
 

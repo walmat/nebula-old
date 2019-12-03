@@ -34,7 +34,7 @@ export default class BaseMonitor {
 
     // eslint-disable-next-line global-require
     const _fetch = require('fetch-cookie/node-fetch')(fetch, context.jar);
-    this._fetch = defaults(_fetch, context.task.site.url, {
+    this._fetch = defaults(_fetch, context.task.store.url, {
       timeout: 10000, // can be overridden as necessary per request
       signal: this._aborter.signal,
     });
@@ -44,7 +44,7 @@ export default class BaseMonitor {
     const { id, proxy, task, logger, proxyManager } = this._context;
     const proxyId = proxy ? proxy.id : null;
     logger.debug('Swapping proxy with id: %j', proxyId);
-    const newProxy = await proxyManager.swap(id, proxyId, task.site.url, this._platform);
+    const newProxy = await proxyManager.swap(id, proxyId, task.store.url, this._platform);
     logger.debug('Received new proxy: %j', newProxy ? newProxy.proxy : null);
     return newProxy;
   }
