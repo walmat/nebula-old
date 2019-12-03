@@ -83,6 +83,14 @@ body, html {
   color: #f4f4f4;
 }
 
+#license-key-input:hover {
+  opacity: 0.8333;
+}
+
+#license-key-input:focus {
+  opacity: 1;
+}
+
 #license-key-input::placeholder {
   color: #f4f4f4;
   opacity: 0.5;
@@ -104,8 +112,5 @@ body, html {
 }
 
 #license-key-submit:hover {
-  color: #f4f4f4;
-  background-color: #262626;
   opacity: 0.8333;
-  cursor: pointer;
 }

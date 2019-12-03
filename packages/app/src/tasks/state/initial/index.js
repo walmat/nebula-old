@@ -1,6 +1,6 @@
 import { Types, States } from '../../../constants/tasks';
 
-export const task = {
+export const CurrentTask = {
   id: null,
   store: null,
   type: Types.SAFE,
@@ -15,11 +15,9 @@ export const task = {
   profile: null,
   size: null,
   account: null,
-  amount: 1,
   state: States.Stopped,
   message: '',
+  amount: 1,
+  selected: false,
 };
-
-export const CurrentTask = { ...task };
-export const SelectedTask = { ...task };
 export const Tasks = [];

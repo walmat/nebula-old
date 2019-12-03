@@ -39,7 +39,6 @@ import {
 import {
   taskListReducer as Tasks,
   currentTaskReducer as CurrentTask,
-  selectedTaskReducer as SelectedTask,
 } from '../../tasks/state/reducers';
 
 const reducers = asyncReducers =>
@@ -70,7 +69,6 @@ const reducers = asyncReducers =>
     ]),
     Tasks: filterActions(Tasks, [...taskListActionsList, ...globalActionsList]),
     CurrentTask: filterActions(CurrentTask, [...taskActionsList, ...globalActionsList]),
-    SelectedTask: filterActions(SelectedTask, [...taskActionsList, ...globalActionsList]),
     Webhooks: filterActions(Webhooks, [
       ...webhookActionsList,
       ...sharedActionsList,

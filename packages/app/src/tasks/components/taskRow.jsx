@@ -1,30 +1,14 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { parseURL } from 'whatwg-url';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { ReactComponent as CopyIcon } from '../../styles/images/tasks/copy.svg';
 import { ReactComponent as StartIcon } from '../../styles/images/tasks/start.svg';
 import { ReactComponent as StopIcon } from '../../styles/images/tasks/stop.svg';
-import { ReactComponent as DestroyIcon } from '../../styles/images/tasks/destroy.svg';
+import { ReactComponent as RemoveIcon } from '../../styles/images/tasks/destroy.svg';
 import { taskActions } from '../../store/actions';
 
 export class TaskRowPrimitive extends PureComponent {
-  static createSite(value) {
-    const URL = parseURL(value);
-    if (!URL || !URL.host) {
-      return null;
-    }
-    return { name: URL.host, url: `${URL.scheme}://${URL.host}` };
-  }
-
-  static createSize(value) {
-    if (!value) {
-      return null;
-    }
-    return value;
-  }
-
   constructor(props) {
     super(props);
 
@@ -32,7 +16,7 @@ export class TaskRowPrimitive extends PureComponent {
     this.renderTableRowActionButton = this.renderTableRowActionButton.bind(this);
     this.renderTableRowCopyActionButton = this.renderTableRowCopyActionButton.bind(this);
     this.renderTableRowStartStopActionButton = this.renderTableRowStartStopActionButton.bind(this);
-    this.renderTableRowDestroyActionButton = this.renderTableRowDestroyActionButton.bind(this);
+    this.renderTableRowRemoveActionButton = this.renderTableRowRemoveActionButton.bind(this);
     this.renderTableRow = this.renderTableRow.bind(this);
   }
 
@@ -62,9 +46,9 @@ export class TaskRowPrimitive extends PureComponent {
 
   renderTableRowCopyActionButton() {
     const { task, onCopyTask } = this.props;
-    return this.renderTableRowActionButton('copy', 'Copy Task', CopyIcon, '', () => {
-      onCopyTask(task);
-    });
+    return this.renderTableRowActionButton('copy', 'Copy Task', CopyIcon, '', () =>
+      onCopyTask(task),
+    );
   }
 
   renderTableRowStartStopActionButton() {
@@ -76,9 +60,7 @@ export class TaskRowPrimitive extends PureComponent {
         'Stop Task',
         StopIcon,
         task.status === 'stopped' ? 'active' : '',
-        () => {
-          onStopTask(task);
-        },
+        () => onStopTask(task),
       );
     }
     return this.renderTableRowActionButton(
@@ -86,17 +68,15 @@ export class TaskRowPrimitive extends PureComponent {
       'Start Task',
       StartIcon,
       task.status === 'running' ? 'active' : '',
-      () => {
-        onStartTask(task, proxies);
-      },
+      () => onStartTask(task, proxies),
     );
   }
 
-  renderTableRowDestroyActionButton() {
-    const { task, onDestroyTask } = this.props;
-    return this.renderTableRowActionButton('destroy', 'Destroy Task', DestroyIcon, '', () => {
-      onDestroyTask(task);
-    });
+  renderTableRowRemoveActionButton() {
+    const { task, onRemoveTask } = this.props;
+    return this.renderTableRowActionButton('remove', 'Remove Task', RemoveIcon, '', () =>
+      onRemoveTask(task),
+    );
   }
 
   renderTableRow() {
@@ -115,7 +95,7 @@ export class TaskRowPrimitive extends PureComponent {
         <div className="col col--no-gutter tasks-row__product" title={task.product.raw}>
           {`${task.product.raw} ${task.product.variation ? `/ ${task.product.variation}` : ''}`}
         </div>
-        <div className="col col--no-gutter tasks-row__sites">{task.site.name}</div>
+        <div className="col col--no-gutter tasks-row__store">{task.store.name}</div>
         <div className="col col--no-gutter tasks-row__profile">{task.profile.name}</div>
         <div className="col col--no-gutter tasks-row__sizes">{task.size}</div>
         <div className="col col--no-gutter tasks-row__account">
@@ -125,7 +105,7 @@ export class TaskRowPrimitive extends PureComponent {
           <div className="row row--expand row--evenly row--gutter">
             {this.renderTableRowCopyActionButton()}
             {this.renderTableRowStartStopActionButton()}
-            {this.renderTableRowDestroyActionButton()}
+            {this.renderTableRowRemoveActionButton()}
           </div>
         </div>
       </div>
@@ -149,7 +129,7 @@ TaskRowPrimitive.propTypes = {
   onCopyTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
-  onDestroyTask: PropTypes.func.isRequired,
+  onRemoveTask: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
   style: PropTypes.objectOf(PropTypes.any).isRequired,
 };
@@ -179,8 +159,8 @@ export const mapDispatchToProps = dispatch => ({
   onStopTask: task => {
     dispatch(taskActions.stop(task));
   },
-  onDestroyTask: task => {
-    dispatch(taskActions.remove(task, 'one'));
+  onRemoveTask: id => {
+    dispatch(taskActions.remove(id));
   },
 });
 

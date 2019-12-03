@@ -2,8 +2,7 @@ import { sortBy, map, find, flatten, filter, every, some } from 'lodash';
 import { parseString } from 'xml2js';
 
 import { isSpecialStore } from './storeOptions';
-import { Platforms } from '../../common/constants';
-import { Monitor } from '../constants';
+import { Platforms, Monitor } from '../../common/constants';
 
 const { ParseType } = Monitor;
 

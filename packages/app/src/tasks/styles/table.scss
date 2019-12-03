@@ -43,7 +43,7 @@
         width: 200px;
       }
 
-      .tasks-table__header__sites {
+      .tasks-table__header__store {
         @include header-field;
         width: 125px;
         flex-grow: 2;
@@ -239,7 +239,7 @@
           }
         }
 
-        &__sites {
+        &__store {
           @include input-field;
           text-overflow: ellipsis;
           width: 125px;

@@ -82,9 +82,9 @@ const _stopTaskRequest = async task => {
 
 const _stopAllTasksRequest = async tasks => {
   const runningTasks = tasks.filter(t => t.state === States.Running);
-  console.log(runningTasks);
-  if (!runningTasks.length) {
-    throw new Error('No tasks running');
+
+  if (!runningTasks || !runningTasks.length) {
+    return null;
   }
 
   if (window.Bridge) {
@@ -94,20 +94,20 @@ const _stopAllTasksRequest = async tasks => {
   return { tasks: runningTasks.map(t => ({ ...t, state: States.Stopped, message: '' })) };
 };
 
-const _removeTaskRequest = async (task, type) => {
+const _removeTaskRequest = async task => {
   if (!task) {
-    throw new Error('No tasks given');
+    return null;
   }
   if (window.Bridge) {
     window.Bridge.stopTasks(task);
   }
 
-  return { task, type };
+  return task.id;
 };
 
 const _removeAllTasksRequest = async tasks => {
   if (!tasks.length) {
-    throw new Error('No tasks given');
+    return null;
   }
 
   if (window.Bridge) {
@@ -118,7 +118,7 @@ const _removeAllTasksRequest = async tasks => {
 };
 
 // Private Actions
-const _removeTask = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_TASK, 'response');
+const _removeTask = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_TASK, 'id');
 const _removeAllTasks = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_ALL_TASKS, 'response');
 const _duplicateTask = makeActionCreator(TASK_LIST_ACTIONS.DUPLICATE_TASK, 'response');
 const _startTask = makeActionCreator(TASK_LIST_ACTIONS.START_TASK, 'response');
@@ -135,8 +135,8 @@ const selectAllTasks = makeActionCreator(TASK_LIST_ACTIONS.SELECT_ALL_TASKS, 'ta
 const messageTask = makeActionCreator(TASK_LIST_ACTIONS.UPDATE_MESSAGE, 'buffer');
 
 // Public Thunks
-const removeTask = (task, type) => dispatch =>
-  _removeTaskRequest(task, type).then(response => dispatch(_removeTask(response)));
+const removeTask = task => dispatch =>
+  _removeTaskRequest(task).then(id => dispatch(_removeTask(id)));
 
 const removeAllTasks = tasks => dispatch =>
   _removeAllTasksRequest(tasks).then(response => dispatch(_removeAllTasks(response)));

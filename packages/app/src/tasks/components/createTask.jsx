@@ -16,6 +16,11 @@ import { TASK_FIELDS, taskActions } from '../../store/actions';
 import * as getAllSizes from '../../constants/getAllSizes';
 import { THEMES } from '../../constants/themes';
 import PLATFORMS from '../../constants/platforms';
+import {
+  buildProfileOptions,
+  buildAccountOptions,
+  buildCategoryOptions,
+} from '../../constants/selects';
 
 import { ReactComponent as NotInStock } from '../../styles/images/tasks/random-off.svg';
 import { ReactComponent as InStock } from '../../styles/images/tasks/random.svg';
@@ -48,30 +53,9 @@ export class CreateTaskPrimitive extends PureComponent {
     return value;
   }
 
-  static buildCategories() {
-    const categories = [
-      'new',
-      'Accessories',
-      'Bags',
-      'Hats',
-      'Jackets',
-      'Pants',
-      'Shirts',
-      'Shoes',
-      'Shorts',
-      'Skate',
-      'Sweatshirts',
-      'T-Shirts',
-      'Tops/Sweaters',
-    ];
-    return categories.map(cat => ({ label: cat, value: cat }));
-  }
-
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
-    this.buildProfileOptions = this.buildProfileOptions.bind(this);
-    this.buildAccountOptions = this.buildAccountOptions.bind(this);
     this.handleCreate = this.handleCreate.bind(this);
     this.saveTask = this.saveTask.bind(this);
 
@@ -79,28 +63,6 @@ export class CreateTaskPrimitive extends PureComponent {
       isLoadingStore: false,
       isLoadingSize: false,
     };
-  }
-
-  buildProfileOptions() {
-    const { profiles } = this.props;
-    return profiles.map(profile => ({
-      value: profile.id,
-      label: profile.name,
-    }));
-  }
-
-  buildAccountOptions() {
-    const { accounts } = this.props;
-
-    return accounts.map(({ id, name, username, password }) => ({
-      label: name,
-      value: {
-        id,
-        name,
-        username,
-        password,
-      },
-    }));
   }
 
   saveTask(e) {
@@ -219,7 +181,7 @@ export class CreateTaskPrimitive extends PureComponent {
   }
 
   renderExtraInputs() {
-    const { task, onKeyPress, theme } = this.props;
+    const { task, onKeyPress, theme, accounts } = this.props;
 
     let account = null;
     if (task.account) {
@@ -263,7 +225,7 @@ export class CreateTaskPrimitive extends PureComponent {
                     styles={colourStyles(theme, buildStyle(false, null))}
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_TASK_CATEGORY, e)}
                     value={categoryValue}
-                    options={CreateTaskPrimitive.buildCategories()}
+                    options={buildCategoryOptions()}
                     className="tasks-create__input tasks-create__input--field"
                     classNamePrefix="select"
                     data-testid={addTestId('CreateTask.accountSelect')}
@@ -406,7 +368,7 @@ export class CreateTaskPrimitive extends PureComponent {
                     styles={colourStyles(theme, buildStyle(false, null))}
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_TASK_ACCOUNT, e)}
                     value={account}
-                    options={this.buildAccountOptions()}
+                    options={buildAccountOptions(accounts)}
                     className="tasks-create__input tasks-create__input--field"
                     classNamePrefix="select"
                     data-testid={addTestId('CreateTask.accountSelect')}
@@ -545,7 +507,7 @@ export class CreateTaskPrimitive extends PureComponent {
   }
 
   render() {
-    const { task, sites, theme, onKeyPress } = this.props;
+    const { task, sites, theme, onKeyPress, profiles } = this.props;
     const { isLoadingStore, isLoadingSize } = this.state;
     let newTaskProfileValue = null;
     if (task.profile) {
@@ -638,7 +600,7 @@ export class CreateTaskPrimitive extends PureComponent {
                 styles={colourStyles(theme, buildStyle(false, null))}
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE, e)}
                 value={newTaskProfileValue}
-                options={this.buildProfileOptions()}
+                options={buildProfileOptions(profiles)}
                 data-testid={addTestId('CreateTask.profileSelect')}
                 data-private
               />
@@ -731,7 +693,7 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(taskActions.edit(null, changes.field, changes.value, changes.sites));
   },
   onAddNewTask: (task, amount) => {
-    dispatch(taskActions.create({ task , amount }));
+    dispatch(taskActions.create({ task, amount }));
   },
 });
 

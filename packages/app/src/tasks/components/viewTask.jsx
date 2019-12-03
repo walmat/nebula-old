@@ -13,6 +13,7 @@ import { makeTasks } from '../state/selectors';
 import { SETTINGS_FIELDS, settingsActions, taskActions } from '../../store/actions';
 import { addTestId, renderSvgIcon, max, min, rangeArr } from '../../utils';
 import { buildStyle } from '../../styles';
+import { States } from '../../constants/tasks';
 
 import { ReactComponent as StartAllIcon } from '../../styles/images/tasks/start-all.svg';
 import { ReactComponent as StopAllIcon } from '../../styles/images/tasks/stop-all.svg';
@@ -47,7 +48,7 @@ export class ViewTaskPrimitive extends PureComponent {
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.startAllTasks = this.startAllTasks.bind(this);
     this.stopAllTasks = this.stopAllTasks.bind(this);
-    this.destroyAllTasks = this.destroyAllTasks.bind(this);
+    this.removeAllTasks = this.removeAllTasks.bind(this);
     this.renderDelay = this.renderDelay.bind(this);
     this._handleKeyDown = this._handleKeyDown.bind(this);
   }
@@ -70,22 +71,22 @@ export class ViewTaskPrimitive extends PureComponent {
 
   startAllTasks() {
     const { tasks, proxies, onStartAllTasks } = this.props;
-    if (tasks.length && tasks.some(t => t.status !== 'running')) {
+    if (tasks.length && tasks.some(t => t.state !== States.Running)) {
       onStartAllTasks(tasks, proxies);
     }
   }
 
   stopAllTasks() {
     const { tasks, onStopAllTasks } = this.props;
-    if (tasks.length && tasks.some(t => t.status === 'running' || t.status === 'bypassed')) {
+    if (tasks.length && tasks.some(t => t.state === States.Running)) {
       onStopAllTasks(tasks);
     }
   }
 
-  destroyAllTasks() {
-    const { tasks, onDestroyAllTasks } = this.props;
+  removeAllTasks() {
+    const { tasks, onRemoveAllTasks } = this.props;
     if (tasks.length) {
-      onDestroyAllTasks(tasks);
+      onRemoveAllTasks(tasks);
     }
   }
 
@@ -232,11 +233,11 @@ export class ViewTaskPrimitive extends PureComponent {
                 <div className="col tasks-table__header__product">
                   <p>Product / Variation</p>
                 </div>
-                <div className="col tasks-table__header__sites">
+                <div className="col tasks-table__header__store">
                   <p>Store</p>
                 </div>
                 <div className="col tasks-table__header__profile">
-                  <p>Billing Profile</p>
+                  <p>Profile</p>
                 </div>
                 <div className="col tasks-table__header__sizes">
                   <p>Size</p>
@@ -290,7 +291,7 @@ export class ViewTaskPrimitive extends PureComponent {
                   role="button"
                   tabIndex={0}
                   onKeyPress={onKeyPress}
-                  onClick={() => this.destroyAllTasks()}
+                  onClick={() => this.removeAllTasks()}
                   data-testid={addTestId('Tasks.bulkActionButton.destroy')}
                 >
                   {renderSvgIcon(DestroyAllIcon, { alt: 'destroy all' })}
@@ -318,10 +319,10 @@ ViewTaskPrimitive.propTypes = {
   proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
   // funcs...
   onSettingsChange: PropTypes.func.isRequired,
-  onMassEdit: PropTypes.func.isRequired,
-  onDestroyAllTasks: PropTypes.func.isRequired,
   onStartAllTasks: PropTypes.func.isRequired,
   onStopAllTasks: PropTypes.func.isRequired,
+  onRemoveAllTasks: PropTypes.func.isRequired,
+  onMassEdit: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
 };
 
@@ -340,14 +341,14 @@ export const mapDispatchToProps = dispatch => ({
   onSettingsChange: changes => {
     dispatch(settingsActions.edit(changes.field, changes.value));
   },
-  onDestroyAllTasks: tasks => {
-    dispatch(taskActions.removeAll(tasks));
-  },
   onStartAllTasks: (tasks, proxies) => {
     dispatch(taskActions.startAll(tasks, proxies));
   },
   onStopAllTasks: tasks => {
     dispatch(taskActions.stopAll(tasks));
+  },
+  onRemoveAllTasks: tasks => {
+    dispatch(taskActions.removeAll(tasks));
   },
   onMassEdit: (tasks, edits) => {
     dispatch(taskActions.editAll(tasks, edits));

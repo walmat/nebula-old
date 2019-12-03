@@ -169,7 +169,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`${url}/account/login`, {
+      const res = await this._fetch(`${url}/account/login`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -306,7 +306,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      let res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
+      let res = await this._fetch('https://elb.deposit.shopifycs.com/sessions', {
         method: 'OPTIONS',
         compress: true,
         agent: proxy,
@@ -332,7 +332,7 @@ export default class TaskPrimitive extends BaseTask {
         return States.PAYMENT_TOKEN;
       }
 
-      res = await this._request('https://elb.deposit.shopifycs.com/sessions', {
+      res = await this._fetch('https://elb.deposit.shopifycs.com/sessions', {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -438,7 +438,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(url, {
+      const res = await this._fetch(url, {
         method: 'GET',
         compress: true,
         agent: proxy,
@@ -566,7 +566,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(this.checkpointUrl, {
+      const res = await this._fetch(this.checkpointUrl, {
         method: 'GET',
         compress: true,
         agent: proxy,
@@ -625,7 +625,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -765,7 +765,7 @@ export default class TaskPrimitive extends BaseTask {
     this._logger.debug('CHECKPOINT FORM: %j', this._checkpointForm);
 
     try {
-      const res = await this._request(`/checkpoint`, {
+      const res = await this._fetch(`/checkpoint`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -830,7 +830,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -933,7 +933,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`${url}/cart`, {
+      const res = await this._fetch(`${url}/cart`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -996,7 +996,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -1087,7 +1087,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`${url}/checkout`, {
+      const res = await this._fetch(`${url}/checkout`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -1148,7 +1148,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -1238,7 +1238,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`${url}/wallets/checkouts`, {
+      const res = await this._fetch(`${url}/wallets/checkouts`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -1305,7 +1305,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -1404,7 +1404,7 @@ export default class TaskPrimitive extends BaseTask {
     let message;
     let nextState;
     try {
-      const res = await this._request(`${url}/checkout/poll?js_poll=1`, {
+      const res = await this._fetch(`${url}/checkout/poll?js_poll=1`, {
         method: 'GET',
         compress: true,
         agent: proxy,
@@ -1457,7 +1457,7 @@ export default class TaskPrimitive extends BaseTask {
 
         if (/_ctd/i.test(redirectUrl)) {
           try {
-            const response = await this._request(redirectUrl, {
+            const response = await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -1507,7 +1507,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            const response = await this._request(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
+            const response = await this._fetch(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -1679,7 +1679,7 @@ export default class TaskPrimitive extends BaseTask {
     this._context.task.product.size = option;
 
     try {
-      const res = await this._request('/cart/add.js', {
+      const res = await this._fetch('/cart/add.js', {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -1757,7 +1757,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -1847,7 +1847,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`${url}/cart/clear.js`, {
+      const res = await this._fetch(`${url}/cart/clear.js`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -1975,7 +1975,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/wallets/checkouts/${this._checkoutToken}.json`, {
+      const res = await this._fetch(`/wallets/checkouts/${this._checkoutToken}.json`, {
         method: 'PATCH',
         compress: true,
         agent: proxy,
@@ -2035,7 +2035,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -2163,7 +2163,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`${url}/cart`, {
+      const res = await this._fetch(`${url}/cart`, {
         method: 'GET',
         compress: true,
         agent: proxy,
@@ -2226,7 +2226,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -2440,7 +2440,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'GET',
         compress: true,
         agent: proxy,
@@ -2541,7 +2541,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -2662,7 +2662,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'GET',
         compress: true,
         agent: proxy,
@@ -2737,7 +2737,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -2865,7 +2865,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -2936,7 +2936,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -3032,7 +3032,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/wallets/checkouts/${this._checkoutToken}.json`, {
+      const res = await this._fetch(`/wallets/checkouts/${this._checkoutToken}.json`, {
         method: 'PATCH',
         compress: true,
         agent: proxy,
@@ -3078,7 +3078,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -3182,7 +3182,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(
+      const res = await this._fetch(
         this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
         {
           method: 'GET',
@@ -3276,7 +3276,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -3401,7 +3401,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(
+      const res = await this._fetch(
         `/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
         {
           method: 'GET',
@@ -3547,7 +3547,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -3623,7 +3623,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -3720,7 +3720,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(
+      const res = await this._fetch(
         this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
         {
           method: 'GET',
@@ -3817,7 +3817,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -3969,7 +3969,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -4073,7 +4073,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -4194,7 +4194,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'PATCH',
         compress: true,
         agent: proxy,
@@ -4284,7 +4284,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -4396,7 +4396,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'POST',
         compress: true,
         agent: proxy,
@@ -4474,7 +4474,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -4554,7 +4554,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -4658,7 +4658,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'PATCH',
         compress: true,
         agent: proxy,
@@ -4752,7 +4752,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -4815,7 +4815,7 @@ export default class TaskPrimitive extends BaseTask {
           }
 
           try {
-            await this._request(redirectUrl, {
+            await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
               agent: proxy,
@@ -4913,7 +4913,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`${url}/wallets/checkouts/${this._checkoutToken}/payments`, {
+      const res = await this._fetch(`${url}/wallets/checkouts/${this._checkoutToken}/payments`, {
         method: 'GET',
         compress: true,
         agent: proxy,
@@ -5160,7 +5160,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._request(`${url}/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`${url}/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'GET',
         compress: true,
         agent: proxy,

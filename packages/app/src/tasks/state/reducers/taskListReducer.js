@@ -104,6 +104,23 @@ export default (state = Tasks, action) => {
     });
   }
 
+  if (type === TASK_LIST_ACTIONS.SELECT_TASK) {
+    const { task } = action;
+
+    if (!task) {
+      return state;
+    }
+
+    task.selected = true;
+
+    return state.map(t => {
+      if (t.id === task.id) {
+        return task;
+      }
+      return t;
+    });
+  }
+
   if (type === TASK_LIST_ACTIONS.UPDATE_MESSAGE) {
     const { buffer } = action;
 
@@ -155,7 +172,13 @@ export default (state = Tasks, action) => {
   }
 
   if (type === TASK_LIST_ACTIONS.SELECT_ALL_TASKS) {
-    // TODO;
+    // if there is at least ONE task unselected, set all to be selected..
+    if (state.some(t => !t.selected)) {
+      return state.map(t => ({ ...t, selected: true }));
+    }
+
+    // otherwise, just toggle the previous state...
+    return state.map(t => ({ ...t, selected: !t.selected }));
   }
 
   if (type === TASK_LIST_ACTIONS.START_TASK) {
