@@ -22,7 +22,7 @@ if (!appLock) {
 } else {
   _app.on('second-instance', () => {
     // Someone tried to run a second instance, we should focus our window instead
-    const main = app.windowManager._main;
+    const { main } = app.windowManager;
     if (main) {
       if (main.isMinimized()) main.restore();
       main.focus();

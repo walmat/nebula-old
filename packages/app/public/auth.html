@@ -7,27 +7,23 @@
     <title>Nebula</title>
     <script src="./js/disableEval.js"></script>
     <script src="./js/checkLicense.js"></script>
-    <script src="./js/lottie.js"></script>
     <script src="./js/auth.js"></script>
     <link rel="stylesheet" type="text/css" href="./css/auth.css">
   </head>
   <body>
     <div id="titlebar"></div>
     <img src="./assets/close.svg" id="close" draggable="false"/>
-    <div class="row row--expand row--gutter">
+    <div class="row row--expand row--gutter" style="height: 100%;">
       <div class="col col--expand col--gutter">
-        <div class="row row--expand">
-          <div class="col col--expand">
-            <div id="bodymovin" draggable="false"></div>
+        <div class="row row--expand" style="flex-grow: 1;">
+          <div class="col col--expand logo-container">
+            <img src="./assets/logo.png" id="logo" draggable="false"/>
           </div>
         </div>
-        <div class="row row--expand row--gutter">
+        <div class="row row--expand" style="flex-grow: 3;">
           <div class="col col--expand col--gutter">
-            <div class="row row--start row--gutter" id="authorization-box">
-              <div class="col col--expand">
-                <div class="row row--start row--expand row--gutter">
-                  <p id="body-text">License Key</p>
-                </div>
+            <div class="row row--start row--expand row--gutter">
+              <div class="col col--expand logo-container">
                 <div class="row row--expand row--start row--gutter">
                   <input id="license-key-input" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"/>
                   <button id="license-key-submit">Submit</button>

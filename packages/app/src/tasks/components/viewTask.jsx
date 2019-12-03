@@ -11,7 +11,7 @@ import TaskRow from './taskRow';
 import { makeProxies, makeDelays } from '../../settings/state/selectors';
 import { makeTasks } from '../state/selectors';
 import { SETTINGS_FIELDS, settingsActions, taskActions } from '../../store/actions';
-import { addTestId, renderSvgIcon } from '../../utils';
+import { addTestId, renderSvgIcon, max, min, rangeArr } from '../../utils';
 import { buildStyle } from '../../styles';
 
 import { ReactComponent as StartAllIcon } from '../../styles/images/tasks/start-all.svg';
@@ -89,6 +89,24 @@ export class ViewTaskPrimitive extends PureComponent {
     }
   }
 
+  handleClickRow = (event, { rowIndex }) => {
+    const { selection } = this.state;
+
+    if (event.ctrlKey) {
+        if (!selection.includes(rowIndex)) {
+            this.setState({ selection: [...selection, rowIndex] });
+        } else {
+            const newSelection = selection.filter(i => i !== rowIndex);
+            this.setState({ selection: [...newSelection] });
+        }
+    } else if (event.shiftKey && selection.length) {
+        selection.push(rowIndex);
+        this.setState({ selection: rangeArr(min(selection), max(selection)) });
+    } else {
+        this.setState({ selection: [rowIndex] });
+    }
+};
+
   async _handleKeyDown(e) {
     const { keyCode } = e;
 
@@ -157,6 +175,7 @@ export class ViewTaskPrimitive extends PureComponent {
 
   createTable() {
     const { tasks } = this.props;
+
     return (
       <AutoSizer>
         {({ height, width }) => (
@@ -214,7 +233,7 @@ export class ViewTaskPrimitive extends PureComponent {
                   <p>Product / Variation</p>
                 </div>
                 <div className="col tasks-table__header__sites">
-                  <p>Site</p>
+                  <p>Store</p>
                 </div>
                 <div className="col tasks-table__header__profile">
                   <p>Billing Profile</p>

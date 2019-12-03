@@ -55,8 +55,8 @@ export default class DsmParser extends SpecialParser {
     // If parsing keywords, reduce the number of pages to search by matching the title
     if (this._type === ParseType.Keywords && items.length !== 0) {
       const keywords = {
-        pos: this._task.product.pos_keywords,
-        neg: this._task.product.neg_keywords,
+        pos: this._task.product.pos,
+        neg: this._task.product.neg,
       };
       items = matchKeywords(parsedItems, keywords, null, null, true) || [];
     }

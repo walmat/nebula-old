@@ -33,7 +33,7 @@ export function getParseType(product, store, platform = Platforms.Shopify) {
         return ParseType.Url;
       }
 
-      if (product.pos_keywords && product.neg_keywords) {
+      if (product.pos && product.neg) {
         return ParseType.Keywords;
       }
       break;
@@ -47,7 +47,7 @@ export function getParseType(product, store, platform = Platforms.Shopify) {
         return ParseType.Url;
       }
 
-      if (product.pos_keywords && product.neg_keywords) {
+      if (product.pos && product.neg) {
         return ParseType.Keywords;
       }
       break;

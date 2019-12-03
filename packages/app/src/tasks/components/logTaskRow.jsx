@@ -50,7 +50,7 @@ const LogTaskRow = ({
   index,
   style,
   task: {
-    site: { name },
+    store: { name },
     product: { found, raw },
     size,
     proxy,
