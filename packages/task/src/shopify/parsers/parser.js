@@ -115,7 +115,7 @@ export default class Parser {
     this._name = name || 'Parser';
     this._logger.log('silly', '%s: constructing...', this._name);
     this._proxy = proxy;
-    this._request = request;
+    this._fetch = fetch;
     this._task = task;
     this._type = type;
     this._aborter = aborter;

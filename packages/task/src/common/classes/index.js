@@ -1,8 +1,9 @@
 import AsyncQueue from './asyncQueue';
 import { getCaptcha, stopHarvestCaptcha, suspendHarvestCaptcha } from './captcha';
 import ProxyManager from './proxyManager';
-import Timer from './timer';
+import CaptchaManager from './captchaManager';
 import WebhookManager from './webhookManager';
+import Timer from './timer';
 import BaseTask from './task';
 import BaseMonitor from './monitor';
 
@@ -12,4 +13,13 @@ const Captcha = {
   suspendHarvestCaptcha,
 };
 
-export { AsyncQueue, Captcha, BaseTask, BaseMonitor, ProxyManager, Timer, WebhookManager };
+export {
+  AsyncQueue,
+  Captcha,
+  BaseTask,
+  BaseMonitor,
+  ProxyManager,
+  CaptchaManager,
+  Timer,
+  WebhookManager,
+};

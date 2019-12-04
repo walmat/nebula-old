@@ -24,7 +24,7 @@ import {
 
 const { getParseType } = Parse;
 const { createLogger, registerForEvent, deregisterForEvent, compareProductData } = Utils;
-const { ProxyManager, WebhookManager } = Classes;
+const { ProxyManager, WebhookManager, CaptchaManager } = Classes;
 const { Platforms, Manager, Task, Monitor } = Constants;
 const { ParseType } = Monitor;
 const { Events } = Manager;
@@ -37,6 +37,10 @@ export default class TaskManager {
 
   get proxyManager() {
     return this._proxyManager;
+  }
+
+  get captchaManager() {
+    return this._captchaManager;
   }
 
   get webhookManager() {
@@ -59,12 +63,6 @@ export default class TaskManager {
     // Handlers Map
     this._handlers = {};
 
-    // Captcha Map
-    this._captchaQueues = new Map();
-
-    // Token Queues
-    this._tokenReserveQueue = {};
-
     // Logger
     this._logger = createLogger({
       dir: this._logPath,
@@ -73,12 +71,11 @@ export default class TaskManager {
     });
 
     this._proxyManager = new ProxyManager(this._logger);
+    this._captchaManager = new CaptchaManager(this._logger);
     this._webhookManager = new WebhookManager(this._logger);
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
   }
-
-  // MARK: Event Related Methods
 
   /**
    * Register a listener for status events
@@ -98,41 +95,6 @@ export default class TaskManager {
     this._events.removeListener('status', callback);
   }
 
-  /**
-   * Harvest Captcha
-   *
-   * Harvest a given captcha token for a given task
-   *
-   * @param {String} id the task to update
-   * @param {String} token the captcha token to harvest
-   */
-  harvestCaptchaToken(_, token, sitekey) {
-    // Check if we have tokens to pass through
-    this._logger.debug(
-      'TaskManager: Reserve queue length: %s',
-      this._tokenReserveQueue[sitekey].length,
-    );
-    if (this._tokenReserveQueue[sitekey] && this._tokenReserveQueue[sitekey].length) {
-      // Get the next task to pass the token
-      const { id, priority } = this._tokenReserveQueue[sitekey].shift();
-      this._logger.debug('TaskManager: Grabbed requester: %s with priority %s', id, priority);
-      // Use the task id to get the container
-      const container = this._captchaQueues.get(id);
-      if (!container) {
-        // The current container no longer exists in the captcha queue,
-        // Call recursively to get the next task
-        this._logger.debug('TaskManager: Task not found! Recursive calling next task');
-        this.harvestCaptchaToken(id, token, sitekey);
-      }
-      // Send event to pass data to task
-      this._logger.debug('TaskManager: Sending token to %s', id);
-      this._events.emit(Events.Harvest, id, token);
-
-      // stop the harvester for that task..
-      this.handleStopHarvest(id, sitekey);
-    }
-  }
-
   async handleWebhook(hooks = {}) {
     if (hooks instanceof Array) {
       hooks.map(async hook => {
@@ -150,7 +112,7 @@ export default class TaskManager {
     return null;
   }
 
-  // only called when oneCheckout is enabled for that task that checks out
+  // TODO: Move this somewhere where it makes more sense...
   async handleSuccess(task) {
     // eslint-disable-next-line array-callback-return
     return Object.values(this._tasks).map(r => {
@@ -177,93 +139,6 @@ export default class TaskManager {
       }
     });
   }
-
-  /**
-   * Start Harvesting Captcha
-   *
-   * Register and retrieve a captcha token for the given id. If
-   * the captcha harvesting has not started for this task, it will be
-   * started.
-   *
-   * @param {String} id the task for which to register captcha events
-   */
-  handleStartHarvest(id, sitekey, host, priority) {
-    this._logger.debug('TaskManager: Inserting %s requester with %s priority', id, priority);
-    let container = this._captchaQueues.get(id);
-    if (!container) {
-      // We haven't started harvesting for this task yet, create a queue and start harvesting
-      container = {};
-      // Store the container on the captcha queue map
-      this._captchaQueues.set(id, container);
-
-      if (!this._tokenReserveQueue[sitekey]) {
-        this._tokenReserveQueue[sitekey] = [];
-        this._logger.debug('TaskManager: Pushing %s to first place in line', id);
-        // Add the task to the back of the token reserve queue
-        this._tokenReserveQueue[sitekey].push({ id, host, priority });
-
-        this._events.emit(Events.StartHarvest, id, sitekey, host);
-        return;
-      }
-
-      let contains = false;
-      // priority checks...
-      this._logger.debug(
-        'TaskManager: Reserve queue length: %s',
-        this._tokenReserveQueue[sitekey].length,
-      );
-      for (let i = 0; i < this._tokenReserveQueue[sitekey].length; i += 1) {
-        // if the new items priority is less than, splice it in place.
-        if (this._tokenReserveQueue[sitekey][i].priority > priority) {
-          this._logger.debug('TaskManager: Inserting %s as: %s place in line', id, i);
-          this._tokenReserveQueue[sitekey].splice(i, 0, { id, priority });
-          contains = true;
-          break;
-        }
-      }
-
-      if (!contains) {
-        this._logger.debug('TaskManager: Pushing %s to last place in line', id);
-        // Add the task to the back of the token reserve queue
-        this._tokenReserveQueue[sitekey].push({ id, priority });
-      }
-
-      // Emit an event to start harvesting
-      this._events.emit(Events.StartHarvest, id, sitekey, host);
-    }
-  }
-
-  /**
-   * Stop Harvesting Captchas
-   *
-   * Deregister this id from looking for captcha tokens and send an
-   * event to stop harvesting captchas for this id.
-   *
-   * If the task was not previously harvesting captchas, this method does
-   * nothing.
-   */
-  handleStopHarvest(id, sitekey) {
-    const container = this._captchaQueues.get(id);
-
-    // If this container was never started, there's no need to do anything further
-    if (!container) {
-      return;
-    }
-
-    // FYI this will reject all calls currently waiting for a token
-    this._captchaQueues.delete(id);
-
-    if (this._tokenReserveQueue[sitekey]) {
-      this._tokenReserveQueue[sitekey] = this._tokenReserveQueue[sitekey].filter(
-        ({ id: tId }) => tId !== id,
-      );
-    }
-
-    // Emit an event to stop harvesting
-    this._events.emit(Events.StopHarvest, id, sitekey);
-  }
-
-  // MARK: Task Callback Methods
 
   /**
    * Callback for Task Events
@@ -347,33 +222,6 @@ export default class TaskManager {
         return task;
       }),
     );
-  }
-
-  /**
-   *
-   * @param {string} type `discord` || `slack`
-   */
-  async testWebhook(hook, type) {
-    this._logger.silly('Testing %s with url: %s', type, hook);
-    const payload = [
-      true,
-      'SAFE',
-      null,
-      { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
-      '$220.00',
-      { name: 'Test Site', url: 'https://example.com' },
-      { number: '#123123', url: 'https://example.com' },
-      'Test Profile',
-      'Random',
-      'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
-    ];
-    if (type === HookTypes.discord) {
-      const webhook = new ShopifyDiscord(hook).build(...payload);
-      this.handleWebhook(webhook);
-    } else if (type === HookTypes.slack) {
-      const webhook = new ShopifySlack(hook).build(...payload);
-      this.handleWebhook(webhook);
-    }
   }
 
   /**
@@ -509,15 +357,6 @@ export default class TaskManager {
     return Promise.all([...tasksToStop].map(t => this.stop(t, { wait })));
   }
 
-  /**
-   * Check if a task is running
-   *
-   * @param {Task} task the task to check
-   */
-  isRunning(task) {
-    return !!Object.values(this._tasks).find(t => t.id === task.id);
-  }
-
   // MARK: Private Methods
   async _setup(task, monitor) {
     const handlerGenerator = (event, sideEffects) => (id, ...params) => {
@@ -535,7 +374,7 @@ export default class TaskManager {
     };
 
     const handlers = {};
-    const emissions = task.type === TaskTypes.ShippingRates ? [Events.Abort] : [Events.Harvest];
+    const emissions = task.type === TaskTypes.ShippingRates ? [] : [Events.Harvest];
 
     // Generate Handlers for each event
     Promise.all(
@@ -575,8 +414,8 @@ export default class TaskManager {
 
     const { context: taskContext } = task;
     registerForEvent(TaskEvents.TaskStatus, task.context, this.mergeStatusUpdates);
-    taskContext.events.on(Events.StartHarvest, this.handleStartHarvest, this);
-    taskContext.events.on(Events.StopHarvest, this.handleStopHarvest, this);
+    taskContext.events.on(Events.StartHarvest, this._captchaManager.start, this);
+    taskContext.events.on(Events.StopHarvest, this._captchaManager.stop, this);
   }
 
   async _cleanup(task, monitor) {

@@ -148,7 +148,7 @@ class TaskManagerAdapter {
   }
 
   _onRequestWebhookTest(_, hook, type) {
-    this._taskManager.testWebhook(hook, type);
+    this._taskManager.webhookManager.test(hook, type);
   }
 }
 
