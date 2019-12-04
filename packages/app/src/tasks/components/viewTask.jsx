@@ -90,23 +90,23 @@ export class ViewTaskPrimitive extends PureComponent {
     }
   }
 
-  handleClickRow = (event, { rowIndex }) => {
+  handleClickRow(event, { rowIndex }) {
     const { selection } = this.state;
 
     if (event.ctrlKey) {
-        if (!selection.includes(rowIndex)) {
-            this.setState({ selection: [...selection, rowIndex] });
-        } else {
-            const newSelection = selection.filter(i => i !== rowIndex);
-            this.setState({ selection: [...newSelection] });
-        }
+      if (!selection.includes(rowIndex)) {
+        this.setState({ selection: [...selection, rowIndex] });
+      } else {
+        const newSelection = selection.filter(i => i !== rowIndex);
+        this.setState({ selection: [...newSelection] });
+      }
     } else if (event.shiftKey && selection.length) {
-        selection.push(rowIndex);
-        this.setState({ selection: rangeArr(min(selection), max(selection)) });
+      selection.push(rowIndex);
+      this.setState({ selection: rangeArr(min(selection), max(selection)) });
     } else {
-        this.setState({ selection: [rowIndex] });
+      this.setState({ selection: [rowIndex] });
     }
-};
+  }
 
   async _handleKeyDown(e) {
     const { keyCode } = e;

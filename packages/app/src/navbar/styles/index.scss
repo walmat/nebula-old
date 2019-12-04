@@ -1,6 +1,8 @@
 @import '../../styles/themes';
 @import '../../styles/mixins';
 
+$randomNumber: random(5);
+
 %icons-base {
   cursor: pointer;
   &--active {
@@ -16,6 +18,18 @@
   cursor: pointer;
   border: none;
   border-radius: 3px;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate3d(0);
+  }
+  50% {
+    transform: rotate3d(1, 1, 180, 45deg);
+  }
+  100% {
+    transform: rotate3d(0);
+  }
 }
 
 .react-bodymovin-container > svg {
@@ -44,6 +58,17 @@
 
   &__logo {
     margin-top: 15px !important;
+
+    &--image {
+      @include themify($themes) {
+        filter: drop-shadow(8px 8px 1px themed('liveLogtableRowSelected'));
+      }
+    }
+
+    &:hover {
+      animation: rotation linear infinite;
+      animation-duration: $randomNumber + s;
+    }
   }
 
   &__icons {

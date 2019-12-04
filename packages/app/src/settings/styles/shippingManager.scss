@@ -12,13 +12,7 @@
     }
 
     &__input-group {
-      @include themify($themes) {
-        border-color: themed('tableBorderColor');
-      }
-      border-width: 1px;
-      border-style: solid;
-      padding-bottom: 3px;
-      border-radius: 3px;
+      @include input-group;
 
       &--product {
         @include select-font;

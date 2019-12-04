@@ -1,6 +1,7 @@
 /* eslint-disable global-require */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
+const { isEmpty } = require('lodash');
 
 const { IPCKeys } = require('../common/constants');
 const nebulaEnv = require('../_electron/env');
@@ -22,7 +23,7 @@ class TaskManagerAdapter {
     /**
      * :: taskId, [statusMessages]
      */
-    this.statusMessageBuffer = {};
+    this.statusMessages = {};
     this._messageInterval = null;
 
     this._taskManager = new TaskManager(logPath);
@@ -33,16 +34,13 @@ class TaskManagerAdapter {
      * @Param taskIds {List<String>} - List of task ids
      * @Param statusMessage {Object} - Incoming status message object for that task
      */
-    this._taskEventHandler = async (taskIds, statusMessage) => {
-      if (statusMessage) {
+    this._taskEventHandler = async (taskIds, message) => {
+      if (message) {
         return Promise.all(
           // eslint-disable-next-line array-callback-return
           [...taskIds].map(taskId => {
-            const previous = this.statusMessageBuffer[taskId];
-            this.statusMessageBuffer[taskId] = {
-              ...previous,
-              ...statusMessage,
-            };
+            const previous = this.statusMessages[taskId];
+            this.statusMessages[taskId] = message;
           }),
         );
       }
@@ -50,9 +48,9 @@ class TaskManagerAdapter {
     };
 
     this._taskEventMessageSender = () => {
-      if (this.statusMessageBuffer && Object.keys(this.statusMessageBuffer).length) {
-        ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessageBuffer);
-        this.statusMessageBuffer = {};
+      if (this.statusMessages && !isEmpty(this.statusMessages)) {
+        ipcRenderer.send(_TASK_EVENT_KEY, this.statusMessages);
+        this.statusMessages = {};
       }
     };
 

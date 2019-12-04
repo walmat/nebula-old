@@ -8,30 +8,6 @@ import { makeRunningTasks } from '../state/selectors';
 import { addTestId } from '../../utils';
 
 export class LogTaskPrimitive extends PureComponent {
-  static renderOutputLogRow(msg, i) {
-    const messageColorMap = {
-      'Waiting for captcha': 'warning',
-      'Checkpoint captcha': 'warning',
-      'Duplicate order': 'warning',
-      'Checking order status': 'warning',
-      'Polling queue': 'warning',
-      'Payment successful': 'success',
-      'Card declined': 'failed',
-      'Payment failed': 'failed',
-      'Checkout failed': 'failed',
-    };
-
-    const match = /Waiting for captcha|Checkpoint captcha|Duplicate order|Checking order status|Checkout failed|Polling queue|Payment successful|Payment failed|Card declined/i.exec(
-      msg,
-    );
-    const messageClassName = match ? messageColorMap[match[0]] : 'normal';
-    return (
-      <div key={i} className="row row--start row--gutter tasks-live-log__message-row">
-        <p className={`tasks-live-log__message-row-message--${messageClassName}`}>{msg}</p>
-      </div>
-    );
-  }
-
   constructor(props) {
     super(props);
 

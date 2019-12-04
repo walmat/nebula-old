@@ -4,7 +4,7 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import PLATFORMS from '../constants/platforms';
-import { navbarActions, ROUTES, NAVBAR_ACTIONS } from '../store/actions';
+import { navbarActions, ROUTES, NAVBAR_ACTIONS, mapActionsToRoutes } from '../store/actions';
 
 import { renderSvgIcon } from '../utils';
 import Logo from '../styles/images/navbar/logo.png';
@@ -125,12 +125,15 @@ export class NavbarPrimitive extends PureComponent {
   renderNavbarIconRow(route, { Icon, iconName, classNameGenerator }) {
     const { onKeyPress, onRoute, location, history } = this.props;
     const className = classNameGenerator(location.pathname);
+
+    const sameRoute = mapActionsToRoutes[route] === location.pathname;
+
     const props = {
       Icon,
       iconName,
       onKeyPress,
       className,
-      onClick: () => onRoute(route, history),
+      onClick: () => (sameRoute ? {} : onRoute(route, history)),
     };
     return NavbarPrimitive._renderNavbarIconRow(props);
   }
@@ -152,7 +155,7 @@ export class NavbarPrimitive extends PureComponent {
             <div className="row row--expand">
               <div className="col col--start col--expand">
                 <div className="row row--start row--gutter navbar__logo">
-                  <img src={Logo} width={75} alt="" />
+                  <img className="navbar__logo--image" src={Logo} width={75} alt="" />
                 </div>
                 <div className="col col--expand col--no-gutter navbar__icons">
                   {this.renderNavbarIconRows()}

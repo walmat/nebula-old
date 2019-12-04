@@ -85,7 +85,7 @@ export const emitEvent = (context, ids, payload = {}, event, type = Types.Normal
   const { message } = payload;
   if (message && message !== context.messsage) {
     context.setMessage(message);
-    _emitEvent(context, ids, event, { ...payload, type });
+    _emitEvent(context, ids, event, payload.message);
   }
 };
 

@@ -58,6 +58,10 @@ button,
 img,
 a {
   cursor: pointer !important;
+
+  &:hover {
+    opacity: 0.8333;
+  }
 }
 
 html,
@@ -140,7 +144,7 @@ select {
   right: 50px;
   width: 25px;
   height: 25px;
-  background: #46adb4;
+  background: #6d6e70;
   border-bottom-left-radius: 5px;
   -webkit-user-select: none;
   -webkit-app-region: no-drag;

@@ -6,10 +6,11 @@
   .profiles-load {
     @include themify($themes) {
       border-color: themed('tableBorderColor');
+      box-shadow: 5px 5px 15px themed('liveLogTableBorderTop');
     }
-    border-width: 1px;
+    border-width: 0;
     border-style: solid;
-    border-radius: 3px;
+    border-radius: 5px;
 
     &__section-header {
       margin-top: 10px;
@@ -40,21 +41,6 @@
         @include button-font;
         @include themify($themes) {
           background: themed('buttonColorSecondary');
-          color: themed('buttonPrimaryText');
-        }
-        border-radius: 3px;
-        border: none;
-        width: 83px;
-        height: 29px;
-        cursor: pointer;
-        margin-top: 14px;
-        margin-right: 14px;
-      }
-
-      &--load {
-        @include button-font;
-        @include themify($themes) {
-          background: themed('buttonColorPrimary');
           color: themed('buttonPrimaryText');
         }
         border-radius: 3px;

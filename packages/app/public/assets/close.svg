@@ -4,8 +4,8 @@
         <g id="Authorization" transform="translate(-271.000000, -4.000000)">
             <g id="Action-Icons_All-Selection" transform="translate(271.000000, 4.000000)">
                 <g id="Stop-All-Icon">
-                    <rect id="Rectangle-8" fill="#B8D9D2" x="0" y="0" width="10.5357143" height="11" rx="1.068"></rect>
-                    <g id="Stop-Task-Icon" transform="translate(2.292411, 3.609375)" stroke="#46ADB4" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.89">
+                    <rect id="Rectangle-8" fill="#6d6e70" x="0" y="0" width="10.5357143" height="11" rx="1.068"></rect>
+                    <g id="Stop-Task-Icon" transform="translate(2.292411, 3.609375)" stroke="#161318" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.89">
                         <path d="M1.05761719,0.171875 L4.86171425,4.09457647" id="Path-7"></path>
                         <path d="M1.05761719,0.171875 L4.86171425,4.09457647" id="Path-7" transform="translate(2.959666, 2.133226) rotate(-270.000000) translate(-2.959666, -2.133226) "></path>
                     </g>

@@ -1,4 +1,5 @@
 @import './grid.css';
+@import url('https://fonts.googleapis.com/css?family=Lato:100,100i,300,300i,400,400i,700,700i,900,900i&display=swap');
 
 * {
   font-family: 'Lato' sans-serif;
@@ -6,10 +7,26 @@
   user-select: none !important;
 }
 
+@keyframes rotation {
+  0% {
+    transform: rotate3d(0);
+  }
+  50% {
+    transform: rotate3d(1, 1, 180, 45deg);
+  }
+  100% {
+    transform: rotate3d(0);
+  }
+}
+
 #logo {
   width: 250px;
   height: 250px;
-  filter: drop-shadow(15px 15px 1px #222222)
+  filter: drop-shadow(15px 15px 1px #222222);
+}
+
+#logo:hover {
+  animation: rotation 2.5s linear infinite;
 }
 
 .logo-container {

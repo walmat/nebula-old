@@ -52,5 +52,4 @@ export const profile = {
 };
 
 export const CurrentProfile = { ...profile };
-export const SelectedProfile = { ...profile };
 export const Profiles = [];

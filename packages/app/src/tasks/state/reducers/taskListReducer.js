@@ -124,6 +124,8 @@ export default (state = Tasks, action) => {
   if (type === TASK_LIST_ACTIONS.UPDATE_MESSAGE) {
     const { buffer } = action;
 
+    console.log(buffer);
+
     if (!buffer) {
       return state;
     }
@@ -133,15 +135,9 @@ export default (state = Tasks, action) => {
       taskMap[t.id] = t;
     });
 
-    Object.entries(buffer).forEach(([taskId, msg]) => {
-      const { type: taskType, message } = msg;
-      if (taskType !== 'srr') {
-        const task = taskMap[taskId];
-
-        if (task && task.message !== message) {
-          task.message = message;
-        }
-      }
+    Object.entries(buffer).forEach(([taskId, message]) => {
+      const task = taskMap[taskId];
+      task.message = message;
     });
 
     return state;
@@ -162,9 +158,13 @@ export default (state = Tasks, action) => {
 
     // get new task id
     const { id } = _getId(state);
-    task.id = id;
-    task.status = 'idle';
-    return [...state, task];
+    const newTask = {
+      ...task,
+      id,
+      state: States.Stopped,
+    };
+
+    return [...state, newTask];
   }
 
   if (type === TASK_LIST_ACTIONS.SELECT_TASK) {
@@ -197,10 +197,11 @@ export default (state = Tasks, action) => {
 
     return state.map(t => {
       if (t.id === id) {
-        const newTask = t;
-        newTask.state = States.Running;
-        newTask.message = 'Starting task!';
-        return newTask;
+        return {
+          ...t,
+          state: States.Running,
+          message: 'Starting task!',
+        };
       }
       return t;
     });
@@ -222,10 +223,11 @@ export default (state = Tasks, action) => {
 
     return state.map(t => {
       if (t.id === id) {
-        const newTask = t;
-        newTask.state = States.Stopped;
-        newTask.message = '';
-        return newTask;
+        return {
+          ...t,
+          state: States.Stopped,
+          message: '',
+        };
       }
       return t;
     });
