@@ -12,9 +12,12 @@
   }
 
   .proxy-list {
-    border: 1px solid #f0405e;
-    border-radius: 3px;
-
+    border: 0;
+    border-radius: 5px;
+    @include themify($themes) {
+      border-color: themed('tableBorderColor');
+      box-shadow: 5px 5px 15px themed('liveLogTableBorderTop');
+    }
     &__section-header {
       padding-bottom: 1px;
     }

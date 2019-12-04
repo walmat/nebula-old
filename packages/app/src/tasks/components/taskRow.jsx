@@ -1,14 +1,18 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { addTestId, renderSvgIcon } from '../../utils';
-import { ReactComponent as CopyIcon } from '../../styles/images/tasks/copy.svg';
+import { ReactComponent as DuplicateIcon } from '../../styles/images/tasks/copy.svg';
 import { ReactComponent as StartIcon } from '../../styles/images/tasks/start.svg';
 import { ReactComponent as StopIcon } from '../../styles/images/tasks/stop.svg';
 import { ReactComponent as RemoveIcon } from '../../styles/images/tasks/destroy.svg';
+
+import { States } from '../../constants/tasks';
+
+import { makeProxies } from '../../settings/state/selectors';
 import { taskActions } from '../../store/actions';
 
-export class TaskRowPrimitive extends PureComponent {
+export class TaskRowPrimitive extends Component {
   constructor(props) {
     super(props);
 
@@ -45,29 +49,29 @@ export class TaskRowPrimitive extends PureComponent {
   }
 
   renderTableRowCopyActionButton() {
-    const { task, onCopyTask } = this.props;
-    return this.renderTableRowActionButton('copy', 'Copy Task', CopyIcon, '', () =>
-      onCopyTask(task),
+    const { task, onDuplicateTask } = this.props;
+    return this.renderTableRowActionButton('duplicate', 'Duplicate', DuplicateIcon, '', () =>
+      onDuplicateTask(task),
     );
   }
 
   renderTableRowStartStopActionButton() {
     const { task, onStartTask, onStopTask, proxies } = this.props;
 
-    if (task.status === 'running') {
+    if (task.state === States.Running) {
       return this.renderTableRowActionButton(
         'stop',
-        'Stop Task',
+        'Stop',
         StopIcon,
-        task.status === 'stopped' ? 'active' : '',
+        task.state === States.Stopped ? 'active' : '',
         () => onStopTask(task),
       );
     }
     return this.renderTableRowActionButton(
       'start',
-      'Start Task',
+      'Start',
       StartIcon,
-      task.status === 'running' ? 'active' : '',
+      task.state === States.Running ? 'active' : '',
       () => onStartTask(task, proxies),
     );
   }
@@ -126,7 +130,7 @@ TaskRowPrimitive.propTypes = {
   proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
   index: PropTypes.number.isRequired,
   task: PropTypes.objectOf(PropTypes.any).isRequired,
-  onCopyTask: PropTypes.func.isRequired,
+  onDuplicateTask: PropTypes.func.isRequired,
   onStartTask: PropTypes.func.isRequired,
   onStopTask: PropTypes.func.isRequired,
   onRemoveTask: PropTypes.func.isRequired,
@@ -139,8 +143,7 @@ TaskRowPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = (state, ownProps) => ({
-  profiles: state.Profiles,
-  proxies: state.Proxies,
+  proxies: makeProxies(state),
   index: ownProps.index,
   task: ownProps.task,
   style: ownProps.style,
@@ -150,7 +153,7 @@ export const mapDispatchToProps = dispatch => ({
   onSelectTask: task => {
     dispatch(taskActions.select(task));
   },
-  onCopyTask: task => {
+  onDuplicateTask: task => {
     dispatch(taskActions.duplicate(task));
   },
   onStartTask: (task, proxies) => {

@@ -18,7 +18,6 @@ export const profileActionsList = [
   '@@Profile/REMOVE_PROFILE',
   '@@Profile/EDIT_PROFILE',
   '@@Profile/SELECT_PROFILE',
-  '@@Profile/LOAD_PROFILE',
   '@@Profile/UPDATE_PROFILE',
   '@@Profile/DELETE_RATE',
   '@@Profile/TRANSFER_SHIPPING',
@@ -26,12 +25,10 @@ export const profileActionsList = [
 
 export const PROFILE_ACTIONS = prefixer(prefix, actionsList);
 
-const _updateProfileRequest = async (id, profile) => ({ ...profile, id });
-
 // Private Actions
 const createProfile = makeActionCreator(PROFILE_ACTIONS.CREATE_PROFILE, 'profile');
 const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE_PROFILE, 'id');
-const _updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE_PROFILE, 'id', 'profile');
+const updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE_PROFILE, 'profile');
 
 // Public Actions
 const editProfile = makeActionCreator(
@@ -43,20 +40,13 @@ const editProfile = makeActionCreator(
 );
 const transferProfile = makeActionCreator(PROFILE_ACTIONS.TRANSFER_SHIPPING);
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT_PROFILE, 'profile');
-const loadProfile = makeActionCreator(PROFILE_ACTIONS.LOAD_PROFILE, 'profile');
 const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'site', 'rate');
-
-const updateProfile = (id, profile) => dispatch =>
-  _updateProfileRequest(id, profile).then(updatedProfile =>
-    dispatch(_updateProfile(updatedProfile)),
-  );
 
 export const profileActions = {
   create: createProfile,
   remove: removeProfile,
   edit: editProfile,
   select: selectProfile,
-  load: loadProfile,
   update: updateProfile,
   deleteRate,
   transfer: transferProfile,

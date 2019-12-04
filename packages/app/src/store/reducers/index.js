@@ -24,7 +24,6 @@ import Navbar from '../../navbar/state/reducers';
 import {
   currentProfileReducer as CurrentProfile,
   profileListReducer as Profiles,
-  selectedProfileReducer as SelectedProfile,
 } from '../../profiles/state/reducers';
 import {
   accountListReducer as Accounts,
@@ -56,9 +55,8 @@ const reducers = asyncReducers =>
       ...sharedActionsList,
       ...globalActionsList,
     ]),
-    Delays: filterActions(Delays, sharedActionsList),
+    Delays: filterActions(Delays, [...sharedActionsList, ...globalActionsList]),
     Navbar: filterActions(Navbar, navbarActionsList),
-    SelectedProfile: filterActions(SelectedProfile, [...profileActionsList, ...globalActionsList]),
     Profiles: filterActions(Profiles, [...profileActionsList, ...globalActionsList]),
     Proxies: filterActions(Proxies, [...sharedActionsList, ...globalActionsList]),
     Sites: filterActions(Sites, appActionsList),

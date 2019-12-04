@@ -28,15 +28,14 @@ export class ProfilesPrimitive extends Component {
     // saves input data to user's profiles
     e.preventDefault();
 
-    if (currentProfile.editId !== undefined) {
+    if (currentProfile.id) {
       // make sure the profile id exists in profiles before call in the load
-      if (profiles.some(p => p.id === currentProfile.editId)) {
+      if (profiles.some(p => p.id === currentProfile.id)) {
         // first off, check to see if the profileName is taken..
         const profileExists = profiles.find(p => p.name === currentProfile.name);
 
         if (profileExists) {
           const { id } = profileExists;
-          currentProfile.editId = id;
           currentProfile.id = id;
           onUpdateProfile(currentProfile);
         } else {
@@ -151,7 +150,7 @@ export const mapDispatchToProps = dispatch => ({
     dispatch(profileActions.create(newProfile));
   },
   onUpdateProfile: profile => {
-    dispatch(profileActions.update(profile.editId, profile));
+    dispatch(profileActions.update(profile));
   },
 });
 

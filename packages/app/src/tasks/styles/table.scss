@@ -7,10 +7,11 @@
     flex-grow: 5;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
+      box-shadow: 5px 5px 15px themed('liveLogTableBorderTop');
     }
     border-style: solid;
-    border-width: 1px;
-    border-radius: 3px;
+    border-width: 0;
+    border-radius: 5px;
     margin: 0 16px 0 0 !important;
 
     .tasks-table__wrapper {
@@ -25,6 +26,12 @@
       padding-bottom: 1px;
       height: 26px;
       min-height: 26px;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+
+      @include themify($themes) {
+        background-color: themed('liveLogtableRowSelected');
+      }
 
       .tasks-table__header__id {
         @include header-field;

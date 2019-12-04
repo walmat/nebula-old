@@ -12,8 +12,9 @@ import {
   colourStyles,
 } from '../../styles/components/select';
 
+import { buildProfileOptions } from '../../constants/selects';
 import { makeTheme } from '../../app/state/selectors';
-import { makeSelectedProfile, makeProfiles } from '../state/selectors';
+import { makeCurrentProfile, makeProfiles } from '../state/selectors';
 import { profileActions } from '../../store/actions';
 import { buildStyle } from '../../styles';
 
@@ -22,36 +23,20 @@ export class LoadProfilePrimitive extends PureComponent {
     super(props);
     this.onProfileChange = this.onProfileChange.bind(this);
     this.deleteProfile = this.deleteProfile.bind(this);
-    this.loadProfile = this.loadProfile.bind(this);
-    this.buildProfileOptions = this.buildProfileOptions.bind(this);
   }
 
   onProfileChange(event) {
     const id = event.value;
     const { profiles, onSelectProfile } = this.props;
-    const selectedProfile = profiles.find(p => p.id === id);
+    const currentProfile = profiles.find(p => p.id === id);
 
-    onSelectProfile(selectedProfile);
-  }
-
-  loadProfile() {
-    const { onLoadProfile, selectedProfile } = this.props;
-    onLoadProfile(selectedProfile);
+    onSelectProfile(currentProfile);
   }
 
   deleteProfile() {
-    const { onDestroyProfile, selectedProfile } = this.props;
+    const { onDestroyProfile, currentProfile } = this.props;
 
-    onDestroyProfile(selectedProfile);
-  }
-
-  buildProfileOptions() {
-    const { profiles } = this.props;
-    const opts = [];
-    profiles.forEach(profile => {
-      opts.push({ value: profile.id, label: profile.name });
-    });
-    return opts;
+    onDestroyProfile(currentProfile);
   }
 
   static renderButton(className, onClick, label) {
@@ -67,12 +52,13 @@ export class LoadProfilePrimitive extends PureComponent {
   }
 
   render() {
-    const { theme, selectedProfile } = this.props;
+    const { theme, profiles, currentProfile } = this.props;
+
     let selectProfileValue = null;
-    if (selectedProfile.id !== null) {
+    if (currentProfile.id !== null) {
       selectProfileValue = {
-        value: selectedProfile.id,
-        label: selectedProfile.name,
+        value: currentProfile.id,
+        label: currentProfile.name,
       };
     }
     return (
@@ -107,14 +93,13 @@ export class LoadProfilePrimitive extends PureComponent {
                           styles={colourStyles(theme, buildStyle(false, null))}
                           onChange={this.onProfileChange}
                           value={selectProfileValue}
-                          options={this.buildProfileOptions()}
+                          options={buildProfileOptions(profiles)}
                           data-private
                         />
                       </div>
                     </div>
                     <div className="row row--gutter row--end row--expand">
                       {LoadProfilePrimitive.renderButton('delete', this.deleteProfile, 'Delete')}
-                      {LoadProfilePrimitive.renderButton('load', this.loadProfile, 'Load')}
                     </div>
                   </div>
                 </div>
@@ -131,7 +116,7 @@ LoadProfilePrimitive.propTypes = {
   // props...
   theme: PropTypes.string.isRequired,
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
-  selectedProfile: PropTypes.objectOf(PropTypes.any).isRequired,
+  currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
   // funcs...
   onLoadProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
@@ -141,13 +126,10 @@ LoadProfilePrimitive.propTypes = {
 export const mapStateToProps = state => ({
   theme: makeTheme(state),
   profiles: makeProfiles(state),
-  selectedProfile: makeSelectedProfile(state),
+  currentProfile: makeCurrentProfile(state),
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onLoadProfile: profile => {
-    dispatch(profileActions.load(profile));
-  },
   onSelectProfile: profile => {
     dispatch(profileActions.select(profile));
   },

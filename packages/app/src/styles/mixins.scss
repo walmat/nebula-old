@@ -10,11 +10,12 @@
 @mixin input-group {
   @include themify($themes) {
     border-color: themed('tableBorderColor');
+    box-shadow: 5px 5px 15px themed('liveLogTableBorderTop');
   }
-  border-width: 1px;
+  border-width: 0;
   border-style: solid;
   padding-bottom: 3px;
-  border-radius: 3px;
+  border-radius: 5px;
 }
 
 @mixin input-base {

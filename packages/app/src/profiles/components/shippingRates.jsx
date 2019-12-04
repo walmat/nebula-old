@@ -9,7 +9,6 @@ import {
   colourStyles,
 } from '../../styles/components/select';
 import addTestId from '../../utils/addTestId';
-import validationStatus from '../../utils/validationStatus';
 import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../store/actions';
 
 export class ShippingRatesPrimitive extends PureComponent {
@@ -131,7 +130,6 @@ export class ShippingRatesPrimitive extends PureComponent {
             required
             disabled
             value={rateValue ? rateValue.value : ''}
-            style={validationStatus(false)}
             placeholder=""
             data-testid={addTestId('ShippingRates.input.rate')}
             data-private
@@ -141,7 +139,6 @@ export class ShippingRatesPrimitive extends PureComponent {
             required
             disabled
             value={rateValue ? rateValue.price : ''}
-            style={validationStatus(false)}
             placeholder=""
             data-testid={addTestId('ShippingRates.input.price')}
             data-private

@@ -9,12 +9,12 @@ export const mapToNextTheme = {
 };
 
 export const mapBackgroundThemeToColor = {
-  [THEMES.DARK]: '#2C2F33',
+  [THEMES.DARK]: '#23272a',
   [THEMES.LIGHT]: '#EFF1ED',
 };
 
 export const mapThemeToColor = {
-  [THEMES.DARK]: '#2C2F33',
+  [THEMES.DARK]: '#23272a',
   [`${THEMES.DARK}--disabled`]: '#262626',
   [THEMES.LIGHT]: '#EFF1ED',
   [`${THEMES.LIGHT}--disabled`]: '#dcdcdc',

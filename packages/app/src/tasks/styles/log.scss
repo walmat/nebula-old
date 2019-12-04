@@ -7,10 +7,11 @@
     flex-grow: 5;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
+      box-shadow: 5px 5px 15px themed('liveLogTableBorderTop');
     }
-    border-width: 1px;
+    border-width: 0;
     border-style: solid;
-    border-radius: 3px;
+    border-radius: 5px;
 
     &--fullscreen {
       z-index: 999;
@@ -19,9 +20,9 @@
         background-color: themed('background');
       }
       top: 30px;
-      left: 125px;
-      height: calc(100% - 62px);
-      width: calc(100% - 234px);
+      left: 120px;
+      height: calc(100% - 60px);
+      width: calc(100% - 225px);
     }
   }
 
@@ -40,6 +41,11 @@
     overflow-x: hidden;
 
     &__header {
+      @include themify($themes) {
+        background-color: themed('liveLogtableRowSelected');
+      }
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
       margin: 0;
       padding-bottom: 1px;
       height: 26px;

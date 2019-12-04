@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { CurrentProfile, Profiles, Rates, SelectedProfile } from '../initial';
+import { CurrentProfile, Profiles, Rates } from '../initial';
 
 export const makeCurrentProfile = createSelector(
   state => state.CurrentProfile || CurrentProfile,
@@ -14,9 +14,4 @@ export const makeProfiles = createSelector(
 export const makeRates = createSelector(
   state => state.Rates || Rates,
   state => state || Rates,
-);
-
-export const makeSelectedProfile = createSelector(
-  state => state.SelectedProfile || SelectedProfile,
-  state => state || SelectedProfile,
 );

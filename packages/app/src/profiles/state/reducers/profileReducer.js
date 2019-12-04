@@ -6,7 +6,7 @@ import {
 } from '../../../store/actions';
 import locationReducer from './locationReducer';
 import paymentReducer from './paymentReducer';
-import { CurrentProfile, SelectedProfile, profile as profileState } from '../initial';
+import { CurrentProfile, profile as profileState } from '../initial';
 import ratesReducer from './ratesReducer';
 
 // shared reducer for current, and selected task
@@ -52,12 +52,17 @@ export const currentProfileReducer = (state = CurrentProfile, action) => {
   }
 
   if (type === PROFILE_ACTIONS.EDIT_PROFILE) {
-    const { id } = action;
+    return profileReducer(state, action);
+  }
 
-    if (!id) {
-      return profileReducer(state, action);
+  if (type === PROFILE_ACTIONS.SELECT_PROFILE) {
+    const { profile } = action;
+
+    if (!profile) {
+      return state;
     }
-    return state;
+
+    return profile;
   }
 
   if (type === PROFILE_ACTIONS.CREATE_PROFILE || type === PROFILE_ACTIONS.UPDATE_PROFILE) {
@@ -82,38 +87,6 @@ export const currentProfileReducer = (state = CurrentProfile, action) => {
       return state;
     }
 
-    profile.editId = profile.id;
-    profile.id = null;
-    return profile;
-  }
-
-  if (type === PROFILE_ACTIONS.REMOVE_PROFILE) {
-    const { id } = action;
-
-    if (!id || (id && action.id !== (state.id || state.editId))) {
-      return state;
-    }
-
-    return CurrentProfile;
-  }
-
-  return state;
-};
-
-export const selectedProfileReducer = (state = SelectedProfile, action) => {
-  const { type } = action;
-
-  if (type === GLOBAL_ACTIONS.RESET) {
-    return SelectedProfile;
-  }
-
-  if (type === PROFILE_ACTIONS.SELECT_PROFILE) {
-    const { profile } = action;
-
-    if (!profile) {
-      return state;
-    }
-
     return profile;
   }
 
@@ -124,18 +97,7 @@ export const selectedProfileReducer = (state = SelectedProfile, action) => {
       return state;
     }
 
-    // Return initial state
-    return SelectedProfile;
-  }
-
-  if (type === PROFILE_ACTIONS.UPDATE_PROFILE) {
-    const { id, profile } = action;
-
-    if (!profile || state.id !== (id || profile.id)) {
-      return state;
-    }
-
-    return profile;
+    return CurrentProfile;
   }
 
   return state;
