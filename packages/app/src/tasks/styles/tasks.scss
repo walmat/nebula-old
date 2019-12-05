@@ -1,4 +1,6 @@
 // Tasks Page Specific Rules
+@import '../../styles/themes';
+@import '../../styles/mixins';
 
 .view-line {
   margin: 0;
@@ -34,29 +36,48 @@
   }
 }
 
-.bulk-action-sidebar {
+.bulk-action {
   &__button {
-    width: 40px;
-    padding-bottom: 15px;
-    cursor: pointer;
-    &:hover {
-      opacity: 0.6333;
+    &--primary {
+      @include button-base;
+      @include themify($themes) {
+        background: themed('buttonColorPrimary');
+      }
+    }
+
+    &--secondary {
+      @include button-base;
+      @include themify($themes) {
+        background: themed('buttonColorSecondary');
+      }
+    }
+
+    &--warning {
+      @include button-base;
+      @include themify($themes) {
+        background: themed('buttonColorWarning');
+      }
+    }
+
+    &--error {
+      @include button-base;
+      @include themify($themes) {
+        background: themed('buttonColorError');
+      }
     }
   }
 
-  &__monitor-delay {
-    width: 51px;
+  &__monitor {
+    width: 65px;
     height: 29px;
-    padding-left: 3.5px;
     text-align: center;
     border-width: 1px;
     border-style: solid;
     border-radius: 3px;
   }
-  &__error-delay {
-    width: 51px;
+  &__error {
+    width: 65px;
     height: 29px;
-    padding-left: 3.5px;
     text-align: center;
     border-width: 1px;
     border-style: solid;

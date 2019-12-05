@@ -13,6 +13,8 @@ import { makeTheme, makeSites } from '../../app/state/selectors';
 import { makeAccounts } from '../../settings/state/selectors';
 import { makeProfiles } from '../../profiles/state/selectors';
 import { makeCurrentTask } from '../state/selectors';
+
+import { appActions } from '../../app/state/actions';
 import { TASK_FIELDS, taskActions } from '../../store/actions';
 import * as getAllSizes from '../../constants/getAllSizes';
 import { THEMES, mapThemeToColor } from '../../constants/themes';
@@ -692,6 +694,7 @@ CreateTaskPrimitive.propTypes = {
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   accounts: PropTypes.arrayOf(PropTypes.any).isRequired,
   show: PropTypes.bool.isRequired,
+  toggleCreate: PropTypes.func.isRequired,
   sites: PropTypes.arrayOf(PropTypes.any).isRequired,
   task: PropTypes.objectOf(PropTypes.any).isRequired,
   theme: PropTypes.string.isRequired,
@@ -703,9 +706,8 @@ CreateTaskPrimitive.defaultProps = {
   onKeyPress: () => {},
 };
 
-export const mapStateToProps = (state, ownProps) => ({
-  show: ownProps.show,
-  toggleCreate: ownProps.toggleCreate,
+export const mapStateToProps = state => ({
+  show: state.App.toggleCreate,
   profiles: makeProfiles(state),
   accounts: makeAccounts(state),
   sites: makeSites(state),
@@ -714,9 +716,12 @@ export const mapStateToProps = (state, ownProps) => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
+  toggleCreate: () => dispatch(appActions.toggleCreate()),
+
   onFieldChange: changes => {
     dispatch(taskActions.edit(null, changes.field, changes.value, changes.sites));
   },
+
   onAddNewTask: (task, amount) => {
     dispatch(taskActions.create({ task, amount }));
   },
