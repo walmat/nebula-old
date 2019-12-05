@@ -29,6 +29,7 @@ import {
   ProxyManager,
   Timer,
   WebhookManager,
+  CaptchaManager,
 } from './classes';
 
 import Context from './context';
@@ -57,6 +58,7 @@ const Classes = {
   AsyncQueue,
   ProxyManager,
   WebhookManager,
+  CaptchaManager,
 };
 
 const Bases = {

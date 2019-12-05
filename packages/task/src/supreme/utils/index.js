@@ -4,6 +4,7 @@ import { filter, every, some, sortBy } from 'lodash';
 
 import { Utils } from '../../common';
 import { Regions } from '../constants';
+import pickVariant from './pickVariant';
 import { cart, backupForm, parseForm } from './forms';
 
 const { getRandomIntInclusive } = Utils;
@@ -187,3 +188,5 @@ export const Forms = {
   parseForm,
   backupForm,
 };
+
+export { pickVariant };

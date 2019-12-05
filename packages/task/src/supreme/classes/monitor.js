@@ -3,11 +3,11 @@ import getHeaders, { matchKeywords, matchVariation } from '../utils';
 import { Monitor } from '../constants';
 
 const { BaseMonitor } = Bases;
-const { Task: TaskContants, Platforms } = Constants;
+const { Task: TaskContants, Platforms, ErrorCodes } = Constants;
 const { emitEvent, waitForDelay, capitalizeFirstLetter } = Utils;
 
 const { States } = Monitor;
-const { ErrorCodes, Events } = TaskContants;
+const { Events } = TaskContants;
 
 // SUPREME
 export default class MonitorPrimitive extends BaseMonitor {
@@ -19,7 +19,7 @@ export default class MonitorPrimitive extends BaseMonitor {
   }
 
   async _handleError(error = {}, state) {
-    const { aborted, logger } = this._context;
+    const { aborted, logger } = this.context;
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
@@ -58,14 +58,14 @@ export default class MonitorPrimitive extends BaseMonitor {
       }
     } else if (/(?!([235][0-9]))\d{3}/g.test(status)) {
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        this.context.ids,
         {
-          message: `${status}! Delaying ${this._context.task.errorDelay}ms (${status})`,
+          message: `${status}! Delaying ${this.context.task.errorDelay}ms (${status})`,
         },
         Events.MonitorStatus,
       );
-      this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
+      this._delayer = waitForDelay(this.context.task.errorDelay, this._aborter.signal);
       await this._delayer;
     } else if (
       status === ErrorCodes.ProductNotFound ||
@@ -73,21 +73,21 @@ export default class MonitorPrimitive extends BaseMonitor {
       status === ErrorCodes.VariantNotFound
     ) {
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        this.context.ids,
         {
-          message: `${status}! Delaying ${this._context.task.monitor}ms`,
+          message: `${status}! Delaying ${this.context.task.monitor}ms`,
         },
         Events.MonitorStatus,
       );
-      this._delayer = waitForDelay(this._context.task.monitor, this._aborter.signal);
+      this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
       await this._delayer;
     }
     return state;
   }
 
   async _handleParse() {
-    const { aborted, task, proxy, logger } = this._context;
+    const { aborted, task, proxy, logger } = this.context;
     const { product, category } = task;
 
     if (aborted) {
@@ -96,8 +96,8 @@ export default class MonitorPrimitive extends BaseMonitor {
     }
 
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      this.context.ids,
       {
         message: 'Parsing products',
       },
@@ -154,9 +154,9 @@ export default class MonitorPrimitive extends BaseMonitor {
         throw error;
       }
 
-      this._context.task.product.name = capitalizeFirstLetter(matchedProduct.name);
-      this._context.task.product.price = matchedProduct.price;
-      this._context.task.product.style = matchedProduct.id;
+      this.context.task.product.name = capitalizeFirstLetter(matchedProduct.name);
+      this.context.task.product.price = matchedProduct.price;
+      this.context.task.product.style = matchedProduct.id;
 
       logger.silly('Supreme Monitor: Product found: %j', matchedProduct.name);
 
@@ -167,7 +167,7 @@ export default class MonitorPrimitive extends BaseMonitor {
   }
 
   async _handleStock() {
-    const { task, aborted, proxy, logger } = this._context;
+    const { task, aborted, proxy, logger } = this.context;
     const {
       product: { variation, style },
     } = task;
@@ -178,8 +178,8 @@ export default class MonitorPrimitive extends BaseMonitor {
     }
 
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      this.context.ids,
       {
         message: 'Fetching stock',
       },
@@ -211,8 +211,8 @@ export default class MonitorPrimitive extends BaseMonitor {
 
       if (!matchedVariation) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          this.context.ids,
           {
             message: 'No variation matched!',
           },
@@ -229,8 +229,8 @@ export default class MonitorPrimitive extends BaseMonitor {
 
       const { name } = task.product;
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        this.context.ids,
         {
           message: `Product found: ${name}`,
         },
@@ -243,7 +243,7 @@ export default class MonitorPrimitive extends BaseMonitor {
   }
 
   async _handleStepLogic(currentState) {
-    const { logger } = this._context;
+    const { logger } = this.context;
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');
     }

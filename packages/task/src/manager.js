@@ -35,18 +35,6 @@ export default class TaskManager {
     return this._logPath;
   }
 
-  get proxyManager() {
-    return this._proxyManager;
-  }
-
-  get captchaManager() {
-    return this._captchaManager;
-  }
-
-  get webhookManager() {
-    return this._webhookManager;
-  }
-
   constructor(logPath) {
     // Event Emitter for this manager
     this._events = new EventEmitter();
@@ -60,9 +48,6 @@ export default class TaskManager {
     // Monitors Map
     this._monitors = {};
 
-    // Handlers Map
-    this._handlers = {};
-
     // Logger
     this._logger = createLogger({
       dir: this._logPath,
@@ -70,9 +55,9 @@ export default class TaskManager {
       prefix: 'manager',
     });
 
-    this._proxyManager = new ProxyManager(this._logger);
-    this._captchaManager = new CaptchaManager(this._logger);
-    this._webhookManager = new WebhookManager(this._logger);
+    this.proxyManager = new ProxyManager(this._logger);
+    this.captchaManager = new CaptchaManager(this._logger);
+    this.webhookManager = new WebhookManager(this._logger);
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);
   }
@@ -99,20 +84,20 @@ export default class TaskManager {
     if (hooks instanceof Array) {
       hooks.map(async hook => {
         if (hook) {
-          this._webhookManager.insert(hook);
-          await this._webhookManager.send();
+          this.webhookManager.insert(hook);
+          await this.webhookManager.send();
         }
       });
     }
     const { embed, client } = hooks;
     if (client) {
-      this._webhookManager.insert({ embed, client });
-      return this._webhookManager.send();
+      this.webhookManager.insert({ embed, client });
+      return this.webhookManager.send();
     }
     return null;
   }
 
-  // TODO: Move this somewhere where it makes more sense...
+  // TODO: Move this somewhere where it makes more sense?
   async handleSuccess(task) {
     // eslint-disable-next-line array-callback-return
     return Object.values(this._tasks).map(r => {
@@ -237,7 +222,7 @@ export default class TaskManager {
    *   - type - The task type to start
    */
   async start(task, { type = TaskTypes.Normal }) {
-    const proxy = await this._proxyManager.reserve(task.id, task.store.url, task.platform);
+    const proxy = await this.proxyManager.reserve(task.id, task.store.url, task.platform);
 
     this._logger.silly('Starting task for %s with proxy %j', task.id, proxy);
     return this._start([task, proxy, type]);
@@ -359,63 +344,16 @@ export default class TaskManager {
 
   // MARK: Private Methods
   async _setup(task, monitor) {
-    const handlerGenerator = (event, sideEffects) => (id, ...params) => {
-      if (id === task.context.id || id === 'ALL') {
-        const args = [task.context.id, ...params];
-        if (sideEffects) {
-          // Call side effect before sending message
-          sideEffects.apply(this, args);
-        }
-        task.context.events.emit(event, ...args);
-        if (monitor) {
-          monitor.context.events.emit(event, ...args);
-        }
-      }
-    };
+    // attach captcha handler
+    this.captchaManager.attachHandler(task);
 
-    const handlers = {};
-    const emissions = task.type === TaskTypes.ShippingRates ? [] : [Events.Harvest];
-
-    // Generate Handlers for each event
-    Promise.all(
-      // eslint-disable-next-line array-callback-return
-      emissions.map(event => {
-        let handler;
-        switch (event) {
-          case Events.Harvest: {
-            handler = (id, token) => {
-              if (id === task.context.id || id === 'ALL') {
-                task._handleHarvest(id, token);
-              }
-            };
-            break;
-          }
-          default: {
-            handler = handlerGenerator(event, null);
-            break;
-          }
-        }
-        // Store handler for cleanup
-        handlers[event] = handler;
-        this._events.on(event, handler, this);
-      }),
-    );
-    this._handlers[task.context.id] = handlers;
-
-    // if it's just a rate fetcher task..
-    if (task.type === TaskTypes.ShippingRates) {
-      registerForEvent(TaskEvents.TaskStatus, task.context, this.mergeStatusUpdates);
-      return;
-    }
-
+    // if we're spawning a new monitor, attach the monitor event register
     if (monitor) {
       registerForEvent(TaskEvents.MonitorStatus, monitor.context, this.mergeStatusUpdates);
     }
 
-    const { context: taskContext } = task;
+    // attach the task event register
     registerForEvent(TaskEvents.TaskStatus, task.context, this.mergeStatusUpdates);
-    taskContext.events.on(Events.StartHarvest, this._captchaManager.start, this);
-    taskContext.events.on(Events.StopHarvest, this._captchaManager.stop, this);
   }
 
   async _cleanup(task, monitor) {
@@ -433,23 +371,15 @@ export default class TaskManager {
       }
     }
 
-    const handlers = this._handlers[taskContext.id];
-    delete this._handlers[taskContext.id];
+    // Cleanup captcha handler
+    this.captchaManager.detachHandler(task);
+
     // Cleanup manager handlers
     deregisterForEvent(TaskEvents.TaskStatus, task.context, this.mergeStatusUpdates);
-    taskContext.events.removeAllListeners();
 
-    // Cleanup task handlers
-    const emissions = [Events.Harvest];
-    await Promise.all(
-      // eslint-disable-next-line array-callback-return
-      emissions.map(event => {
-        this._events.removeListener(event, handlers[event]);
-      }),
-    );
-
+    // If we have a proxy, make sure to free that up
     if (taskContext.proxy) {
-      this._proxyManager.release(
+      this.proxyManager.release(
         taskContext.id,
         taskContext.task.store.url,
         task.platform,
@@ -483,8 +413,8 @@ export default class TaskManager {
           }),
           discord: new ShopifyDiscord(task.discord),
           slack: new ShopifySlack(task.slack),
-          proxyManager: this._proxyManager,
-          webhookManager: this._webhookManager,
+          proxyManager: this.proxyManager,
+          webhookManager: this.webhookManager,
         });
 
         if (type === TaskTypes.Normal) {
@@ -540,8 +470,8 @@ export default class TaskManager {
           }),
           discord: new SupremeDiscord(task.discord),
           slack: new SupremeSlack(task.slack),
-          proxyManager: this._proxyManager,
-          webhookManager: this._webhookManager,
+          proxyManager: this.proxyManager,
+          webhookManager: this.webhookManager,
         });
 
         newTask = new SupremeTask(context);
@@ -600,10 +530,10 @@ export default class TaskManager {
     }
     this._tasks[id] = newTask;
 
-    this._logger.silly('Wiring up Events...');
+    this._logger.silly('Attaching events...');
     this._setup(newTask, monitor);
 
-    // Start the task asynchronously
+    // Start the task/monitor
     this._logger.silly('Starting...');
     try {
       if (monitor) {
@@ -614,6 +544,7 @@ export default class TaskManager {
       this._logger.verbose('Task %s started without errors', id);
     } catch (error) {
       this._logger.error('Task %s was unable to start due to an error: %s', id, error.toString());
+      this.stop(task);
     }
   }
 }

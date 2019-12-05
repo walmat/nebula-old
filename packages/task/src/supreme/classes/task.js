@@ -2,7 +2,7 @@
 /* eslint-disable array-callback-return */
 import { Task, Regions } from '../constants';
 import notification from '../hooks';
-import getHeaders, { getRegion, Forms } from '../utils';
+import getHeaders, { getRegion, Forms, pickVariant } from '../utils';
 import { Utils, Bases, Classes, Constants } from '../../common';
 
 const { cart, backupForm } = Forms;
@@ -11,7 +11,7 @@ const { Events: TaskManagerEvents } = Manager;
 const { States } = Task;
 const { Events } = TaskConstants;
 const { BaseTask } = Bases;
-const { emitEvent, waitForDelay, getRandomIntInclusive } = Utils;
+const { emitEvent, waitForDelay } = Utils;
 const { Timer, Captcha } = Classes;
 
 // SUPREME
@@ -83,76 +83,6 @@ export default class TaskPrimitive extends BaseTask {
     return state;
   }
 
-  async _pickSize() {
-    const {
-      task: {
-        product: { variants, randomInStock },
-        size,
-      },
-      logger,
-    } = this._context;
-
-    let grouping = variants;
-
-    if (randomInStock) {
-      grouping = grouping.filter(v => v.stock_level);
-
-      // if we filtered all the products out, rewind it to all variants...
-      if (!grouping || !grouping.length) {
-        grouping = variants;
-      }
-    }
-
-    if (/random/i.test(size)) {
-      return grouping[getRandomIntInclusive(0, grouping.length - 1)];
-    }
-
-    const variant = grouping.find(v => {
-      // Determine if we are checking for shoe sizes or not
-      let sizeMatcher;
-      if (/[0-9]+/.test(size)) {
-        // We are matching a shoe size
-        sizeMatcher = s => new RegExp(`${size}`, 'i').test(s);
-      } else {
-        // We are matching a garment size
-        sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
-      }
-
-      if (sizeMatcher(v.name)) {
-        logger.debug('Choosing variant: %j', v);
-        return v;
-      }
-    });
-
-    if (randomInStock) {
-      if (variant) {
-        const { stock_level: stockLevel } = variant;
-        if (!stockLevel) {
-          const checkedGroup = grouping;
-
-          do {
-            const newVariant = checkedGroup.pop();
-            if (newVariant.stock_level) {
-              return newVariant;
-            }
-          } while (checkedGroup.length);
-
-          if (!checkedGroup.length) {
-            return grouping[getRandomIntInclusive(0, grouping.length - 1)];
-          }
-        }
-      } else {
-        return grouping[getRandomIntInclusive(0, grouping.length - 1)];
-      }
-    }
-
-    if (!variant) {
-      return null;
-    }
-
-    return variant;
-  }
-
   async _handleWaitForProduct() {
     const { aborted, logger } = this._context;
     if (aborted) {
@@ -161,7 +91,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (this._context.task.product.variants) {
-      const variant = await this._pickSize();
+      const variant = await pickVariant(this._context);
       // maybe we should loop back around?
       if (!variant) {
         emitEvent(
@@ -231,7 +161,7 @@ export default class TaskPrimitive extends BaseTask {
         variant: { id: s },
       },
       monitor,
-      forceCaptcha,
+      captcha,
     } = this._context.task;
 
     emitEvent(
@@ -296,7 +226,7 @@ export default class TaskPrimitive extends BaseTask {
         return States.ADD_TO_CART;
       }
 
-      if (forceCaptcha && !this.captchaToken) {
+      if (captcha && !this.captchaToken) {
         return States.CAPTCHA;
       }
 

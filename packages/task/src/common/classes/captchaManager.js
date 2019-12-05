@@ -11,6 +11,48 @@ export default class CaptchaManager {
     this._requesters = new Map();
     this._tokens = new Map();
     this._events = new EventEmitter();
+
+    // Handlers Map
+    this._handlers = {};
+
+    this.harvest = this.harvest.bind(this);
+    this.start = this.start.bind(this);
+    this.stop = this.stop.bind(this);
+
+    this.attachHandler = this.attachHandler.bind(this);
+    this.detachHandler = this.detachHandler.bind(this);
+  }
+
+  attachHandler(task) {
+    const { context } = task;
+    const handler = (id, token) => {
+      if (id === context.id) {
+        task._handleHarvest(id, token);
+      }
+    };
+
+    context.events.on(Events.StartHarvest, this.start, this);
+    context.events.on(Events.StopHarvest, this.stop, this);
+
+    this._events.on(Events.Harvest, handler, this);
+    this._handlers[context.id] = handler;
+  }
+
+  detachHandler(task) {
+    const { context } = task;
+
+    // grab the handler function...
+    const handler = this._handlers[context.id];
+
+    // unregister the handler...
+    this._events.removeListener(Events.Harvest, handler);
+
+    // remove the handler from the map
+    delete this._handlers[context.id];
+
+    // lastly, since we're essentially shutting down a task here
+    // we can go ahead and just remove all listeners from that task
+    context.events.removeAllListeners();
   }
 
   // harvestCaptchaToken
@@ -29,7 +71,7 @@ export default class CaptchaManager {
         // The current container no longer exists in the captcha queue,
         // Call recursively to get the next task
         this._logger.debug('TaskManager: Task not found! Recursive calling next task');
-        this.harvestCaptchaToken(id, token, sitekey);
+        this.harvest(id, token, sitekey);
       }
       // Send event to pass data to task
       this._logger.debug('TaskManager: Sending token to %s', id);
@@ -50,12 +92,13 @@ export default class CaptchaManager {
       // Store the container on the captcha queue map
       this._requesters.set(id, container);
 
-      const tokens = this._tokens.get(sitekey);
+      let tokens = this._tokens.get(sitekey);
 
       if (!tokens) {
         this._tokens.set(sitekey, []);
         this._logger.debug('Pushing %s to first place in line', id);
 
+        tokens = this._tokens.get(sitekey);
         tokens.push({ id, host, priority });
 
         this._events.emit(Events.StartHarvest, id, sitekey, host);

@@ -49,7 +49,7 @@ export default class BaseMonitor {
     return newProxy;
   }
 
-  async _handleSwapProxies() {
+  async _handleSwap() {
     const {
       task: { errorDelay },
       logger,
@@ -58,7 +58,7 @@ export default class BaseMonitor {
       logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
-      logger.debug('Proxy in _handleSwapProxies: %j', proxy);
+      logger.debug('Proxy in _handleSwap: %j', proxy);
       // Proxy is fine, update the references
       if ((proxy || proxy === null) && this._context.proxy !== proxy) {
         this._context.setLastProxy(this._context.proxy);

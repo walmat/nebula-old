@@ -14,7 +14,7 @@ const { States } = MonitorConstants;
 
 // SHOPIFY
 export default class MonitorPrimitive extends BaseMonitor {
-  constructor(context, type = ParseType.Unknown, platform = Platforms.Supreme) {
+  constructor(context, type = ParseType.Unknown, platform = Platforms.Shopify) {
     super(context, platform);
 
     this._type = type;
@@ -22,7 +22,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     this._prevState = States.PARSE;
   }
 
-  async _handleParsingErrors(errors) {
+  async _handleErrors(errors = []) {
     const { logger, aborted } = this._context;
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -94,7 +94,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     return States.PARSE;
   }
 
-  async _parseAll() {
+  async _parse() {
     // Create the parsers and start the async run methods
     const Parsers = getParsers(this._context.task.store.url);
 
@@ -105,14 +105,13 @@ export default class MonitorPrimitive extends BaseMonitor {
       this._context.proxy,
       new AbortController(),
       this._context.logger,
-      this._matchRandom,
     );
 
     // Return the winner of the race
     return rfrl(parsers.map(p => p.run()), 'parseAll');
   }
 
-  async _monitorKeywords() {
+  async _keywords() {
     const { aborted, logger } = this._context;
 
     if (aborted) {
@@ -124,11 +123,11 @@ export default class MonitorPrimitive extends BaseMonitor {
     let parsed;
     try {
       // Try parsing all files and wait for the first response
-      parsed = await this._parseAll();
+      parsed = await this._parse();
     } catch (errors) {
       logger.debug('MONITOR: All request errored out! %j', errors);
       // handle parsing errors
-      return this._handleParsingErrors(errors);
+      return this._handleErrors(errors);
     }
 
     logger.debug('MONITOR: %s retrieved as a matched product', parsed.title);
@@ -166,7 +165,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     return States.DONE;
   }
 
-  async _monitorUrl() {
+  async _url() {
     const { aborted, logger } = this._context;
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -226,7 +225,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     } catch (errors) {
       // handle parsing errors
       logger.error('MONITOR: All request errored out! %j', errors);
-      return this._handleParsingErrors(errors);
+      return this._handleErrors(errors);
     }
   }
 
@@ -258,11 +257,11 @@ export default class MonitorPrimitive extends BaseMonitor {
       }
       case ParseType.Url: {
         logger.silly('MONITOR: Url Parsing Detected');
-        return this._monitorUrl();
+        return this._url();
       }
       case ParseType.Keywords: {
         logger.silly('MONITOR: Keyword Parsing Detected');
-        return this._monitorKeywords();
+        return this._keywords();
       }
       default: {
         logger.error('MONITOR: Unable to Monitor Type: %s', parseType);
@@ -283,7 +282,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     const stepMap = {
       [States.PARSE]: this._handleParse,
       [States.MATCH]: this._handleMatch,
-      [States.SWAP]: this._handleSwapProxies,
+      [States.SWAP]: this._handleSwap,
       [States.ERROR]: () => States.ABORT,
       [States.DONE]: () => States.ABORT,
       [States.ABORT]: () => States.ABORT,

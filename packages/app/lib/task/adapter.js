@@ -1,3 +1,4 @@
+/* eslint-disable no-return-assign */
 /* eslint-disable global-require */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { ipcRenderer } = require('electron');
@@ -38,10 +39,7 @@ class TaskManagerAdapter {
       if (message) {
         return Promise.all(
           // eslint-disable-next-line array-callback-return
-          [...taskIds].map(taskId => {
-            const previous = this.statusMessages[taskId];
-            this.statusMessages[taskId] = message;
-          }),
+          [...taskIds].map(taskId => (this.statusMessages[taskId] = message)),
         );
       }
       return null;
@@ -56,10 +54,10 @@ class TaskManagerAdapter {
 
     // TODO: Research if this should always listened to, or if we can dynamically
     //       Start/Stop listening like we with task events
-    this._taskManager._events.on(TaskManager.Events.StartHarvest, (...args) =>
+    this._taskManager.captchaManager._events.on(TaskManager.Events.StartHarvest, (...args) =>
       ipcRenderer.send(IPCKeys.RequestStartHarvestCaptcha, ...args),
     );
-    this._taskManager._events.on(TaskManager.Events.StopHarvest, (...args) =>
+    this._taskManager.captchaManager._events.on(TaskManager.Events.StopHarvest, (...args) =>
       ipcRenderer.send(IPCKeys.RequestStopHarvestCaptcha, ...args),
     );
 
@@ -71,8 +69,8 @@ class TaskManagerAdapter {
       if (this._taskManager) {
         this._taskManager.registerForTaskEvents(this._taskEventHandler);
         if (!this._messageInterval) {
-          // batch status updates every 1 second
-          this._messageInterval = setInterval(this._taskEventMessageSender, 0);
+          // batch status updates every 150 milliseconds
+          this._messageInterval = setInterval(this._taskEventMessageSender, 150);
         }
       }
     });
@@ -101,8 +99,8 @@ class TaskManagerAdapter {
   }
 
   _onHarvestToken(_, id, token, sitekey) {
-    console.log(`Harvesting Token: ${token}\Task: ${id}\nkey: ${sitekey}`);
-    this._taskManager.harvestCaptchaToken(id, token, sitekey);
+    console.log(`Harvesting Token: ${token}\nTask: ${id}\nkey: ${sitekey}`);
+    this._taskManager.captchaManager.harvest(id, token, sitekey);
   }
 
   _onStartTasksRequest(_, tasks, options) {
@@ -151,9 +149,9 @@ class TaskManagerAdapter {
 }
 
 process.once('loaded', () => {
-  let tma = null;
   ipcRenderer.once('LOG_PATH', (_, logPath) => {
     console.log(`Received log path: ${logPath}`);
-    tma = new TaskManagerAdapter(logPath);
+    // eslint-disable-next-line no-unused-vars
+    const tma = new TaskManagerAdapter(logPath);
   });
 });

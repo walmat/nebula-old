@@ -1,5 +1,5 @@
 import { Utils } from './common';
-import TaskManager from './taskManager';
+import TaskManager from './manager';
 import { Task } from './shopify/constants';
 
 const { setLevels } = Utils;

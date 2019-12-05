@@ -623,13 +623,7 @@ class CaptchaWindowManager {
    * Start the check token interval if it hasn't started already. This will
    * periodically check and remove expired tokens
    */
-  _onHarvestToken(
-    _,
-    id,
-    token,
-    sitekey = 'unattached',
-    host = 'http://checkout.shopify.com',
-  ) {
+  _onHarvestToken(_, id, token, sitekey = 'unattached', host = 'http://checkout.shopify.com') {
     if (!this._tokenQueue[sitekey]) {
       this._tokenQueue[sitekey] = new AsyncQueue();
 

@@ -62,11 +62,16 @@ body, html {
 
 #close {
   position: absolute;
+  z-index: 999999;
   cursor: pointer !important;
   top: 5px;
   right: 5px;
   height: 16px;
   width: 16px;
+}
+
+#close:hover {
+  cursor: pointer !important;
 }
 
 #body-text {
