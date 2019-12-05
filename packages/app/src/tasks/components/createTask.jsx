@@ -3,6 +3,7 @@
 import React, { PureComponent } from 'react';
 import Switch from 'react-switch';
 import Select from 'react-select';
+import Modal from 'react-modal';
 import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -14,7 +15,7 @@ import { makeProfiles } from '../../profiles/state/selectors';
 import { makeCurrentTask } from '../state/selectors';
 import { TASK_FIELDS, taskActions } from '../../store/actions';
 import * as getAllSizes from '../../constants/getAllSizes';
-import { THEMES } from '../../constants/themes';
+import { THEMES, mapThemeToColor } from '../../constants/themes';
 import PLATFORMS from '../../constants/platforms';
 import {
   buildProfileOptions,
@@ -36,6 +37,17 @@ import {
 } from '../../styles/components/select';
 import { addTestId, renderSvgIcon } from '../../utils';
 import { buildStyle } from '../../styles';
+
+const modalStyles = {
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+  },
+};
 
 export class CreateTaskPrimitive extends PureComponent {
   static createStore(value) {
@@ -507,7 +519,8 @@ export class CreateTaskPrimitive extends PureComponent {
   }
 
   render() {
-    const { task, sites, theme, onKeyPress, profiles } = this.props;
+    const { show, toggleCreate, task, sites, theme, onKeyPress, profiles } = this.props;
+
     const { isLoadingStore, isLoadingSize } = this.state;
     let newTaskProfileValue = null;
     if (task.profile) {
@@ -535,132 +548,141 @@ export class CreateTaskPrimitive extends PureComponent {
     }
 
     return (
-      <div className="tasks-create col col--start col--expand col--no-gutter">
-        <div className="col col--expand tasks-create__input-group--first">
-          <div className="row row--gutter">
-            <div className="col col--expand col--no-gutter">
-              <p className="tasks-create__label">Product</p>
-              <input
-                className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
-                type="text"
-                placeholder="Variant, Keywords, Link"
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT, e)}
-                value={task.product.raw}
-                style={buildStyle(false, null)}
-                required
-                data-testid={addTestId('CreateTask.productInput')}
-              />
-            </div>
-            <div className="col col--expand col--no-gutter tasks-create__input-group--store">
-              <p className="tasks-create__label">Store</p>
-              <CreatableSelect
-                isClearable={false}
-                isDisabled={isLoadingStore}
-                isLoading={isLoadingStore}
-                required
-                className="tasks-create__input tasks-create__input--field"
-                classNamePrefix="select"
-                placeholder="Choose Store"
-                components={{
-                  IndicatorSeparator,
-                  DropdownIndicator: props =>
-                    DropdownIndicator({
-                      ...props,
-                      errors: null,
-                    }),
-                }}
-                styles={colourStyles(theme, buildStyle(false, null))}
-                isOptionDisabled={option => !option.supported && option.supported !== undefined}
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_STORE, e)}
-                onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_STORE, v)}
-                options={sites}
-                value={newTaskStoreValue}
-                data-testid={addTestId('CreateTask.siteSelect')}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="col col--expand tasks-create__input-group">
-          <div className="row row--gutter">
-            <div className="col col--expand col--no-gutter" style={{ flexGrow: 5 }}>
-              <p className="tasks-create__label">Billing Profile</p>
-              <Select
-                required
-                className="tasks-create__input tasks-create__input--field"
-                classNamePrefix="select"
-                placeholder="Choose Profile"
-                components={{
-                  IndicatorSeparator,
-                  DropdownIndicator: props =>
-                    DropdownIndicator({
-                      ...props,
-                      errors: null,
-                    }),
-                }}
-                styles={colourStyles(theme, buildStyle(false, null))}
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE, e)}
-                value={newTaskProfileValue}
-                options={buildProfileOptions(profiles)}
-                data-testid={addTestId('CreateTask.profileSelect')}
-                data-private
-              />
-            </div>
-            <div
-              className="col col--expand col--no-gutter tasks-create__input-group--size"
-              style={{ flexGrow: 3 }}
-            >
-              <p className="tasks-create__label">Size</p>
-              <CreatableSelect
-                required
-                isLoading={isLoadingSize}
-                isClearable={false}
-                placeholder="Choose Size"
-                components={{
-                  IndicatorSeparator,
-                  DropdownIndicator: props =>
-                    DropdownIndicator({
-                      ...props,
-                      errors: null,
-                    }),
-                }}
-                styles={colourStyles(theme, buildStyle(false, null))}
-                onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SIZE, v)}
-                onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZE, e)}
-                value={newSizeValue}
-                options={getAllSizes.default()}
-                className="tasks-create__input tasks-create__input--field__short"
-                classNamePrefix="select"
-                data-testid={addTestId('CreateTask.sizesSelect')}
-              />
-            </div>
-            <div
-              className="col col--expand col--end col--no-gutter tasks-create__input-group--filter"
-              style={{ flexGrow: 1 }}
-            >
-              <div
-                role="button"
-                tabIndex={0}
-                onKeyPress={onKeyPress}
-                title={randomInStock ? 'Random In Stock' : 'Not Random In Stock'}
-                onClick={() => this.createOnChangeHandler(TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK)}
-              >
-                {randomInStock
-                  ? renderSvgIcon(InStock, {
-                      title: 'Random In Stock',
-                      alt: 'Random In Stock',
-                      className: 'profiles__fields--matches',
-                    })
-                  : renderSvgIcon(NotInStock, {
-                      title: 'Static stock',
-                      alt: 'Static stock',
-                      className: 'profiles__fields--matches',
-                    })}
+      <Modal
+        isOpen={show}
+        style={{
+          ...modalStyles,
+          content: { ...modalStyles.content, backgroundColor: mapThemeToColor[theme] },
+        }}
+        onRequestClose={toggleCreate}
+      >
+        <div className="tasks-create col col--start col--expand col--no-gutter">
+          <div className="col col--expand tasks-create__input-group--first">
+            <div className="row row--gutter">
+              <div className="col col--expand col--no-gutter">
+                <p className="tasks-create__label">Product</p>
+                <input
+                  className="tasks-create__input tasks-create__input--bordered tasks-create__input--field"
+                  type="text"
+                  placeholder="Variant, Keywords, Link"
+                  onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PRODUCT, e)}
+                  value={task.product.raw}
+                  style={buildStyle(false, null)}
+                  required
+                  data-testid={addTestId('CreateTask.productInput')}
+                />
+              </div>
+              <div className="col col--expand col--no-gutter tasks-create__input-group--store">
+                <p className="tasks-create__label">Store</p>
+                <CreatableSelect
+                  isClearable={false}
+                  isDisabled={isLoadingStore}
+                  isLoading={isLoadingStore}
+                  required
+                  className="tasks-create__input tasks-create__input--field"
+                  classNamePrefix="select"
+                  placeholder="Choose Store"
+                  components={{
+                    IndicatorSeparator,
+                    DropdownIndicator: props =>
+                      DropdownIndicator({
+                        ...props,
+                        errors: null,
+                      }),
+                  }}
+                  styles={colourStyles(theme, buildStyle(false, null))}
+                  isOptionDisabled={option => !option.supported && option.supported !== undefined}
+                  onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_STORE, e)}
+                  onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_STORE, v)}
+                  options={sites}
+                  value={newTaskStoreValue}
+                  data-testid={addTestId('CreateTask.siteSelect')}
+                />
               </div>
             </div>
           </div>
+          <div className="col col--expand tasks-create__input-group">
+            <div className="row row--gutter">
+              <div className="col col--expand col--no-gutter" style={{ flexGrow: 5 }}>
+                <p className="tasks-create__label">Billing Profile</p>
+                <Select
+                  required
+                  className="tasks-create__input tasks-create__input--field"
+                  classNamePrefix="select"
+                  placeholder="Choose Profile"
+                  components={{
+                    IndicatorSeparator,
+                    DropdownIndicator: props =>
+                      DropdownIndicator({
+                        ...props,
+                        errors: null,
+                      }),
+                  }}
+                  styles={colourStyles(theme, buildStyle(false, null))}
+                  onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE, e)}
+                  value={newTaskProfileValue}
+                  options={buildProfileOptions(profiles)}
+                  data-testid={addTestId('CreateTask.profileSelect')}
+                  data-private
+                />
+              </div>
+              <div
+                className="col col--expand col--no-gutter tasks-create__input-group--size"
+                style={{ flexGrow: 3 }}
+              >
+                <p className="tasks-create__label">Size</p>
+                <CreatableSelect
+                  required
+                  isLoading={isLoadingSize}
+                  isClearable={false}
+                  placeholder="Choose Size"
+                  components={{
+                    IndicatorSeparator,
+                    DropdownIndicator: props =>
+                      DropdownIndicator({
+                        ...props,
+                        errors: null,
+                      }),
+                  }}
+                  styles={colourStyles(theme, buildStyle(false, null))}
+                  onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SIZE, v)}
+                  onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_SIZE, e)}
+                  value={newSizeValue}
+                  options={getAllSizes.default()}
+                  className="tasks-create__input tasks-create__input--field__short"
+                  classNamePrefix="select"
+                  data-testid={addTestId('CreateTask.sizesSelect')}
+                />
+              </div>
+              <div
+                className="col col--expand col--end col--no-gutter tasks-create__input-group--filter"
+                style={{ flexGrow: 1 }}
+              >
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onKeyPress={onKeyPress}
+                  title={randomInStock ? 'Random In Stock' : 'Not Random In Stock'}
+                  onClick={() => this.createOnChangeHandler(TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK)}
+                >
+                  {randomInStock
+                    ? renderSvgIcon(InStock, {
+                        title: 'Random In Stock',
+                        alt: 'Random In Stock',
+                        className: 'profiles__fields--matches',
+                      })
+                    : renderSvgIcon(NotInStock, {
+                        title: 'Static stock',
+                        alt: 'Static stock',
+                        className: 'profiles__fields--matches',
+                      })}
+                </div>
+              </div>
+            </div>
+          </div>
+          {this.renderExtraInputs()}
         </div>
-        {this.renderExtraInputs()}
-      </div>
+      </Modal>
     );
   }
 }
@@ -669,6 +691,7 @@ CreateTaskPrimitive.propTypes = {
   onFieldChange: PropTypes.func.isRequired,
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   accounts: PropTypes.arrayOf(PropTypes.any).isRequired,
+  show: PropTypes.bool.isRequired,
   sites: PropTypes.arrayOf(PropTypes.any).isRequired,
   task: PropTypes.objectOf(PropTypes.any).isRequired,
   theme: PropTypes.string.isRequired,
@@ -680,7 +703,9 @@ CreateTaskPrimitive.defaultProps = {
   onKeyPress: () => {},
 };
 
-export const mapStateToProps = state => ({
+export const mapStateToProps = (state, ownProps) => ({
+  show: ownProps.show,
+  toggleCreate: ownProps.toggleCreate,
   profiles: makeProfiles(state),
   accounts: makeAccounts(state),
   sites: makeSites(state),

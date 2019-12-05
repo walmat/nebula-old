@@ -9,7 +9,7 @@
     min-width: 280px;
     @include themify($themes) {
       border-color: themed('tableBorderColor');
-      box-shadow: 5px 5px 15px themed('liveLogTableBorderTop');
+      box-shadow: 0 0 10px themed('liveLogTableBorderTop');
     }
     flex-grow: 0.5;
     border-width: 0;

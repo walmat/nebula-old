@@ -6,18 +6,15 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List } from 'react-window';
 import NumberFormat from 'react-number-format';
 
+import Delays from './delays';
 import TaskRow from './taskRow';
 
 import { makeProxies, makeDelays } from '../../settings/state/selectors';
 import { makeTasks } from '../state/selectors';
-import { SETTINGS_FIELDS, settingsActions, taskActions } from '../../store/actions';
-import { addTestId, renderSvgIcon, max, min, rangeArr } from '../../utils';
+import { taskActions } from '../../store/actions';
+import { max, min, rangeArr } from '../../utils';
 import { buildStyle } from '../../styles';
 import { States } from '../../constants/tasks';
-
-import { ReactComponent as StartAllIcon } from '../../styles/images/tasks/start-all.svg';
-import { ReactComponent as StopAllIcon } from '../../styles/images/tasks/stop-all.svg';
-import { ReactComponent as DestroyAllIcon } from '../../styles/images/tasks/destroy-all.svg';
 
 export class ViewTaskPrimitive extends PureComponent {
   static renderRow({ data, index, style }) {
@@ -29,23 +26,7 @@ export class ViewTaskPrimitive extends PureComponent {
   constructor(props) {
     super(props);
 
-    this.delays = {
-      [SETTINGS_FIELDS.EDIT_MONITOR_DELAY]: {
-        className: 'col col--no-gutter tasks__delay--gutter-bottom',
-        label: 'Monitor',
-        placeholder: '3500',
-        delayType: 'monitor',
-      },
-      [SETTINGS_FIELDS.EDIT_ERROR_DELAY]: {
-        className: 'col col--end col--no-gutter',
-        label: 'Error',
-        placeholder: '3500',
-        delayType: 'error',
-      },
-    };
-
     this.createTable = this.createTable.bind(this);
-    this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
     this.startAllTasks = this.startAllTasks.bind(this);
     this.stopAllTasks = this.stopAllTasks.bind(this);
     this.removeAllTasks = this.removeAllTasks.bind(this);
@@ -61,18 +42,10 @@ export class ViewTaskPrimitive extends PureComponent {
     window.removeEventListener('keydown', this._handleKeyDown);
   }
 
-  createOnChangeHandler(field, event) {
-    const { onSettingsChange } = this.props;
-    return onSettingsChange({
-      field,
-      value: event.target.value,
-    });
-  }
-
   startAllTasks() {
-    const { tasks, error, monitor, proxies, onStartAllTasks } = this.props;
+    const { tasks, delays, proxies, onStartAllTasks } = this.props;
     if (tasks.length && tasks.some(t => t.state !== States.Running)) {
-      onStartAllTasks(tasks, { error, monitor }, proxies);
+      onStartAllTasks(tasks, delays, proxies);
     }
   }
 
@@ -217,19 +190,12 @@ export class ViewTaskPrimitive extends PureComponent {
   }
 
   render() {
-    const { onKeyPress, monitor, error } = this.props;
     return (
-      <div className="row row--expand row--start" style={{ width: '100%' }}>
+      <div className="row row--expand row--start">
         <div className="col col--expand col--start">
-          <div className="row row--start">
-            <p className="body-text section-header tasks-table__section-header">View</p>
-          </div>
           <div className="row row--start row--expand">
             <div className="col col--expand col--start tasks-table-container">
               <div className="row row--start row--no-gutter tasks-table__header">
-                <div className="col tasks-table__header__id">
-                  <p>#</p>
-                </div>
                 <div className="col tasks-table__header__product">
                   <p>Product / Variation</p>
                 </div>
@@ -242,11 +208,8 @@ export class ViewTaskPrimitive extends PureComponent {
                 <div className="col tasks-table__header__sizes">
                   <p>Size</p>
                 </div>
-                <div className="col tasks-table__header__account">
-                  <p>Account</p>
-                </div>
-                <div className="col tasks-table__header__actions">
-                  <p>Actions</p>
+                <div className="col tasks-table__header__status">
+                  <p>Status</p>
                 </div>
               </div>
               <div className="row row--start">
@@ -260,50 +223,10 @@ export class ViewTaskPrimitive extends PureComponent {
                 </div>
               </div>
             </div>
-            <div className="col col--start bulk-action-sidebar">
-              <div className="row row--start">
-                <div
-                  className="bulk-action-sidebar__button"
-                  role="button"
-                  tabIndex={0}
-                  onKeyPress={onKeyPress}
-                  onClick={() => this.startAllTasks()}
-                  data-testid={addTestId('Tasks.bulkActionButton.start')}
-                >
-                  {renderSvgIcon(StartAllIcon, { alt: 'start all' })}
-                </div>
-              </div>
-              <div className="row row--start">
-                <div
-                  className="bulk-action-sidebar__button"
-                  role="button"
-                  tabIndex={0}
-                  onKeyPress={onKeyPress}
-                  onClick={() => this.stopAllTasks()}
-                  data-testid={addTestId('Tasks.bulkActionButton.stop')}
-                >
-                  {renderSvgIcon(StopAllIcon, { alt: 'stop all' })}
-                </div>
-              </div>
-              <div className="row row--start">
-                <div
-                  className="bulk-action-sidebar__button"
-                  role="button"
-                  tabIndex={0}
-                  onKeyPress={onKeyPress}
-                  onClick={() => this.removeAllTasks()}
-                  data-testid={addTestId('Tasks.bulkActionButton.destroy')}
-                >
-                  {renderSvgIcon(DestroyAllIcon, { alt: 'destroy all' })}
-                </div>
-              </div>
-              <div className="row row--start">
-                {this.renderDelay(SETTINGS_FIELDS.EDIT_MONITOR_DELAY, monitor)}
-              </div>
-              <div className="row row--start">
-                {this.renderDelay(SETTINGS_FIELDS.EDIT_ERROR_DELAY, error)}
-              </div>
-            </div>
+            {/* <div className="col col--start bulk-action-sidebar">
+
+              <Delays />
+            </div> */}
           </div>
         </div>
       </div>
@@ -312,18 +235,14 @@ export class ViewTaskPrimitive extends PureComponent {
 }
 
 ViewTaskPrimitive.propTypes = {
-  // props...
-  monitor: PropTypes.number.isRequired,
-  error: PropTypes.number.isRequired,
+  delays: PropTypes.objectOf(PropTypes.any).isRequired,
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
   proxies: PropTypes.arrayOf(PropTypes.any).isRequired,
   // funcs...
-  onSettingsChange: PropTypes.func.isRequired,
   onStartAllTasks: PropTypes.func.isRequired,
   onStopAllTasks: PropTypes.func.isRequired,
   onRemoveAllTasks: PropTypes.func.isRequired,
   onMassEdit: PropTypes.func.isRequired,
-  onKeyPress: PropTypes.func,
 };
 
 ViewTaskPrimitive.defaultProps = {
@@ -331,16 +250,12 @@ ViewTaskPrimitive.defaultProps = {
 };
 
 export const mapStateToProps = state => ({
-  monitor: makeDelays(state).monitor,
-  error: makeDelays(state).error,
+  delays: makeDelays(state),
   tasks: makeTasks(state),
   proxies: makeProxies(state),
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onSettingsChange: changes => {
-    dispatch(settingsActions.edit(changes.field, changes.value));
-  },
   onStartAllTasks: (tasks, delays, proxies) => {
     dispatch(taskActions.startAll(tasks, delays, proxies));
   },
