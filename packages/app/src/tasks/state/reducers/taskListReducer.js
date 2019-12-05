@@ -58,50 +58,8 @@ export default (state = Tasks, action) => {
     return [...state, ...newTasks];
   }
 
-  if (type === TASK_LIST_ACTIONS.REMOVE_TASK) {
-    const { id } = action;
-
-    if (!id) {
-      return state;
-    }
-
-    return state.filter(t => t.id !== id);
-  }
-
-  if (type === TASK_LIST_ACTIONS.REMOVE_ALL_TASKS) {
+  if (type === TASK_LIST_ACTIONS.REMOVE_TASKS) {
     return Tasks;
-  }
-
-  if (type === TASK_LIST_ACTIONS.UPDATE_TASK) {
-    const { response } = action;
-
-    if (!response) {
-      return state;
-    }
-
-    const { task } = response;
-
-    if (!task) {
-      return state;
-    }
-
-    const parsedProduct = parseProductType(task.product);
-    if (!parsedProduct) {
-      return state;
-    }
-
-    task.product = parsedProduct;
-
-    if (window.Bridge) {
-      window.Bridge.restartTasks(task, { override: false });
-    }
-
-    return state.map(t => {
-      if (t.id === task.id) {
-        return task;
-      }
-      return t;
-    });
   }
 
   if (type === TASK_LIST_ACTIONS.SELECT_TASK) {
@@ -158,10 +116,6 @@ export default (state = Tasks, action) => {
     return [...state, newTask];
   }
 
-  if (type === TASK_LIST_ACTIONS.SELECT_TASK) {
-    // TODO;
-  }
-
   if (type === TASK_LIST_ACTIONS.SELECT_ALL_TASKS) {
     // if there is at least ONE task unselected, set all to be selected..
     if (state.some(t => !t.selected)) {
@@ -172,59 +126,7 @@ export default (state = Tasks, action) => {
     return state.map(t => ({ ...t, selected: !t.selected }));
   }
 
-  if (type === TASK_LIST_ACTIONS.START_TASK) {
-    const { response } = action;
-    if (!response) {
-      return state;
-    }
-
-    const { task } = response;
-
-    if (!task) {
-      return state;
-    }
-
-    const { id } = task;
-
-    return state.map(t => {
-      if (t.id === id) {
-        return {
-          ...t,
-          state: States.Running,
-          message: 'Starting task!',
-        };
-      }
-      return t;
-    });
-  }
-
-  if (type === TASK_LIST_ACTIONS.STOP_TASK) {
-    const { response } = action;
-    if (!response) {
-      return state;
-    }
-
-    const { task } = response;
-
-    if (!task) {
-      return state;
-    }
-
-    const { id } = task;
-
-    return state.map(t => {
-      if (t.id === id) {
-        return {
-          ...t,
-          state: States.Stopped,
-          message: '',
-        };
-      }
-      return t;
-    });
-  }
-
-  if (type === TASK_LIST_ACTIONS.START_ALL_TASKS || type === TASK_LIST_ACTIONS.STOP_ALL_TASKS) {
+  if (type === TASK_LIST_ACTIONS.START_TASKS || type === TASK_LIST_ACTIONS.STOP_TASKS) {
     const { response } = action;
     if (!response) {
       return state;
