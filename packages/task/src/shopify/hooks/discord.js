@@ -14,10 +14,7 @@ class Discord {
         .setTitle(success ? `Successful checkout (${type})` : `Payment failed! (${type})`)
         .setColor(success ? 4631988 : 15679838)
         .setTimestamp(new Date())
-        .setFooter(
-          'Nebula Orion © 2019',
-          'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
-        );
+        .setFooter('Nebula Orion © 2019', 'https://imgur.com/4ptVqtH');
 
       if (image) {
         embed.setThumbnail(image);
