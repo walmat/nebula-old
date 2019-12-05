@@ -70,9 +70,9 @@ export class ViewTaskPrimitive extends PureComponent {
   }
 
   startAllTasks() {
-    const { tasks, proxies, onStartAllTasks } = this.props;
+    const { tasks, error, monitor, proxies, onStartAllTasks } = this.props;
     if (tasks.length && tasks.some(t => t.state !== States.Running)) {
-      onStartAllTasks(tasks, proxies);
+      onStartAllTasks(tasks, { error, monitor }, proxies);
     }
   }
 
@@ -341,8 +341,8 @@ export const mapDispatchToProps = dispatch => ({
   onSettingsChange: changes => {
     dispatch(settingsActions.edit(changes.field, changes.value));
   },
-  onStartAllTasks: (tasks, proxies) => {
-    dispatch(taskActions.startAll(tasks, proxies));
+  onStartAllTasks: (tasks, delays, proxies) => {
+    dispatch(taskActions.startAll(tasks, delays, proxies));
   },
   onStopAllTasks: tasks => {
     dispatch(taskActions.stopAll(tasks));

@@ -61,11 +61,11 @@ export default class MonitorPrimitive extends BaseMonitor {
         this.context,
         this.context.ids,
         {
-          message: `${status}! Delaying ${this.context.task.errorDelay}ms (${status})`,
+          message: `${status}! Delaying ${this.context.task.error}ms (${status})`,
         },
         Events.MonitorStatus,
       );
-      this._delayer = waitForDelay(this.context.task.errorDelay, this._aborter.signal);
+      this._delayer = waitForDelay(this.context.task.error, this._aborter.signal);
       await this._delayer;
     } else if (
       status === ErrorCodes.ProductNotFound ||
@@ -107,7 +107,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     try {
       const res = await this._fetch('/mobile_stock.json', {
         method: 'GET',
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: getHeaders(),
       });
 
@@ -189,7 +189,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     try {
       const res = await this._fetch(`/shop/${style}.json`, {
         method: 'GET',
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: getHeaders(),
       });
 
@@ -253,7 +253,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     const stepMap = {
       [States.PARSE]: this._handleParse,
       [States.STOCK]: this._handleStock,
-      [States.SWAP]: this._handleSwapProxies,
+      [States.SWAP]: this._handleSwap,
       [States.DONE]: () => States.ABORT,
       [States.ERROR]: () => States.ABORT,
       [States.ABORT]: () => States.ABORT,

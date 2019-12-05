@@ -42,25 +42,25 @@ export const TASK_LIST_ACTIONS = prefixer(prefix, tasksListActions);
 
 const _duplicateTaskRequest = async task => ({ task });
 
-const _startTaskRequest = async (task, proxies = []) => {
+const _startTaskRequest = async (task, delays, proxies = []) => {
   if (task.state === States.Running) {
     return null;
   }
 
   if (window.Bridge) {
     window.Bridge.addProxies(proxies);
-    window.Bridge.startTasks(task, {});
+    window.Bridge.startTasks({ ...task, ...delays }, {});
   }
 
   return { task };
 };
 
-const _startAllTasksRequest = async (tasks, proxies = []) => {
+const _startAllTasksRequest = async (tasks, delays, proxies = []) => {
   const newTasks = tasks.filter(t => t.state !== States.Running);
 
   if (window.Bridge) {
     window.Bridge.addProxies(proxies);
-    window.Bridge.startTasks(newTasks, {});
+    window.Bridge.startTasks(newTasks.map(t => ({ ...t, ...delays })), {});
   }
 
   return {
@@ -144,11 +144,13 @@ const removeAllTasks = tasks => dispatch =>
 const duplicateTask = task => dispatch =>
   _duplicateTaskRequest(task).then(response => dispatch(_duplicateTask(response)));
 
-const startTask = (task, proxies) => dispatch =>
-  _startTaskRequest(task, proxies).then(response => dispatch(_startTask(response)));
+const startTask = (task, delays, proxies) => dispatch =>
+  _startTaskRequest(task, delays, proxies).then(response => dispatch(_startTask(response)));
 
-const startAllTasks = (tasks, proxies) => dispatch =>
-  _startAllTasksRequest(tasks, proxies).then(response => dispatch(_startAllTasks(response)));
+const startAllTasks = (tasks, delays, proxies) => dispatch =>
+  _startAllTasksRequest(tasks, delays, proxies).then(response =>
+    dispatch(_startAllTasks(response)),
+  );
 
 const stopTask = task => dispatch =>
   _stopTaskRequest(task).then(response => dispatch(_stopTask(response)));

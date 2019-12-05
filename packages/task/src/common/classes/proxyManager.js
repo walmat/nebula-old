@@ -50,7 +50,7 @@ export default class ProxyManager {
    * Register a Proxy
    *
    * This method adds a given proxy to the availability proxy pool if it has
-   * not been added already. Once added, task runners are able to reserve
+   * not been added already. Once added, tasks are able to reserve
    * the given proxy.
    *
    * @param {Proxy} proxy the proxy to register
@@ -90,9 +90,9 @@ export default class ProxyManager {
    * Deregister a Proxy
    *
    * This method removes a given proxy from the availability pool, but does
-   * not stop the proxy from being used if already in use. A task runner
+   * not stop the proxy from being used if already in use. A task
    * that has reserved this proxy will continue to use it until the task
-   * stops or until the task runner attempts to swap the proxy.
+   * stops or until the task attempts to swap the proxy.
    *
    * @param {Proxy} proxy the proxy to deregister
    */
@@ -112,8 +112,8 @@ export default class ProxyManager {
       return;
     }
 
-    this._logger.debug('Emitting event to remove proxy from runners %j', stored.runners);
-    this._events.emit(Manager.Events.DeregisterProxy, stored.runners);
+    this._logger.debug('Emitting event to remove proxy from tasks %j', stored.tasks);
+    this._events.emit(Manager.Events.DeregisterProxy, stored.tasks);
 
     this._logger.debug('Proxy found with hash %s. Removing now', proxyHash);
     this._proxies.delete(stored.id);
@@ -123,7 +123,7 @@ export default class ProxyManager {
   /**
    * Reserve a proxy
    *
-   * @param {String} id the id of the runner for whom the proxy will be reserved
+   * @param {String} id the id of the task for whom the proxy will be reserved
    * @param {String} store the store to reserve the proxy for
    * @param {String} wait whether or not this method should wait for an open proxy
    * @param {Number} timeout the recursive call limit on proxy reservations
@@ -185,11 +185,11 @@ export default class ProxyManager {
   /**
    * Release a proxy
    *
-   * @param {String} runnerId the id of the runner this proxy is being released from
+   * @param {String} id the id of the task this proxy is being released from
    * @param {String} proxyId the id of the proxy to release
    */
   async release(id, store, platform, proxyId) {
-    this._logger.debug('Releasing proxy %s for runner %s on store %s...', proxyId, id, store);
+    this._logger.debug('Releasing proxy %s for task %s on store %s...', proxyId, id, store);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
       this._logger.debug('No proxy found, skipping release');
@@ -197,19 +197,19 @@ export default class ProxyManager {
     }
     // otherwise, just free up the use list
     delete proxy.use[store];
-    delete proxy.runners[id];
+    delete proxy.tasks[id];
     delete proxy.platforms[platform];
     this._logger.debug('Released Proxy %s', proxyId);
   }
 
   /**
-   * Swap a proxy for a runner
+   * Swap a proxy for a task
    *
-   * This method swaps a proxy for a given runner. If the proxy needs to
+   * This method swaps a proxy for a given task. If the proxy needs to
    * banned, that is done as well. A fresh proxy is returned for further
    * use.
    *
-   * @param {String} runnerId the runner who needs the proxy
+   * @param {String} id the task who needs the proxy
    * @param {String} proxyId the old proxy to release
    * @param {String} store the store the proxy is banned
    * @param {bool} shouldBan whether the old proxy should be banned
