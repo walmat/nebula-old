@@ -179,7 +179,7 @@ export class ProxyListPrimitive extends Component {
 }
 
 ProxyListPrimitive.propTypes = {
-  proxies: PropTypes.arrayOf(PropTypes.object).isRequired,
+  proxies: PropTypes.arrayOf(PropTypes.string).isRequired,
   className: PropTypes.string,
   onUpdateProxies: PropTypes.func.isRequired,
 };

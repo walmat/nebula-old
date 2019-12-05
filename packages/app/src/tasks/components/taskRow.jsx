@@ -156,8 +156,8 @@ export const mapDispatchToProps = dispatch => ({
   onDuplicateTask: task => {
     dispatch(taskActions.duplicate(task));
   },
-  onStartTask: (task, proxies) => {
-    dispatch(taskActions.start(task, proxies));
+  onStartTask: (task, delays, proxies) => {
+    dispatch(taskActions.start(task, delays, proxies));
   },
   onStopTask: task => {
     dispatch(taskActions.stop(task));

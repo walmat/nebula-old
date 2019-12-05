@@ -17,7 +17,7 @@ if (nebulaEnv.isDevelopment()) {
 
 let rateFetcherRequest = null;
 let handlers = [];
-const RATE_FETCHER_ID = 1000000000;
+const RATE_FETCHER_ID = 'srr';
 
 const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 

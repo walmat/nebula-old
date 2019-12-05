@@ -25,6 +25,7 @@ export default class TaskPrimitive extends BaseTask {
     this._prevState = this._state;
     this._timer = new Timer();
     this._region = getRegion(context.task.store.name);
+    this._pooky = false;
     this._slug = null;
     this._form = null;
   }
@@ -71,12 +72,12 @@ export default class TaskPrimitive extends BaseTask {
         this._context,
         this._context.ids,
         {
-          message: `Delaying ${this._context.task.errorDelay}ms (${status})`,
+          message: `Delaying ${this._context.task.error}ms (${status})`,
         },
         Events.TaskStatus,
       );
 
-      this._delayer = waitForDelay(this._context.task.errorDelay, this._aborter.signal);
+      this._delayer = waitForDelay(this._context.task.error, this._aborter.signal);
       await this._delayer;
     }
 
@@ -119,29 +120,40 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async generatePooky(region = Regions.US) {
-    const lastid = Date.now();
-    const { NEBULA_API_BASE } = process.env;
+    const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
+
+    const regionMap = {
+      [Regions.EU]: 'EU',
+      [Regions.JP]: 'JP',
+      [Regions.US]: 'NA',
+    };
 
     try {
-      const res = await this._fetch(`${NEBULA_API_BASE}/${region}`);
+      const res = await this._fetch(
+        `${NEBULA_API_BASE}?key=${NEBULA_API_UUID}&region=${regionMap[region]}`,
+      );
 
+      const { status } = res;
       if (!res.ok) {
+        if (status === 404) {
+          // pooky disabled flag...
+          return true;
+        }
         const error = new Error('Unable to fetch cookies');
         error.status = res.status || res.errno;
         throw error;
       }
 
       const body = await res.json();
-      if (!body || (body && !body.cookies)) {
-        const error = new Error('Unable to parse cookies');
+      if (!body || (body && !body.length)) {
+        const error = new Error('Invalid cookie list');
         error.status = res.status || res.errno;
         throw error;
       }
 
       const { jar, task } = this._context;
 
-      jar.setCookieSync(`lastid=${lastid}`, task.store.url);
-      return body.cookies.map(cookie => jar.setCookieSync(`${cookie};`, task.store.url));
+      return body.map(({ name, value }) => jar.setCookieSync(`${name}=${value};`, task.store.url));
     } catch (err) {
       throw err;
     }
@@ -175,7 +187,7 @@ export default class TaskPrimitive extends BaseTask {
 
     if (!this._pooky) {
       try {
-        await this.generatePooky(this._region);
+        this._pooky = await this.generatePooky(this._region);
       } catch (error) {
         // TODO!
       }
@@ -184,7 +196,7 @@ export default class TaskPrimitive extends BaseTask {
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
         method: 'POST',
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: {
           ...getHeaders(),
           'content-type': 'application/x-www-form-urlencoded',
@@ -202,6 +214,7 @@ export default class TaskPrimitive extends BaseTask {
       this._timer.start(new Date().getTime());
 
       const body = await res.json();
+
       if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         emitEvent(
           this._context,
@@ -343,7 +356,7 @@ export default class TaskPrimitive extends BaseTask {
 
     if (!this._pooky) {
       try {
-        await this.generatePooky(this._region);
+        this._pooky = await this.generatePooky(this._region);
       } catch (error) {
         // TODO!
       }
@@ -358,7 +371,7 @@ export default class TaskPrimitive extends BaseTask {
         this._context,
         this._context.ids,
         {
-          message: `Waiting ${totalTimeout}ms`,
+          message: `Delaying ${totalTimeout}ms`,
         },
         Events.TaskStatus,
       );
@@ -381,7 +394,7 @@ export default class TaskPrimitive extends BaseTask {
     try {
       const res = await this._fetch('/checkout.json', {
         method: 'POST',
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: {
           ...getHeaders(),
           accept: 'application/json',
@@ -397,8 +410,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const body = await res.json();
-      logger.debug('BODY: %j', body);
-
+      console.log(body);
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
@@ -460,7 +472,7 @@ export default class TaskPrimitive extends BaseTask {
           this._context,
           this._context.ids,
           {
-            message: `Checkout failed! Bumping checkout delay`,
+            message: `Checkout failed!`,
           },
           Events.TaskStatus,
         );
@@ -498,7 +510,7 @@ export default class TaskPrimitive extends BaseTask {
     try {
       const res = await this._fetch(`/checkout/${this._slug}/status.json`, {
         method: 'GET',
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: {
           ...getHeaders(),
           'content-type': 'application/x-www-form-urlencoded',
@@ -654,7 +666,7 @@ export default class TaskPrimitive extends BaseTask {
       [States.CAPTCHA]: this._handleCaptcha,
       [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
       [States.CHECK_STATUS]: this._handleCheckStatus,
-      [States.SWAP]: this._handleSwapProxies,
+      [States.SWAP]: this._handleSwap,
       [States.DONE]: () => States.DONE,
       [States.ERROR]: () => States.DONE,
       [States.ABORT]: () => States.DONE,

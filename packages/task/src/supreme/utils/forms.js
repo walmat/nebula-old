@@ -203,11 +203,12 @@ export const backupForm = (region, billing, payment, size) => {
         cardType = 'solo';
       }
 
-      form = `store_credit_id=&from_mobile=1&cookie-sub=${cookieSub}&same_as_billing_address=1&order%5Bbilling_name%5D=${fullName}&order%5Bemail%5D=${encodeURIComponent(
+      form = `store_credit_id=&from_mobile=1&cookie-sub=${encodeURIComponent(
+        cookieSub,
+      )}&same_as_billing_address=1&order%5Bbilling_name%5D=${fullName}&order%5Bemail%5D=${encodeURIComponent(
         payment.email,
-      )}&order%5Btel%5D=${phoneFormatter.format(
-        billing.phone,
-        'NNN-NNN-NNNN',
+      )}&order%5Btel%5D=${encodeURIComponent(
+        phoneFormatter.format(billing.phone, 'NNNNNNNNNN'),
       )}&order%5Bbilling_address%5D=${billing.address.replace(
         /\s/g,
         '+',
@@ -219,7 +220,7 @@ export const backupForm = (region, billing, payment, size) => {
       )}&atok=sckrsarur&order%5Bbilling_zip%5D=${billing.zip.replace(
         /\s/g,
         '+',
-      )}&order%5Bbilling_country%5D=${country}&store_address=1&credit_card%5Btype%5D=${cardType}&credit_card%5Bcnb%5D=${card}&credit_card%5Bmonth%5D=${month}&credit_card%5Byear%5D=${year}&credit_card%5Bovv%5D=${
+      )}&order%5Bbilling_country%5D=${country}&credit_card%5Btype%5D=${cardType}&credit_card%5Bcnb%5D=${card}&credit_card%5Bmonth%5D=${month}&credit_card%5Byear%5D=${year}&credit_card%5Bovv%5D=${
         payment.cvv
       }&order%5Bterms%5D=0&order%5Bterms%5D=1`;
       break;

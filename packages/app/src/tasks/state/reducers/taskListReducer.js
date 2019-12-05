@@ -124,23 +124,14 @@ export default (state = Tasks, action) => {
   if (type === TASK_LIST_ACTIONS.UPDATE_MESSAGE) {
     const { buffer } = action;
 
-    console.log(buffer);
-
     if (!buffer) {
       return state;
     }
 
-    const taskMap = {};
-    state.forEach(t => {
-      taskMap[t.id] = t;
-    });
-
-    Object.entries(buffer).forEach(([taskId, message]) => {
-      const task = taskMap[taskId];
-      task.message = message;
-    });
-
-    return state;
+    return state.map(t => ({
+      ...t,
+      message: buffer[t.id] || t.message,
+    }));
   }
 
   if (type === TASK_LIST_ACTIONS.DUPLICATE_TASK) {

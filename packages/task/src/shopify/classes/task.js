@@ -5277,7 +5277,7 @@ export default class TaskPrimitive extends BaseTask {
       [States.COMPLETE_PAYMENT]: this._handleCompletePayment,
       [States.PROCESS_PAYMENT]: this._handlePaymentProcess,
       [States.BACKUP_PROCESS_PAYMENT]: this._handleBackupProcessPayment,
-      [States.SWAP]: this._handleSwapProxies,
+      [States.SWAP]: this._handleSwap,
       [States.DONE]: () => States.DONE,
       [States.ERROR]: () => States.DONE,
       [States.ABORT]: () => States.DONE,
