@@ -7,7 +7,6 @@ import Modal from 'react-modal';
 import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { parseURL } from 'whatwg-url';
 
 import { makeTheme, makeSites } from '../../app/state/selectors';
 import { makeAccounts } from '../../settings/state/selectors';
@@ -17,6 +16,7 @@ import { makeCurrentTask } from '../state/selectors';
 import { appActions } from '../../app/state/actions';
 import { TASK_FIELDS, taskActions } from '../../store/actions';
 import * as getAllSizes from '../../constants/getAllSizes';
+import { createStore, createSize } from '../../constants/tasks';
 import { THEMES, mapThemeToColor } from '../../constants/themes';
 import PLATFORMS from '../../constants/platforms';
 import {
@@ -52,21 +52,6 @@ const modalStyles = {
 };
 
 export class CreateTaskPrimitive extends PureComponent {
-  static createStore(value) {
-    const URL = parseURL(value);
-    if (!URL || !URL.host) {
-      return null;
-    }
-    return { name: URL.host, url: `${URL.scheme}://${URL.host}` };
-  }
-
-  static createSize(value) {
-    if (!value) {
-      return null;
-    }
-    return value;
-  }
-
   constructor(props) {
     super(props);
     this.createOnChangeHandler = this.createOnChangeHandler.bind(this);
@@ -116,7 +101,7 @@ export class CreateTaskPrimitive extends PureComponent {
       case TASK_FIELDS.EDIT_STORE: {
         this.setState({ isLoadingStore: true });
         setTimeout(() => {
-          const newOption = CreateTaskPrimitive.createStore(value);
+          const newOption = createStore(value);
           if (newOption) {
             onFieldChange({ field: TASK_FIELDS.EDIT_STORE, value: newOption });
           }
@@ -129,7 +114,7 @@ export class CreateTaskPrimitive extends PureComponent {
       case TASK_FIELDS.EDIT_SIZE: {
         this.setState({ isLoadingSize: true });
         setTimeout(() => {
-          const newSize = CreateTaskPrimitive.createSize(value);
+          const newSize = createSize(value);
           if (newSize) {
             onFieldChange({ field: TASK_FIELDS.EDIT_SIZE, value: newSize });
           }
@@ -180,8 +165,6 @@ export class CreateTaskPrimitive extends PureComponent {
         return onFieldChange({ field, value: event.value });
       case TASK_FIELDS.EDIT_PRODUCT:
         return onFieldChange({ field, value: event.target.value, sites });
-      case TASK_FIELDS.EDIT_PAIRS:
-        return onFieldChange({ field, value: event.target.value });
       case TASK_FIELDS.TOGGLE_CAPTCHA:
       case TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK:
       case TASK_FIELDS.TOGGLE_ONE_CHECKOUT:
@@ -189,7 +172,7 @@ export class CreateTaskPrimitive extends PureComponent {
         return onFieldChange({ field });
       }
       default:
-        // catch all for text inputs
+        // catch all for all other text inputs
         return onFieldChange({ field, value: event.target.value });
     }
   }

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import ActionBar from './components/actionBar';
-import ViewTask from './components/viewTask';
+import TaskTable from './components/table';
 import CreateTask from './components/createTask';
 
 import '../styles/index.scss';
@@ -20,12 +20,12 @@ const Tasks = () => (
           <div className="col col--expand">
             <div className="row row--expand">
               <div className="col col--start col--expand col--no-gutter-left">
-                <CreateTask />
-                <ViewTask />
+                <TaskTable />
               </div>
             </div>
           </div>
         </div>
+        <CreateTask />
         <ActionBar />
       </div>
     </div>

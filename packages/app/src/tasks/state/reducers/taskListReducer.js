@@ -62,23 +62,6 @@ export default (state = Tasks, action) => {
     return Tasks;
   }
 
-  if (type === TASK_LIST_ACTIONS.SELECT_TASK) {
-    const { task } = action;
-
-    if (!task) {
-      return state;
-    }
-
-    task.selected = true;
-
-    return state.map(t => {
-      if (t.id === task.id) {
-        return task;
-      }
-      return t;
-    });
-  }
-
   if (type === TASK_LIST_ACTIONS.UPDATE_MESSAGE) {
     const { buffer } = action;
 
@@ -86,10 +69,15 @@ export default (state = Tasks, action) => {
       return state;
     }
 
-    return state.map(t => ({
-      ...t,
-      message: buffer[t.id] || t.message,
-    }));
+    return state.map(t => {
+      if (t.state === States.Running) {
+        return {
+          ...t,
+          message: buffer[t.id] || t.message,
+        };
+      }
+      return t;
+    });
   }
 
   if (type === TASK_LIST_ACTIONS.DUPLICATE_TASK) {
@@ -114,6 +102,52 @@ export default (state = Tasks, action) => {
     };
 
     return [...state, newTask];
+  }
+
+  if (type === TASK_LIST_ACTIONS.SELECT_TASK) {
+    const { ctrl, task } = action;
+
+    if (!task) {
+      return state;
+    }
+
+    // todo.. perfect this a bit more
+    if (ctrl) {
+      const from = state.findIndex(t => t.lastSelected);
+      if (from >= 0) {
+        const to = state.findIndex(t => t.id === task.id);
+        const needsSelected = state.some((tk, idx) => idx > from && idx <= to && !tk.selected);
+
+        return state.map((t, i) => {
+          if (i === to) {
+            return {
+              ...t,
+              selected: needsSelected ? true : !t.selected,
+              lastSelected: t.id,
+            };
+          }
+
+          if (i > from && i < to) {
+            return {
+              ...t,
+              selected: needsSelected ? true : !t.selected,
+            };
+          }
+          return t;
+        });
+      }
+    }
+
+    return state.map(t => {
+      if (t.id === task.id) {
+        return {
+          ...t,
+          selected: !t.selected,
+          lastSelected: t.id,
+        };
+      }
+      return t;
+    });
   }
 
   if (type === TASK_LIST_ACTIONS.SELECT_ALL_TASKS) {
