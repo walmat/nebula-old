@@ -1,3 +1,5 @@
+import getAllCountries, { getProvinces } from "./getAllCountries";
+
 const buildOptions = (list, value, label) =>
   list.map(datum => ({ value: datum[value], label: datum[label] }));
 
@@ -12,6 +14,14 @@ export const buildAccountOptions = accounts =>
       password,
     },
   }));
+
+export const buildCountryOptions = () => buildOptions(getAllCountries(), 'code', 'name');
+export const buildProvinceOptions = country => {
+  if (country && country.value) {
+    return buildOptions(getProvinces(country.value), 'code', 'name');
+  }
+  return null;
+}
 export const buildWebhookOptions = webhooks => buildOptions(webhooks, 'id', 'name');
 export const buildCategoryOptions = () => {
   const categories = [

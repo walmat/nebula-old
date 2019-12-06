@@ -24,6 +24,7 @@ import { ReactComponent as LightModeIcon } from '../styles/images/app/sun.svg';
 
 // Styles
 import '../styles/index.scss';
+import { States } from '../constants/tasks';
 
 export class App extends PureComponent {
   static close(e) {
@@ -117,8 +118,8 @@ export class App extends PureComponent {
     const { store } = this.props;
     const { Tasks: tasks } = store.getState();
 
-    const runningTasks = tasks.filter(t => t.status !== 'running');
-    if (runningTasks.length) {
+    const runningTasks = tasks.filter(t => t.state === States.Running);
+    if (runningTasks && runningTasks.length) {
       store.dispatch(taskActions.stopAll(runningTasks));
     }
   }

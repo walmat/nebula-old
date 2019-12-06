@@ -96,7 +96,7 @@ export default (state = undefined, action = {}) => {
       return reducers(state, action);
     }
     // TODO: Migrations
-    // NOTE: This is NOT a mutation, just a re-assign.
+    // NOTE: This is NOT a mutation, just a direct re-assign.
     // eslint-disable-next-line no-param-reassign
     state = newState;
   }

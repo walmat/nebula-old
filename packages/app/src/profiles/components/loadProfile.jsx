@@ -62,13 +62,8 @@ export class LoadProfilePrimitive extends PureComponent {
       };
     }
     return (
-      <div className="row row--expand row--no-gutter-left">
+      <div className="row row--expand row--no-gutter-left" style={{ marginTop: 19 }}>
         <div className="col col--expand col--start">
-          <div className="row row--start">
-            <div className="col col--no-gutter-left">
-              <p className="body-text section-header profiles-load__section-header">Load Profile</p>
-            </div>
-          </div>
           <div className="row row--start">
             <div className="col col--no-gutter">
               <div className="profiles-load col col--start col--no-gutter">
@@ -118,7 +113,6 @@ LoadProfilePrimitive.propTypes = {
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
   // funcs...
-  onLoadProfile: PropTypes.func.isRequired,
   onSelectProfile: PropTypes.func.isRequired,
   onDestroyProfile: PropTypes.func.isRequired,
 };
@@ -130,13 +124,8 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onSelectProfile: profile => {
-    dispatch(profileActions.select(profile));
-  },
-  onDestroyProfile: profile => {
-    console.log(profile);
-    dispatch(profileActions.remove(profile.id));
-  },
+  onSelectProfile: profile => dispatch(profileActions.select(profile)),
+  onDestroyProfile: profile => dispatch(profileActions.remove(profile.id)),
 });
 
 export default connect(

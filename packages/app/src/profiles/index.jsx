@@ -57,7 +57,7 @@ export class ProfilesPrimitive extends Component {
   render() {
     const { currentProfile, onProfileNameChange } = this.props;
     const shippingRateFields = currentProfile.editId ? (
-      <ShippingRateFields profileToEdit={currentProfile} />
+      <ShippingRateFields profile={currentProfile} />
     ) : null;
     return (
       <div className="container profiles">
@@ -76,23 +76,23 @@ export class ProfilesPrimitive extends Component {
             header="Shipping"
             id="shipping"
             className="col col--start col--expand"
-            profileToEdit={currentProfile}
-            fieldToEdit={PROFILE_FIELDS.EDIT_SHIPPING}
+            profile={currentProfile}
+            field={PROFILE_FIELDS.EDIT_SHIPPING}
             disabled={false}
           />
           <LocationFields
             header="Billing"
             id="billing"
             className="col col--start col--expand"
-            profileToEdit={currentProfile}
-            fieldToEdit={
+            profile={currentProfile}
+            field={
               currentProfile.matches ? PROFILE_FIELDS.EDIT_SHIPPING : PROFILE_FIELDS.EDIT_BILLING
             }
             disabled={currentProfile.matches}
           />
           <div className="col col--start col--expand">
             <div className="row row--start">
-              <PaymentFields className="profiles__fields--payment" profileToEdit={currentProfile} />
+              <PaymentFields className="profiles__fields--payment" profile={currentProfile} />
             </div>
             <div className="row row--start">{shippingRateFields}</div>
           </div>
