@@ -24,17 +24,14 @@ class ActionBar extends Component {
     window.removeEventListener('keypress', this._handleKeyPress);
   }
 
-  async _handleKeyPress({ keyCode, shiftKey, ctrlKey }) {
+  async _handleKeyPress({ keyCode, shiftKey }) {
     if (window.Bridge) {
       switch (keyCode) {
         case 65: {
-          if (!shiftKey && !ctrlKey) {
+          if (!shiftKey) {
             break;
           }
           const { select, tasks } = this.props;
-          if (!tasks.length) {
-            return null;
-          }
           return select(tasks);
         }
         case 114: {
@@ -177,7 +174,7 @@ class ActionBar extends Component {
 ActionBar.propTypes = {
   toggleCreate: PropTypes.func.isRequired,
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
-  delays: PropTypes.arrayOf(PropTypes.any).isRequired,
+  delays: PropTypes.objectOf(PropTypes.any).isRequired,
   proxies: PropTypes.arrayOf(PropTypes.string).isRequired,
   select: PropTypes.func.isRequired,
   start: PropTypes.func.isRequired,

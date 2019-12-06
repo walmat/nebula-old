@@ -35,6 +35,10 @@ import { ReactComponent as OneCheckout } from '../../styles/images/tasks/one-che
 import {
   DropdownIndicator,
   IndicatorSeparator,
+  Control,
+  Menu,
+  MenuList,
+  Option,
   colourStyles,
 } from '../../styles/components/select';
 import { addTestId, renderSvgIcon } from '../../utils';
@@ -212,12 +216,12 @@ export class CreateTaskPrimitive extends PureComponent {
                     required
                     placeholder="No Category"
                     components={{
+                      DropdownIndicator,
                       IndicatorSeparator,
-                      DropdownIndicator: props =>
-                        DropdownIndicator({
-                          ...props,
-                          errors: null,
-                        }),
+                      Control,
+                      Option,
+                      Menu,
+                      MenuList,
                     }}
                     styles={colourStyles(theme, buildStyle(false, null))}
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_TASK_CATEGORY, e)}
@@ -355,12 +359,12 @@ export class CreateTaskPrimitive extends PureComponent {
                     required={false}
                     placeholder="No Account"
                     components={{
+                      DropdownIndicator,
                       IndicatorSeparator,
-                      DropdownIndicator: props =>
-                        DropdownIndicator({
-                          ...props,
-                          errors: false,
-                        }),
+                      Control,
+                      Option,
+                      Menu,
+                      MenuList,
                     }}
                     styles={colourStyles(theme, buildStyle(false, null))}
                     onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_TASK_ACCOUNT, e)}
@@ -568,12 +572,12 @@ export class CreateTaskPrimitive extends PureComponent {
                   classNamePrefix="select"
                   placeholder="Choose Store"
                   components={{
+                    DropdownIndicator,
                     IndicatorSeparator,
-                    DropdownIndicator: props =>
-                      DropdownIndicator({
-                        ...props,
-                        errors: null,
-                      }),
+                    Control,
+                    Option,
+                    Menu,
+                    MenuList,
                   }}
                   styles={colourStyles(theme, buildStyle(false, null))}
                   isOptionDisabled={option => !option.supported && option.supported !== undefined}
@@ -596,12 +600,12 @@ export class CreateTaskPrimitive extends PureComponent {
                   classNamePrefix="select"
                   placeholder="Choose Profile"
                   components={{
+                    DropdownIndicator,
                     IndicatorSeparator,
-                    DropdownIndicator: props =>
-                      DropdownIndicator({
-                        ...props,
-                        errors: null,
-                      }),
+                    Control,
+                    Option,
+                    Menu,
+                    MenuList,
                   }}
                   styles={colourStyles(theme, buildStyle(false, null))}
                   onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_PROFILE, e)}
@@ -622,12 +626,12 @@ export class CreateTaskPrimitive extends PureComponent {
                   isClearable={false}
                   placeholder="Choose Size"
                   components={{
+                    DropdownIndicator,
                     IndicatorSeparator,
-                    DropdownIndicator: props =>
-                      DropdownIndicator({
-                        ...props,
-                        errors: null,
-                      }),
+                    Control,
+                    Option,
+                    Menu,
+                    MenuList,
                   }}
                   styles={colourStyles(theme, buildStyle(false, null))}
                   onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_SIZE, v)}

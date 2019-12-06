@@ -525,7 +525,6 @@ class CaptchaWindowManager {
     win.on('ready-to-show', () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`[DEBUG]: Window was opened, id = ${winId}`);
-        win.webContents.openDevTools(); // TODO: do we need this for youtube windows?
       }
       win.show();
     });
