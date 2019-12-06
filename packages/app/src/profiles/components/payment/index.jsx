@@ -2,10 +2,10 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import EmailField from './payment/email';
-import CardField from './payment/card';
-import ExpirationField from './payment/exp';
-import CvvField from './payment/cvv';
+import EmailField from './email';
+import CardField from './card';
+import ExpirationField from './exp';
+import CvvField from './cvv';
 
 const PaymentFieldsPrimitive = ({ profile }) => (
   <div className="col col--gutter col--start col--expand">
@@ -35,13 +35,11 @@ PaymentFieldsPrimitive.propTypes = {
   profile: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
-export const mapStateToProps = (state, ownProps) => ({
-  profile: ownProps.profile,
+export const mapStateToProps = state => ({
+  profile: state.CurrentProfile,
 });
-
-export const mapDispatchToProps = dispatch => ({});
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  () => {},
 )(PaymentFieldsPrimitive);

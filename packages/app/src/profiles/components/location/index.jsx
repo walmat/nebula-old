@@ -2,12 +2,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import NameFields from './location/name';
-import AddressFields from './location/address';
-import CityStateFields from './location/cityState';
-import ZipCountryFields from './location/zipCountry';
-import PhoneField from './location/phone';
-import ShippingActions from './shippingActions';
+import NameFields from './name';
+import AddressFields from './address';
+import CityStateFields from './cityState';
+import ZipCountryFields from './zipCountry';
+import PhoneField from './phone';
+import ShippingActions from './actions';
 
 const LocationFieldsPrimitive = ({ id, header, className, profile, field, disabled }) => (
   <div className={className}>
@@ -52,14 +52,12 @@ const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
   field: ownProps.field,
   header: ownProps.header,
-  disabled: ownProps.disabled,
+  disabled: ownProps.disabled || state.CurrentProfile.matches,
   className: ownProps.className,
-  profile: ownProps.profile,
+  profile: state.CurrentProfile,
 });
-
-const mapDispatchToProps = dispatch => ({});
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  () => {},
 )(LocationFieldsPrimitive);

@@ -1,14 +1,14 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { renderSvgIcon } from '../../utils';
+import { renderSvgIcon } from '../../../utils';
 
-import { profileActions, PROFILE_FIELDS } from '../../store/actions';
-import { makeCurrentProfile } from '../state/selectors';
+import { profileActions, PROFILE_FIELDS } from '../../../store/actions';
+import { makeCurrentProfile } from '../../state/selectors';
 
-import { ReactComponent as BillingMatchesShippingIcon } from '../../styles/images/profiles/matches.svg';
-import { ReactComponent as CopyShippingInfoToBilling } from '../../styles/images/profiles/transfer.svg';
-import { ReactComponent as BillingDoesNotMatchShippingIcon } from '../../styles/images/profiles/not-matches.svg';
+import { ReactComponent as BillingMatchesShippingIcon } from '../../../styles/images/profiles/matches.svg';
+import { ReactComponent as CopyShippingInfoToBilling } from '../../../styles/images/profiles/transfer.svg';
+import { ReactComponent as BillingDoesNotMatchShippingIcon } from '../../../styles/images/profiles/not-matches.svg';
 
 const ShippingActions = ({
   onClickBillingMatchesShipping,

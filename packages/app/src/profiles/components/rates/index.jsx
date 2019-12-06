@@ -7,9 +7,9 @@ import {
   DropdownIndicator,
   IndicatorSeparator,
   colourStyles,
-} from '../../styles/components/select';
-import addTestId from '../../utils/addTestId';
-import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../store/actions';
+} from '../../../styles/components/select';
+import addTestId from '../../../utils/addTestId';
+import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../../store/actions';
 
 export class ShippingRatesPrimitive extends PureComponent {
   static renderButton(type, onClick, label) {
@@ -182,7 +182,7 @@ ShippingRatesPrimitive.propTypes = {
 
 export const mapStateToProps = (state, ownProps) => ({
   theme: state.App.theme,
-  value: ownProps.profileToEdit,
+  value: state.CurrentProfile,
 });
 
 export const mapDispatchToProps = (dispatch, ownProps) => ({
