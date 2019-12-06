@@ -4,14 +4,15 @@ import PropTypes from 'prop-types';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List } from 'react-window';
 
-import TaskRow from './taskRow';
+import TableHeader from './header';
+import TableRow from './row';
 
-import { makeTasks } from '../state/selectors';
-import { taskActions } from '../../store/actions';
+import { makeTasks } from '../../state/selectors';
+import { taskActions } from '../../../store/actions';
 
 const Row = ({ data, index, style }) => {
   const task = data[index];
-  return <TaskRow task={task} index={index} style={style} />;
+  return <TableRow task={task} index={index} style={style} />;
 };
 
 Row.propTypes = {
@@ -34,33 +35,12 @@ Table.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
-const ViewTaskPrimitive = ({ tasks }) => (
+const TaskTablePrimitive = ({ tasks }) => (
   <div className="row row--expand row--start">
     <div className="col col--expand col--start">
       <div className="row row--start row--expand">
         <div className="col col--expand col--start tasks-table-container">
-          <div className="row row--start row--no-gutter tasks-table__header">
-            <div className="col tasks-table__header__product">
-              <p>Product / Variation</p>
-            </div>
-            <div className="col tasks-table__header__store">
-              <p>Store</p>
-            </div>
-            <div className="col tasks-table__header__profile">
-              <p>Profile</p>
-            </div>
-            <div className="col tasks-table__header__sizes">
-              <p>Size</p>
-            </div>
-            <div className="col tasks-table__header__status">
-              <p>Status</p>
-            </div>
-          </div>
-          <div className="row row--start">
-            <div className="col col--expand">
-              <hr className="view-line" />
-            </div>
-          </div>
+          <TableHeader />
           <div className="row row--gutter row--expand row--start">
             <div className="col col--no-gutter tasks-table__wrapper">
               <div className="tasks-table">
@@ -74,7 +54,7 @@ const ViewTaskPrimitive = ({ tasks }) => (
   </div>
 );
 
-ViewTaskPrimitive.propTypes = {
+TaskTablePrimitive.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
@@ -100,4 +80,4 @@ export const mapDispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(ViewTaskPrimitive);
+)(TaskTablePrimitive);

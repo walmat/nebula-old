@@ -95,14 +95,62 @@
 
     .tasks-row-container {
       @include themify($themes) {
-        border-bottom-color: themed('tableRowBottomBorderColow');
+        border-bottom-color: themed('tableRowBottomBorderColor');
       }
       border-bottom-style: solid;
       border-bottom-width: 1px;
 
       .tasks-row {
         display: flex;
-        height: 31px;
+        height: 30px;
+
+        &__product {
+          @include input-field;
+          width: 100px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          vertical-align: middle;
+          flex-grow: 5;
+          margin-left: 15px !important;
+          overflow: hidden;
+        }
+
+        &__store {
+          @include input-field;
+          text-overflow: ellipsis;
+          width: 125px;
+          margin-left: 15px !important;
+          flex-grow: 1;
+        }
+
+        &__profile {
+          @include input-field;
+          width: 125px;
+          margin-left: 15px !important;
+          flex-grow: 1;
+        }
+
+        &__sizes {
+          @include input-field;
+          width: 65px;
+          flex-grow: 1;
+          margin-left: 15px !important;
+        }
+
+        &__status {
+          @include input-field;
+          width: 100px;
+          flex-grow: 5;
+          margin-left: 15px !important;
+        }
+      }
+
+      .tasks-row-selected {
+        display: flex;
+        height: 30px;
+        @include themify($themes) {
+          background-color: themed('liveLogTableBorderTop');
+        }
 
         &__product {
           @include input-field;
