@@ -2,38 +2,18 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { profileActions, PROFILE_FIELDS } from '../../store/actions';
+import { profileActions, PROFILE_FIELDS } from '../../../store/actions';
 
-const saveProfile = (profiles, currentProfile, onCreate, onUpdate) => {
+const saveProfile = (currentProfile, onCreate, onUpdate) => {
   // todo: simplify this!
   if (currentProfile.id) {
-    // make sure the profile id exists in profiles before call in the load
-    if (profiles.some(p => p.id === currentProfile.id)) {
-      // first off, check to see if the profileName is taken..
-      const profileExists = profiles.find(p => p.name === currentProfile.name);
-
-      if (profileExists) {
-        const { id } = profileExists;
-        // eslint-disable-next-line no-param-reassign
-        currentProfile.id = id;
-        onUpdate(currentProfile);
-      } else {
-        // The current profile has the same id as a profile
-        // in the profiles list, update that profile
-        onCreate(currentProfile);
-      }
-    } else {
-      // The current profile has an edit id, but it doesn't match
-      // any on the profiles list, add this as a new profile.
-      onCreate(currentProfile);
-    }
-  } else {
-    // No edit id tag exists, add this as a new profile.
-    onCreate(currentProfile);
+    return onUpdate(currentProfile);
   }
+  // No id tag exists, add this as a new profile.
+  return onCreate(currentProfile);
 };
 
-const SaveProfileFields = ({ profiles, currentProfile, onNameChange, onCreate, onUpdate }) => (
+const SaveProfileFields = ({ currentProfile, onNameChange, onCreate, onUpdate }) => (
   <div
     className="row row--expand row--end row--gutter profiles--save-row"
     style={{ width: '100%' }}
@@ -55,7 +35,7 @@ const SaveProfileFields = ({ profiles, currentProfile, onNameChange, onCreate, o
         <button
           type="button"
           className="profiles__fields--save"
-          onClick={() => saveProfile(profiles, currentProfile, onCreate, onUpdate)}
+          onClick={() => saveProfile(currentProfile, onCreate, onUpdate)}
         >
           Save
         </button>
@@ -65,7 +45,6 @@ const SaveProfileFields = ({ profiles, currentProfile, onNameChange, onCreate, o
 );
 
 SaveProfileFields.propTypes = {
-  profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
   onNameChange: PropTypes.func.isRequired,
   onCreate: PropTypes.func.isRequired,
@@ -73,7 +52,6 @@ SaveProfileFields.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  profiles: state.Profiles,
   currentProfile: state.CurrentProfile,
 });
 

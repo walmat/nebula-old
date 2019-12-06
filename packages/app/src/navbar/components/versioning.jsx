@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { getAppData } from '../../constants/navbar';
+import { getAppData } from '../../constants/bridgeFns';
 
 export default () => {
   const { name, version } = getAppData();

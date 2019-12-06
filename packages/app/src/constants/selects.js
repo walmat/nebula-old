@@ -1,4 +1,4 @@
-import getAllCountries, { getProvinces } from "./getAllCountries";
+import getAllCountries, { getProvinces } from './getAllCountries';
 
 const buildOptions = (list, value, label) =>
   list.map(datum => ({ value: datum[value], label: datum[label] }));

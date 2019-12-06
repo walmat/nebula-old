@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import NumberFormat from 'react-number-format';
-import { buildStyle } from '../../styles';
+import { buildStyle } from '../../../styles';
 
-import { makeDelays } from '../../settings/state/selectors';
-import { SETTINGS_FIELDS, settingsActions } from '../../store/actions';
+import { makeDelays } from '../../../settings/state/selectors';
+import { SETTINGS_FIELDS, settingsActions } from '../../../store/actions';
 
 const Delays = ({ monitor, onDelayChange }) => (
   <div className="col col--end" style={{ marginLeft: 30 }}>

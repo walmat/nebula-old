@@ -8,7 +8,6 @@ import TableHeader from './header';
 import TableRow from './row';
 
 import { makeTasks } from '../../state/selectors';
-import { taskActions } from '../../../store/actions';
 
 const Row = ({ data, index, style }) => {
   const task = data[index];
@@ -62,20 +61,7 @@ export const mapStateToProps = state => ({
   tasks: makeTasks(state),
 });
 
-export const mapDispatchToProps = dispatch => ({
-  onStartAllTasks: (tasks, delays, proxies) => {
-    dispatch(taskActions.startAll(tasks, delays, proxies));
-  },
-  onStopAllTasks: tasks => {
-    dispatch(taskActions.stopAll(tasks));
-  },
-  onRemoveAllTasks: tasks => {
-    dispatch(taskActions.removeAll(tasks));
-  },
-  onMassEdit: (tasks, edits) => {
-    dispatch(taskActions.editAll(tasks, edits));
-  },
-});
+export const mapDispatchToProps = dispatch => ({});
 
 export default connect(
   mapStateToProps,

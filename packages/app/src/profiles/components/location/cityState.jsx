@@ -78,18 +78,15 @@ CityStateFields.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-export const mapStateToProps = (state, ownProps) => {
-  console.log(ownProps);
-  return {
-    id: ownProps.id,
-    theme: makeTheme(state),
-    field: ownProps.field,
-    value: ownProps.profile[mapProfileFieldToKey[ownProps.field]],
-    disabled: ownProps.disabled,
-  };
-};
+const mapStateToProps = (state, ownProps) => ({
+  id: ownProps.id,
+  theme: makeTheme(state),
+  field: ownProps.field,
+  value: ownProps.profile[mapProfileFieldToKey[ownProps.field]],
+  disabled: ownProps.disabled,
+});
 
-export const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   onChange: changes => {
     dispatch(
       profileActions.edit(ownProps.profile.id, ownProps.field, changes.value, changes.field),
