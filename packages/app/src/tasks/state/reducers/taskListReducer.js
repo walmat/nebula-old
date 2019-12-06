@@ -59,7 +59,18 @@ export default (state = Tasks, action) => {
   }
 
   if (type === TASK_LIST_ACTIONS.REMOVE_TASKS) {
-    return Tasks;
+    const { response } = action;
+    if (!response) {
+      return state;
+    }
+
+    const { tasks } = response;
+
+    if (!tasks || !tasks.length) {
+      return state;
+    }
+
+    return state.filter(t => !tasks.some(task => task.id === t.id));
   }
 
   if (type === TASK_LIST_ACTIONS.UPDATE_MESSAGE) {

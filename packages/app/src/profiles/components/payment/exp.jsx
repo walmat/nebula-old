@@ -22,11 +22,11 @@ ExpirationField.propTypes = {
   value: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
-export const mapStateToProps = (state, ownProps) => ({
+const mapStateToProps = (state, ownProps) => ({
   value: ownProps.profile.payment,
 });
 
-export const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   onChange: changes => {
     dispatch(
       profileActions.edit(

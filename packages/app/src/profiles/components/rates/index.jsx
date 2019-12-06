@@ -95,6 +95,10 @@ export class ShippingRatesPrimitive extends PureComponent {
 
   renderRateFields() {
     const { value } = this.props;
+    console.log(value);
+    if (!value.id) {
+      return null;
+    }
     const siteOptions = value.rates.map(({ site: { url, name } }) => ({ value: url, label: name }));
     let nameOptions = [];
     let siteObject = [];

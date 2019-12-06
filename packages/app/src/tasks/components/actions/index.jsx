@@ -3,11 +3,11 @@ import { connect } from 'react-redux';
 // import { parseURL } from 'whatwg-url';
 import PropTypes from 'prop-types';
 
-import Delays from './delays';
-import { appActions } from '../../app/state/actions';
-import { taskActions } from '../state/actions';
-import { makeSelectedTasks } from '../state/selectors';
-import { makeDelays, makeProxies } from '../../settings/state/selectors';
+import Delays from '../delays';
+import { appActions } from '../../../app/state/actions';
+import { taskActions } from '../../state/actions';
+import { makeSelectedTasks } from '../../state/selectors';
+import { makeDelays, makeProxies } from '../../../settings/state/selectors';
 
 class ActionBar extends Component {
   constructor(props) {

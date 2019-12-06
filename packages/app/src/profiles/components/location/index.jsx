@@ -57,7 +57,9 @@ const mapStateToProps = (state, ownProps) => ({
   profile: state.CurrentProfile,
 });
 
+const mapDispatchToProps = () => ({});
+
 export default connect(
   mapStateToProps,
-  () => {},
+  mapDispatchToProps,
 )(LocationFieldsPrimitive);

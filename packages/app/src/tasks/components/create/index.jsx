@@ -8,29 +8,29 @@ import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { makeTheme, makeSites } from '../../app/state/selectors';
-import { makeAccounts } from '../../settings/state/selectors';
-import { makeProfiles } from '../../profiles/state/selectors';
-import { makeCurrentTask } from '../state/selectors';
+import { makeTheme, makeSites } from '../../../app/state/selectors';
+import { makeAccounts } from '../../../settings/state/selectors';
+import { makeProfiles } from '../../../profiles/state/selectors';
+import { makeCurrentTask } from '../../state/selectors';
 
-import { appActions } from '../../app/state/actions';
-import { TASK_FIELDS, taskActions } from '../../store/actions';
-import * as getAllSizes from '../../constants/getAllSizes';
-import { createStore, createSize } from '../../constants/tasks';
-import { THEMES, mapThemeToColor } from '../../constants/themes';
-import PLATFORMS from '../../constants/platforms';
+import { appActions } from '../../../app/state/actions';
+import { TASK_FIELDS, taskActions } from '../../../store/actions';
+import * as getAllSizes from '../../../constants/getAllSizes';
+import { createStore, createSize } from '../../../constants/tasks';
+import { THEMES, mapThemeToColor } from '../../../constants/themes';
+import PLATFORMS from '../../../constants/platforms';
 import {
   buildProfileOptions,
   buildAccountOptions,
   buildCategoryOptions,
-} from '../../constants/selects';
+} from '../../../constants/selects';
 
-import { ReactComponent as NotInStock } from '../../styles/images/tasks/random-off.svg';
-import { ReactComponent as InStock } from '../../styles/images/tasks/random.svg';
-import { ReactComponent as NotRestocks } from '../../styles/images/tasks/restocks-off.svg';
-import { ReactComponent as Restocks } from '../../styles/images/tasks/restocks.svg';
-import { ReactComponent as NotOneCheckout } from '../../styles/images/tasks/one-checkout-off.svg';
-import { ReactComponent as OneCheckout } from '../../styles/images/tasks/one-checkout.svg';
+import { ReactComponent as NotInStock } from '../../../styles/images/tasks/random-off.svg';
+import { ReactComponent as InStock } from '../../../styles/images/tasks/random.svg';
+import { ReactComponent as NotRestocks } from '../../../styles/images/tasks/restocks-off.svg';
+import { ReactComponent as Restocks } from '../../../styles/images/tasks/restocks.svg';
+import { ReactComponent as NotOneCheckout } from '../../../styles/images/tasks/one-checkout-off.svg';
+import { ReactComponent as OneCheckout } from '../../../styles/images/tasks/one-checkout.svg';
 
 import {
   DropdownIndicator,
@@ -40,9 +40,9 @@ import {
   MenuList,
   Option,
   colourStyles,
-} from '../../styles/components/select';
-import { addTestId, renderSvgIcon } from '../../utils';
-import { buildStyle } from '../../styles';
+} from '../../../styles/components/select';
+import { addTestId, renderSvgIcon } from '../../../utils';
+import { buildStyle } from '../../../styles';
 
 const modalStyles = {
   content: {

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import SaveProfile from './components/saveProfile';
-import LoadProfile from './components/loadProfile';
+import SaveProfile from './components/save';
+import LoadProfile from './components/load';
 import LocationFields from './components/location';
 import PaymentFields from './components/payment';
 import ShippingRatesFields from './components/rates';

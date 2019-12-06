@@ -35,11 +35,13 @@ PaymentFieldsPrimitive.propTypes = {
   profile: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
-export const mapStateToProps = state => ({
+const mapStateToProps = state => ({
   profile: state.CurrentProfile,
 });
 
+const mapDispatchToProps = () => ({});
+
 export default connect(
   mapStateToProps,
-  () => {},
+  mapDispatchToProps,
 )(PaymentFieldsPrimitive);
