@@ -33,6 +33,12 @@ export default (state = Profiles, action) => {
 
     // add new profile
     profile.id = newId;
+
+    // copy over shipping info if the matches flag is true
+    if (profile.matches) {
+      profile.billing = profile.shipping;
+    }
+
     return [...state, profile];
   }
 
@@ -51,6 +57,11 @@ export default (state = Profiles, action) => {
 
     if (!profile) {
       return state;
+    }
+
+    // copy over shipping info if the matches flag is true
+    if (profile.matches) {
+      profile.billing = profile.shipping;
     }
 
     return state.map(p => {

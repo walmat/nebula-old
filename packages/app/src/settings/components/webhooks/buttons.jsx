@@ -69,7 +69,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onCreate: webhook => {
-    dispatch(settingsActions.addWebhook(webhook));
+    dispatch(settingsActions.createWebhook(webhook));
   },
   onRemove: webhook => {
     dispatch(settingsActions.deleteWebhook(webhook));

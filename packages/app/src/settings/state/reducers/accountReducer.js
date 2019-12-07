@@ -38,10 +38,20 @@ export default function accountReducer(state = CurrentAccount, action = {}) {
     return account;
   }
 
+  if (type === ACCOUNT_ACTIONS.CREATE_ACCOUNT) {
+    const { account } = action;
+
+    if (!account || (account && (!account.username || !account.password || !account.name))) {
+      return state;
+    }
+
+    return CurrentAccount;
+  }
+
   if (type === ACCOUNT_ACTIONS.DELETE_ACCOUNT) {
     const { account } = action;
 
-    if (!account || (account && !account.id)) {
+    if (!account || (account && !account.id) || (account && account.id !== state.id)) {
       return state;
     }
 

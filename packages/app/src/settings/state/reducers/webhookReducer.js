@@ -35,7 +35,7 @@ export default function webhookReducer(state = CurrentWebhook, action = {}) {
     return webhook;
   }
 
-  if (type === WEBHOOK_ACTIONS.ADD_WEBHOOK) {
+  if (type === WEBHOOK_ACTIONS.CREATE_WEBHOOK) {
     const { webhook } = action;
 
     if (!webhook || (webhook && (!webhook.url || !webhook.name))) {

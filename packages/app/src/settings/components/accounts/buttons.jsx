@@ -27,7 +27,12 @@ Button.propTypes = {
 const Buttons = ({ currentAccount, onCreate, onRemove }) => (
   <>
     <div className="col col--end col--no-gutter-right">
-      <Button account={currentAccount} onClick={onCreate} type="delete" label="Delete" />
+      <Button
+        account={currentAccount}
+        onClick={onCreate}
+        type="create"
+        label={currentAccount.id ? 'Update' : 'Create'}
+      />
     </div>
     <div className="col col--end col--gutter-left">
       <Button account={currentAccount} onClick={onRemove} type="delete" label="Delete" />
@@ -49,7 +54,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onCreate: account => {
-    dispatch(settingsActions.addAccount(account));
+    dispatch(settingsActions.createAccount(account));
   },
   onRemove: account => {
     dispatch(settingsActions.deleteAccount(account));

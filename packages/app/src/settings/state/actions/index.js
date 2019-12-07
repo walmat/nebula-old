@@ -8,8 +8,8 @@ const webhookPrefix = '@@Webhook';
 const shippingPrefix = '@@Shipping';
 
 const sharedList = ['EDIT_SETTINGS'];
-const accountList = ['ADD_ACCOUNT', 'DELETE_ACCOUNT', 'SELECT_ACCOUNT'];
-const webhooksList = ['ADD_WEBHOOK', 'DELETE_WEBHOOK', 'SELECT_WEBHOOK'];
+const accountList = ['CREATE_ACCOUNT', 'DELETE_ACCOUNT', 'SELECT_ACCOUNT'];
+const webhooksList = ['CREATE_WEBHOOK', 'DELETE_WEBHOOK', 'SELECT_WEBHOOK'];
 const shippingList = [
   'CLEAR_SHIPPING',
   'SETUP_SHIPPING',
@@ -20,12 +20,12 @@ const shippingList = [
 
 export const sharedActionsList = ['@@Settings/EDIT_SETTINGS'];
 export const accountActionsList = [
-  '@@Account/ADD_ACCOUNT',
+  '@@Account/CREATE_ACCOUNT',
   '@@Account/DELETE_ACCOUNT',
   '@@Account/SELECT_ACCOUNT',
 ];
 export const webhookActionsList = [
-  '@@Webhook/ADD_WEBHOOK',
+  '@@Webhook/CREATE_WEBHOOK',
   '@@Webhook/DELETE_WEBHOOK',
   '@@Webhook/SELECT_WEBHOOK',
 ];
@@ -91,10 +91,10 @@ const _cleanupShipping = makeActionCreator(SHIPPING_ACTIONS.CLEANUP_SHIPPING, 'm
 const _stopShipping = makeActionCreator(SHIPPING_ACTIONS.STOP_SHIPPING);
 
 const editSettings = makeActionCreator(SHARED_ACTIONS.EDIT_SETTINGS, 'field', 'value', 'sites');
-const addAccount = makeActionCreator(ACCOUNT_ACTIONS.ADD_ACCOUNT, 'account');
+const createAccount = makeActionCreator(ACCOUNT_ACTIONS.CREATE_ACCOUNT, 'account');
 const deleteAccount = makeActionCreator(ACCOUNT_ACTIONS.DELETE_ACCOUNT, 'account');
 const selectAccount = makeActionCreator(ACCOUNT_ACTIONS.SELECT_ACCOUNT, 'account');
-const addWebhook = makeActionCreator(WEBHOOK_ACTIONS.ADD_WEBHOOK, 'webhook');
+const createWebhook = makeActionCreator(WEBHOOK_ACTIONS.CREATE_WEBHOOK, 'webhook');
 const deleteWebhook = makeActionCreator(WEBHOOK_ACTIONS.DELETE_WEBHOOK, 'webhook');
 const selectWebhook = makeActionCreator(WEBHOOK_ACTIONS.SELECT_WEBHOOK, 'webhook');
 
@@ -133,11 +133,11 @@ const stopShipping = () => dispatch =>
 
 export const settingsActions = {
   edit: editSettings,
-  addAccount,
+  createAccount,
   deleteAccount,
   selectAccount,
   clearShipping,
-  addWebhook,
+  createWebhook,
   deleteWebhook,
   selectWebhook,
   fetchShipping,
