@@ -13,6 +13,10 @@ export default function webhookListReducer(state = Webhooks, action = {}) {
   if (type === WEBHOOK_ACTIONS.ADD_WEBHOOK) {
     const { webhook } = action;
 
+    if (!webhook || (webhook && (!webhook.url || !webhook.name))) {
+      return state;
+    }
+
     // new webhook...
     if (!webhook.id) {
       let newId;
@@ -22,10 +26,10 @@ export default function webhookListReducer(state = Webhooks, action = {}) {
       } while (state.some(idCheck));
 
       webhook.id = newId;
-      return state.push(webhook);
+      return [...state, webhook];
     }
 
-    // existing account...
+    // existing webhook...
     return state.map(hook => {
       if (hook.id === webhook.id) {
         return webhook;

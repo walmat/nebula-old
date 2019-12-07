@@ -1,9 +1,9 @@
 import React from 'react';
-import ProxyList from './components/proxyList';
+import ProxiesComponent from './components/proxies';
 import Webhooks from './components/webhooks';
-import ShippingManager from './components/shippingManager';
-import AccountManager from './components/accountManager';
-import StateFunctions from './components/stateFunctions';
+import ShippingManager from './components/shipping';
+import AccountManager from './components/accounts';
+import StateFunctions from './components/states';
 
 import '../styles/index.scss';
 import './styles/index.scss';
@@ -18,9 +18,7 @@ export default () => (
           </div>
         </div>
         <div className="row row--start row--expand" style={{ width: '100%' }}>
-          <div className="col col--start col--expand col--no-gutter" style={{ flexGrow: 5 }}>
-            <ProxyList />
-          </div>
+          <ProxiesComponent />
           <div className="col col--start settings__extras" style={{ flexGrow: 0 }}>
             <Webhooks />
             <ShippingManager />

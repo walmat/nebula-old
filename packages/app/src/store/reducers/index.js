@@ -29,7 +29,7 @@ import {
   accountListReducer as Accounts,
   accountReducer as CurrentAccount,
   delayReducer as Delays,
-  proxiesReducer as Proxies,
+  proxyListReducer as Proxies,
   shippingReducer as Shipping,
   webhookListReducer as Webhooks,
   webhookReducer as CurrentWebhook,

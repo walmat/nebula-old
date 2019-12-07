@@ -47,7 +47,7 @@ export default function shippingReducer(state = Shipping, action = {}) {
 
         change = {
           ...change,
-          site: {
+          store: {
             url: newSite.value,
             name: newSite.label,
             apiKey: newSite.apiKey,
@@ -55,18 +55,18 @@ export default function shippingReducer(state = Shipping, action = {}) {
         };
         return { ...state, product: { ...change } };
       }
-      case SETTINGS_FIELDS.EDIT_SHIPPING_SITE: {
+      case SETTINGS_FIELDS.EDIT_SHIPPING_STORE: {
         const { value } = action;
         if (!value) {
-          return { ...state, site: Shipping.site };
+          return { ...state, store: Shipping.store };
         }
 
         // if we're selecting the same site...
-        if (state.site && value.name === state.site.name) {
+        if (state.store && value.name === state.store.name) {
           return state;
         }
 
-        return { ...state, site: value };
+        return { ...state, store: value };
       }
       default:
         return state;

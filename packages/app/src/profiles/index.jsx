@@ -29,7 +29,6 @@ const ProfilesPrimitive = () => (
         header="Shipping"
         className="col col--start col--expand"
         field={PROFILE_FIELDS.EDIT_SHIPPING}
-        disabled={false}
       />
       <LocationFields
         id="billing"

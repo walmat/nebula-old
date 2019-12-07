@@ -2,16 +2,14 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import sanitizeHtml from 'sanitize-html';
+import { EOL } from 'os';
 
-import { makeProxies } from '../state/selectors';
-import { SETTINGS_FIELDS, settingsActions } from '../../store/actions';
-import { addTestId } from '../../utils';
+import { settingsActions, SETTINGS_FIELDS } from '../../state/actions';
+import { makeProxies } from '../../state/selectors';
+
+const sanitize = dirty => sanitizeHtml(dirty, { allowedTags: [], allowedAttributes: [] });
 
 export class ProxyListPrimitive extends Component {
-  static sanitize(dirty) {
-    return sanitizeHtml(dirty, { allowedTags: [], allowedAttributes: [] });
-  }
-
   constructor(props) {
     super(props);
 
@@ -84,7 +82,7 @@ export class ProxyListPrimitive extends Component {
     // Get the clipboard data and sanitize the text
     const data = e.clipboardData || window.clipboardData;
 
-    const text = ProxyListPrimitive.sanitize(data.getData('text'));
+    const text = sanitize(data.getData('text'));
 
     // Perform the insert using the plain text to mimic the paste
     if (document.queryCommandSupported('insertText')) {
@@ -107,8 +105,8 @@ export class ProxyListPrimitive extends Component {
 
     const newProxies = this.domNode.current.innerText
       .trim()
-      .split('\n')
-      .map(proxy => ProxyListPrimitive.sanitize(proxy.trim()))
+      .split(EOL)
+      .map(proxy => sanitize(proxy.trim()))
       .filter(proxy => proxy.length > 0);
 
     // Update the component state with newProxies and set the reduxUpdate flag
@@ -120,27 +118,20 @@ export class ProxyListPrimitive extends Component {
   }
 
   renderProxies() {
-    const { editing, proxies } = this.state;
+    const { proxies } = this.state;
     // If we don't have any proxies, return an empty list
     if (proxies.length === 0) {
       return '<div><br /></div>';
     }
 
-    // If we are in editing mode, don't apply any styling
-    if (editing) {
-      return proxies.map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`).join('');
-    }
-
-    return proxies.map(proxy => `<div>${ProxyListPrimitive.sanitize(proxy)}</div>`).join('');
+    return proxies.map(proxy => `<div>${sanitize(proxy)}</div>`).join('');
   }
 
-  renderProxyInputDiv() {
-    const { className } = this.props;
+  renderDiv() {
     return React.createElement('div', {
-      'data-testid': addTestId('ProxyListPrimitive.proxyInputDiv'),
       'data-private': true,
       ref: this.domNode,
-      className: `col col--start col--expand col--no-gutter ${className}`,
+      className: 'col col--start col--expand col--no-gutter proxy-list__input-group--text',
       onInput: this.handleUpdate,
       onFocus: this.focus,
       onBlur: this.blur,
@@ -152,40 +143,28 @@ export class ProxyListPrimitive extends Component {
 
   render() {
     return (
-      <>
-        <div className="row row--start row--gutter">
-          <div className="col col--start col--expand col--no-gutter-left">
-            <p className="body-text section-header proxy-list__section-header">Proxy List</p>
-          </div>
-        </div>
-        <div className="row row--start row--expand row--gutter">
-          <div className="col col--start col--no-gutter-left col--expand">
-            <div className="proxy-list col col--start col--expand col--no-gutter">
-              <div className="row row--start row--expand row--gutter">
-                <div className="col col--start col--expand proxy-list__input-group">
-                  <div className="row row--start row--expand row--gutter">
-                    <div className="col col--start col--expand col--no-gutter">
-                      {this.renderProxyInputDiv()}
-                    </div>
+      <div className="row row--start row--expand row--gutter">
+        <div className="col col--start col--no-gutter-left col--expand">
+          <div className="proxy-list col col--start col--expand col--no-gutter">
+            <div className="row row--start row--expand row--gutter">
+              <div className="col col--start col--expand proxy-list__input-group">
+                <div className="row row--start row--expand row--gutter">
+                  <div className="col col--start col--expand col--no-gutter">
+                    {this.renderDiv()}
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 }
 
 ProxyListPrimitive.propTypes = {
   proxies: PropTypes.arrayOf(PropTypes.string).isRequired,
-  className: PropTypes.string,
   onUpdateProxies: PropTypes.func.isRequired,
-};
-
-ProxyListPrimitive.defaultProps = {
-  className: 'proxy-list__input-group--text',
 };
 
 export const mapStateToProps = state => ({
