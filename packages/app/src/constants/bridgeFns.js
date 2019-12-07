@@ -1,4 +1,5 @@
 import { globalActions } from '../store/actions';
+import { mapBackgroundThemeToColor } from './themes';
 
 export const getAppData = () => {
   if (window.Bridge) {
@@ -43,3 +44,13 @@ export const deactivate = async store => {
   }
   return false;
 };
+
+export const openCaptchaWindow = ({ host, sitekey, theme }) =>
+  window.Bridge
+    ? window.Bridge.launchCaptchaHarvester({
+        backgroundColor: mapBackgroundThemeToColor[theme],
+        host,
+        sitekey,
+      })
+    : {};
+export const closeWindows = () => (window.Bridge ? window.Bridge.closeAllCaptchaWindows() : {});

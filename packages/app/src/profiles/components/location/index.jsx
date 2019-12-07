@@ -9,6 +9,8 @@ import ZipCountryFields from './zipCountry';
 import PhoneField from './phone';
 import ShippingActions from './actions';
 
+import { PROFILE_FIELDS } from '../../../store/actions';
+
 const LocationFieldsPrimitive = ({ id, header, className, profile, field, disabled }) => (
   <div className={className}>
     <div className="row row--gutter row--start">
@@ -50,7 +52,7 @@ LocationFieldsPrimitive.propTypes = {
 
 const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
-  field: ownProps.field,
+  field: !state.CurrentProfile.matches ? ownProps.field : PROFILE_FIELDS.EDIT_SHIPPING,
   header: ownProps.header,
   disabled: ownProps.id === 'billing' ? state.CurrentProfile.matches : false,
   className: ownProps.className,

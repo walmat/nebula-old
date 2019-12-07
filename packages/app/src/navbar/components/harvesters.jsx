@@ -2,39 +2,9 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
+import defaultHarvesterOptions from '../../constants/captcha';
 import PLATFORMS from '../../constants/platforms';
-import { mapBackgroundThemeToColor } from '../../constants/themes';
-
-const defaultHarvesterOptions = {
-  [PLATFORMS.Supreme]: {
-    sitekey: '6LeWwRkUAAAAAOBsau7KpuC9AV-6J8mhw4AjC3Xz',
-    host: 'http://supremenewyork.com',
-  },
-  [PLATFORMS.Shopify]: {
-    sitekey: '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
-    host: 'http://checkout.shopify.com',
-  },
-};
-
-const openCaptchaWindow = ({ host, sitekey, theme }) => {
-  if (window.Bridge) {
-    return window.Bridge.launchCaptchaHarvester({
-      backgroundColor: mapBackgroundThemeToColor[theme],
-      host,
-      sitekey,
-    });
-  }
-  console.error('Unable to open harvester!');
-  return null;
-};
-
-const closeWindows = () => {
-  if (window.Bridge) {
-    return window.Bridge.closeAllCaptchaWindows();
-  }
-  console.error('Unable to close all harvesters!');
-  return null;
-};
+import { openCaptchaWindow, closeWindows } from '../../constants/bridgeFns';
 
 const HarvestersRow = ({ className, onClick, label }) => (
   <div className="row row--gutter">
