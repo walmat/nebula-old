@@ -27,7 +27,7 @@ Button.propTypes = {
 
 const ShippingButtons = ({ shipping, onFetch, onClear, onStop }) => (
   <>
-    <div className="col col--end">
+    <div className="col col--end col--no-gutter">
       <Button
         type="fetch"
         disabled={shipping.status === 'inprogress'}

@@ -5,6 +5,8 @@ import PropTypes from 'prop-types';
 import { makeCurrentWebhook } from '../../state/selectors';
 import { settingsActions } from '../../../store/actions';
 
+import HOOK_TYPES from '../../../constants/hooks';
+
 const Button = ({ type, label, onClick }) => (
   <button
     type="button"
@@ -26,11 +28,13 @@ Button.propTypes = {
 const onTest = ({ url }) => {
   if (
     url &&
-    /https:\/\/discordapp.com\/api\/webhooks\/[0-9]+\/[a-zA-Z-0-9]*|https:\/\/hooks\.slack\.com\/services\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[a-zA-Z-0-9]*/.test(
-      url,
-    )
+    /https:\/\/hooks\.slack\.com\/services\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[a-zA-Z-0-9]*/.test(url)
   ) {
-    return window.Bridge.sendWebhookTestMessage(url);
+    return window.Bridge.sendWebhookTestMessage(url, HOOK_TYPES.slack);
+  }
+
+  if (url && /https:\/\/discordapp.com\/api\/webhooks\/[0-9]+\/[a-zA-Z-0-9]*/.test(url)) {
+    return window.Bridge.sendWebhookTestMessage(url, HOOK_TYPES.discord);
   }
   return null;
 };
@@ -38,13 +42,17 @@ const onTest = ({ url }) => {
 const WebhookButtons = ({ webhook, onCreate, onRemove }) => (
   <>
     <div className="col col--end">
-      <Button type="create" label="Create" onClick={() => onCreate(webhook)} />
+      <Button
+        type="create"
+        label={webhook.id ? 'Update' : 'Create'}
+        onClick={() => onCreate(webhook)}
+      />
     </div>
-    <div className="col col--end">
+    <div className="col col--end col--no-gutter">
       <Button type="remove" label="Remove" onClick={() => onRemove(webhook)} />
     </div>
     <div className="col col--end col--gutter-left">
-      <Button type="remove" label="Remove" onClick={() => onTest(webhook)} />
+      <Button type="test" label="Test" onClick={() => onTest(webhook)} />
     </div>
   </>
 );

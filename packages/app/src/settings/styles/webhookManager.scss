@@ -46,24 +46,32 @@
         margin-bottom: 2px;
       }
 
-      &--fetch {
+      &--create {
         @include button-base;
         @include themify($themes) {
           background: themed('buttonColorPrimary') !important;
           color: themed('buttonPrimaryText') !important;
         }
         width: 83px !important;
-        min-width: 124px;
         &:disabled {
           opacity: 0.5;
           cursor: not-allowed !important;
         }
       }
 
-      &--clear {
+      &--remove {
         @include button-base;
         @include themify($themes) {
           background: themed('buttonColorSecondary') !important;
+          color: themed('buttonPrimaryText') !important;
+        }
+        width: 83px !important;
+      }
+
+      &--test {
+        @include button-base;
+        @include themify($themes) {
+          background: themed('buttonColorWarning') !important;
           color: themed('buttonPrimaryText') !important;
         }
         width: 83px !important;

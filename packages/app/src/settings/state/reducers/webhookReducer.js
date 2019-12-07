@@ -45,5 +45,15 @@ export default function webhookReducer(state = CurrentWebhook, action = {}) {
     return CurrentWebhook;
   }
 
+  if (type === WEBHOOK_ACTIONS.DELETE_WEBHOOK) {
+    const { webhook } = action;
+
+    if (!webhook || (webhook && !webhook.id) || (webhook && webhook.id !== state.id)) {
+      return state;
+    }
+
+    return CurrentWebhook;
+  }
+
   return state;
 }
