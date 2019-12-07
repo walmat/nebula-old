@@ -28,7 +28,7 @@ const onChange = (e, webhooks, onSelect) => {
 };
 
 const SelectWebhook = ({ theme, webhook, webhooks, onSelect }) => {
-  let webhookValue;
+  let webhookValue = null;
   if (webhook && webhook.id) {
     webhookValue = {
       label: webhook.name,
@@ -43,7 +43,7 @@ const SelectWebhook = ({ theme, webhook, webhooks, onSelect }) => {
           <p className="settings--shipping-manager__input-group--label">Webhook</p>
           <Select
             required
-            placeholder="Choose Webhook"
+            placeholder="Webhooks"
             components={{
               DropdownIndicator,
               IndicatorSeparator,

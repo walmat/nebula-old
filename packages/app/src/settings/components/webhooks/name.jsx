@@ -6,7 +6,7 @@ import { makeCurrentWebhook } from '../../state/selectors';
 import { settingsActions, SETTINGS_FIELDS } from '../../../store/actions';
 
 const WebhookName = ({ name, onChange }) => (
-  <div className="col col--start col--expand col--no-gutter-right">
+  <div className="col col--start col--expand" style={{ flexGrow: 0 }}>
     <p className="settings--webhook-manager__input-group--label">Webhook Name</p>
     <input
       className="settings--webhook-manager__input-group--name"
