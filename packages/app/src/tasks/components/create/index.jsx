@@ -17,7 +17,7 @@ import { appActions } from '../../../app/state/actions';
 import { TASK_FIELDS, taskActions } from '../../../store/actions';
 import * as getAllSizes from '../../../constants/getAllSizes';
 import { createStore, createSize } from '../../../constants/tasks';
-import { THEMES, mapThemeToColor } from '../../../constants/themes';
+import { THEMES } from '../../../constants/themes';
 import PLATFORMS from '../../../constants/platforms';
 import {
   buildProfileOptions,
@@ -25,6 +25,7 @@ import {
   buildCategoryOptions,
 } from '../../../constants/selects';
 
+import { ReactComponent as CloseIcon } from '../../../styles/images/tasks/close.svg';
 import { ReactComponent as NotInStock } from '../../../styles/images/tasks/random-off.svg';
 import { ReactComponent as InStock } from '../../../styles/images/tasks/random.svg';
 import { ReactComponent as NotRestocks } from '../../../styles/images/tasks/restocks-off.svg';
@@ -45,13 +46,43 @@ import { addTestId, renderSvgIcon } from '../../../utils';
 import { buildStyle } from '../../../styles';
 
 const modalStyles = {
-  content: {
-    top: '50%',
-    left: '50%',
-    right: 'auto',
-    bottom: 'auto',
-    marginRight: '-50%',
-    transform: 'translate(-50%, -50%)',
+  [THEMES.LIGHT]: {
+    overlay: {
+      backgroundColor: 'rgba(244, 244, 244, 0.83)',
+    },
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      borderRadius: '5px',
+      border: 'none',
+      boxShadow: '0 0 10px',
+      backgroundColor: '#f4f4f4',
+      opacity: 1,
+      zIndex: 99999,
+    },
+  },
+  [THEMES.DARK]: {
+    overlay: {
+      backgroundColor: 'rgba(44, 47, 51, 0.83)',
+    },
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      borderRadius: '5px',
+      border: 'none',
+      boxShadow: '0 0 10px',
+      backgroundColor: '#2c2f33',
+      opacity: 1,
+      zIndex: 99999,
+    },
   },
 };
 
@@ -537,15 +568,19 @@ export class CreateTaskPrimitive extends PureComponent {
     }
 
     return (
-      <Modal
-        isOpen={show}
-        style={{
-          ...modalStyles,
-          content: { ...modalStyles.content, backgroundColor: mapThemeToColor[theme] },
-        }}
-        onRequestClose={toggleCreate}
-      >
-        <div className="tasks-create col col--start col--expand col--no-gutter">
+      <Modal isOpen={show} style={modalStyles[theme]} onRequestClose={toggleCreate}>
+        <div
+          role="button"
+          tabIndex={0}
+          style={{ position: 'absolute', top: 0, right: 0 }}
+          title="close"
+          onKeyPress={onKeyPress}
+          onClick={() => toggleCreate()}
+          draggable="false"
+        >
+          {renderSvgIcon(CloseIcon)}
+        </div>
+        <div className="tasks-create col col--expand col--no-gutter">
           <div className="col col--expand tasks-create__input-group--first">
             <div className="row row--gutter">
               <div className="col col--expand col--no-gutter">
