@@ -18,7 +18,7 @@ export default function webhookReducer(state = CurrentWebhook, action = {}) {
       case SETTINGS_FIELDS.EDIT_WEBHOOK_NAME:
         return { ...state, name: value };
       case SETTINGS_FIELDS.EDIT_WEBHOOK_URL:
-        return { ...state, username: value };
+        return { ...state, url: value };
       default:
         return state;
     }
@@ -28,11 +28,21 @@ export default function webhookReducer(state = CurrentWebhook, action = {}) {
     const { webhook } = action;
 
     // account without id means it hasn't been saved yet..
-    if (!webhook || (webhook && !webhook.id) || (webhook && webhook.id === state.id)) {
+    if (!webhook || (webhook && webhook.id === state.id)) {
       return state;
     }
 
     return webhook;
+  }
+
+  if (type === WEBHOOK_ACTIONS.ADD_WEBHOOK) {
+    const { webhook } = action;
+
+    if (!webhook || (webhook && (!webhook.url || !webhook.name))) {
+      return state;
+    }
+
+    return CurrentWebhook;
   }
 
   return state;

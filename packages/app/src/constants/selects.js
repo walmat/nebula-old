@@ -15,6 +15,8 @@ export const buildAccountOptions = accounts =>
     },
   }));
 
+export const buildAccountListOptions = accounts => buildOptions(accounts, 'id', 'name');
+
 export const buildCountryOptions = () => buildOptions(getAllCountries(), 'code', 'name');
 export const buildProvinceOptions = country => {
   if (country && country.value) {

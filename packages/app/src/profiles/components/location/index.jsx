@@ -52,7 +52,7 @@ const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
   field: ownProps.field,
   header: ownProps.header,
-  disabled: ownProps.disabled || state.CurrentProfile.matches,
+  disabled: ownProps.id === 'billing' ? state.CurrentProfile.matches : false,
   className: ownProps.className,
   profile: state.CurrentProfile,
 });

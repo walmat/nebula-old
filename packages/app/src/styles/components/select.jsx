@@ -3,7 +3,6 @@
 /* eslint-disable no-nested-ternary */
 import { components } from 'react-select';
 import React from 'react';
-import PropTypes from 'prop-types';
 import { ReactComponent as DropDownClosed } from '../images/dd-down.svg';
 import { ReactComponent as DropDownOpened } from '../images/dd-up.svg';
 import { THEMES, mapThemeToColor, mapToNextTheme } from '../../constants/themes';
@@ -22,10 +21,6 @@ export const DropdownIndicator = props => (
         })}
   </components.DropdownIndicator>
 );
-
-DropdownIndicator.propTypes = {
-  props: PropTypes.objectOf(PropTypes.any).isRequired,
-};
 
 export const IndicatorSeparator = () => null;
 

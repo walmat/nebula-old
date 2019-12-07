@@ -2,7 +2,7 @@
 @import '../../styles/themes';
 
 .settings {
-  &--shipping-manager {
+  &--webhook-manager {
     &__section-header {
       margin-top: 15px;
     }
@@ -14,7 +14,12 @@
     &__input-group {
       @include input-group;
 
-      &--product {
+      &--webhook {
+        @include select-font;
+        height: 29px;
+      }
+
+      &--name {
         @include select-font;
         border-width: 1px;
         flex-grow: 2;
@@ -23,14 +28,12 @@
         border-radius: 3px;
       }
 
-      &--profile {
+      &--url {
         @include select-font;
-        border-radius: 3px;
-      }
-
-      &--store {
-        @include select-font;
+        border-width: 1px;
         flex-grow: 2;
+        border-style: solid;
+        height: 29px;
         border-radius: 3px;
       }
 
