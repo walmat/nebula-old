@@ -131,7 +131,6 @@ select {
   left: 0;
   right: 0;
   height: 25px;
-  z-index: 9999;
   cursor: move !important;
   background: transparent;
   -webkit-user-select: none;
@@ -148,7 +147,6 @@ select {
   border-bottom-left-radius: 5px;
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
-  z-index: 1;
   cursor: pointer !important;
 
   & > img {
@@ -169,10 +167,8 @@ select {
   width: 25px;
   height: 25px;
   background: #edbcc6;
-  /* border-bottom-left-radius: 5px; */
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
-  z-index: 1;
   cursor: pointer !important;
 
   & > img {
@@ -194,7 +190,6 @@ select {
   border-top-right-radius: 4px;
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
-  z-index: 1;
   cursor: pointer !important;
 
   & > img {
@@ -216,7 +211,6 @@ select {
   height: 25px;
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
-  z-index: 1;
   cursor: pointer !important;
 
   & > img {
