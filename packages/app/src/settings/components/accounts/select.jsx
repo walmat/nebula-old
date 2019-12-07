@@ -21,7 +21,14 @@ import { buildAccountListOptions } from '../../../constants/selects';
 
 import { buildStyle } from '../../../styles';
 
-const SelectAccount = ({ theme, accounts, currentAccount, onSelectAccount }) => {
+const onChange = (e, accounts, onSelect) => {
+  const id = e.value;
+  const currentAccount = accounts.find(w => w.id === id);
+
+  onSelect(currentAccount);
+};
+
+const SelectAccount = ({ theme, accounts, currentAccount, onSelect }) => {
   let accountValue = null;
   if (currentAccount && currentAccount.id) {
     const { id, name } = currentAccount;
@@ -50,7 +57,7 @@ const SelectAccount = ({ theme, accounts, currentAccount, onSelectAccount }) => 
         className="settings--account-manager__input-group--account"
         classNamePrefix="select"
         styles={colourStyles(theme, buildStyle(false, null))}
-        onChange={e => onSelectAccount({ value: e.value })}
+        onChange={e => onChange(e, accounts, onSelect)}
         value={accountValue}
         options={buildAccountListOptions(accounts)}
         data-private
@@ -65,7 +72,7 @@ SelectAccount.propTypes = {
   currentAccount: PropTypes.objectOf(PropTypes.any).isRequired,
   theme: PropTypes.string.isRequired,
   // funcs...
-  onSelectAccount: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
 };
 
 export const mapStateToProps = state => ({
@@ -75,7 +82,7 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onSelectAccount: account => {
+  onSelect: account => {
     dispatch(settingsActions.selectAccount(account));
   },
 });

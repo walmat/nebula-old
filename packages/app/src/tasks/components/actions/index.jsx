@@ -17,11 +17,11 @@ class ActionBar extends Component {
   }
 
   componentDidMount() {
-    window.addEventListener('keypress', this._handleKeyPress);
+    window.addEventListener('keydown', this._handleKeyPress);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('keypress', this._handleKeyPress);
+    window.removeEventListener('keydown', this._handleKeyPress);
   }
 
   async _handleKeyPress({ keyCode, shiftKey }) {

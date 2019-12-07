@@ -10,7 +10,7 @@ export default function accountListReducer(state = Accounts, action = {}) {
     return Accounts;
   }
 
-  if (type === ACCOUNT_ACTIONS.ADD_ACCOUNT) {
+  if (type === ACCOUNT_ACTIONS.CREATE_ACCOUNT) {
     const { account } = action;
 
     if (
