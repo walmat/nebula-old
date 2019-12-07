@@ -13,8 +13,8 @@ import './styles/index.scss';
 
 const ProfilesPrimitive = () => (
   <div className="container profiles">
-    <div className="row row--start row--expand" style={{ width: '100%' }}>
-      <div className="col col--start">
+    <div className="row row--expand" style={{ width: '100%' }}>
+      <div className="col col--expand col--start">
         <div className="row row--start">
           <div className="col col--no-gutter-left">
             <h1 className="text-header profiles__title">Profiles</h1>

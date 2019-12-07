@@ -10,7 +10,7 @@ import './styles/index.scss';
 const Tasks = () => (
   <div className="container tasks">
     <div className="row row--expand" style={{ width: '100%' }}>
-      <div className="col col--expand col--start" style={{ flexGrow: 0.5, width: '100%' }}>
+      <div className="col col--expand col--start">
         <div className="row row--start">
           <div className="col col--no-gutter-left">
             <h1 className="text-header tasks__title">Tasks</h1>

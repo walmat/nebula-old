@@ -95,7 +95,7 @@ export class ShippingRatesPrimitive extends PureComponent {
 
   renderRateFields() {
     const { value } = this.props;
-    console.log(value);
+
     if (!value.id) {
       return null;
     }

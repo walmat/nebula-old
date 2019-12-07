@@ -5,11 +5,10 @@ import PropTypes from 'prop-types';
 import { profileActions, PROFILE_FIELDS } from '../../../store/actions';
 
 const saveProfile = (currentProfile, onCreate, onUpdate) => {
-  // todo: simplify this!
   if (currentProfile.id) {
     return onUpdate(currentProfile);
   }
-  // No id tag exists, add this as a new profile.
+  // No id exists, add this as a new profile.
   return onCreate(currentProfile);
 };
 
