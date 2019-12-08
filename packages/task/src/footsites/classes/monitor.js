@@ -150,7 +150,6 @@ export default class MonitorPrimitive extends BaseMonitor {
       // task.product.currency = pickVariant.price.currencyIso;
       // task.product.price = pickVariant.price.value;
       // task.product.image = body.images[0].url;
-      logger.silly(`Product found: ${name}`);
       emitEvent(
         this.context,
         this.context.ids,

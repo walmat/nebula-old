@@ -66,6 +66,65 @@ export default class TaskPrimitive extends BaseTask {
     return state;
   }
 
+  async generateCookies() {
+    //Basically just edited version of getPooky for now, very incomplete
+    const { jar, task } = this._context;
+    const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
+
+    try {
+      const res = await this._fetch(
+        `${NEBULA_API_BASE}?key=${NEBULA_API_UUID}&storeurl=${task.store.url}`,
+      );
+
+      if (!res.ok) {
+        const error = new Error('Unable to fetch cookies');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      const body = await res.json();
+      if (!body || (body && !body.length)) {
+        const error = new Error('Invalid cookie list');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      return body.map(({ name, value }) => jar.setCookieSync(`${name}=${value};`, task.store.url));
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async getCSRF() {
+    try {
+      const res = await this._fetch(`api/session?timestamp=${Date.now()}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36'
+        }
+      });
+
+      if (!res.ok) {
+        const error = new Error('Unable to fetch cookies');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      const body = await res.json();
+      if (!body || (body && !body.length)) {
+        const error = new Error('Invalid cookie list');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      return res.data.csrfToken;
+    } catch (e) {
+      throw e;
+    }
+  }
+
   async _handleWaitForProduct() {
     const { aborted, logger } = this._context;
     if (aborted) {
@@ -88,7 +147,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleAddToCart() {
-    const { aborted, logger } = this._context;
+    const { aborted, logger, task } = this._context;
 
     logger.silly('adding to cart');
 
@@ -97,26 +156,47 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
-    let postData = {
-      productId: this._context.task.product.id,
-      productQuantity: 1,
-    };
-    // incomplete but will send ATC request
-    // this._fetch(`/api/users/carts/current/entries?timestamp=${Date.now()}`, {
-    //   method: 'POST',
-    //   headers: {
+    try {
+      emitEvent(
+        this.context,
+        this.context.id,
+        {
+          message: 'Adding to cart',
+        },
+        Events.TaskStatus,
+      );
 
-    //   }
-    // })
+      let postData = {
+        productId: task.product.id,
+        productQuantity: 1,
+      };
 
-    emitEvent(
-      this.context,
-      this.context.id,
-      {
-        message: 'Adding to cart',
-      },
-      Events.TaskStatus,
-    );
+      let csrf = await this.getCSRF();
+
+      // incomplete but will send ATC request
+      let res = await this._fetch(`/api/users/carts/current/entries?timestamp=${Date.now()}`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'accept-encoding': 'gzip, deflate, br',
+          'accept-language': 'en-US,en;q=0.9',
+          'x-csrf-token': csrf,
+          'x-fl-productid': task.product.id,
+        },
+        body: JSON.stringify(postData)
+      });
+
+      if (!res.ok) {
+        const error = new Error('Failed add to cart');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      const body = await res.json();
+
+    } catch (e) {
+      return this._handleError(e, States.ADD_TO_CART);
+    }
 
     return States.DONE;
   }
