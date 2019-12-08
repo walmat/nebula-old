@@ -18,7 +18,7 @@ import { buildStyle } from '../../../styles';
 
 import { makeTheme } from '../../../app/state/selectors';
 
-import { buildCountryOptions } from '../../../constants/selects';
+import { buildCountryOptions } from '../../../constants';
 
 const ZipCountryFields = ({ id, theme, value, disabled, onChange }) => (
   <div className="row row--start row--expand row--gutter">

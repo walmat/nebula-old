@@ -16,8 +16,7 @@ import {
 import { LOCATION_FIELDS, profileActions, mapProfileFieldToKey } from '../../../store/actions';
 import { buildStyle } from '../../../styles';
 
-import { isProvinceDisabled } from '../../../constants/profiles';
-import { buildProvinceOptions } from '../../../constants/selects';
+import { isProvinceDisabled, buildProvinceOptions } from '../../../constants';
 import { makeTheme } from '../../../app/state/selectors';
 
 const CityStateFields = ({ id, theme, value, disabled, onChange }) => (

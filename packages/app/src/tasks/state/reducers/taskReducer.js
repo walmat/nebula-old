@@ -7,8 +7,7 @@ import {
   mapTaskFieldsToKey,
 } from '../../../store/actions';
 import { CurrentTask } from '../initial';
-import { platformForStore } from '../../../constants/platforms';
-import { mapTypeToNextType } from '../../../constants/tasks';
+import { platformForStore, mapTypeToNextType } from '../../../constants';
 
 export default (state = CurrentTask, action = {}) => {
   const { type } = action;

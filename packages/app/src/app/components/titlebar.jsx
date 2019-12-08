@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { close, minimize, deactivate } from '../../constants/bridgeFns';
 
-import { THEMES } from '../../constants/themes';
+import { THEMES } from '../../constants';
 import { ReactComponent as CloseIcon } from '../../styles/images/app/close.svg';
 import { ReactComponent as DeactivateIcon } from '../../styles/images/app/logout.svg';
 import { ReactComponent as MinimizeIcon } from '../../styles/images/app/minimize.svg';

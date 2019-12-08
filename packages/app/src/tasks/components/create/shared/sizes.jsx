@@ -7,8 +7,7 @@ import { TASK_FIELDS, taskActions } from '../../../../store/actions';
 import { makeTheme } from '../../../../app/state/selectors';
 import { makeCurrentTask } from '../../../state/selectors';
 
-import * as getAllSizes from '../../../../constants/getAllSizes';
-import { createSize } from '../../../../constants/tasks';
+import { getAllSizes, createSize } from '../../../../constants';
 
 import {
   DropdownIndicator,
@@ -58,7 +57,7 @@ const SizeSelect = ({ theme, size, onSelect }) => {
         onCreateOption={e => handleCreateSize(e, onSelect)}
         onChange={e => onSelect(e.value)}
         value={newSizeValue}
-        options={getAllSizes.default()}
+        options={getAllSizes()}
         className="create-tasks__select"
         classNamePrefix="select"
       />

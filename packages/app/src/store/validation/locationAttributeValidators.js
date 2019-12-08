@@ -1,6 +1,6 @@
 // import regexes from '../validation';
 import { LOCATION_FIELDS } from '../actions';
-import getAllCountries, { getProvinces } from '../../constants/getAllCountries';
+import { getAllCountries, getProvinces } from '../../constants';
 
 function validateAddress(address, isFormValidator) {
   if (!isFormValidator && address === '') {

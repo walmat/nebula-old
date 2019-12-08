@@ -15,7 +15,7 @@ import {
 } from '../../../styles/components/select';
 
 import { settingsActions } from '../../../store/actions';
-import { buildWebhookOptions } from '../../../constants/selects';
+import { buildWebhookOptions } from '../../../constants';
 
 import { makeTheme } from '../../../app/state/selectors';
 import { makeWebhooks, makeCurrentWebhook } from '../../state/selectors';
