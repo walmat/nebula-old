@@ -10,7 +10,9 @@ import {
   appActionsList,
   navbarActionsList,
   profileActionsList,
-  sharedActionsList,
+  profileActionsNeededForTask,
+  delaysActionsList,
+  proxiesActionsList,
   shippingActionsList,
   taskActionsList,
   taskListActionsList,
@@ -44,34 +46,26 @@ const reducers = asyncReducers =>
   combineReducers({
     App: filterActions(App, [...appActionsList, ...globalActionsList]),
     Accounts: filterActions(Accounts, [...accountActionsList, ...globalActionsList]),
-    CurrentAccount: filterActions(CurrentAccount, [
-      ...accountActionsList,
-      ...sharedActionsList,
-      ...globalActionsList,
-    ]),
+    CurrentAccount: filterActions(CurrentAccount, [...accountActionsList, ...globalActionsList]),
     CurrentProfile: filterActions(CurrentProfile, [...profileActionsList, ...globalActionsList]),
-    CurrentWebhook: filterActions(CurrentWebhook, [
-      ...webhookActionsList,
-      ...sharedActionsList,
-      ...globalActionsList,
-    ]),
-    Delays: filterActions(Delays, [...sharedActionsList, ...globalActionsList]),
+    CurrentWebhook: filterActions(CurrentWebhook, [...webhookActionsList, ...globalActionsList]),
+    Delays: filterActions(Delays, [...delaysActionsList, ...globalActionsList]),
     Navbar: filterActions(Navbar, navbarActionsList),
     Profiles: filterActions(Profiles, [...profileActionsList, ...globalActionsList]),
-    Proxies: filterActions(Proxies, [...sharedActionsList, ...globalActionsList]),
+    Proxies: filterActions(Proxies, [...proxiesActionsList, ...globalActionsList]),
     Sites: filterActions(Sites, appActionsList),
-    Shipping: filterActions(Shipping, [
-      ...shippingActionsList,
-      ...sharedActionsList,
+    Shipping: filterActions(Shipping, [...shippingActionsList, ...globalActionsList]),
+    Tasks: filterActions(Tasks, [
+      ...taskListActionsList,
+      ...profileActionsNeededForTask,
       ...globalActionsList,
     ]),
-    Tasks: filterActions(Tasks, [...taskListActionsList, ...globalActionsList]),
-    CurrentTask: filterActions(CurrentTask, [...taskActionsList, ...globalActionsList]),
-    Webhooks: filterActions(Webhooks, [
-      ...webhookActionsList,
-      ...sharedActionsList,
+    CurrentTask: filterActions(CurrentTask, [
+      ...taskActionsList,
+      ...profileActionsNeededForTask,
       ...globalActionsList,
     ]),
+    Webhooks: filterActions(Webhooks, [...webhookActionsList, ...globalActionsList]),
     ...asyncReducers,
   });
 

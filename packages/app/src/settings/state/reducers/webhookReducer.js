@@ -1,9 +1,4 @@
-import {
-  SHARED_ACTIONS,
-  WEBHOOK_ACTIONS,
-  GLOBAL_ACTIONS,
-  SETTINGS_FIELDS,
-} from '../../../store/actions';
+import { WEBHOOK_ACTIONS, GLOBAL_ACTIONS, SETTINGS_FIELDS } from '../../../store/actions';
 import { CurrentWebhook } from '../initial';
 
 export default function webhookReducer(state = CurrentWebhook, action = {}) {
@@ -13,7 +8,7 @@ export default function webhookReducer(state = CurrentWebhook, action = {}) {
     return CurrentWebhook;
   }
 
-  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
+  if (type === WEBHOOK_ACTIONS.EDIT_WEBHOOK) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_WEBHOOK_NAME:
         return { ...state, name: value };

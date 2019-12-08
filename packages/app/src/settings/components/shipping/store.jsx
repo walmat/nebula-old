@@ -67,9 +67,13 @@ StoreSelect.propTypes = {
   placeholder: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
   theme: PropTypes.string.isRequired,
-  store: PropTypes.objectOf(PropTypes.any).isRequired,
+  store: PropTypes.objectOf(PropTypes.any),
   sites: PropTypes.arrayOf(PropTypes.any).isRequired,
   onChange: PropTypes.func.isRequired,
+};
+
+StoreSelect.defaultProps = {
+  store: null,
 };
 
 export const mapStateToProps = state => ({
@@ -81,7 +85,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onChange: changes => {
-    dispatch(settingsActions.edit(changes.field, changes.value, changes.sites));
+    dispatch(settingsActions.editShipping(changes.field, changes.value, changes.sites));
   },
 });
 

@@ -3,6 +3,7 @@ import { _getId, States } from '../../../constants/tasks';
 import parseProductType from '../../../utils/parseProductType';
 import { TASK_LIST_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Tasks } from '../initial';
+import { PROFILE_ACTIONS } from '../../../profiles/state/actions';
 
 export default (state = Tasks, action) => {
   const { type } = action;

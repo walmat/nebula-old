@@ -20,7 +20,7 @@ const TaskMode = ({ type, onToggle }) => (
 
 TaskMode.propTypes = {
   onToggle: PropTypes.func.isRequired,
-  type: PropTypes.objectOf(PropTypes.any).isRequired,
+  type: PropTypes.string.isRequired,
 };
 
 export const mapStateToProps = state => ({

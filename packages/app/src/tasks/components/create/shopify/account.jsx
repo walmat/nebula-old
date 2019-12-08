@@ -74,8 +74,12 @@ const AccountSelect = ({ theme, account, accounts, onSelect }) => {
 AccountSelect.propTypes = {
   onSelect: PropTypes.func.isRequired,
   accounts: PropTypes.arrayOf(PropTypes.any).isRequired,
-  account: PropTypes.objectOf(PropTypes.any).isRequired,
+  account: PropTypes.objectOf(PropTypes.any),
   theme: PropTypes.string.isRequired,
+};
+
+AccountSelect.defaultProps = {
+  account: null,
 };
 
 export const mapStateToProps = state => ({

@@ -1,4 +1,4 @@
-import { SHARED_ACTIONS, GLOBAL_ACTIONS, SETTINGS_FIELDS } from '../../../store/actions';
+import { PROXIES_ACTIONS, GLOBAL_ACTIONS, SETTINGS_FIELDS } from '../../../store/actions';
 import { Proxies } from '../initial';
 
 export default function proxiesReducer(state = Proxies, action = {}) {
@@ -8,7 +8,7 @@ export default function proxiesReducer(state = Proxies, action = {}) {
     return Proxies;
   }
 
-  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
+  if (type === PROXIES_ACTIONS.EDIT_PROXIES) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_PROXIES: {
         const { value } = action;

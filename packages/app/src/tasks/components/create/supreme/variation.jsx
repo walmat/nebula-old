@@ -27,7 +27,7 @@ const VariationField = ({ theme, variation, onChange }) => (
 VariationField.propTypes = {
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
-  variation: PropTypes.objectOf(PropTypes.any).isRequired,
+  variation: PropTypes.string.isRequired,
 };
 
 export const mapStateToProps = state => ({

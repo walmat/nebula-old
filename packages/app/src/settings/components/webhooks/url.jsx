@@ -29,7 +29,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onChange: changes => {
-    dispatch(settingsActions.edit(changes.field, changes.value));
+    dispatch(settingsActions.editWebhook(changes.field, changes.value));
   },
 });
 

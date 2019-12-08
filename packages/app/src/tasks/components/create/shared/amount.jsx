@@ -26,7 +26,7 @@ const AmountField = ({ theme, amount, onChange }) => (
 AmountField.propTypes = {
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
-  amount: PropTypes.objectOf(PropTypes.any).isRequired,
+  amount: PropTypes.number.isRequired,
 };
 
 export const mapStateToProps = state => ({

@@ -32,7 +32,7 @@ const OneCheckout = ({ oneCheckout, onToggle }) => (
 
 OneCheckout.propTypes = {
   onToggle: PropTypes.func.isRequired,
-  oneCheckout: PropTypes.objectOf(PropTypes.any).isRequired,
+  oneCheckout: PropTypes.bool.isRequired,
 };
 
 export const mapStateToProps = state => ({

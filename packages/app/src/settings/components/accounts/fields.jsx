@@ -60,7 +60,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onEdit: changes => {
-    dispatch(settingsActions.edit(changes.field, changes.value));
+    dispatch(settingsActions.editAccount(changes.field, changes.value));
   },
 });
 

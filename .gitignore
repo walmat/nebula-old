@@ -11,6 +11,7 @@ coverage/
 # production
 build/
 # misc
+.VSCodeCounter/
 .env.local
 .env.development.local
 .env.test.local
