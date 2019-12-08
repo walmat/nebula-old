@@ -9,19 +9,15 @@ import CreateButton from '../shared/button';
 
 const SupremeOptions = () => (
   <>
-    <div className="col col--expand tasks--create__input-group">
-      <div className="row row--gutter">
-        <CategorySelect />
-        <VariationField />
-        <CheckoutDelayField />
-      </div>
+    <div className="row row--start row--expand">
+      <CategorySelect />
+      <VariationField />
+      <CheckoutDelayField />
     </div>
-    <div className="col col--expand tasks--create__input-group">
-      <div className="row row--gutter">
-        <Captcha />
-        <AmountField />
-        <CreateButton />
-      </div>
+    <div className="row row--start row--expand">
+      <Captcha />
+      <AmountField />
+      <CreateButton />
     </div>
   </>
 );

@@ -11,8 +11,8 @@ import { ReactComponent as Restocks } from '../../../../styles/images/tasks/rest
 
 const RestockMode = ({ restockMode, onToggle }) => (
   <div
-    className="col col--end col--no-gutter-left"
-    style={{ marginBottom: '4.5px' }}
+    className="col col--no-gutter-left"
+    style={{ marginBottom: 18, flexGrow: 1 }}
     onClick={() => onToggle()}
     role="button"
     tabIndex={0}

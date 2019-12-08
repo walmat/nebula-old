@@ -10,20 +10,16 @@ import CreateButton from '../shared/button';
 
 const ShopifyOptions = () => (
   <>
-    <div className="col col--expand tasks--create__input-group">
-      <div className="row row--gutter">
-        <AccountSelect />
-        <OneCheckout />
-        <RestockMode />
-      </div>
+    <div className="row row--start row--expand">
+      <AccountSelect />
+      <OneCheckout />
+      <RestockMode />
     </div>
-    <div className="col col--expand tasks--create__input-group">
-      <div className="row row--gutter">
-        <TaskMode />
-        <Captcha />
-        <AmountField />
-        <CreateButton />
-      </div>
+    <div className="row row--start row--expand">
+      <TaskMode />
+      <Captcha />
+      <AmountField />
+      <CreateButton />
     </div>
   </>
 );

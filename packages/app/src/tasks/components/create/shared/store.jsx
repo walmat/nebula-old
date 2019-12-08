@@ -20,7 +20,7 @@ import {
 } from '../../../../styles/components/select';
 import { buildStyle } from '../../../../styles';
 
-const handleCreateStore = (event, field, onChange) => {
+const handleCreateStore = (event, onChange) => {
   const newStore = createStore(event);
 
   if (!newStore) {
@@ -39,12 +39,12 @@ const StoreSelect = ({ theme, store, sites, onSelect }) => {
   }
 
   return (
-    <div className="col col--expand col--no-gutter tasks--create__input-group--store">
-      <p className="tasks--create__label">Store</p>
+    <div className="col col--start col--expand">
+      <p className={`create-tasks__label--${theme}`}>Store</p>
       <CreatableSelect
         isClearable={false}
         required
-        className="tasks--create__input tasks--create__input--field"
+        className="create-tasks__select"
         classNamePrefix="select"
         placeholder="Choose Store"
         components={{

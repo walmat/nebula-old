@@ -22,11 +22,12 @@ import {
 import { buildProfileOptions } from '../../../../constants/selects';
 import { buildStyle } from '../../../../styles';
 
-const onChange = (event, onSelect) => {
-  if (!event) {
-    return onSelect(event);
+const onChange = (event, profiles, onSelect) => {
+  const profile = profiles.find(p => p.id === event.value);
+  if (!profile) {
+    return null;
   }
-  return onSelect(event.value);
+  return onSelect(profile);
 };
 
 const ProfileSelect = ({ theme, profile, profiles, onSelect }) => {
@@ -39,11 +40,11 @@ const ProfileSelect = ({ theme, profile, profiles, onSelect }) => {
   }
 
   return (
-    <div className="col col--expand col--no-gutter" style={{ flexGrow: 5 }}>
-      <p className="tasks--create__label">Billing Profile</p>
+    <div className="col col--start col--expand" style={{ flexGrow: 3 }}>
+      <p className={`create-tasks__label--${theme}`}>Billing Profile</p>
       <Select
         required
-        className="tasks--create__input tasks--create__input--field"
+        className="create-tasks__select"
         classNamePrefix="select"
         placeholder="Choose Profile"
         components={{
@@ -55,7 +56,7 @@ const ProfileSelect = ({ theme, profile, profiles, onSelect }) => {
           MenuList,
         }}
         styles={colourStyles(theme, buildStyle(false, null))}
-        onChange={e => onChange(e, onSelect)}
+        onChange={e => onChange(e, profiles, onSelect)}
         value={profileValue}
         options={buildProfileOptions(profiles)}
         data-private

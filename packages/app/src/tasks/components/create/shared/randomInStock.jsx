@@ -6,29 +6,27 @@ import { TASK_FIELDS, taskActions } from '../../../../store/actions';
 import { makeCurrentTask } from '../../../state/selectors';
 
 import { renderSvgIcon } from '../../../../utils';
-import { ReactComponent as NotRestocks } from '../../../../styles/images/tasks/restocks-off.svg';
-import { ReactComponent as Restocks } from '../../../../styles/images/tasks/restocks.svg';
+import { ReactComponent as NotRandomInStock } from '../../../../styles/images/tasks/random-off.svg';
+import { ReactComponent as RandomInStock } from '../../../../styles/images/tasks/random.svg';
 
 const RandomInStockToggle = ({ randomInStock, onToggle }) => (
-  <div
-    className="col col--expand col--end col--no-gutter tasks--create__input-group--filter"
-    style={{ flexGrow: 1 }}
-  >
+  <div className="col col--expand col--no-gutter" style={{ flexGrow: 1 }}>
     <div
-      className="col col--end col--gutter"
+      className="col col--gutter"
+      style={{ marginBottom: 15 }}
       onClick={() => onToggle()}
       role="button"
       tabIndex={0}
       onKeyPress={() => {}}
     >
       {randomInStock
-        ? renderSvgIcon(Restocks, {
+        ? renderSvgIcon(RandomInStock, {
             alt: '',
-            title: 'Restock Mode',
+            title: 'Random In Stock',
           })
-        : renderSvgIcon(NotRestocks, {
+        : renderSvgIcon(NotRandomInStock, {
             alt: '',
-            title: 'Not Restock Mode',
+            title: 'Not Random In Stock',
           })}
     </div>
   </div>

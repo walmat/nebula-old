@@ -9,7 +9,7 @@ import { TASK_FIELDS, taskActions } from '../../../../store/actions';
 import { makeCurrentTask } from '../../../state/selectors';
 
 const ForceCaptcha = ({ captcha, onToggle }) => (
-  <div className="col col--expand col--no-gutter">
+  <div className="col col--start col--expand" style={{ marginTop: 8 }}>
     <Switch
       checked={captcha}
       checkedIcon={

@@ -45,8 +45,8 @@ const AccountSelect = ({ theme, account, accounts, onSelect }) => {
   }
 
   return (
-    <div className="col col--expand col--no-gutter">
-      <p className="tasks--create__label">Account</p>
+    <div className="col col--start col--expand" style={{ flexGrow: 5 }}>
+      <p className={`create-tasks__label--${theme}`}>Account</p>
       <Select
         isClearable
         backspaceRemovesValue
@@ -64,7 +64,7 @@ const AccountSelect = ({ theme, account, accounts, onSelect }) => {
         onChange={e => onChange(e, onSelect)}
         value={accountValue}
         options={buildAccountOptions(accounts)}
-        className="tasks--create__input tasks--create__input--field"
+        className="create-tasks__select"
         classNamePrefix="select"
       />
     </div>

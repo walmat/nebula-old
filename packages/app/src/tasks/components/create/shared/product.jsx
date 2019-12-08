@@ -3,16 +3,16 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { TASK_FIELDS, taskActions } from '../../../../store/actions';
-import { makeSites } from '../../../../app/state/selectors';
+import { makeSites, makeTheme } from '../../../../app/state/selectors';
 import { makeCurrentTask } from '../../../state/selectors';
 
 import { buildStyle } from '../../../../styles';
 
-const ProductField = ({ product, sites, onChange }) => (
-  <div className="col col--expand">
-    <p className="tasks--create__label">Product</p>
+const ProductField = ({ theme, product, sites, onChange }) => (
+  <div className="col col--start col--expand">
+    <p className={`create-tasks__label--${theme}`}>Product</p>
     <input
-      className="tasks--create__input tasks--create__input--bordered tasks--create__input--field"
+      className={`create-tasks__input--${theme}`}
       type="text"
       placeholder="Variant, Keywords, Link"
       onChange={e => onChange(e.target.value, sites)}
@@ -24,12 +24,14 @@ const ProductField = ({ product, sites, onChange }) => (
 );
 
 ProductField.propTypes = {
+  theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   sites: PropTypes.arrayOf(PropTypes.any).isRequired,
   product: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 const mapStateToProps = state => ({
+  theme: makeTheme(state),
   sites: makeSites(state),
   product: makeCurrentTask(state).product,
 });
