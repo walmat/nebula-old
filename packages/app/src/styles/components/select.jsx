@@ -5,7 +5,7 @@ import { components } from 'react-select';
 import React from 'react';
 import { ReactComponent as DropDownClosed } from '../images/dd-down.svg';
 import { ReactComponent as DropDownOpened } from '../images/dd-up.svg';
-import { THEMES, mapThemeToColor, mapToNextTheme } from '../../constants/themes';
+import { THEMES, mapThemeToColor, mapToNextTheme } from '../../constants';
 import { renderSvgIcon } from '../../utils/index';
 
 export const DropdownIndicator = props => (

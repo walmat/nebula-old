@@ -1,4 +1,4 @@
-import { THEMES } from '../../../constants/themes';
+import { THEMES } from '../../../constants';
 
 export const App = {
   theme: THEMES.LIGHT,

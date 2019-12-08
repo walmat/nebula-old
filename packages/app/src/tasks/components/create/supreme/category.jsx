@@ -9,7 +9,7 @@ import { makeTheme } from '../../../../app/state/selectors';
 import { makeAccounts } from '../../../../settings/state/selectors';
 import { makeCurrentTask } from '../../../state/selectors';
 
-import { buildCategoryOptions } from '../../../../constants/selects';
+import { buildCategoryOptions } from '../../../../constants';
 
 import {
   DropdownIndicator,

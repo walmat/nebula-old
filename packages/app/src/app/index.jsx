@@ -13,12 +13,16 @@ import Profiles from '../profiles';
 import Settings from '../settings';
 
 import { ROUTES, taskActions, appActions } from '../store/actions';
-import { fetchSites } from '../constants/app';
-import { THEMES, mapBackgroundThemeToColor, mapToNextTheme } from '../constants/themes';
+import {
+  THEMES,
+  mapBackgroundThemeToColor,
+  mapToNextTheme,
+  fetchSites,
+  States,
+} from '../constants';
 
 // Styles
 import '../styles/index.scss';
-import { States } from '../constants/tasks';
 
 export class App extends PureComponent {
   constructor(props) {

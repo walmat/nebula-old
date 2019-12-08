@@ -32,8 +32,12 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => (
       >
         {`${task.product.raw} ${task.product.variation ? `/ ${task.product.variation}` : ''}`}
       </div>
-      <div className="col col--no-gutter tasks-row__store">{task.store.name}</div>
-      <div className="col col--no-gutter tasks-row__profile">{task.profile.name}</div>
+      <div className="col col--no-gutter tasks-row__store">
+        {task.store ? task.store.name : 'None'}
+      </div>
+      <div className="col col--no-gutter tasks-row__profile">
+        {task.profile ? task.profile.name : 'None'}
+      </div>
       <div className="col col--no-gutter tasks-row__sizes">{task.size}</div>
       <div className="col col--no-gutter tasks-row__status">{task.message}</div>
     </div>

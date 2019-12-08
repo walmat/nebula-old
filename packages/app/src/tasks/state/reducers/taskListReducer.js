@@ -1,9 +1,7 @@
-import PLATFORMS from '../../../constants/platforms';
-import { _getId, States } from '../../../constants/tasks';
+import { _getId, States, Platforms } from '../../../constants';
 import parseProductType from '../../../utils/parseProductType';
 import { TASK_LIST_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Tasks } from '../initial';
-import { PROFILE_ACTIONS } from '../../../profiles/state/actions';
 
 export default (state = Tasks, action) => {
   const { type } = action;
@@ -30,12 +28,12 @@ export default (state = Tasks, action) => {
 
     // trim some fat off the task object..
     switch (newTask.platform) {
-      case PLATFORMS.Supreme: {
+      case Platforms.Supreme: {
         delete newTask.type;
         delete newTask.account;
         break;
       }
-      case PLATFORMS.Shopify: {
+      case Platforms.Shopify: {
         delete newTask.product.variation;
         delete newTask.checkoutDelay;
         delete newTask.category;

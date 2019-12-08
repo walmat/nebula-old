@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { makeCurrentWebhook } from '../../state/selectors';
 import { settingsActions } from '../../../store/actions';
 
-import HOOK_TYPES from '../../../constants/hooks';
+import { HookTypes } from '../../../constants';
 
 const Button = ({ type, label, onClick }) => (
   <button
@@ -30,11 +30,11 @@ const onTest = ({ url }) => {
     url &&
     /https:\/\/hooks\.slack\.com\/services\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[a-zA-Z-0-9]*/.test(url)
   ) {
-    return window.Bridge.sendWebhookTestMessage(url, HOOK_TYPES.slack);
+    return window.Bridge.sendWebhookTestMessage(url, HookTypes.slack);
   }
 
   if (url && /https:\/\/discordapp.com\/api\/webhooks\/[0-9]+\/[a-zA-Z-0-9]*/.test(url)) {
-    return window.Bridge.sendWebhookTestMessage(url, HOOK_TYPES.discord);
+    return window.Bridge.sendWebhookTestMessage(url, HookTypes.discord);
   }
   return null;
 };

@@ -1,5 +1,4 @@
-import { Types, States } from '../../../constants/tasks';
-import Platforms from '../../../constants/platforms';
+import { Types, States, Platforms } from '../../../constants';
 
 export const CurrentTask = {
   id: null,

@@ -17,7 +17,7 @@ import { makeTheme } from '../../../app/state/selectors';
 import { makeAccounts, makeCurrentAccount } from '../../state/selectors';
 
 import { settingsActions } from '../../../store/actions';
-import { buildAccountListOptions } from '../../../constants/selects';
+import { buildAccountListOptions } from '../../../constants';
 
 import { buildStyle } from '../../../styles';
 

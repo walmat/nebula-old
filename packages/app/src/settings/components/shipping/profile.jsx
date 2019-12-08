@@ -13,7 +13,7 @@ import {
   colourStyles,
 } from '../../../styles/components/select';
 
-import { buildProfileOptions } from '../../../constants/selects';
+import { buildProfileOptions } from '../../../constants';
 
 import { makeProfiles } from '../../../profiles/state/selectors';
 import { makeTheme } from '../../../app/state/selectors';

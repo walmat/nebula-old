@@ -8,18 +8,12 @@ import {
   IndicatorSeparator,
   colourStyles,
 } from '../../../styles/components/select';
-import addTestId from '../../../utils/addTestId';
 import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../../store/actions';
 
 export class ShippingRatesPrimitive extends PureComponent {
   static renderButton(type, onClick, label) {
     return (
-      <button
-        type="button"
-        className={`profiles-rates__input-group--${type}`}
-        onClick={onClick}
-        data-testid={addTestId(`ShippingRates.button.${type}`)}
-      >
+      <button type="button" className={`profiles-rates__input-group--${type}`} onClick={onClick}>
         {label}
       </button>
     );
@@ -87,7 +81,6 @@ export class ShippingRatesPrimitive extends PureComponent {
         onChange={this.createOnChangeHandler(field)}
         value={value}
         options={options}
-        data-testid={addTestId(`ShippingRates.input.${type}`)}
         data-private
       />
     );
@@ -131,7 +124,6 @@ export class ShippingRatesPrimitive extends PureComponent {
             disabled
             value={rateValue ? rateValue.value : ''}
             placeholder=""
-            data-testid={addTestId('ShippingRates.input.rate')}
             data-private
           />
           <input
@@ -140,7 +132,6 @@ export class ShippingRatesPrimitive extends PureComponent {
             disabled
             value={rateValue ? rateValue.price : ''}
             placeholder=""
-            data-testid={addTestId('ShippingRates.input.price')}
             data-private
           />
         </div>

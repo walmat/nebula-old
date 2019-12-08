@@ -2,8 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import defaultHarvesterOptions from '../../constants/captcha';
-import PLATFORMS from '../../constants/platforms';
+import { Platforms, harvesterDefaults } from '../../constants';
 import { openCaptchaWindow, closeWindows } from '../../constants/bridgeFns';
 
 const HarvestersRow = ({ className, onClick, label }) => (
@@ -24,12 +23,12 @@ const Harvesters = ({ theme }) => (
   <>
     <HarvestersRow
       className="navbar__button--open-captcha"
-      onClick={() => openCaptchaWindow({ ...defaultHarvesterOptions[PLATFORMS.Supreme], theme })}
+      onClick={() => openCaptchaWindow({ ...harvesterDefaults[Platforms.Supreme], theme })}
       label="Supreme"
     />
     <HarvestersRow
       className="navbar__button--open-captcha"
-      onClick={() => openCaptchaWindow({ ...defaultHarvesterOptions[PLATFORMS.Shopify], theme })}
+      onClick={() => openCaptchaWindow({ ...harvesterDefaults[Platforms.Shopify], theme })}
       label="Shopify"
     />
     <HarvestersRow

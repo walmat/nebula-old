@@ -16,7 +16,7 @@ import {
 import { makeTheme, makeShopifySites } from '../../../app/state/selectors';
 import { makeProfiles } from '../../../profiles/state/selectors';
 import { settingsActions, SETTINGS_FIELDS } from '../../../store/actions';
-import { createStore } from '../../../constants/tasks';
+import { createStore } from '../../../constants';
 import { buildStyle } from '../../../styles';
 
 const handleCreateStore = (event, field, onChange) => {

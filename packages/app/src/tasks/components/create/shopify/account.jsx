@@ -19,7 +19,7 @@ import {
   colourStyles,
 } from '../../../../styles/components/select';
 
-import { buildAccountOptions } from '../../../../constants/selects';
+import { buildAccountOptions } from '../../../../constants';
 import { buildStyle } from '../../../../styles';
 
 const onChange = (event, onSelect) => {

@@ -1,5 +1,5 @@
 import { globalActions } from '../store/actions';
-import { mapBackgroundThemeToColor } from './themes';
+import { mapBackgroundThemeToColor } from '.';
 
 export const getAppData = () => {
   if (window.Bridge) {

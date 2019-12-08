@@ -7,7 +7,7 @@ import { TASK_FIELDS, taskActions } from '../../../../store/actions';
 import { makeSites, makeTheme } from '../../../../app/state/selectors';
 import { makeCurrentTask } from '../../../state/selectors';
 
-import { createStore } from '../../../../constants/tasks';
+import { createStore } from '../../../../constants';
 
 import {
   DropdownIndicator,

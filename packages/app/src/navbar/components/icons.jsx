@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-import defaultProps from '../../constants/navbar';
+import { navbarDefaults } from '../../constants';
 import { navbarActions, NAVBAR_ACTIONS, mapActionsToRoutes } from '../../store/actions';
 import { renderSvgIcon } from '../../utils';
 
@@ -67,7 +67,7 @@ const NavbarIconRows = ({ location, history, onRoute }) =>
         onRoute={onRoute}
         history={history}
         location={location}
-        render={defaultProps[route]}
+        render={navbarDefaults[route]}
       />
     ),
   );

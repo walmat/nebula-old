@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { CurrentTask, Tasks } from '../initial';
-import { States } from '../../../constants/tasks';
+import { States } from '../../../constants';
 
 export const makeTasks = createSelector(
   state => state.Tasks || Tasks,

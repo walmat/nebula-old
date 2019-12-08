@@ -7,7 +7,7 @@ import SupremeFields from './supreme';
 
 import { makeCurrentTask } from '../../state/selectors';
 
-import Platforms from '../../../constants/platforms';
+import { Platforms } from '../../../constants';
 
 const PlatformFields = ({ platform }) => {
   switch (platform) {

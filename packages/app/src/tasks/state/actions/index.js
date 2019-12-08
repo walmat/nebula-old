@@ -1,7 +1,10 @@
 import makeActionCreator from '../../../store/creator';
 import prefixer from '../../../store/reducers/prefixer';
 
-import { States } from '../../../constants/tasks';
+const States = {
+  Running: 'RUNNING',
+  Stopped: 'STOPPED',
+};
 
 const prefix = '@@Task';
 const tasksActions = ['EDIT_TASK'];

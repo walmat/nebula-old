@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { makeTheme } from '../../../app/state/selectors';
-import { THEMES } from '../../../constants/themes';
+import { THEMES } from '../../../constants';
 
 import ModalBody from './modal';
 

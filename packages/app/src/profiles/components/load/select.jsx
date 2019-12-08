@@ -16,7 +16,7 @@ import {
 import { makeTheme } from '../../../app/state/selectors';
 import { makeCurrentProfile, makeProfiles } from '../../state/selectors';
 import { profileActions } from '../../../store/actions';
-import { buildProfileOptions } from '../../../constants/selects';
+import { buildProfileOptions } from '../../../constants';
 import { buildStyle } from '../../../styles';
 
 const onChange = (e, profiles, onSelect) => {
