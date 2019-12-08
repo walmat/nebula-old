@@ -25,8 +25,6 @@ export default (state = App, action) => {
 
       return { ...state, theme };
     }
-    case APP_ACTIONS.TOGGLE_CREATE:
-      return { ...state, toggleCreate: !state.toggleCreate };
     default:
       return state;
   }

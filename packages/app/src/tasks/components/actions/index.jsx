@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import Delays from '../delays';
-import { appActions } from '../../../app/state/actions';
+import CreateModal from '../create';
+
 import { taskActions } from '../../state/actions';
 import { makeSelectedTasks } from '../../state/selectors';
 import { makeDelays, makeProxies } from '../../../settings/state/selectors';
@@ -13,6 +14,11 @@ class ActionBar extends Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      show: false,
+    };
+
+    this._toggleCreate = this._toggleCreate.bind(this);
     this._handleKeyPress = this._handleKeyPress.bind(this);
   }
 
@@ -115,8 +121,17 @@ class ActionBar extends Component {
     return null;
   }
 
+  _toggleCreate() {
+    const { show } = this.state;
+
+    this.setState({ show: !show });
+  }
+
   render() {
-    const { toggleCreate, tasks, delays, proxies } = this.props;
+    const { tasks, delays, proxies } = this.props;
+
+    const { show } = this.state;
+
     return (
       <div className="row" style={{ marginTop: 15 }}>
         <div className="row row--gutter" style={{ justifyContent: 'center' }}>
@@ -126,7 +141,7 @@ class ActionBar extends Component {
               type="button"
               tabIndex={0}
               onKeyPress={() => {}}
-              onClick={toggleCreate}
+              onClick={() => this._toggleCreate()}
             >
               Create
             </button>
@@ -164,6 +179,7 @@ class ActionBar extends Component {
               Remove
             </button>
           </div>
+          <CreateModal show={show} toggleCreate={this._toggleCreate}/>
           <Delays />
         </div>
       </div>
@@ -172,7 +188,6 @@ class ActionBar extends Component {
 }
 
 ActionBar.propTypes = {
-  toggleCreate: PropTypes.func.isRequired,
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
   delays: PropTypes.objectOf(PropTypes.any).isRequired,
   proxies: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -183,14 +198,12 @@ ActionBar.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  toggleCreate: state.App.toggleCreate,
   tasks: makeSelectedTasks(state),
   delays: makeDelays(state),
   proxies: makeProxies(state),
 });
 
 const mapDispatchToProps = dispatch => ({
-  toggleCreate: () => dispatch(appActions.toggleCreate()),
   select: tasks => dispatch(taskActions.selectAll(tasks)),
   start: (tasks, delays, proxies) => dispatch(taskActions.start(tasks, delays, proxies)),
   stop: tasks => dispatch(taskActions.stop(tasks)),

@@ -77,7 +77,7 @@ const _stopTasks = makeActionCreator(TASK_LIST_ACTIONS.STOP_TASKS, 'response');
 const _removeTask = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_TASKS, 'response');
 
 // Public Actions
-const createTask = makeActionCreator(TASK_LIST_ACTIONS.CREATE_TASK, 'response');
+const createTask = makeActionCreator(TASK_LIST_ACTIONS.CREATE_TASK, 'task');
 const duplicateTask = makeActionCreator(TASK_LIST_ACTIONS.DUPLICATE_TASK, 'response');
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT_TASK, 'id', 'field', 'value', 'sites');
 const selectTask = makeActionCreator(TASK_LIST_ACTIONS.SELECT_TASK, 'ctrl', 'task');

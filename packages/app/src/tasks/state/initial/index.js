@@ -1,8 +1,10 @@
 import { Types, States } from '../../../constants/tasks';
+import Platforms from '../../../constants/platforms';
 
 export const CurrentTask = {
   id: null,
   store: null,
+  platform: Platforms.Shopify,
   type: Types.SAFE,
   product: {
     raw: '',
