@@ -2,7 +2,6 @@ import React from 'react';
 
 import ActionBar from './components/actions';
 import TaskTable from './components/table';
-import CreateModal from './components/create';
 
 import '../styles/index.scss';
 import './styles/index.scss';
@@ -25,7 +24,6 @@ const Tasks = () => (
             </div>
           </div>
         </div>
-        <CreateModal />
         <ActionBar />
       </div>
     </div>

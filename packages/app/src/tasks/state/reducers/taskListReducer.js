@@ -12,15 +12,9 @@ export default (state = Tasks, action) => {
   }
 
   if (type === TASK_LIST_ACTIONS.CREATE_TASK) {
-    const { response } = action;
+    const { task } = action;
 
-    if (!response) {
-      return state;
-    }
-
-    const { task, amount } = response;
-
-    if (!task || !amount) {
+    if (!task) {
       return state;
     }
 
@@ -49,6 +43,8 @@ export default (state = Tasks, action) => {
       default:
         break;
     }
+
+    const { amount } = task;
 
     const newTasks = [...Array(amount)].map(() => {
       const { id } = _getId(state);
