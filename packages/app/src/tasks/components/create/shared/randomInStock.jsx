@@ -34,7 +34,7 @@ const RandomInStockToggle = ({ randomInStock, onToggle }) => (
 
 RandomInStockToggle.propTypes = {
   onToggle: PropTypes.func.isRequired,
-  randomInStock: PropTypes.objectOf(PropTypes.any).isRequired,
+  randomInStock: PropTypes.bool.isRequired,
 };
 
 export const mapStateToProps = state => ({

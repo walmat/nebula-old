@@ -35,7 +35,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onChange: changes => {
-    dispatch(settingsActions.edit(changes.field, changes.value, changes.sites));
+    dispatch(settingsActions.editShipping(changes.field, changes.value, changes.sites));
   },
 });
 

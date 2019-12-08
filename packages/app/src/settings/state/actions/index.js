@@ -2,15 +2,18 @@ import makeActionCreator from '../../../store/creator';
 import prefixer from '../../../store/reducers/prefixer';
 import parseProductType from '../../../utils/parseProductType';
 
-const sharedPrefix = '@@Settings';
+const delaysPrefix = '@@Delays';
+const proxiesPrefix = '@@Proxies';
 const accountPrefix = '@@Account';
 const webhookPrefix = '@@Webhook';
 const shippingPrefix = '@@Shipping';
 
-const sharedList = ['EDIT_SETTINGS'];
-const accountList = ['CREATE_ACCOUNT', 'DELETE_ACCOUNT', 'SELECT_ACCOUNT'];
-const webhooksList = ['CREATE_WEBHOOK', 'DELETE_WEBHOOK', 'SELECT_WEBHOOK'];
+const delaysList = ['EDIT_DELAYS'];
+const proxiesList = ['EDIT_PROXIES'];
+const accountList = ['EDIT_ACCOUNT', 'CREATE_ACCOUNT', 'DELETE_ACCOUNT', 'SELECT_ACCOUNT'];
+const webhooksList = ['EDIT_WEBHOOK', 'CREATE_WEBHOOK', 'DELETE_WEBHOOK', 'SELECT_WEBHOOK'];
 const shippingList = [
+  'EDIT_SHIPPING',
   'CLEAR_SHIPPING',
   'SETUP_SHIPPING',
   'FETCH_SHIPPING',
@@ -18,18 +21,24 @@ const shippingList = [
   'CLEANUP_SHIPPING',
 ];
 
-export const sharedActionsList = ['@@Settings/EDIT_SETTINGS'];
+export const delaysActionsList = ['@@Delays/EDIT_DELAYS'];
+export const proxiesActionsList = ['@@Proxies/EDIT_PROXIES'];
+
+export const accountActionsNeededForTasks = ['@@Account/DELETE_ACCOUNT'];
 export const accountActionsList = [
+  '@@Account/EDIT_ACCOUNT',
   '@@Account/CREATE_ACCOUNT',
   '@@Account/DELETE_ACCOUNT',
   '@@Account/SELECT_ACCOUNT',
 ];
 export const webhookActionsList = [
+  '@@Webhook/EDIT_WEBHOOK',
   '@@Webhook/CREATE_WEBHOOK',
   '@@Webhook/DELETE_WEBHOOK',
   '@@Webhook/SELECT_WEBHOOK',
 ];
 export const shippingActionsList = [
+  '@@Shipping/EDIT_SHIPPING',
   '@@Shipping/CLEAR_SHIPPING',
   '@@Shipping/SETUP_SHIPPING',
   '@@Shipping/FETCH_SHIPPING',
@@ -37,7 +46,8 @@ export const shippingActionsList = [
   '@@Shipping/CLEANUP_SHIPPING',
 ];
 
-export const SHARED_ACTIONS = prefixer(sharedPrefix, sharedList);
+export const DELAYS_ACTIONS = prefixer(delaysPrefix, delaysList);
+export const PROXIES_ACTIONS = prefixer(proxiesPrefix, proxiesList);
 export const ACCOUNT_ACTIONS = prefixer(accountPrefix, accountList);
 export const WEBHOOK_ACTIONS = prefixer(webhookPrefix, webhooksList);
 export const SHIPPING_ACTIONS = prefixer(shippingPrefix, shippingList);
@@ -90,15 +100,21 @@ const _setupShipping = makeActionCreator(SHIPPING_ACTIONS.SETUP_SHIPPING, 'messa
 const _cleanupShipping = makeActionCreator(SHIPPING_ACTIONS.CLEANUP_SHIPPING, 'message');
 const _stopShipping = makeActionCreator(SHIPPING_ACTIONS.STOP_SHIPPING);
 
-const editSettings = makeActionCreator(SHARED_ACTIONS.EDIT_SETTINGS, 'field', 'value', 'sites');
+const editAccount = makeActionCreator(ACCOUNT_ACTIONS.EDIT_ACCOUNT, 'field', 'value');
 const createAccount = makeActionCreator(ACCOUNT_ACTIONS.CREATE_ACCOUNT, 'account');
 const deleteAccount = makeActionCreator(ACCOUNT_ACTIONS.DELETE_ACCOUNT, 'account');
 const selectAccount = makeActionCreator(ACCOUNT_ACTIONS.SELECT_ACCOUNT, 'account');
+
+const editWebhook = makeActionCreator(WEBHOOK_ACTIONS.EDIT_WEBHOOK, 'field', 'value');
 const createWebhook = makeActionCreator(WEBHOOK_ACTIONS.CREATE_WEBHOOK, 'webhook');
 const deleteWebhook = makeActionCreator(WEBHOOK_ACTIONS.DELETE_WEBHOOK, 'webhook');
 const selectWebhook = makeActionCreator(WEBHOOK_ACTIONS.SELECT_WEBHOOK, 'webhook');
 
+const editShipping = makeActionCreator(SHIPPING_ACTIONS.EDIT_SHIPPING, 'field', 'value', 'sites');
 const clearShipping = makeActionCreator(SHIPPING_ACTIONS.CLEAR_SHIPPING);
+
+const editDelays = makeActionCreator(DELAYS_ACTIONS.EDIT_DELAYS, 'field', 'value');
+const editProxies = makeActionCreator(PROXIES_ACTIONS.EDIT_PROXIES, 'field', 'value');
 
 const fetchShipping = task => dispatch => {
   // Perform the request and handle the response
@@ -132,16 +148,23 @@ const stopShipping = () => dispatch =>
   );
 
 export const settingsActions = {
-  edit: editSettings,
+  editAccount,
   createAccount,
   deleteAccount,
   selectAccount,
+
+  editShipping,
   clearShipping,
+  fetchShipping,
+  stopShipping,
+
+  editWebhook,
   createWebhook,
   deleteWebhook,
   selectWebhook,
-  fetchShipping,
-  stopShipping,
+
+  editDelays,
+  editProxies,
 };
 
 // Field Edits

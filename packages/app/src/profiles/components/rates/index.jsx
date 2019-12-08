@@ -95,10 +95,6 @@ export class ShippingRatesPrimitive extends PureComponent {
 
   renderRateFields() {
     const { value } = this.props;
-
-    if (!value.id) {
-      return null;
-    }
     const siteOptions = value.rates.map(({ site: { url, name } }) => ({ value: url, label: name }));
     let nameOptions = [];
     let siteObject = [];
@@ -158,7 +154,8 @@ export class ShippingRatesPrimitive extends PureComponent {
   }
 
   render() {
-    return (
+    const { value } = this.props;
+    return value.id ? (
       <div className="col col--expand">
         <div className="row row--start">
           <p className="row row--start row--expand body-text section-header profiles-rates__section-header">
@@ -173,7 +170,7 @@ export class ShippingRatesPrimitive extends PureComponent {
           </div>
         </div>
       </div>
-    );
+    ) : null;
   }
 }
 

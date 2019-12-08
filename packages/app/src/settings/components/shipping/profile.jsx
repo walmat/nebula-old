@@ -20,7 +20,14 @@ import { makeTheme } from '../../../app/state/selectors';
 import { settingsActions, SETTINGS_FIELDS } from '../../../store/actions';
 import { buildStyle } from '../../../styles';
 
-const ProfileSelect = ({ placeholder, type, theme, profile, profiles, onChange }) => {
+const onChange = (e, profiles, onSelect) => {
+  const id = e.value;
+  const currentProfile = profiles.find(p => p.id === id);
+
+  onSelect(currentProfile);
+};
+
+const ProfileSelect = ({ placeholder, type, theme, profile, profiles, onSelect }) => {
   let shippingProfileValue = null;
   if (profile && profile.id !== null) {
     shippingProfileValue = {
@@ -41,12 +48,7 @@ const ProfileSelect = ({ placeholder, type, theme, profile, profiles, onChange }
         className={`settings--shipping-manager__input-group--${type}`}
         classNamePrefix="select"
         styles={colourStyles(theme, buildStyle(false, null))}
-        onChange={event =>
-          onChange({
-            field: SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE,
-            value: { name: event.label, url: event.value, apiKey: event.apiKey },
-          })
-        }
+        onChange={e => onChange(e, profiles, onSelect)}
         value={shippingProfileValue}
         options={buildProfileOptions(profiles)}
         data-private
@@ -59,9 +61,13 @@ ProfileSelect.propTypes = {
   placeholder: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
   theme: PropTypes.string.isRequired,
-  profile: PropTypes.objectOf(PropTypes.any).isRequired,
+  profile: PropTypes.objectOf(PropTypes.any),
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
-  onChange: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
+};
+
+ProfileSelect.defaultProps = {
+  profile: null,
 };
 
 export const mapStateToProps = (state, ownProps) => ({
@@ -73,8 +79,8 @@ export const mapStateToProps = (state, ownProps) => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onChange: changes => {
-    dispatch(settingsActions.edit(changes.field, changes.value, changes.sites));
+  onSelect: profile => {
+    dispatch(settingsActions.editShipping(SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE, profile));
   },
 });
 

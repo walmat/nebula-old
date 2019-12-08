@@ -32,7 +32,7 @@ const RestockMode = ({ restockMode, onToggle }) => (
 
 RestockMode.propTypes = {
   onToggle: PropTypes.func.isRequired,
-  restockMode: PropTypes.objectOf(PropTypes.any).isRequired,
+  restockMode: PropTypes.bool.isRequired,
 };
 
 export const mapStateToProps = state => ({

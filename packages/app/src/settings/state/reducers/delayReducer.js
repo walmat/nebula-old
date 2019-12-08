@@ -1,5 +1,5 @@
 import {
-  SHARED_ACTIONS,
+  DELAYS_ACTIONS,
   GLOBAL_ACTIONS,
   SETTINGS_FIELDS,
   mapSettingsFieldToKey,
@@ -13,7 +13,7 @@ export default function delayReducer(state = Delays, action = {}) {
     return Delays;
   }
 
-  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
+  if (type === DELAYS_ACTIONS.EDIT_DELAYS) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_ERROR_DELAY:
       case SETTINGS_FIELDS.EDIT_MONITOR_DELAY: {

@@ -26,7 +26,7 @@ const onChange = (e, profiles, onSelect) => {
   onSelect(currentProfile);
 };
 
-const SelectProfile = ({ theme, currentProfile, profiles, onSelect }) => {
+const ProfileSelect = ({ theme, currentProfile, profiles, onSelect }) => {
   let selectProfileValue = null;
   if (currentProfile.id !== null) {
     selectProfileValue = {
@@ -62,7 +62,7 @@ const SelectProfile = ({ theme, currentProfile, profiles, onSelect }) => {
   );
 };
 
-SelectProfile.propTypes = {
+ProfileSelect.propTypes = {
   theme: PropTypes.string.isRequired,
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
   currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
@@ -82,4 +82,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(SelectProfile);
+)(ProfileSelect);

@@ -13,6 +13,8 @@ const actionsList = [
   'TRANSFER_SHIPPING',
 ];
 
+export const profileActionsNeededForTask = ['@@Profile/REMOVE_PROFILE', '@@Profile/UPDATE_PROFILE'];
+
 export const profileActionsList = [
   '@@Profile/CREATE_PROFILE',
   '@@Profile/REMOVE_PROFILE',

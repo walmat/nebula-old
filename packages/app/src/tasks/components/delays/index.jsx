@@ -32,7 +32,7 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch => ({
-  onDelayChange: changes => dispatch(settingsActions.edit(changes.field, changes.value)),
+  onDelayChange: changes => dispatch(settingsActions.editDelays(changes.field, changes.value)),
 });
 
 export default connect(

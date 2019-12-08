@@ -1,10 +1,5 @@
 import { parseURL } from 'whatwg-url';
-import {
-  SHARED_ACTIONS,
-  SHIPPING_ACTIONS,
-  GLOBAL_ACTIONS,
-  SETTINGS_FIELDS,
-} from '../../../store/actions';
+import { SHIPPING_ACTIONS, GLOBAL_ACTIONS, SETTINGS_FIELDS } from '../../../store/actions';
 import { Shipping } from '../initial';
 
 export default function shippingReducer(state = Shipping, action = {}) {
@@ -14,7 +9,7 @@ export default function shippingReducer(state = Shipping, action = {}) {
     return Shipping;
   }
 
-  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
+  if (type === SHIPPING_ACTIONS.EDIT_SHIPPING) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
         const { value, sites } = action;
@@ -67,6 +62,16 @@ export default function shippingReducer(state = Shipping, action = {}) {
         }
 
         return { ...state, store: value };
+      }
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE: {
+        console.log(action);
+        const { value } = action;
+
+        if (!value) {
+          return state;
+        }
+
+        return { ...state, profile: value };
       }
       default:
         return state;

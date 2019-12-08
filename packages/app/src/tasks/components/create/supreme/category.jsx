@@ -60,7 +60,7 @@ const CategorySelect = ({ category, theme, onSelect }) => {
 };
 
 CategorySelect.propTypes = {
-  category: PropTypes.objectOf(PropTypes.any).isRequired,
+  category: PropTypes.string.isRequired,
   theme: PropTypes.string.isRequired,
   onSelect: PropTypes.func.isRequired,
 };

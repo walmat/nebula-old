@@ -113,6 +113,30 @@
           flex-grow: 5;
           margin-left: 15px !important;
           overflow: hidden;
+
+          &--SAFE {
+            @include input-field;
+            color: #a48a47;
+            width: 100px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            flex-grow: 5;
+            margin-left: 15px !important;
+            overflow: hidden;
+          }
+
+          &--FAST {
+            @include input-field;
+            color: #f79627;
+            width: 100px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            flex-grow: 5;
+            margin-left: 15px !important;
+            overflow: hidden;
+          }
         }
 
         &__store {

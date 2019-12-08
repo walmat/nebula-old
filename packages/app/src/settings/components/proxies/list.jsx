@@ -173,7 +173,7 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = dispatch => ({
   onUpdateProxies: data => {
-    dispatch(settingsActions.edit(SETTINGS_FIELDS.EDIT_PROXIES, data));
+    dispatch(settingsActions.editProxies(SETTINGS_FIELDS.EDIT_PROXIES, data));
   },
 });
 

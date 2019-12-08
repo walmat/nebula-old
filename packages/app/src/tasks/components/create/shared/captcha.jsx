@@ -13,7 +13,7 @@ const ForceCaptcha = ({ captcha, onToggle }) => (
     <Switch
       checked={captcha}
       checkedIcon={
-        <svg width="16" height="16" viewBox="-5 -1 16 16" version="1.1">
+        <svg width="16" height="16" viewBox="-4 -3 16 16" version="1.1">
           <g id="surface1">
             <path
               style={{
@@ -46,7 +46,7 @@ const ForceCaptcha = ({ captcha, onToggle }) => (
         </svg>
       }
       onChange={() => onToggle()}
-      onColor="#F8AC8A"
+      onColor="#ced46e"
       onHandleColor="#F68E5F"
       handleDiameter={14}
       uncheckedIcon={false}
@@ -61,7 +61,7 @@ const ForceCaptcha = ({ captcha, onToggle }) => (
 
 ForceCaptcha.propTypes = {
   onToggle: PropTypes.func.isRequired,
-  captcha: PropTypes.objectOf(PropTypes.any).isRequired,
+  captcha: PropTypes.bool.isRequired,
 };
 
 export const mapStateToProps = state => ({

@@ -28,7 +28,7 @@ const CheckoutDelayField = ({ theme, checkoutDelay, onChange }) => (
 CheckoutDelayField.propTypes = {
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
-  checkoutDelay: PropTypes.objectOf(PropTypes.any).isRequired,
+  checkoutDelay: PropTypes.number.isRequired,
 };
 
 export const mapStateToProps = state => ({

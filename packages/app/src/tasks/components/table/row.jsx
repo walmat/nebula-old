@@ -22,7 +22,14 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => (
           : 'tasks-row row row--expand row--gutter'
       }
     >
-      <div className="col col--no-gutter tasks-row__product" title={task.product.raw}>
+      <div
+        className={
+          task.type
+            ? `col col--no-gutter tasks-row__product--${task.type}`
+            : 'col col--no-gutter tasks-row__product'
+        }
+        title={task.product.raw}
+      >
         {`${task.product.raw} ${task.product.variation ? `/ ${task.product.variation}` : ''}`}
       </div>
       <div className="col col--no-gutter tasks-row__store">{task.store.name}</div>
