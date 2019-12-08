@@ -120,16 +120,18 @@ export default class MonitorPrimitive extends BaseMonitor {
       );
 
       if (!res.ok) {
+        logger.silly('Stock Error');
         const error = new Error('Error getting stock');
         error.status = res.status || res.errno;
         throw error;
       }
 
       const body = await res.json();
-      logger.silly(`Body ${JSON.stringify(body)}`);
+      // logger.silly(`Body ${JSON.stringify(body)}`);
 
       const { sellableUnits, variantAttributes, name } = body;
       if (!sellableUnits) {
+        logger.silly('No sellable units');
         const error = new Error('No sellable units');
         error.status = res.status || res.errno;
         throw error;
@@ -143,11 +145,12 @@ export default class MonitorPrimitive extends BaseMonitor {
       }
 
       const pickedVariant = await pickVariant(sellableUnits, size);
-
       task.product.id = pickedVariant.code;
-      task.product.currency = pickVariant.price.currencyIso;
-      task.product.price = pickVariant.price.value;
-
+      // TODO: uncommenting these are currently causing errors
+      // task.product.currency = pickVariant.price.currencyIso;
+      // task.product.price = pickVariant.price.value;
+      // task.product.image = body.images[0].url;
+      logger.silly(`Product found: ${name}`);
       emitEvent(
         this.context,
         this.context.ids,
