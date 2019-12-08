@@ -40,11 +40,8 @@ const SizeSelect = ({ theme, size, onSelect }) => {
   }
 
   return (
-    <div
-      className="col col--expand col--no-gutter tasks--create__input-group--size"
-      style={{ flexGrow: 3 }}
-    >
-      <p className="tasks--create__label">Size</p>
+    <div className="col col--start col--expand" style={{ flexGrow: 3 }}>
+      <p className={`create-tasks__label--${theme}`}>Size</p>
       <CreatableSelect
         required
         isClearable={false}
@@ -62,7 +59,7 @@ const SizeSelect = ({ theme, size, onSelect }) => {
         onChange={e => onSelect(e.value)}
         value={newSizeValue}
         options={getAllSizes.default()}
-        className="tasks-create__input tasks-create__input--field__short"
+        className="create-tasks__select"
         classNamePrefix="select"
       />
     </div>

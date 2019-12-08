@@ -79,14 +79,23 @@ export default (state = CurrentTask, action = {}) => {
             return state;
           }
 
-          // if we're selecting the same store...
-          // TODO: Should we do a shallow compare instead of just comparing the names?
           if (state.store && value.name && value.name === state.store.name) {
             return state;
           }
 
+          // patch back in the defaults..
+          if (platformForStore(value.url) !== state.platform) {
+            return {
+              ...CurrentTask,
+              ...state,
+              platform: platformForStore(value.url),
+              store: value,
+            };
+          }
+
           return { ...state, platform: platformForStore(value.url), store: value };
         }
+
         case TASK_FIELDS.EDIT_SIZE:
           return { ...state, size: value };
 

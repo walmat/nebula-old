@@ -2,190 +2,144 @@
 @import '../../styles/themes';
 @import '../../styles/mixins';
 
-.tasks {
-  &--create {
-    height: 300px;
-    width: 400px;
-    @include themify($themes) {
-      border-color: themed('tableBorderColor');
-      box-shadow: 0 0 10px themed('liveLogTableBorderTop');
-    }
-    border-width: 0;
-    border-style: solid;
-    border-radius: 5px;
+.create-tasks {
+  height: 300px;
+  width: 400px;
 
-    &__label {
+  @include themify($themes) {
+    border-color: themed('tableBorderColor');
+    box-shadow: 0 0 10px themed('liveLogTableBorderTop');
+  }
+  margin-top: 20px !important;
+  border-width: 0;
+  border-style: solid;
+  border-radius: 5px;
+
+  &__label {
+    @include select-font;
+    height: 12px;
+    margin-top: 0;
+    margin-bottom: 3px;
+
+    &--light {
       @include select-font;
-      @include themify($themes) {
-        color: themed('tableHeaderColor');
-      }
       height: 12px;
       margin-top: 0;
       margin-bottom: 3px;
+      color: #161318;
     }
-
-    &__input-group {
-      padding-bottom: 2px;
+    &--dark {
+      @include select-font;
+      height: 12px;
+      margin-top: 0;
+      margin-bottom: 3px;
+      color: #efefef;
     }
+  }
 
-    &__input {
-      &--bordered {
-        border-width: 1px;
-        border-style: solid;
-
-        @include themify($themes) {
-          background: themed('inputBackground') !important;
-        }
-        &:disabled {
-          @include themify($themes) {
-            background: themed('inputBackgroundDisabled');
-          }
-        }
-      }
-
-      &--variation {
-        height: 29px;
-        max-width: 85px;
-        @media screen and (min-width: 1250px) and (min-height: 745px) {
-          height: 35px !important;
-          transition: ease all 0.5s;
-        }
-
-        @include themify($themes) {
-          background: themed('inputBackground');
-        }
-        &:disabled {
-          @include themify($themes) {
-            background: themed('inputBackgroundDisabled');
-          }
-        }
-        &__short {
-          height: 29px;
-
-          @media screen and (min-width: 1250px) and (min-height: 745px) {
-            transition: ease all 0.5s;
-            height: 35px;
-          }
-
-          @include themify($themes) {
-            background: themed('inputBackground');
-          }
-          &:disabled {
-            @include themify($themes) {
-              background: themed('inputBackgroundDisabled');
-            }
-          }
-        }
-      }
-
-      &--checkout-delay {
-        height: 29px;
-        max-width: 60px;
-        @media screen and (min-width: 1250px) and (min-height: 745px) {
-          height: 35px !important;
-          transition: ease all 0.5s;
-        }
-
-        @include themify($themes) {
-          background: themed('inputBackground');
-        }
-        &:disabled {
-          @include themify($themes) {
-            background: themed('inputBackgroundDisabled');
-          }
-        }
-        &__short {
-          height: 29px;
-
-          @media screen and (min-width: 1250px) and (min-height: 745px) {
-            transition: ease all 0.5s;
-            height: 35px;
-          }
-
-          @include themify($themes) {
-            background: themed('inputBackground');
-          }
-          &:disabled {
-            @include themify($themes) {
-              background: themed('inputBackgroundDisabled');
-            }
-          }
-        }
-      }
-
-      &--field {
-        height: 29px;
-        @media screen and (min-width: 1250px) and (min-height: 745px) {
-          height: 35px !important;
-          transition: ease all 0.5s;
-        }
-
-        @include themify($themes) {
-          background: themed('inputBackground');
-        }
-        &:disabled {
-          @include themify($themes) {
-            background: themed('inputBackgroundDisabled');
-          }
-        }
-        &__short {
-          height: 29px;
-
-          @media screen and (min-width: 1250px) and (min-height: 745px) {
-            transition: ease all 0.5s;
-            height: 35px;
-          }
-
-          @include themify($themes) {
-            background: themed('inputBackground');
-          }
-          &:disabled {
-            @include themify($themes) {
-              background: themed('inputBackgroundDisabled');
-            }
-          }
-        }
-      }
-
-      &--type-FAST {
-        color: #858dbb;
-      }
-
-      &--type-SAFE {
-        color: #8aa27d;
-      }
-
-      &--type-CART {
-        color: #c7b8ea;
-      }
-    }
-
-    &__submit-row {
-      align-self: flex-end;
-    }
-
-    &__amount {
-      width: 44px;
-      height: 29px;
-      cursor: pointer;
+  &__input {
+    &--dark {
       border-width: 1px;
       border-style: solid;
+      background: #2c2f33;
+      color: #efefef;
+    }
+
+    &--light {
+      border-width: 1px;
+      border-style: solid;
+      background: #efefef;
+    }
+
+    &--FAST {
+      text-align: center;
+      color: #65b1cf;
+    }
+
+    &--SAFE {
+      text-align: center;
+      color: #639e3e;
+    }
+  }
+
+  &__select {
+    @include themify($themes) {
+      background: themed('inputBackground') !important;
+    }
+    &:disabled {
+      @include themify($themes) {
+        background: themed('inputBackgroundDisabled');
+      }
+    }
+  }
+
+  &__variation {
+    height: 29px;
+    max-width: 85px;
+    @media screen and (min-width: 1250px) and (min-height: 745px) {
+      height: 35px !important;
+      transition: ease all 0.5s;
+    }
+
+    @include themify($themes) {
+      background: themed('inputBackground');
+    }
+    &:disabled {
+      @include themify($themes) {
+        background: themed('inputBackgroundDisabled');
+      }
+    }
+  }
+
+  &__delay {
+    height: 29px;
+    max-width: 60px;
+    @media screen and (min-width: 1250px) and (min-height: 745px) {
+      height: 35px !important;
+      transition: ease all 0.5s;
+    }
+
+    @include themify($themes) {
+      background: themed('inputBackground');
+    }
+    &:disabled {
+      @include themify($themes) {
+        background: themed('inputBackgroundDisabled');
+      }
+    }
+  }
+
+  &__amount {
+    &--dark {
+      border-width: 1px;
       border-radius: 3px;
+      border-style: solid;
+      background: #2c2f33;
+      color: #efefef;
+      width: 55px;
+      height: 29px;
       @include font-base;
       font-weight: 500;
       text-align: center;
-      @include themify($themes) {
-        background: themed('inputBackground');
-      }
     }
 
-    &__submit {
-      @include button-base;
-      margin-right: -1px;
-      @include themify($themes) {
-        background: themed('buttonColorPrimary');
-      }
-      color: #f4f4f4 !important;
+    &--light {
+      border-width: 1px;
+      border-radius: 3px;
+      border-style: solid;
+      background: #efefef;
+      width: 55px;
+      height: 29px;
+      @include font-base;
+      font-weight: 500;
+      text-align: center;
     }
+  }
+
+  &__submit {
+    @include button-base;
+    margin-right: -1px;
+    background: #f0405e;
+    color: #f4f4f4 !important;
   }
 }

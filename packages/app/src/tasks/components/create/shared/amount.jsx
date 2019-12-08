@@ -7,12 +7,13 @@ import { TASK_FIELDS, taskActions } from '../../../../store/actions';
 import { makeCurrentTask } from '../../../state/selectors';
 
 import { buildStyle } from '../../../../styles';
+import { makeTheme } from '../../../../app/state/selectors';
 
-const AmountField = ({ amount, onChange }) => (
-  <div className="col col--expand col--no-gutter">
+const AmountField = ({ theme, amount, onChange }) => (
+  <div className="col col--start col--expand">
     <input
       type="number"
-      className="tasks--create__amount"
+      className={`create-tasks__amount--${theme}`}
       onChange={e => onChange(e.target.value)}
       value={amount}
       style={buildStyle(false, null)}
@@ -23,11 +24,13 @@ const AmountField = ({ amount, onChange }) => (
 );
 
 AmountField.propTypes = {
+  theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   amount: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 export const mapStateToProps = state => ({
+  theme: makeTheme(state),
   amount: makeCurrentTask(state).amount,
 });
 

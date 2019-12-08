@@ -11,8 +11,8 @@ import { ReactComponent as OneCheckoutIcon } from '../../../../styles/images/tas
 
 const OneCheckout = ({ oneCheckout, onToggle }) => (
   <div
-    className="col col--end col--gutter"
-    style={{ marginBottom: '4px' }}
+    className="col col--gutter"
+    style={{ marginBottom: 18, flexGrow: 1 }}
     onClick={() => onToggle()}
     role="button"
     tabIndex={0}

@@ -7,14 +7,15 @@ import { TASK_FIELDS, taskActions } from '../../../../store/actions';
 import { makeCurrentTask } from '../../../state/selectors';
 
 import { buildStyle } from '../../../../styles';
+import { makeTheme } from '../../../../app/state/selectors';
 
-const CheckoutDelayField = ({ checkoutDelay, onChange }) => (
-  <div className="col col--expand col--no-gutter-right">
-    <p className="tasks--create__label">Delay</p>
+const CheckoutDelayField = ({ theme, checkoutDelay, onChange }) => (
+  <div className="col col--start col--expand" style={{ flexGrow: 0, maxWidth: 60 }}>
+    <p className={`create-tasks__label--${theme}`}>Delay</p>
     <input
       type="number"
       placeholder="0"
-      className="tasks--create__input tasks--create__input--bordered tasks--create__input--checkout-delay"
+      className={`create-tasks__input--${theme}`}
       onChange={e => onChange(e.target.value)}
       value={checkoutDelay}
       style={buildStyle(false, null)}
@@ -25,11 +26,13 @@ const CheckoutDelayField = ({ checkoutDelay, onChange }) => (
 );
 
 CheckoutDelayField.propTypes = {
+  theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   checkoutDelay: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 export const mapStateToProps = state => ({
+  theme: makeTheme(state),
   checkoutDelay: makeCurrentTask(state).checkoutDelay,
 });
 

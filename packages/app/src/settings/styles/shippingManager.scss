@@ -48,6 +48,7 @@
         @include themify($themes) {
           background: themed('buttonColorPrimary') !important;
           color: themed('buttonPrimaryText') !important;
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
         }
         width: 83px !important;
         min-width: 124px;
@@ -62,6 +63,7 @@
         @include themify($themes) {
           background: themed('buttonColorSecondary') !important;
           color: themed('buttonPrimaryText') !important;
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
         }
         width: 83px !important;
       }

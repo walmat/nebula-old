@@ -104,6 +104,7 @@ $randomNumber: random(5);
       @include themify($themes) {
         background: themed('buttonColorPrimary');
         color: themed('buttonPrimaryText');
+        box-shadow: 0 0 5px themed('liveLogTableBorderTop');
       }
       margin-top: 19px;
       width: 75px;
@@ -113,6 +114,7 @@ $randomNumber: random(5);
       @include themify($themes) {
         background: themed('buttonColorSecondary');
         color: themed('buttonPrimaryText');
+        box-shadow: 0 0 5px themed('liveLogTableBorderTop');
       }
       margin-top: 19px;
       width: 75px;

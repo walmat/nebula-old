@@ -44,7 +44,7 @@ const modalStyles = {
       borderRadius: '5px',
       border: 'none',
       boxShadow: '0 0 10px',
-      backgroundColor: '#2c2f33',
+      backgroundColor: '#23272a',
       opacity: 1,
       zIndex: 99999,
     },
@@ -52,7 +52,7 @@ const modalStyles = {
 };
 
 const CreateTaskPrimitive = ({ show, toggleCreate, theme }) => (
-  <Modal isOpen={show} style={modalStyles[theme]} onRequestClose={toggleCreate}>
+  <Modal isOpen={show} style={modalStyles[theme]} onRequestClose={toggleCreate} ariaHideApp={false}>
     <ModalBody toggleCreate={toggleCreate} />
   </Modal>
 );

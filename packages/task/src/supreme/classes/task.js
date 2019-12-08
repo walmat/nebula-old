@@ -410,7 +410,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const body = await res.json();
-      console.log(body);
+
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {

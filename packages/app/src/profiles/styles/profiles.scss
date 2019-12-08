@@ -44,6 +44,7 @@
       @include themify($themes) {
         background: themed('buttonColorPrimary');
         color: themed('buttonPrimaryText');
+        box-shadow: 0 0 5px themed('liveLogTableBorderTop');
       }
       border-radius: 3px;
       border: none;

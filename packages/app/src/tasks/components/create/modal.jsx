@@ -12,19 +12,15 @@ import RandomInStockToggle from './shared/randomInStock';
 const ModalBody = ({ toggleCreate }) => (
   <>
     <CloseModal toggleCreate={toggleCreate} />
-    <div className="tasks--create col col--expand col--no-gutter">
-      <div className="col col--expand tasks--create__input-group">
-        <div className="row row--gutter">
-          <ProductField />
-          <StoreSelect />
-        </div>
+    <div className="create-tasks col col--expand col--no-gutter">
+      <div className="row row--start row--expand">
+        <ProductField />
+        <StoreSelect />
       </div>
-      <div className="col col--expand tasks--create__input-group">
-        <div className="row row--gutter">
-          <ProfileSelect />
-          <SizeSelect />
-          <RandomInStockToggle />
-        </div>
+      <div className="row row--start row--expand">
+        <ProfileSelect />
+        <SizeSelect />
+        <RandomInStockToggle />
       </div>
       <PlatformFields />
     </div>

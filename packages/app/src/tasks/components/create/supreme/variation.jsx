@@ -7,12 +7,13 @@ import { TASK_FIELDS, taskActions } from '../../../../store/actions';
 import { makeCurrentTask } from '../../../state/selectors';
 
 import { buildStyle } from '../../../../styles';
+import { makeTheme } from '../../../../app/state/selectors';
 
-const VariationField = ({ variation, onChange }) => (
-  <div className="col col--end col--no-gutter-right">
-    <p className="tasks--create__label">Variation</p>
+const VariationField = ({ theme, variation, onChange }) => (
+  <div className="col col--start col--expand" style={{ flexGrow: 0 }}>
+    <p className={`create-tasks__label--${theme}`}>Variation</p>
     <input
-      className="tasks--create__input tasks--create__input--bordered tasks--create__input--variation"
+      className={`create-tasks__input--${theme}`}
       type="text"
       placeholder="Color/Style"
       onChange={e => onChange(e.target.value)}
@@ -24,11 +25,13 @@ const VariationField = ({ variation, onChange }) => (
 );
 
 VariationField.propTypes = {
+  theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   variation: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 export const mapStateToProps = state => ({
+  theme: makeTheme(state),
   variation: makeCurrentTask(state).product.variation,
 });
 
