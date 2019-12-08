@@ -22,6 +22,13 @@ import {
   Slack as SupremeSlack,
 } from './supreme';
 
+import {
+  Monitor as FootsitesMonitor,
+  Task as FootsitesTask,
+  Discord as FootsitesDiscord,
+  Slack as FootsitesSlack
+} from './footsites';
+
 const { getParseType } = Parse;
 const { createLogger, registerForEvent, deregisterForEvent, compareProductData } = Utils;
 const { ProxyManager, WebhookManager, CaptchaManager } = Classes;
@@ -395,7 +402,6 @@ export default class TaskManager {
     let monitor;
 
     const { platform, id } = task;
-
     switch (platform) {
       case Platforms.Shopify: {
         const parseType = getParseType(task.product, null, platform);
@@ -513,6 +519,63 @@ export default class TaskManager {
         } else {
           this._logger.debug('No monitor found! Creating a new monitor');
           monitor = new SupremeMonitor(context);
+        }
+        break;
+      }
+      case Platforms.Footsites: {
+        const context = new Context({
+          id,
+          task,
+          parseType: ParseType.Variant,
+          proxy,
+          logger: createLogger({
+            dir: this._logPath,
+            name: `Task-${id}`,
+            prefix: `task-${id}`
+          }),
+          discord: new FootsitesDiscord(task.discord),
+          slack: new FootsitesSlack(task.slack),
+          proxyManager: this.proxyManager,
+          webhookManager: this.webhookManager
+        });
+
+        newTask = new FootsitesTask(context);
+
+        const found = Object.values(this._monitors).find(async m => {
+          if (m.platform === platform) {
+            const { context: mContext } = m;
+            const isSameProduct = await compareProductData(
+              mContext.task.product,
+              context.task.product,
+              ParseType.Variant,
+            );
+
+            this._logger.debug(
+              'Same product?: %j Same URL?: %j',
+              isSameProduct,
+              mContext.task.store.url === context.task.store.url,
+            );
+
+            if (
+              isSameProduct &&
+              mContext.task.store.url === context.task.store.url
+            ) {
+              return m;
+            }
+          }
+          return null;
+        });
+
+        this._logger.debug('Existing monitor? %j', found || false);
+
+        if (found) {
+          this._logger.debug('Existing monitor found! Just adding ids');
+          found.context.addId(id);
+          // patch in the context as well..
+          context.task.product = found.context.task.product;
+        } else {
+          this._logger.debug('No monitor found! Creating a new monitor');
+          monitor = new FootsitesMonitor(context);
         }
         break;
       }

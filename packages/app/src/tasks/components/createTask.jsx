@@ -570,7 +570,7 @@ export class CreateTaskPrimitive extends PureComponent {
                     }),
                 }}
                 styles={colourStyles(theme, buildStyle(false, null))}
-                isOptionDisabled={option => !option.supported && option.supported !== undefined}
+                isOptionDisabled={false}
                 onChange={e => this.createOnChangeHandler(TASK_FIELDS.EDIT_STORE, e)}
                 onCreateOption={v => this.handleCreate(TASK_FIELDS.EDIT_STORE, v)}
                 options={sites}

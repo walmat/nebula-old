@@ -16,6 +16,10 @@ export const platformForStore = url => {
     return Platforms.YS;
   }
 
+  if(/champs|footlocker|footaction/i.test(url)) {
+    return Platforms.Footsites;
+  }
+
   // TODO: more checks for other platforms here...
   return Platforms.Shopify;
 };
