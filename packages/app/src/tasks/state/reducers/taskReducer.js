@@ -23,26 +23,19 @@ export default (state = CurrentTask, action = {}) => {
       switch (field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
           let change = {
-            ...state.product,
-            raw: value || '',
+            ...state,
+            product: {
+              ...state.product,
+              raw: value || '',
+            },
           };
 
           if (!value || !value.startsWith('http')) {
-            return {
-              ...state,
-              product: {
-                ...change,
-              },
-            };
+            return { ...state, ...change };
           }
           const URL = parseURL(value);
           if (!URL || !URL.host) {
-            return {
-              ...state,
-              product: {
-                ...change,
-              },
-            };
+            return { ...state, ...change };
           }
           let newStore;
 
@@ -53,14 +46,10 @@ export default (state = CurrentTask, action = {}) => {
             }
           });
 
-          if (!newStore || newStore.label === state.store.name) {
-            return {
-              ...state,
-              product: {
-                ...change,
-              },
-            };
+          if (!newStore || (newStore.label && state.site && newStore.label === state.store.name)) {
+            return { ...state, ...change };
           }
+
           change = {
             ...change,
             store: {

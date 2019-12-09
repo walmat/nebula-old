@@ -56,10 +56,10 @@ export default class RateFetcher extends BaseTask {
   async keywords() {
     let parsed;
 
-    const { task, proxy, logger } = this.context;
+    const { task, proxy, logger, parseType } = this.context;
 
     const Parsers = getParsers(task.store.url);
-    const parsers = Parsers(this._fetch, task, proxy, new AbortController(), logger);
+    const parsers = Parsers(this._fetch, parseType, task, proxy, new AbortController(), logger);
 
     try {
       parsed = await rfrl(parsers.map(p => p.run()), 'parsers');

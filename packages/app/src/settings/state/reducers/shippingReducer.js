@@ -23,36 +23,32 @@ export default function shippingReducer(state = Shipping, action = {}) {
         };
 
         if (!value || !value.startsWith('http')) {
-          return { ...state, product: { ...change } };
+          return { ...state, ...change };
         }
 
         const URL = parseURL(value);
         if (!URL || !URL.host) {
-          return { ...state, product: { ...change } };
+          return { ...state, ...change };
         }
-        let newSite;
-
-        console.log(value, sites);
+        let newStore;
 
         sites.forEach(category => {
           const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
           if (exists) {
-            newSite = exists;
+            newStore = exists;
           }
         });
 
-        console.log(newSite);
-
-        if (!newSite || (newSite.label && state.site && newSite.label === state.site.name)) {
-          return { ...state, product: { ...change } };
+        if (!newStore || (newStore.label && state.store && newStore.label === state.store.name)) {
+          return { ...state, ...change };
         }
 
         change = {
           ...change,
           store: {
-            url: newSite.value,
-            name: newSite.label,
-            apiKey: newSite.apiKey,
+            url: newStore.value,
+            name: newStore.label,
+            apiKey: newStore.apiKey,
           },
         };
         return { ...state, ...change };

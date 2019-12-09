@@ -14,7 +14,15 @@ import {
   validateVariantSize,
 } from './urlVariantMaps';
 import { addToCart, parseForm, patchCheckoutForm, patchToCart } from './forms';
-import { convertToJson, filterAndLimit, getParseType, matchKeywords, matchVariant } from './parse';
+import {
+  convertToJson,
+  filterAndLimit,
+  getParseType,
+  matchKeywords,
+  matchVariant,
+  match,
+  getFullProductInfo,
+} from './parse';
 import { Task as TaskConstants } from '../constants';
 
 const { States } = TaskConstants;
@@ -107,6 +115,8 @@ const Parse = {
   getParseType,
   matchKeywords,
   matchVariant,
+  match,
+  getFullProductInfo,
 };
 
 const Forms = {
