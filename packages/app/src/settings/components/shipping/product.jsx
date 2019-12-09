@@ -6,7 +6,7 @@ import { makeShipping } from '../../state/selectors';
 import { makeShopifySites } from '../../../app/state/selectors';
 import { settingsActions, SETTINGS_FIELDS } from '../../../store/actions';
 
-const ShippingProfile = ({ product, sites, onChange }) => (
+const ShippingProduct = ({ product, sites, onChange }) => (
   <div className="col col--start col--expand col--no-gutter-right">
     <p className="settings--shipping-manager__input-group--label">Product / Shipping Rate</p>
     <input
@@ -22,7 +22,7 @@ const ShippingProfile = ({ product, sites, onChange }) => (
   </div>
 );
 
-ShippingProfile.propTypes = {
+ShippingProduct.propTypes = {
   sites: PropTypes.arrayOf(PropTypes.any).isRequired,
   product: PropTypes.objectOf(PropTypes.any).isRequired,
   onChange: PropTypes.func.isRequired,
@@ -42,4 +42,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(ShippingProfile);
+)(ShippingProduct);

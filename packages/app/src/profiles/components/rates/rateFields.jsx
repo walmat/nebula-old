@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import DeleteButton from './button';
-import SiteSelect from './siteSelect';
+import StoreSelect from './storeSelect';
 import RateSelect from './rateSelect';
 import RateInputs from './rateInputs';
 
@@ -20,7 +20,7 @@ const RatesFields = ({ value }) =>
           <div className="row row--start row--expand row--no-gutter">
             <div className="col col--start col--expand profiles-rates__input-group">
               <div className="row row--start row--expand row--gutter">
-                <SiteSelect profile={value} />
+                <StoreSelect profile={value} />
                 <RateSelect profile={value} />
               </div>
               <RateInputs profile={value} />

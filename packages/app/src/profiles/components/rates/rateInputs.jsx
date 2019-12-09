@@ -2,12 +2,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-const RateInputs = ({ selectedSite, rates }) => {
+const RateInputs = ({ selectedStore, rates }) => {
   let rateValue = null;
 
   let siteObject = [];
-  if (selectedSite) {
-    siteObject = rates.find(v => v.site.url === selectedSite.value);
+  if (selectedStore) {
+    siteObject = rates.find(v => v.store.url === selectedStore.value);
     if (siteObject) {
       if (siteObject.selectedRate) {
         const {
@@ -41,15 +41,19 @@ const RateInputs = ({ selectedSite, rates }) => {
 
 RateInputs.propTypes = {
   rates: PropTypes.arrayOf(PropTypes.any).isRequired,
-  selectedSite: PropTypes.objectOf(PropTypes.any).isRequired,
+  selectedStore: PropTypes.objectOf(PropTypes.any),
 };
 
-export const mapStateToProps = (state, ownProps) => ({
-  selectedSite: ownProps.profile.selectedSite,
+RateInputs.defaultProps = {
+  selectedStore: null,
+};
+
+const mapStateToProps = (state, ownProps) => ({
+  selectedStore: ownProps.profile.selectedStore,
   rates: ownProps.profile.rates,
 });
 
-export const mapDispatchToProps = () => ({});
+const mapDispatchToProps = () => ({});
 
 export default connect(
   mapStateToProps,

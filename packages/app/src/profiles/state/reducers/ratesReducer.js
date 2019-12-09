@@ -13,17 +13,18 @@ const ratesReducer = (state = Rates, action) => {
       return state;
     }
 
-    const { site, rate } = value;
+    const { store, rate } = value;
 
-    if (!site || !rate) {
+    if (!store || !rate) {
       return state;
     }
 
     return state.map(r => {
-      if (r.site.url === site.value) {
-        const newRate = r;
-        newRate.selectedRate = rate;
-        return newRate;
+      if (r.store.url === store.value) {
+        return {
+          ...r,
+          selectedRate: rate,
+        };
       }
       return r;
     });
