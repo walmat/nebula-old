@@ -10513,7 +10513,7 @@ prop-types-exact@^1.2.0:
     object.assign "^4.1.0"
     reflect.ownkeys "^0.2.0"
 
-prop-types@^15.5.10, prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@15.7.2, prop-types@^15.5.10, prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -10945,7 +10945,7 @@ react-scrollable-feed@1.0.4:
   resolved "https://registry.yarnpkg.com/react-scrollable-feed/-/react-scrollable-feed-1.0.4.tgz#8773d19b6a606d978722f387d540711d3c6e8187"
   integrity sha512-RzQpkyTEjn2rR+nft7UgGjOhjsWB3bA09JTnjvD3H9KiSPJSVFES+bBSP/hBBsvl/GNQq6anlLhdtPygFscWpg==
 
-react-select@^3.0.4:
+react-select@3.0.8, react-select@^3.0.4:
   version "3.0.8"
   resolved "https://registry.yarnpkg.com/react-select/-/react-select-3.0.8.tgz#06ff764e29db843bcec439ef13e196865242e0c1"
   integrity sha512-v9LpOhckLlRmXN5A6/mGGEft4FMrfaBFTGAnuPHcUgVId7Je42kTq9y0Z+Ye5z8/j0XDT3zUqza8gaRaI1PZIg==
@@ -10991,13 +10991,22 @@ react-virtualized-auto-sizer@^1.0.2:
   resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.2.tgz#a61dd4f756458bbf63bd895a92379f9b70f803bd"
   integrity sha512-MYXhTY1BZpdJFjUovvYHVBmkq79szK/k7V3MO+36gJkWGkrXKtyr4vCPtpphaTLRAdDNoYEYFZWE8LjN+PIHNg==
 
-react-window@^1.8.5:
+react-window@1.8.5, react-window@^1.8.5:
   version "1.8.5"
   resolved "https://registry.yarnpkg.com/react-window/-/react-window-1.8.5.tgz#a56b39307e79979721021f5d06a67742ecca52d1"
   integrity sha512-HeTwlNa37AFa8MDZFZOKcNEkuF2YflA0hpGPiTT9vR7OawEt+GZbfM6wqkBahD3D3pUjIabQYzsnY/BSJbgq6Q==
   dependencies:
     "@babel/runtime" "^7.0.0"
     memoize-one ">=3.1.1 <6"
+
+react-windowed-select@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/react-windowed-select/-/react-windowed-select-2.0.1.tgz#5de349210b8bda3bc6b71dab80956650552f1334"
+  integrity sha512-6DtStEYyvpoIYHk1PT8YWu/UlqfJMoqSn8Rd3QYrNx+6KVD+kO3cCS4myVTipmwNJIg3Fk3Jh6Ypb8Wx3IGdrw==
+  dependencies:
+    prop-types "15.7.2"
+    react-select "3.0.8"
+    react-window "1.8.5"
 
 react@^16.8:
   version "16.12.0"

@@ -39,11 +39,13 @@ const Platforms = {
 
 const ErrorCodes = {
   NoStylesFound: 'Style not found',
+  NoMatchesFound: 'Product not matched',
   PasswordPage: 'Password page',
   VariantsNotAvailable: 'Variant not available',
   VariantNotFound: 'Variation not found',
   ProductNotFound: 'Product not found',
   ProductNotLive: 'Product not live',
+  InvalidParseType: 'Invalid parse type',
 };
 
 const HarvestStates = {

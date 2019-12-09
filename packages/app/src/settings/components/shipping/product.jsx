@@ -13,9 +13,7 @@ const ShippingProduct = ({ product, sites, onChange }) => (
       className="settings--shipping-manager__input-group--product"
       type="text"
       placeholder="Variant, Keywords, Link"
-      onChange={e =>
-        onChange({ field: SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT, value: e.target.value, sites })
-      }
+      onChange={e => onChange(e.target.value, sites)}
       value={product.raw}
       required
     />
@@ -34,8 +32,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onChange: changes => {
-    dispatch(settingsActions.editShipping(changes.field, changes.value, changes.sites));
+  onChange: (value, sites) => {
+    dispatch(settingsActions.editShipping(SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT, value, sites));
   },
 });
 

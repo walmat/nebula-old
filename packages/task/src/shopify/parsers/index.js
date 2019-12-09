@@ -1,6 +1,5 @@
 // Top Level Export for parsers
-import Parser from './parser';
-import AtomParser from './standard/atomParser';
+import CollectionParser from './standard/collectionParser';
 import JsonParser from './standard/jsonParser';
 import XmlParser from './standard/xmlParser';
 
@@ -10,14 +9,14 @@ function getParsers(url) {
   }
 
   if (/kith/i.test(url)) {
-    return (...params) => [new JsonParser(...params), new AtomParser(...params)];
+    return (...params) => [new JsonParser(...params), new CollectionParser(...params)];
   }
 
   return (...params) => [
     new JsonParser(...params),
-    new AtomParser(...params),
+    new CollectionParser(...params),
     new XmlParser(...params),
   ];
 }
 
-export { Parser, AtomParser, JsonParser, XmlParser, getParsers };
+export { CollectionParser, JsonParser, XmlParser, getParsers };
