@@ -12,12 +12,13 @@ import {
 
 import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../../store/actions';
 
-const SiteSelect = ({ theme, onChange, selectedSite, rates }) => {
+const RateSelect = ({ theme, onChange, selectedStore, rates }) => {
   let rateValue = null;
   let siteObject = [];
   let nameOptions = [];
-  if (selectedSite) {
-    siteObject = rates.find(v => v.site.url === selectedSite.value);
+
+  if (selectedStore) {
+    siteObject = rates.find(v => v.store.url === selectedStore.value);
     if (siteObject) {
       if (siteObject.selectedRate) {
         const {
@@ -44,7 +45,7 @@ const SiteSelect = ({ theme, onChange, selectedSite, rates }) => {
       classNamePrefix="select"
       styles={colourStyles(theme)}
       onChange={e =>
-        onChange({ site: selectedSite, rate: { name: e.label, price: e.price, rate: e.value } })
+        onChange({ store: selectedStore, rate: { name: e.label, price: e.price, rate: e.value } })
       }
       value={rateValue}
       options={nameOptions}
@@ -53,20 +54,24 @@ const SiteSelect = ({ theme, onChange, selectedSite, rates }) => {
   );
 };
 
-SiteSelect.propTypes = {
+RateSelect.propTypes = {
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   rates: PropTypes.arrayOf(PropTypes.any).isRequired,
-  selectedSite: PropTypes.objectOf(PropTypes.any).isRequired,
+  selectedStore: PropTypes.objectOf(PropTypes.any),
 };
 
-export const mapStateToProps = (state, ownProps) => ({
-  selectedSite: ownProps.profile.selectedSite,
+RateSelect.defaultProps = {
+  selectedStore: null,
+};
+
+const mapStateToProps = (state, ownProps) => ({
+  selectedStore: ownProps.profile.selectedStore,
   theme: state.App.theme,
   rates: ownProps.profile.rates,
 });
 
-export const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   onChange: value => {
     dispatch(
       profileActions.edit(ownProps.profile.id, PROFILE_FIELDS.EDIT_RATES, value, RATES_FIELDS.RATE),
@@ -77,4 +82,4 @@ export const mapDispatchToProps = (dispatch, ownProps) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(SiteSelect);
+)(RateSelect);

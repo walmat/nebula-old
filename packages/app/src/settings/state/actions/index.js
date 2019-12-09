@@ -52,8 +52,6 @@ export const ACCOUNT_ACTIONS = prefixer(accountPrefix, accountList);
 export const WEBHOOK_ACTIONS = prefixer(webhookPrefix, webhooksList);
 export const SHIPPING_ACTIONS = prefixer(shippingPrefix, shippingList);
 
-const waitFor = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 // Async handler to start the shipping rates runner
 const _fetchShippingRequest = async task => {
   const copy = JSON.parse(JSON.stringify(task));
@@ -90,7 +88,7 @@ const _fetchShippingRequest = async task => {
     throw new Error('Bridge has not been injected!');
   }
   copy.product = parsedProduct;
-  return window.Bridge.startShippingRatesRunner(copy);
+  return window.Bridge.startShippingRateTask(copy);
 };
 
 const _stopShippingRequest = async () => window.Bridge.stopShippingRatesRunner();
@@ -124,16 +122,11 @@ const fetchShipping = task => dispatch => {
       dispatch(
         _saveShippingRates({
           id: task.profile.id,
-          site: task.site,
+          store: task.store,
           rates,
           selectedRate,
         }),
       );
-      const isSingular = (rates.length && rates.length === 1) || false;
-      dispatch(_cleanupShipping(`Fetched ${rates.length} ${isSingular ? 'rate' : 'rates'}`));
-      await waitFor(500);
-      dispatch(_cleanupShipping(`Saved to ${task.profile.profileName}`));
-      await waitFor(1000);
       dispatch(_cleanupShipping('Fetch rates'));
     })
     .catch(() => {

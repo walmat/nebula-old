@@ -12,8 +12,8 @@ import {
 
 import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../../store/actions';
 
-const SiteSelect = ({ theme, onChange, selectedSite, rates }) => {
-  const siteOptions = rates.map(({ site: { url, name } }) => ({ value: url, label: name }));
+const StoreSelect = ({ theme, onChange, selectedStore, rates }) => {
+  const siteOptions = rates.map(({ store: { url, name } }) => ({ value: url, label: name }));
 
   return (
     <Select
@@ -26,32 +26,36 @@ const SiteSelect = ({ theme, onChange, selectedSite, rates }) => {
       classNamePrefix="select"
       styles={colourStyles(theme)}
       onChange={e => onChange(e)}
-      value={selectedSite}
+      value={selectedStore}
       options={siteOptions}
       data-private
     />
   );
 };
 
-SiteSelect.propTypes = {
+StoreSelect.propTypes = {
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   rates: PropTypes.arrayOf(PropTypes.any).isRequired,
-  selectedSite: PropTypes.objectOf(PropTypes.any).isRequired,
+  selectedStore: PropTypes.objectOf(PropTypes.any),
 };
 
-export const mapStateToProps = (state, ownProps) => ({
-  selectedSite: ownProps.profile.selectedSite,
+StoreSelect.defaultProps = {
+  selectedStore: null,
+};
+
+const mapStateToProps = (state, ownProps) => ({
+  selectedStore: ownProps.profile.selectedStore,
   theme: state.App.theme,
   rates: ownProps.profile.rates,
 });
 
-export const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   onChange: value => {
     dispatch(
       profileActions.edit(
         ownProps.profile.id,
-        PROFILE_FIELDS.EDIT_SELECTED_SITE,
+        PROFILE_FIELDS.EDIT_SELECTED_STORE,
         value,
         RATES_FIELDS.SITE,
       ),
@@ -62,4 +66,4 @@ export const mapDispatchToProps = (dispatch, ownProps) => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(SiteSelect);
+)(StoreSelect);

@@ -15,8 +15,11 @@ export default function shippingReducer(state = Shipping, action = {}) {
         const { value, sites } = action;
 
         let change = {
-          ...state.product,
-          raw: value || '',
+          ...state,
+          product: {
+            ...state.product,
+            raw: value || '',
+          },
         };
 
         if (!value || !value.startsWith('http')) {
@@ -29,6 +32,8 @@ export default function shippingReducer(state = Shipping, action = {}) {
         }
         let newSite;
 
+        console.log(value, sites);
+
         sites.forEach(category => {
           const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
           if (exists) {
@@ -36,7 +41,9 @@ export default function shippingReducer(state = Shipping, action = {}) {
           }
         });
 
-        if (!newSite || newSite.label === state.site.name) {
+        console.log(newSite);
+
+        if (!newSite || (newSite.label && state.site && newSite.label === state.site.name)) {
           return { ...state, product: { ...change } };
         }
 
@@ -48,7 +55,7 @@ export default function shippingReducer(state = Shipping, action = {}) {
             apiKey: newSite.apiKey,
           },
         };
-        return { ...state, product: { ...change } };
+        return { ...state, ...change };
       }
       case SETTINGS_FIELDS.EDIT_SHIPPING_STORE: {
         const { value } = action;

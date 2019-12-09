@@ -4,28 +4,28 @@ import PropTypes from 'prop-types';
 
 import { profileActions } from '../../../store/actions';
 
-const onClick = ({ selectedSite, rates, onDelete }) => {
-  if (!selectedSite) {
+const onClick = (selectedStore, rates, onDelete) => {
+  if (!selectedStore) {
     return null;
   }
 
-  const siteObject = rates.find(v => v.site.url === selectedSite.value);
-  if (!siteObject || (siteObject && !siteObject.selectedRate)) {
+  const storeObject = rates.find(v => v.store.url === selectedStore.value);
+  if (!storeObject || (storeObject && !storeObject.selectedRate)) {
     return null;
   }
 
-  const { selectedRate } = siteObject;
+  const { selectedRate } = storeObject;
 
-  return onDelete(selectedSite, selectedRate);
+  return onDelete(selectedStore, selectedRate);
 };
 
-const DeleteButton = ({ selectedSite, rates, onDelete }) => (
+const DeleteButton = ({ selectedStore, rates, onDelete }) => (
   <div className="row row--gutter row--end">
     <div className="col col--end col--no-gutter-left">
       <button
         type="button"
         className="profiles-rates__input-group--delete"
-        onClick={() => onClick(selectedSite, rates, onDelete)}
+        onClick={() => onClick(selectedStore, rates, onDelete)}
       >
         Delete
       </button>
@@ -34,19 +34,23 @@ const DeleteButton = ({ selectedSite, rates, onDelete }) => (
 );
 
 DeleteButton.propTypes = {
-  selectedSite: PropTypes.objectOf(PropTypes.any).isRequired,
+  selectedStore: PropTypes.objectOf(PropTypes.any),
   onDelete: PropTypes.func.isRequired,
-  rates: PropTypes.objectOf(PropTypes.any).isRequired,
+  rates: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
-export const mapStateToProps = state => ({
-  selectedSite: state.CurrentProfile.rates.selectedSite,
+DeleteButton.defaultProps = {
+  selectedStore: null,
+};
+
+const mapStateToProps = state => ({
+  selectedStore: state.CurrentProfile.selectedStore,
   rates: state.CurrentProfile.rates,
 });
 
-export const mapDispatchToProps = dispatch => ({
-  onDelete: (site, rate) => {
-    dispatch(profileActions.deleteRate(site, rate));
+const mapDispatchToProps = dispatch => ({
+  onDelete: (store, rate) => {
+    dispatch(profileActions.deleteRate(store, rate));
   },
 });
 

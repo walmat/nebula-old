@@ -17,7 +17,7 @@ if (nebulaEnv.isDevelopment()) {
 
 let rateFetcherRequest = null;
 let handlers = [];
-const RATE_FETCHER_ID = 'srr';
+const RATE_FETCHER_ID = 100000;
 
 const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
@@ -125,7 +125,7 @@ const _startShippingRateTask = task => {
     // Define srr message handler to retrive data
     const srrMessageHandler = (_, payload) => {
       // Only respond to specific type and id
-      if (payload[RATE_FETCHER_ID] && payload[RATE_FETCHER_ID].type === TaskTypes.ShippingRates) {
+      if (payload[RATE_FETCHER_ID] && payload[RATE_FETCHER_ID].type === TaskTypes.Rates) {
         // Task type is exposed from the task package
         response.rates = payload[RATE_FETCHER_ID].rates || response.rates; // update rates if it exists
         response.selectedRate = payload[RATE_FETCHER_ID].selected || response.selectedRate; // update selected if it exists
@@ -154,7 +154,7 @@ const _startShippingRateTask = task => {
 
     rateFetcherRequest = request;
     _registerForTaskEvents(srrMessageHandler);
-    _startTasks(request.task, { type: TaskTypes.ShippingRates });
+    _startTasks(request.task, { type: TaskTypes.Rates });
   });
 
   return request.promise;
