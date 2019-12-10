@@ -1,6 +1,6 @@
 import makeActionCreator from '../../../store/creator';
 import prefixer from '../../../store/reducers/prefixer';
-import parseProductType from '../../../utils/parseProductType';
+import { parseProduct } from '../../../utils';
 
 const delaysPrefix = '@@Delays';
 const proxiesPrefix = '@@Proxies';
@@ -78,7 +78,7 @@ const _fetchShippingRequest = async task => {
     };
   }
 
-  const parsedProduct = parseProductType(copy.product);
+  const parsedProduct = parseProduct(copy.product);
 
   if (!parsedProduct) {
     throw new Error('Unable to parse product information!');
