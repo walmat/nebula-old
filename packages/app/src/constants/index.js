@@ -225,11 +225,11 @@ export const fetchSites = async store => {
       return;
     }
 
-    const sites = await res.json();
+    const newStores = await res.json();
 
-    if (sites && sites.length) {
-      const sorted = sortBy(sites, site => site.index);
-      store.dispatch(appActions.sites(sorted));
+    if (newStores && newStores.length) {
+      const sorted = sortBy(newStores, s => s.index);
+      store.dispatch(appActions.stores(sorted));
     }
   } catch (error) {
     // silently fail...
