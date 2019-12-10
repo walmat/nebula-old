@@ -1,12 +1,6 @@
 import { Utils } from '../../common';
 import pickVariant from './pickVariant';
 import {
-  getAllSpecialStores,
-  getAllSupportedStores,
-  getAllSupportedStoresSorted,
-  isSpecialStore,
-} from './storeOptions';
-import {
   clothingRegexMap,
   urlToOptionIndex,
   urlToTitleSegment,
@@ -30,15 +24,15 @@ const { userAgent } = Utils;
 
 export const stateForError = ({ status, name, errno }, { message, nextState }) => {
   // Look for errors in cause
-  const match = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED)/.exec(errno);
+  const errorMatch = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED)/.exec(errno);
 
   if (/aborterror/i.test(name)) {
     return { nextState: States.ABORT };
   }
 
-  if (match) {
+  if (errorMatch) {
     // Check capturing group
-    switch (match[1]) {
+    switch (errorMatch[1]) {
       // connection reset
       case 'ENOTFOUND':
       case 'ECONNRESET': {
@@ -94,13 +88,6 @@ export const getHeaders = ({ url, apiKey }) => ({
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
 });
 
-const StoreOptions = {
-  getAllSpecialStores,
-  getAllSupportedStores,
-  getAllSupportedStoresSorted,
-  isSpecialStore,
-};
-
 const UrlVariantMaps = {
   clothingRegexMap,
   urlToOptionIndex,
@@ -126,4 +113,4 @@ const Forms = {
   patchToCart,
 };
 
-export { pickVariant, Parse, StoreOptions, UrlVariantMaps, Forms };
+export { pickVariant, Parse, UrlVariantMaps, Forms };

@@ -324,7 +324,6 @@ export const matchKeywords = (products, keywords, _filter, logger, returnAll) =>
 
     // match none of the keywords in the negative array
     if (keywords.neg.length > 0) {
-      console.log('checking negative keywords');
       neg = some(keywords.neg.map(k => k.toUpperCase()), keyword => {
         if (title) {
           return title.indexOf(keyword.toUpperCase()) > -1;

@@ -10,7 +10,7 @@ import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
 
 const { addToCart, parseForm, patchCheckoutForm } = Forms;
 const { Task, Manager, Platforms } = Constants;
-const { currencyWithSymbol, userAgent, waitForDelay } = Utils;
+const { currencyWithSymbol, userAgent, waitForDelay, emitEvent } = Utils;
 const { BaseTask } = Bases;
 
 const { Events } = Task;
@@ -24,8 +24,6 @@ export default class TaskPrimitive extends BaseTask {
 
     this._needsLogin = this.context.task.account || false;
     this._state = States.STARTED;
-    this.checkpointUrl = '/checkpoint'; // default to normal checkpoint
-    this._backupCheckout = false;
 
     // decide what our start state should be!
     if (!this.context.task.store.apiKey) {
@@ -100,7 +98,6 @@ export default class TaskPrimitive extends BaseTask {
     return captchaQueue.insert(token);
   }
 
-  // MARK: State Machine Step Logic
   async _handleLogin() {
     const {
       aborted,
@@ -112,7 +109,6 @@ export default class TaskPrimitive extends BaseTask {
       },
       logger,
       proxy,
-      rawProxy,
     } = this.context;
 
     // exit if abort is detected
@@ -122,7 +118,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await fetch(`${url}/account/login`, {
+      const res = await this._fetch(`${url}/account/login`, {
         method: 'POST',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -135,11 +131,12 @@ export default class TaskPrimitive extends BaseTask {
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
           origin: url,
         },
-        body: `form_type=customer_login&utf8=%E2%9C%93&customer%5Bemail%5D=${encodeURIComponent(username)}&customer%5Bpassword%5D=${encodeURIComponent(password)}&return_url=%2Faccount`,
+        body: `form_type=customer_login&utf8=%E2%9C%93&customer%5Bemail%5D=${encodeURIComponent(
+          username,
+        )}&customer%5Bpassword%5D=${encodeURIComponent(password)}&return_url=%2Faccount`,
       });
 
       const { status, headers } = res;
-
       const nextState = stateForError(
         { status },
         {
@@ -151,7 +148,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -160,36 +157,41 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', proxy: rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', proxy: rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Logging in' });
+          emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
           return States.LOGIN;
         }
 
-        // DON'T SET `this._needsLogin` to false
         if (/challenge/i.test(redirectUrl)) {
-          if (type === Modes.SAFE) {
-            if (this.context.task.product.variants && this.context.task.product.variants.length) {
-              this._emitTaskEvent({ message: 'Adding to cart', proxy: rawProxy });
-              return States.ADD_TO_CART;
-            }
-            this._emitTaskEvent({ message: 'Waiting for product', proxy: rawProxy });
-            return States.WAIT_FOR_PRODUCT;
-          }
-
-          this._emitTaskEvent({ message: 'Waiting for captcha', proxy: rawProxy });
-          return States.CAPTCHA;
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Login capcha needed' },
+            Events.TaskStatus,
+          );
+          return States.ERROR;
         }
 
         if (/login/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Invalid account', proxy: rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Invalid credentials' },
+            Events.TaskStatus,
+          );
           return States.ERROR;
         }
 
@@ -198,29 +200,40 @@ export default class TaskPrimitive extends BaseTask {
 
           if (type === Modes.SAFE && !this._captchaToken) {
             if (this.context.task.product.variants && this.context.task.product.variants.length) {
-              this._emitTaskEvent({ message: 'Adding to cart', proxy: rawProxy });
+              emitEvent(
+                this.context,
+                [this.context.id],
+                { message: 'Adding to cart' },
+                Events.TaskStatus,
+              );
               return States.ADD_TO_CART;
             }
-            this._emitTaskEvent({ message: 'Waiting for product', proxy: rawProxy });
+            emitEvent(
+              this.context,
+              [this.context.id],
+              { message: 'Waiting for product' },
+              Events.TaskStatus,
+            );
             return States.WAIT_FOR_PRODUCT;
           }
 
-          // reset captcha token (do we need to do this? or can we use it twice...)
-          // if (this.captchaToken) {
-          //   this.captchaToken = '';
-          // }
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Creating checkout' },
+            Events.TaskStatus,
+          );
 
-          this._emitTaskEvent({ message: 'Creating checkout', proxy: rawProxy });
           return States.CREATE_CHECKOUT;
         }
       }
 
       const message = status ? `Logging in - (${status})` : 'Logging in';
-      this._emitTaskEvent({ message, rawProxy });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.LOGIN;
     } catch (err) {
       logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
+        'Error: %j\n Step: Login.\n\n %j %j',
         err.status || err.errno,
         err.message,
         err.stack,
@@ -234,7 +247,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -242,7 +255,7 @@ export default class TaskPrimitive extends BaseTask {
       const message =
         err.status || err.errno ? `Logging in - (${err.status || err.errno})` : 'Logging in';
 
-      this._emitTaskEvent({ message, rawProxy });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.LOGIN;
     }
   }
@@ -287,7 +300,12 @@ export default class TaskPrimitive extends BaseTask {
       });
 
       if (!res.ok) {
-        this._emitTaskEvent({ message: 'Creating payment session' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Creating payment token' },
+          Events.TaskStatus,
+        );
         return States.PAYMENT_TOKEN;
       }
 
@@ -334,7 +352,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -364,7 +382,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -374,7 +392,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Creating payment session - (${err.status || err.errno})`
           : 'Creating payment session';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.PAYMENT_TOKEN;
     }
   }
@@ -420,7 +438,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -439,7 +457,12 @@ export default class TaskPrimitive extends BaseTask {
         match = body.match(/"accessToken":(.*)","betas"/);
 
         if (!match || !match.length) {
-          this._emitTaskEvent({ message: 'Invalid Shopify Store' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Invalid Shopify store' },
+            Events.TaskStatus,
+          );
           return States.ERROR;
         }
         [, accessToken] = match;
@@ -448,32 +471,35 @@ export default class TaskPrimitive extends BaseTask {
       if (type === Modes.SAFE) {
         if (!this._needsLogin) {
           if (this.context.task.product.variants && this.context.task.product.variants.length) {
-            this._emitTaskEvent({
-              message: 'Adding to cart',
-              apiKey: this.context.task.store.apiKey || undefined,
-            });
+            emitEvent(
+              this.context,
+              [this.context.id],
+              { message: 'Adding to cart' },
+              Events.TaskStatus,
+            );
             return States.ADD_TO_CART;
           }
-          this._emitTaskEvent({
-            message: 'Waiting for product',
-            apiKey: this.context.task.store.apiKey || undefined,
-          });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Waiting for product' },
+            Events.TaskStatus,
+          );
           return States.WAIT_FOR_PRODUCT;
         }
-        this._emitTaskEvent({
-          message: 'Logging in',
-          apiKey: this.context.task.store.apiKey || undefined,
-        });
+        emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
         return States.LOGIN;
       }
       if (!this._needsLogin) {
-        this._emitTaskEvent({
-          message: 'Creating checkout',
-          apiKey: this.context.task.store.apiKey || undefined,
-        });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Creating checkout' },
+          Events.TaskStatus,
+        );
         return States.CREATE_CHECKOUT;
       }
-      this._emitTaskEvent({ message: 'Logging in' });
+      emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
       return States.LOGIN;
     } catch (err) {
       logger.error(
@@ -491,7 +517,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -499,7 +525,7 @@ export default class TaskPrimitive extends BaseTask {
       const message =
         err.status || err.errno ? `Logging in - (${err.status || err.errno})` : 'Logging in';
 
-      this._emitTaskEvent({ message, rawProxy });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.LOGIN;
     }
   }
@@ -507,8 +533,8 @@ export default class TaskPrimitive extends BaseTask {
   async _handleGetCheckpoint() {
     const {
       aborted,
-      rawProxy,
       proxy,
+      logger,
       task: {
         monitorDelay,
         store: { url, apiKey },
@@ -546,7 +572,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -556,16 +582,31 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Creating checkout' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Creating checkout' },
+            Events.TaskStatus,
+          );
           return States.CREATE_CHECKOUT;
         }
 
@@ -603,13 +644,23 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
           return States.QUEUE;
         }
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
-          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkout' },
+            Events.TaskStatus,
+          );
           return States.GO_TO_CHECKOUT;
         }
       }
@@ -647,7 +698,12 @@ export default class TaskPrimitive extends BaseTask {
         this._checkpointForm = this._checkpointForm.slice(0, -1);
       }
 
-      this._emitTaskEvent({ message: 'Checkpoint captcha', rawProxy });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Waiting for captcha' },
+        Events.TaskStatus,
+      );
       return States.CAPTCHA;
     } catch (err) {
       logger.error(
@@ -665,7 +721,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -675,7 +731,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Going to checkpoint - (${err.status || err.errno})`
           : 'Going to checkpoint';
 
-      this._emitTaskEvent({ message, rawProxy });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_CHECKPOINT;
     }
   }
@@ -683,7 +739,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleSubmitCheckpoint() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         monitorDelay,
@@ -696,7 +752,12 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
-    this._emitTaskEvent({ message: 'Submitting checkpoint', rawProxy });
+    emitEvent(
+      this.context,
+      [this.context.id],
+      { message: 'Submitting checkpoint' },
+      Events.TaskStatus,
+    );
 
     if (this._captchaToken && !/g-recaptcha-response/i.test(this._checkpointForm)) {
       const parts = this._checkpointForm.split('&');
@@ -746,7 +807,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -757,20 +818,40 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         if (/checkout/i.test(redirectUrl)) {
           this._backupCheckout = true;
-          this._emitTaskEvent({ message: 'Creating checkout' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Creating checkout' },
+            Events.TaskStatus,
+          );
           return States.CREATE_CHECKOUT;
         }
 
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Creating checkout' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Creating checkout' },
+            Events.TaskStatus,
+          );
           return States.CREATE_CHECKOUT;
         }
 
@@ -807,24 +888,39 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
           return States.QUEUE;
         }
 
         if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Creating checkout', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Creating checkout' },
+            Events.TaskStatus,
+          );
           return States.CREATE_CHECKOUT;
         }
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
-          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkout' },
+            Events.TaskStatus,
+          );
           return States.GO_TO_CHECKOUT;
         }
       }
 
       const message = status ? `Submitting checkpoint - (${status})` : 'Submitting checkpoint';
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.SUBMIT_CHECKPOINT;
     } catch (err) {
       logger.error(
@@ -842,7 +938,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -852,7 +948,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Going to checkpoint - (${err.status || err.errno})`
           : 'Going to checkpoint';
 
-      this._emitTaskEvent({ message, rawProxy });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_CHECKPOINT;
     }
   }
@@ -860,7 +956,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleCreateCheckout() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         monitorDelay,
@@ -917,7 +1013,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -928,15 +1024,30 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this.checkpointUrl = redirectUrl;
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Creating checkout' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Creating checkout' },
+            Events.TaskStatus,
+          );
           return States.CREATE_CHECKOUT;
         }
 
@@ -973,24 +1084,39 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
           return States.QUEUE;
         }
 
         if (/checkouts/i.test(redirectUrl)) {
           [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
-          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkout' },
+            Events.TaskStatus,
+          );
           return States.GO_TO_CHECKOUT;
         }
 
         if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Adding to cart' },
+            Events.TaskStatus,
+          );
           return States.ADD_TO_CART;
         }
       }
 
       const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -1008,7 +1134,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -1018,7 +1144,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Creating checkout - (${err.status || err.errno})`
           : 'Creating checkout';
 
-      this._emitTaskEvent({ message, rawProxy });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     }
   }
@@ -1026,7 +1152,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleBackupCreateCheckout() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         store: { url, apiKey },
         monitorDelay,
@@ -1065,7 +1191,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -1074,21 +1200,41 @@ export default class TaskPrimitive extends BaseTask {
       logger.debug('Create checkout redirect url: %j', redirectUrl);
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/login/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Account needed!', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Account needed' },
+            Events.TaskStatus,
+          );
           return States.ERROR;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Creating checkout' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Creating checkout' },
+            Events.TaskStatus,
+          );
           return States.CREATE_CHECKOUT;
         }
 
@@ -1125,7 +1271,12 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
           return States.QUEUE;
         }
 
@@ -1133,16 +1284,26 @@ export default class TaskPrimitive extends BaseTask {
           [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
 
           if (type === Modes.SAFE) {
-            this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+            emitEvent(
+              this.context,
+              [this.context.id],
+              { message: 'Going to checkout' },
+              Events.TaskStatus,
+            );
             return States.GO_TO_CHECKOUT;
           }
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
           return States.SUBMIT_CUSTOMER;
         }
       }
 
       const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -1160,7 +1321,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -1170,7 +1331,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Creating checkout - (${err.status || err.errno})`
           : 'Creating checkout';
 
-      this._emitTaskEvent({ message, rawProxy });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     }
   }
@@ -1178,7 +1339,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleCreateCheckoutWallets() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         store: { url, apiKey },
         monitorDelay,
@@ -1226,7 +1387,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -1236,13 +1397,13 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           this._emitTaskEvent({ message: 'Creating checkout' });
@@ -1276,7 +1437,7 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
       }
@@ -1285,13 +1446,13 @@ export default class TaskPrimitive extends BaseTask {
 
       if (body && body.error) {
         if (/channel is locked/i.test(body.error)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           this._emitTaskEvent({ message: 'Creating checkout' });
           return States.CREATE_CHECKOUT;
         }
-        this._emitTaskEvent({ message: 'Invalid checkout!', rawProxy });
+        this._emitTaskEvent({ message: 'Invalid checkout!' });
         return States.CREATE_CHECKOUT;
       }
 
@@ -1299,13 +1460,13 @@ export default class TaskPrimitive extends BaseTask {
         const { web_url: checkoutUrl } = body.checkout;
         if (/checkouts/i.test(checkoutUrl)) {
           [, , , this._storeId, , this._checkoutToken] = checkoutUrl.split('/');
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.SUBMIT_CUSTOMER;
         }
       }
 
       const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -1323,7 +1484,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -1333,7 +1494,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Creating checkout - (${err.status || err.errno})`
           : 'Creating checkout';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.CREATE_CHECKOUT;
     }
   }
@@ -1341,7 +1502,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handlePollQueue() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         type,
         store: { url, apiKey },
@@ -1390,13 +1551,13 @@ export default class TaskPrimitive extends BaseTask {
 
       if (nextState) {
         if (nextState.message) {
-          this._emitTaskEvent({ message: nextState.message, rawProxy });
+          this._emitTaskEvent({ message: nextState.message });
         }
         return nextState.nextState;
       }
 
       if (status === 400) {
-        this._emitTaskEvent({ message: 'Invalid checkout!', rawProxy });
+        this._emitTaskEvent({ message: 'Invalid checkout!' });
         return States.CREATE_CHECKOUT;
       }
 
@@ -1406,7 +1567,7 @@ export default class TaskPrimitive extends BaseTask {
       logger.debug('CHECKOUT: Queue response: %j \nBody: %j', status, body);
       if (status === 302) {
         if (!redirectUrl || /throttle/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Not through queue (${status})`, rawProxy });
+          this._emitTaskEvent({ message: `Not through queue (${status})` });
           return States.QUEUE;
         }
 
@@ -1444,7 +1605,7 @@ export default class TaskPrimitive extends BaseTask {
                 this._selectedShippingRate,
               ));
 
-              this._emitTaskEvent({ message, rawProxy });
+              this._emitTaskEvent({ message });
               return nextState;
             }
           } catch (e) {
@@ -1496,7 +1657,7 @@ export default class TaskPrimitive extends BaseTask {
                   this._selectedShippingRate,
                 ));
 
-                this._emitTaskEvent({ message, rawProxy });
+                this._emitTaskEvent({ message });
                 return nextState;
               }
             }
@@ -1514,7 +1675,7 @@ export default class TaskPrimitive extends BaseTask {
       logger.debug('QUEUE: RedirectUrl at end of fn body: %j', redirectUrl);
 
       if (redirectUrl && /checkpoint/i.test(redirectUrl)) {
-        this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+        this._emitTaskEvent({ message: 'Going to checkpoint' });
         this.checkpointUrl = redirectUrl;
         return States.GO_TO_CHECKPOINT;
       }
@@ -1532,12 +1693,12 @@ export default class TaskPrimitive extends BaseTask {
           this._selectedShippingRate,
         ));
 
-        this._emitTaskEvent({ message, rawProxy });
+        this._emitTaskEvent({ message });
         return nextState;
       }
       logger.silly('CHECKOUT: Not passed queue, delaying 5000ms');
       message = status ? `Not through queue! (${status})` : 'Not through queue!';
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       this._delayer = waitForDelay(5000, this._aborter.signal);
       await this._delayer;
       this._emitTaskEvent({ message: 'Polling queue' });
@@ -1556,21 +1717,21 @@ export default class TaskPrimitive extends BaseTask {
 
       if (nextState) {
         if (nextState.message) {
-          this._emitTaskEvent({ message: nextState.message, rawProxy });
+          this._emitTaskEvent({ message: nextState.message });
         }
         return nextState.nextState;
       }
 
       message =
         err.status || err.errno ? `Polling queue - (${err.status || err.errno})` : 'Polling queue';
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
 
       return States.QUEUE;
     }
   }
 
   async _handleWaitForProduct() {
-    const { aborted } = this.context;
+    const { aborted, logger } = this.context;
 
     // exit if abort is detected
     if (aborted) {
@@ -1582,10 +1743,6 @@ export default class TaskPrimitive extends BaseTask {
       return States.ADD_TO_CART;
     }
 
-    if (this._deregisterOverride) {
-      return States.SWAP;
-    }
-
     this._delayer = waitForDelay(500, this._aborter.signal);
     await this._delayer;
 
@@ -1595,7 +1752,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleAddToCart() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         store: { name, url },
         product: { variants, hash, restockUrl, randomInStock },
@@ -1625,7 +1782,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!variant) {
-      this._emitTaskEvent({ message: 'No size matched!', rawProxy });
+      this._emitTaskEvent({ message: 'No size matched!' });
       return States.ERROR;
     }
 
@@ -1666,7 +1823,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -1676,7 +1833,7 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy, size });
+          this._emitTaskEvent({ message: 'Going to checkpoint', size });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
@@ -1684,20 +1841,20 @@ export default class TaskPrimitive extends BaseTask {
         if (/stock_problems/i.test(redirectUrl)) {
           this._emitTaskEvent({
             message: `Out of stock! Delaying ${monitorDelay}ms`,
-            rawProxy,
+
             size,
           });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Adding to cart', rawProxy, size });
+          this._emitTaskEvent({ message: 'Adding to cart', size });
           return States.ADD_TO_CART;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Adding to cart', rawProxy, size });
+          this._emitTaskEvent({ message: 'Adding to cart', size });
           return States.ADD_TO_CART;
         }
 
@@ -1728,7 +1885,7 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy, size });
+          this._emitTaskEvent({ message: 'Polling queue', size });
           return States.QUEUE;
         }
       }
@@ -1738,7 +1895,7 @@ export default class TaskPrimitive extends BaseTask {
       if (/cannot find variant/i.test(body)) {
         this._emitTaskEvent({
           message: `Variant not live, delaying ${monitorDelay}ms`,
-          rawProxy,
+
           size,
         });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
@@ -1752,7 +1909,7 @@ export default class TaskPrimitive extends BaseTask {
         return States.GO_TO_CHECKOUT;
       }
 
-      this._emitTaskEvent({ message: 'Going to cart', rawProxy, size });
+      this._emitTaskEvent({ message: 'Going to cart', size });
       return States.GO_TO_CART;
     } catch (err) {
       logger.error(
@@ -1770,7 +1927,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -1780,7 +1937,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Adding to cart - (${err.status || err.errno})`
           : 'Adding to cart';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.ADD_TO_CART;
     }
   }
@@ -1788,7 +1945,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleClearCart() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         store: { url, apiKey },
       },
@@ -1822,7 +1979,7 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.json();
 
       if (body && body.items && body.items.length) {
-        this._emitTaskEvent({ message: 'Failed to clear items, retrying...', rawProxy });
+        this._emitTaskEvent({ message: 'Failed to clear items, retrying...' });
         return States.CLEAR_CART;
       }
 
@@ -1833,7 +1990,7 @@ export default class TaskPrimitive extends BaseTask {
 
       this.context.task.type = Modes.SAFE;
 
-      this._emitTaskEvent({ message: 'Cart cleared!', rawProxy });
+      this._emitTaskEvent({ message: 'Cart cleared!' });
       return States.WAIT_FOR_PRODUCT;
     } catch (err) {
       logger.error(
@@ -1851,7 +2008,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -1859,7 +2016,7 @@ export default class TaskPrimitive extends BaseTask {
       const message =
         err.status || err.errno ? `Clearing cart - (${err.status || err.errno})` : 'Clearing cart';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.CLEAR_CART;
     }
   }
@@ -1867,7 +2024,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleBackupAddToCart() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         store: { url, name, apiKey },
         product: { variants, hash, randomInStock },
@@ -1892,7 +2049,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!variant) {
-      this._emitTaskEvent({ message: 'No size matched!', rawProxy });
+      this._emitTaskEvent({ message: 'No size matched!' });
       return States.ERROR;
     }
 
@@ -1960,7 +2117,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -1971,11 +2128,11 @@ export default class TaskPrimitive extends BaseTask {
       // check redirects
       if (redirectUrl) {
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           const message = this._isRestocking ? 'Checking stock' : 'Adding to cart';
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
           return States.ADD_TO_CART;
         }
 
@@ -2006,7 +2163,7 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
       }
@@ -2016,27 +2173,26 @@ export default class TaskPrimitive extends BaseTask {
         const error = body.errors.line_items[0];
         logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           const message = this._isRestocking ? 'Checking stock' : 'Adding to cart';
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
           return States.ADD_TO_CART;
         }
         if (error && error.variant_id && error.variant_id.length) {
           this._emitTaskEvent({
             message: `Variant not live! Delaying ${monitorDelay}ms`,
-            rawProxy,
           });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           const message = this._isRestocking ? 'Checking stock' : 'Adding to cart';
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
           return States.ADD_TO_CART;
         }
 
         const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
-        this._emitTaskEvent({ message, rawProxy });
+        this._emitTaskEvent({ message });
         return States.ADD_TO_CART;
       }
 
@@ -2051,7 +2207,7 @@ export default class TaskPrimitive extends BaseTask {
         this._prices.cart = parseFloat(totalPrice).toFixed(2);
 
         if (this._isRestocking) {
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.PAYMENT_TOKEN;
         }
 
@@ -2060,14 +2216,14 @@ export default class TaskPrimitive extends BaseTask {
           this._prices.total = (
             parseFloat(this._prices.cart) + parseFloat(this._selectedShippingRate.price)
           ).toFixed(2);
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.PAYMENT_TOKEN;
         }
-        this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+        this._emitTaskEvent({ message: 'Going to checkout' });
         return States.GO_TO_CHECKOUT;
       }
       const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.ADD_TO_CART;
     } catch (err) {
       logger.error(
@@ -2085,7 +2241,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -2095,7 +2251,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Adding to cart - (${err.status || err.errno})`
           : 'Adding to cart';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.ADD_TO_CART;
     }
   }
@@ -2103,7 +2259,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleGoToCart() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         monitorDelay,
@@ -2148,7 +2304,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -2157,13 +2313,13 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
           this._emitTaskEvent({ message: 'Going to cart' });
@@ -2203,7 +2359,7 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
       }
@@ -2237,11 +2393,11 @@ export default class TaskPrimitive extends BaseTask {
       logger.info('Cart form parsed: %j', this._cartForm);
 
       if (this._needsLogin) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        this._emitTaskEvent({ message: 'Waiting for captcha' });
         // we can assume that if we're here and need a login, it's due to us hitting `/challenge`
         return States.CAPTCHA;
       }
-      this._emitTaskEvent({ message: 'Creating checkout', rawProxy });
+      this._emitTaskEvent({ message: 'Creating checkout' });
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -2259,7 +2415,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -2267,7 +2423,7 @@ export default class TaskPrimitive extends BaseTask {
       const message =
         err.status || err.errno ? `Going to cart - (${err.status || err.errno})` : 'Going to cart';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.GO_TO_CART;
     }
   }
@@ -2275,8 +2431,8 @@ export default class TaskPrimitive extends BaseTask {
   async _handleRequestCaptcha() {
     const {
       aborted,
+      logger,
       task: { type },
-      rawProxy,
     } = this.context;
     // exit if abort is detected
     if (aborted) {
@@ -2309,39 +2465,39 @@ export default class TaskPrimitive extends BaseTask {
 
         if (this._prevState === States.GO_TO_SHIPPING) {
           if (type === Modes.FAST) {
-            this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+            this._emitTaskEvent({ message: 'Submitting payment' });
             return States.PAYMENT_TOKEN;
           }
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting shipping' });
           return States.SUBMIT_SHIPPING;
         }
 
         // only happens in safe mode
         if (this._prevState === States.GO_TO_CART) {
-          this._emitTaskEvent({ message: 'Logging in', rawProxy });
+          this._emitTaskEvent({ message: 'Logging in' });
           return States.LOGIN;
         }
 
         if (this._prevState === States.GO_TO_CHECKPOINT) {
-          this._emitTaskEvent({ message: 'Submitting checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting checkpoint' });
           return States.SUBMIT_CHECKPOINT;
         }
 
         if (this._prevState === States.GO_TO_CHECKOUT) {
           if (type === Modes.FAST) {
             if (this._selectedShippingRate.id) {
-              this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+              this._emitTaskEvent({ message: 'Submitting payment' });
               return States.PAYMENT_TOKEN;
             }
-            this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+            this._emitTaskEvent({ message: 'Fetching rates' });
             return States.GO_TO_SHIPPING;
           }
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.SUBMIT_CUSTOMER;
         }
 
         if (this._prevState === States.SUBMIT_PAYMENT) {
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -2350,10 +2506,7 @@ export default class TaskPrimitive extends BaseTask {
       }
       case 'cancelled':
       case 'destroyed': {
-        logger.silly(
-          'Harvest Captcha status: %s, stopping...',
-          this._captchaTokenRequest.status,
-        );
+        logger.silly('Harvest Captcha status: %s, stopping...', this._captchaTokenRequest.status);
         // clear out the status so we get a generic "errored out task event"
         this.context.status = null;
         return States.ERROR;
@@ -2373,7 +2526,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleGetCheckout() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         store: { url, name, apiKey },
         monitorDelay,
@@ -2425,7 +2578,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -2453,7 +2606,7 @@ export default class TaskPrimitive extends BaseTask {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       if (this.context.task.type === Modes.CART) {
@@ -2467,21 +2620,21 @@ export default class TaskPrimitive extends BaseTask {
       // check if redirected
       if (redirectUrl) {
         if (/login/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Account needed!', rawProxy });
+          this._emitTaskEvent({ message: 'Account needed!' });
           return States.DONE;
         }
 
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkout' });
           return States.GO_TO_CHECKOUT;
         }
 
@@ -2512,34 +2665,34 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
           if (/dsm sg|dsm uk|dsm jp/i.test(name) && restockMode) {
-            this._emitTaskEvent({ message: `Creating checkout`, rawProxy });
+            this._emitTaskEvent({ message: `Creating checkout` });
             this._isRestocking = true;
             return States.CREATE_CHECKOUT;
           }
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkout' });
           return States.GO_TO_CHECKOUT;
         }
 
         if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Cart empty', rawProxy });
+          this._emitTaskEvent({ message: 'Cart empty' });
           return States.ADD_TO_CART;
         }
       }
 
       if (/stock_problems/i.test(body)) {
-        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+        this._emitTaskEvent({ message: 'Going to checkout' });
         return States.GO_TO_CHECKOUT;
       }
 
@@ -2561,11 +2714,11 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        this._emitTaskEvent({ message: 'Waiting for captcha' });
         return States.CAPTCHA;
       }
 
-      this._emitTaskEvent({ message: 'Submitting information', rawProxy, checkoutUrl });
+      this._emitTaskEvent({ message: 'Submitting information', checkoutUrl });
       return States.SUBMIT_CUSTOMER;
     } catch (err) {
       logger.error(
@@ -2583,7 +2736,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -2593,7 +2746,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Going to checkout - (${err.status || err.errno})`
           : 'Going to checkout';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.GO_TO_CHECKOUT;
     }
   }
@@ -2601,7 +2754,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleBackupGetCheckout() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         store: { url, apiKey },
         monitorDelay,
@@ -2644,7 +2797,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -2655,29 +2808,29 @@ export default class TaskPrimitive extends BaseTask {
       // check if redirected
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/login/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Account needed!', rawProxy });
+          this._emitTaskEvent({ message: 'Account needed!' });
           return States.DONE;
         }
 
         if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkout' });
           return States.GO_TO_CHECKOUT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Going to checkout', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkout' });
           return States.GO_TO_CHECKOUT;
         }
 
@@ -2708,7 +2861,7 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
       }
@@ -2731,7 +2884,7 @@ export default class TaskPrimitive extends BaseTask {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       // recaptcha sitekey parser...
@@ -2743,14 +2896,14 @@ export default class TaskPrimitive extends BaseTask {
 
       if (this._selectedShippingRate.id) {
         if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-          this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+          this._emitTaskEvent({ message: 'Waiting for captcha' });
           return States.CAPTCHA;
         }
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting payment' });
         return States.SUBMIT_PAYMENT;
       }
 
-      this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+      this._emitTaskEvent({ message: 'Fetching rates' });
       return States.GO_TO_SHIPPING;
     } catch (err) {
       logger.error(
@@ -2768,7 +2921,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -2778,7 +2931,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Going to checkout - (${err.status || err.errno})`
           : 'Going to checkout';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.GO_TO_CHECKOUT;
     }
   }
@@ -2786,7 +2939,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleSubmitCustomer() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         monitorDelay,
@@ -2854,7 +3007,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -2865,18 +3018,18 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.GO_TO_CHECKOUT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.SUBMIT_CUSTOMER;
         }
 
@@ -2907,36 +3060,36 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
 
         if (/step=stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.GO_TO_CHECKOUT;
         }
 
         if (/step=shipping_method/i.test(redirectUrl)) {
           this._captchaToken = ''; // reset captcha token
-          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+          this._emitTaskEvent({ message: 'Fetching rates' });
           return States.GO_TO_SHIPPING;
         }
 
         if (/step=contact_information/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.GO_TO_CHECKOUT;
         }
 
         if (/step=payment_method/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.GO_TO_PAYMENT;
         }
       }
 
-      this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+      this._emitTaskEvent({ message: 'Submitting information' });
       return States.GO_TO_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -2954,7 +3107,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -2964,7 +3117,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting information - (${err.status || err.errno})`
           : 'Submitting information';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.SUBMIT_CUSTOMER;
     }
   }
@@ -2972,7 +3125,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleBackupSubmitCustomer() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         profile: { shipping, billing, payment, billingMatchesShipping },
@@ -3014,7 +3167,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3049,7 +3202,7 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
       }
@@ -3063,24 +3216,24 @@ export default class TaskPrimitive extends BaseTask {
         !body.checkout.billing_address
       ) {
         const message = status ? `Submitting information – (${status})` : 'Submitting information';
-        this._emitTaskEvent({ message, rawProxy });
+        this._emitTaskEvent({ message });
         return States.SUBMIT_CUSTOMER;
       }
 
       if (this._isRestocking) {
         if (!this._selectedShippingRate.id) {
-          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+          this._emitTaskEvent({ message: 'Fetching rates' });
           return States.GO_TO_SHIPPING;
         }
-        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting shipping' });
         return States.SUBMIT_SHIPPING;
       }
 
       if (this.context.task.product.variants) {
-        this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
+        this._emitTaskEvent({ message: 'Adding to cart' });
         return States.ADD_TO_CART;
       }
-      this._emitTaskEvent({ message: 'Waiting for product', rawProxy });
+      this._emitTaskEvent({ message: 'Waiting for product' });
       return States.WAIT_FOR_PRODUCT;
     } catch (err) {
       logger.error(
@@ -3098,7 +3251,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3108,7 +3261,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting information - (${err.status || err.errno})`
           : 'Submitting information';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.SUBMIT_CUSTOMER;
     }
   }
@@ -3116,7 +3269,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleGetShipping() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         store: { url, apiKey },
@@ -3170,7 +3323,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3198,7 +3351,7 @@ export default class TaskPrimitive extends BaseTask {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       const redirectUrl = headers.get('location');
@@ -3207,16 +3360,16 @@ export default class TaskPrimitive extends BaseTask {
       // check if redirected
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting shipping' });
           return States.GO_TO_SHIPPING;
         }
 
@@ -3247,39 +3400,39 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
           // TODO: restock mode
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting shipping' });
           return States.GO_TO_SHIPPING;
         }
 
         if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Cart empty', rawProxy });
+          this._emitTaskEvent({ message: 'Cart empty' });
           return States.ADD_TO_CART;
         }
       }
 
       if (/stock_problems/i.test(body)) {
         // TODO: restock mode
-        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting shipping' });
         return States.GO_TO_SHIPPING;
       }
 
       if (/Getting available shipping rates/i.test(body)) {
-        this._emitTaskEvent({ message: 'Polling rates', rawProxy });
+        this._emitTaskEvent({ message: 'Polling rates' });
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting shipping' });
         return States.GO_TO_SHIPPING;
       }
 
@@ -3301,11 +3454,11 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        this._emitTaskEvent({ message: 'Waiting for captcha' });
         return States.CAPTCHA;
       }
 
-      this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+      this._emitTaskEvent({ message: 'Submitting shipping' });
       return States.SUBMIT_SHIPPING;
     } catch (err) {
       logger.error(
@@ -3323,7 +3476,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3333,7 +3486,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Fetching rates - (${err.status || err.errno})`
           : 'Fetching rates';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.GO_TO_SHIPPING;
     }
   }
@@ -3342,7 +3495,7 @@ export default class TaskPrimitive extends BaseTask {
     const {
       aborted,
       proxy,
-      rawProxy,
+      logger,
       task: {
         store: { url, apiKey },
         forceCaptcha,
@@ -3379,13 +3532,13 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
 
       if (status === 422) {
-        this._emitTaskEvent({ message: 'Country not supported', rawProxy });
+        this._emitTaskEvent({ message: 'Country not supported' });
         return States.ERROR;
       }
 
@@ -3399,27 +3552,27 @@ export default class TaskPrimitive extends BaseTask {
             logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
 
             if (this._isRestocking) {
-              this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
+              this._emitTaskEvent({ message: 'Adding to cart' });
               return States.ADD_TO_CART;
             }
 
             if (forceCaptcha && !this._captchaToken) {
-              this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+              this._emitTaskEvent({ message: 'Waiting for captcha' });
               return States.CAPTCHA;
             }
-            this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+            this._emitTaskEvent({ message: 'Submitting payment' });
             return States.PAYMENT_TOKEN;
           }
 
           if (errorMessage.indexOf("can't be blank") > -1) {
-            this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+            this._emitTaskEvent({ message: 'Submitting information' });
             return States.SUBMIT_CUSTOMER;
           }
         }
-        this._emitTaskEvent({ message: 'Polling rates', rawProxy });
+        this._emitTaskEvent({ message: 'Polling rates' });
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+        this._emitTaskEvent({ message: 'Fetching rates' });
         return States.GO_TO_SHIPPING;
       }
 
@@ -3442,16 +3595,16 @@ export default class TaskPrimitive extends BaseTask {
         ).toFixed(2);
         logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
         if (forceCaptcha && !this._captchaToken) {
-          this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+          this._emitTaskEvent({ message: 'Waiting for captcha' });
           return States.CAPTCHA;
         }
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting payment' });
         return States.PAYMENT_TOKEN;
       }
-      this._emitTaskEvent({ message: 'Polling rates', rawProxy });
+      this._emitTaskEvent({ message: 'Polling rates' });
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+      this._emitTaskEvent({ message: 'Fetching rates' });
       return States.GO_TO_SHIPPING;
     } catch (err) {
       logger.error(
@@ -3469,7 +3622,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3479,7 +3632,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Fetching rates - (${err.status || err.errno})`
           : 'Fetching rates';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.GO_TO_SHIPPING;
     }
   }
@@ -3487,7 +3640,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleSubmitShipping() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         monitorDelay,
@@ -3536,7 +3689,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3547,23 +3700,23 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/processing/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Processing payment' });
           return States.PROCESS_PAYMENT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting shipping' });
           return States.SUBMIT_SHIPPING;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting shipping' });
           return States.SUBMIT_SHIPPING;
         }
 
@@ -3594,36 +3747,36 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
 
         if (/step=stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.GO_TO_PAYMENT;
         }
 
         if (/step=payment_method/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.GO_TO_PAYMENT;
         }
 
         if (/step=shipping_method/i.test(redirectUrl)) {
           this._captchaToken = ''; // reset captcha token
-          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+          this._emitTaskEvent({ message: 'Fetching rates' });
           return States.GO_TO_SHIPPING;
         }
 
         if (/step=contact_information/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.GO_TO_CHECKOUT;
         }
       }
 
-      this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+      this._emitTaskEvent({ message: 'Submitting shipping' });
       return States.GO_TO_SHIPPING;
     } catch (err) {
       logger.error(
@@ -3641,7 +3794,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3651,7 +3804,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting shipping - (${err.status || err.errno})`
           : 'Submitting shipping';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.SUBMIT_SHIPPING;
     }
   }
@@ -3659,7 +3812,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleGetPayment() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         monitorDelay,
@@ -3708,7 +3861,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3738,7 +3891,7 @@ export default class TaskPrimitive extends BaseTask {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       const redirectUrl = headers.get('location');
@@ -3748,16 +3901,16 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.GO_TO_PAYMENT;
         }
 
@@ -3788,30 +3941,30 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
           // TODO: restock mode
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.GO_TO_PAYMENT;
         }
 
         if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Cart empty', rawProxy });
+          this._emitTaskEvent({ message: 'Cart empty' });
           return States.ADD_TO_CART;
         }
       }
 
       if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
-        this._emitTaskEvent({ message: 'Calculating taxes', rawProxy });
+        this._emitTaskEvent({ message: 'Calculating taxes' });
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting payment' });
         return States.GO_TO_PAYMENT;
       }
 
@@ -3833,17 +3986,17 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        this._emitTaskEvent({ message: 'Waiting for captcha' });
         return States.CAPTCHA;
       }
 
       if (!this._paymentToken && priceRecap !== '0') {
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting payment' });
         return States.PAYMENT_TOKEN;
       }
 
       this._isFreeCheckout = true;
-      this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+      this._emitTaskEvent({ message: 'Submitting payment' });
       return States.SUBMIT_PAYMENT;
     } catch (err) {
       logger.error(
@@ -3861,7 +4014,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3871,7 +4024,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting payment - (${err.status || err.errno})`
           : 'Submitting payment';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.GO_TO_PAYMENT;
     }
   }
@@ -3879,7 +4032,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleSubmitPayment() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         monitorDelay,
@@ -3960,7 +4113,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -3972,23 +4125,23 @@ export default class TaskPrimitive extends BaseTask {
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
       if (/stock_problems/i.test(body)) {
-        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting payment' });
         return States.SUBMIT_PAYMENT;
       }
 
       if (/Your payment can’t be processed/i.test(body)) {
-        this._emitTaskEvent({ message: 'Processing error (429)', rawProxy });
+        this._emitTaskEvent({ message: 'Processing error (429)' });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting payment' });
         return States.SUBMIT_PAYMENT;
       }
 
       if (/captcha/i.test(body)) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        this._emitTaskEvent({ message: 'Waiting for captcha' });
         return States.CAPTCHA;
       }
 
@@ -3997,23 +4150,23 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/processing/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Processing payment' });
           return States.PROCESS_PAYMENT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.SUBMIT_PAYMENT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.SUBMIT_PAYMENT;
         }
 
@@ -4044,7 +4197,7 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
       }
@@ -4054,32 +4207,32 @@ export default class TaskPrimitive extends BaseTask {
         const [, step] = match;
 
         if (/processing/i.test(step)) {
-          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Processing payment' });
           return States.PROCESS_PAYMENT;
         }
 
         if (/contact_information/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.GO_TO_CHECKOUT;
         }
 
         if (/shipping_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
+          this._emitTaskEvent({ message: 'Fetching rates' });
           return States.GO_TO_SHIPPING;
         }
 
         if (/payment_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.GO_TO_PAYMENT;
         }
 
         if (/review/i.test(step)) {
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.GO_TO_PAYMENT;
         }
       }
 
-      this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+      this._emitTaskEvent({ message: 'Submitting payment' });
       return States.GO_TO_PAYMENT;
     } catch (err) {
       logger.error(
@@ -4097,7 +4250,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -4114,7 +4267,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleBackupSubmitPayment() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         monitorDelay,
@@ -4177,7 +4330,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -4203,28 +4356,28 @@ export default class TaskPrimitive extends BaseTask {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       // check if redirected
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
           this._captchaToken = '';
-          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Processing payment' });
           return States.PROCESS_PAYMENT;
         }
 
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.SUBMIT_PAYMENT;
         }
 
@@ -4255,46 +4408,46 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
       }
 
       if ((/captcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        this._emitTaskEvent({ message: 'Waiting for captcha' });
         return States.CAPTCHA;
       }
 
       const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
       if (match && /review/i.test(match)) {
-        this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+        this._emitTaskEvent({ message: 'Completing payment' });
         return States.COMPLETE_PAYMENT;
       }
 
       if (match && /payment/i.test(match)) {
-        this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting payment' });
         return States.SUBMIT_PAYMENT;
       }
 
       if (match && /shipping/i.test(match)) {
-        this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+        this._emitTaskEvent({ message: 'Submitting shipping' });
         return States.SUBMIT_SHIPPING;
       }
 
       if (match && /process/i.test(match)) {
-        this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+        this._emitTaskEvent({ message: 'Processing payment' });
         return States.PROCESS_PAYMENT;
       }
 
-      this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+      this._emitTaskEvent({ message: 'Submitting payment' });
       return States.SUBMIT_PAYMENT;
     } catch (err) {
       logger.error(
@@ -4312,7 +4465,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -4322,7 +4475,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting payment - (${err.status || err.errno})`
           : 'Submitting payment';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.SUBMIT_PAYMENT;
     }
   }
@@ -4330,7 +4483,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleCompletePayment() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         monitorDelay,
@@ -4385,7 +4538,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -4398,23 +4551,23 @@ export default class TaskPrimitive extends BaseTask {
         const [, step] = match;
 
         if (/processing/i.test(step)) {
-          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Processing payment' });
           return States.PROCESS_PAYMENT;
         }
 
         if (/stock_problems/i.test(step)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
 
         if (/password/i.test(step)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4445,56 +4598,56 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
 
         if (/contact_information/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.SUBMIT_CUSTOMER;
         }
 
         if (/shipping_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting shipping' });
           return States.SUBMIT_SHIPPING;
         }
 
         if (/payment_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.SUBMIT_PAYMENT;
         }
 
         if (/review/i.test(step)) {
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
       }
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/stock_problems/.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
 
         if (/processing/.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Processing payment' });
           return States.PROCESS_PAYMENT;
         }
 
         if (/password/.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4525,16 +4678,16 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
       }
 
       if (/stock_problems/i.test(body)) {
-        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
         this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+        this._emitTaskEvent({ message: 'Completing payment' });
         return States.COMPLETE_PAYMENT;
       }
 
@@ -4546,11 +4699,11 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        this._emitTaskEvent({ message: 'Waiting for captcha' });
         return States.CAPTCHA;
       }
 
-      this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+      this._emitTaskEvent({ message: 'Completing payment' });
       return States.COMPLETE_PAYMENT;
     } catch (err) {
       logger.error(
@@ -4568,7 +4721,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -4578,7 +4731,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Completing payment - (${err.status || err.errno})`
           : 'Completing payment';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.COMPLTE_PAYMENT;
     }
   }
@@ -4586,7 +4739,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleBackupCompletePayment() {
     const {
       aborted,
-      rawProxy,
+      logger,
       proxy,
       task: {
         store: { url, apiKey },
@@ -4641,7 +4794,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -4664,35 +4817,35 @@ export default class TaskPrimitive extends BaseTask {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
+        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       const redirectUrl = headers.get('location');
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Processing payment' });
           return States.PROCESS_PAYMENT;
         }
 
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
+          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4723,13 +4876,13 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
       }
 
       if ((/captcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
+        this._emitTaskEvent({ message: 'Waiting for captcha' });
         return States.CAPTCHA;
       }
 
@@ -4739,23 +4892,23 @@ export default class TaskPrimitive extends BaseTask {
         const [, step] = match;
 
         if (/processing/i.test(step)) {
-          this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Processing payment' });
           return States.PROCESS_PAYMENT;
         }
 
         if (/stock_problems/i.test(step)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
+          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
 
         if (/password/i.test(step)) {
-          this._emitTaskEvent({ message: 'Password page', rawProxy });
+          this._emitTaskEvent({ message: 'Password page' });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4786,32 +4939,32 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', rawProxy });
+          this._emitTaskEvent({ message: 'Polling queue' });
           return States.QUEUE;
         }
 
         if (/contact_information/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting information', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting information' });
           return States.SUBMIT_CUSTOMER;
         }
 
         if (/shipping_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting shipping' });
           return States.SUBMIT_SHIPPING;
         }
 
         if (/payment_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
+          this._emitTaskEvent({ message: 'Submitting payment' });
           return States.SUBMIT_PAYMENT;
         }
 
         if (/review/i.test(step)) {
-          this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+          this._emitTaskEvent({ message: 'Completing payment' });
           return States.COMPLETE_PAYMENT;
         }
       }
 
-      this._emitTaskEvent({ message: 'Completing payment', rawProxy });
+      this._emitTaskEvent({ message: 'Completing payment' });
       return States.COMPLETE_PAYMENT;
     } catch (err) {
       logger.error(
@@ -4829,7 +4982,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -4839,7 +4992,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Completing payment - (${err.status || err.errno})`
           : 'Completing payment';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.COMPLETE_PAYMENT;
     }
   }
@@ -4847,7 +5000,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handlePaymentProcess() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         store: { url, apiKey, name },
         product: { size, name: productName, url: productUrl, image },
@@ -4895,7 +5048,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -5057,10 +5210,10 @@ export default class TaskPrimitive extends BaseTask {
         }
       }
       logger.silly('CHECKOUT: Processing payment');
-      this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+      this._emitTaskEvent({ message: 'Processing payment' });
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+      this._emitTaskEvent({ message: 'Processing payment' });
       return States.PROCESS_PAYMENT;
     } catch (err) {
       logger.error(
@@ -5083,7 +5236,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -5093,7 +5246,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Processing payment - (${err.status || err.errno})`
           : 'Processing payment';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.PROCESS_PAYMENT;
     }
   }
@@ -5101,11 +5254,10 @@ export default class TaskPrimitive extends BaseTask {
   async _handleBackupProcessPayment() {
     const {
       aborted,
-      rawProxy,
+      logger,
       task: {
         store: { url, apiKey },
       },
-      logger,
       proxy,
     } = this.context;
 
@@ -5143,7 +5295,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -5152,7 +5304,7 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/thank_you/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Payment successful!', rawProxy });
+          this._emitTaskEvent({ message: 'Payment successful!' });
           return States.DONE;
         }
       }
@@ -5160,18 +5312,18 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.text();
 
       if (/Card was decline/i.test(body)) {
-        this._emitTaskEvent({ message: 'Card declined!', rawProxy });
+        this._emitTaskEvent({ message: 'Card declined!' });
         return States.SUBMIT_PAYMENT;
       }
 
       if (/no match|Your payment can’t be processed/i.test(body)) {
-        this._emitTaskEvent({ message: 'Payment failed!', rawProxy });
+        this._emitTaskEvent({ message: 'Payment failed!' });
         return States.SUBMIT_PAYMENT;
       }
-      this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+      this._emitTaskEvent({ message: 'Processing payment' });
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Processing payment', rawProxy });
+      this._emitTaskEvent({ message: 'Processing payment' });
       return States.PROCESS_PAYMENT;
     } catch (err) {
       logger.error(
@@ -5189,7 +5341,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -5199,12 +5351,13 @@ export default class TaskPrimitive extends BaseTask {
           ? `Processing payment - (${err.status || err.errno})`
           : 'Processing payment';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.BACKUP_PROCESS_PAYMENT;
     }
   }
 
   async _handleStepLogic(currentState) {
+    const { logger } = this.context;
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');
     }

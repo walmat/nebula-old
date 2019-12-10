@@ -81,7 +81,7 @@ const _emitEvent = (context, ids, event, payload) => {
   logger.silly('Event %s emitted: %j', event, payload);
 };
 
-export const emitEvent = (context, ids, payload = {}, event, type = Types.Normal) => {
+export const emitEvent = (context, ids, payload = {}, event) => {
   const { message } = payload;
   if (message && message !== context.messsage) {
     context.setMessage(message);

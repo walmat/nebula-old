@@ -34,14 +34,6 @@ const CheckoutStates = {
   PROCESS_PAYMENT: 'PROCESS_PAYMENT',
 };
 
-// Runner Type will be used on frontend, so changing
-// these values may break certain things on the
-// Frontend!
-const TaskTypes = {
-  Normal: 'normal',
-  ShippingRates: 'srr',
-};
-
 const Modes = {
   SAFE: 'SAFE',
   FAST: 'FAST',
@@ -178,14 +170,10 @@ const QueueNextState = {
   },
 };
 
-const CheckoutRefreshTimeout = 98000;
-
 const Task = {
-  Types: TaskTypes,
   Modes,
   States: CheckoutStates,
   StateMap: QueueNextState,
-  CheckoutRefresh: CheckoutRefreshTimeout,
 };
 
 const Monitor = {
