@@ -3,6 +3,23 @@ import uuidv4 from 'uuid/v4';
 import { WEBHOOK_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Webhooks } from '../initial';
 
+import { HookTypes } from '../../../constants';
+
+const getWebhookType = url => {
+  if (
+    url &&
+    /https:\/\/hooks\.slack\.com\/services\/[a-zA-Z0-9]+\/[a-zA-Z0-9]+\/[a-zA-Z-0-9]*/.test(url)
+  ) {
+    return HookTypes.slack;
+  }
+
+  if (url && /https:\/\/discordapp.com\/api\/webhooks\/[0-9]+\/[a-zA-Z-0-9]*/.test(url)) {
+    return HookTypes.discord;
+  }
+
+  return null;
+};
+
 export default function webhookListReducer(state = Webhooks, action = {}) {
   const { type } = action;
 
@@ -16,6 +33,9 @@ export default function webhookListReducer(state = Webhooks, action = {}) {
     if (!webhook || (webhook && (!webhook.url || !webhook.name))) {
       return state;
     }
+
+    const hookType = getWebhookType(webhook.url);
+    webhook.type = hookType;
 
     // new webhook...
     if (!webhook.id) {

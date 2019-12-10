@@ -8,7 +8,7 @@ import CreateModal from '../create';
 
 import { taskActions } from '../../state/actions';
 import { makeSelectedTasks } from '../../state/selectors';
-import { makeDelays, makeProxies } from '../../../settings/state/selectors';
+import { makeDelays, makeProxies, makeWebhooks } from '../../../settings/state/selectors';
 
 class ActionBar extends Component {
   constructor(props) {
@@ -95,10 +95,10 @@ class ActionBar extends Component {
   }
 
   _start() {
-    const { tasks, delays, proxies, start } = this.props;
+    const { tasks, delays, webhooks, proxies, start } = this.props;
 
     if (tasks.length) {
-      return start(tasks, delays, proxies);
+      return start(tasks, delays, webhooks, proxies);
     }
     return null;
   }
@@ -128,8 +128,6 @@ class ActionBar extends Component {
   }
 
   render() {
-    const { tasks, delays, proxies } = this.props;
-
     const { show } = this.state;
 
     return (
@@ -152,7 +150,7 @@ class ActionBar extends Component {
               type="button"
               tabIndex={0}
               onKeyPress={() => {}}
-              onClick={() => this._start(tasks, delays, proxies)}
+              onClick={() => this._start()}
             >
               Start
             </button>
@@ -163,7 +161,7 @@ class ActionBar extends Component {
               type="button"
               tabIndex={0}
               onKeyPress={() => {}}
-              onClick={() => this._stop(tasks)}
+              onClick={() => this._stop()}
             >
               Stop
             </button>
@@ -174,7 +172,7 @@ class ActionBar extends Component {
               type="button"
               tabIndex={0}
               onKeyPress={() => {}}
-              onClick={() => this._remove(tasks)}
+              onClick={() => this._remove()}
             >
               Remove
             </button>
@@ -191,6 +189,7 @@ ActionBar.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
   delays: PropTypes.objectOf(PropTypes.any).isRequired,
   proxies: PropTypes.arrayOf(PropTypes.string).isRequired,
+  webhooks: PropTypes.arrayOf(PropTypes.string).isRequired,
   select: PropTypes.func.isRequired,
   start: PropTypes.func.isRequired,
   stop: PropTypes.func.isRequired,
@@ -200,12 +199,14 @@ ActionBar.propTypes = {
 const mapStateToProps = state => ({
   tasks: makeSelectedTasks(state),
   delays: makeDelays(state),
+  webhooks: makeWebhooks(state),
   proxies: makeProxies(state),
 });
 
 const mapDispatchToProps = dispatch => ({
   select: tasks => dispatch(taskActions.selectAll(tasks)),
-  start: (tasks, delays, proxies) => dispatch(taskActions.start(tasks, delays, proxies)),
+  start: (tasks, delays, webhooks, proxies) =>
+    dispatch(taskActions.start(tasks, delays, webhooks, proxies)),
   stop: tasks => dispatch(taskActions.stop(tasks)),
   remove: tasks => dispatch(taskActions.remove(tasks)),
 });
