@@ -5,11 +5,11 @@ import { parse } from 'query-string';
 
 import notification from '../hooks';
 import { Bases, Utils, Constants } from '../../common';
-import { Task as TaskConstants, Monitor } from '../constants';
+import { Task as TaskConstants } from '../constants';
 import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
 
 const { addToCart, parseForm, patchCheckoutForm } = Forms;
-const { Task, Manager, Platforms } = Constants;
+const { Task, Manager, Platforms, Monitor } = Constants;
 const { currencyWithSymbol, userAgent, waitForDelay, emitEvent } = Utils;
 const { BaseTask } = Bases;
 
@@ -85,7 +85,7 @@ export default class TaskPrimitive extends BaseTask {
     this._isFreeCheckout = false;
     this._isChecking = false;
     this._isRestocking = false;
-    this._previousProxy = '';
+    this._previousProxy = null;
   }
 
   _handleHarvest(id, token) {
@@ -104,7 +104,7 @@ export default class TaskPrimitive extends BaseTask {
       task: {
         store: { url },
         account: { username, password },
-        monitorDelay,
+        monitor,
         type,
       },
       logger,
@@ -148,7 +148,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -157,7 +157,12 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
@@ -169,7 +174,7 @@ export default class TaskPrimitive extends BaseTask {
             { message: 'Password page' },
             Events.TaskStatus,
           );
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
           emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
           return States.LOGIN;
@@ -536,7 +541,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       logger,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, apiKey },
       },
     } = this.context;
@@ -599,7 +604,7 @@ export default class TaskPrimitive extends BaseTask {
             { message: 'Password page' },
             Events.TaskStatus,
           );
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
           emitEvent(
             this.context,
@@ -742,7 +747,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, apiKey },
       },
     } = this.context;
@@ -844,7 +849,7 @@ export default class TaskPrimitive extends BaseTask {
             { message: 'Password page' },
             Events.TaskStatus,
           );
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
           emitEvent(
             this.context,
@@ -920,7 +925,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message = status ? `Submitting checkpoint - (${status})` : 'Submitting checkpoint';
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.SUBMIT_CHECKPOINT;
     } catch (err) {
       logger.error(
@@ -959,7 +964,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, name, apiKey },
         type,
       },
@@ -1040,7 +1045,7 @@ export default class TaskPrimitive extends BaseTask {
             { message: 'Password page' },
             Events.TaskStatus,
           );
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
           emitEvent(
             this.context,
@@ -1116,7 +1121,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -1155,7 +1160,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { url, apiKey },
-        monitorDelay,
+        monitor,
         type,
       },
       proxy,
@@ -1227,7 +1232,7 @@ export default class TaskPrimitive extends BaseTask {
             { message: 'Password page' },
             Events.TaskStatus,
           );
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
           emitEvent(
             this.context,
@@ -1303,7 +1308,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -1342,7 +1347,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { url, apiKey },
-        monitorDelay,
+        monitor,
       },
       proxy,
     } = this.context;
@@ -1387,7 +1392,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -1397,16 +1402,31 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Creating checkout' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Creating checkout' },
+            Events.TaskStatus,
+          );
           return States.CREATE_CHECKOUT;
         }
 
@@ -1437,7 +1457,12 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
           return States.QUEUE;
         }
       }
@@ -1446,13 +1471,28 @@ export default class TaskPrimitive extends BaseTask {
 
       if (body && body.error) {
         if (/channel is locked/i.test(body.error)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Creating checkout' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Creating checkout' },
+            Events.TaskStatus,
+          );
           return States.CREATE_CHECKOUT;
         }
-        this._emitTaskEvent({ message: 'Invalid checkout!' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Invalid checkout' },
+          Events.TaskStatus,
+        );
         return States.CREATE_CHECKOUT;
       }
 
@@ -1460,13 +1500,18 @@ export default class TaskPrimitive extends BaseTask {
         const { web_url: checkoutUrl } = body.checkout;
         if (/checkouts/i.test(checkoutUrl)) {
           [, , , this._storeId, , this._checkoutToken] = checkoutUrl.split('/');
-          this._emitTaskEvent({ message: 'Submitting information' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
           return States.SUBMIT_CUSTOMER;
         }
       }
 
       const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -1484,7 +1529,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -1494,7 +1539,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Creating checkout - (${err.status || err.errno})`
           : 'Creating checkout';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     }
   }
@@ -1551,13 +1596,23 @@ export default class TaskPrimitive extends BaseTask {
 
       if (nextState) {
         if (nextState.message) {
-          this._emitTaskEvent({ message: nextState.message });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: nextState.message },
+            Events.TaskStatus,
+          );
         }
         return nextState.nextState;
       }
 
       if (status === 400) {
-        this._emitTaskEvent({ message: 'Invalid checkout!' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Invalid queue' },
+          Events.TaskStatus,
+        );
         return States.CREATE_CHECKOUT;
       }
 
@@ -1567,7 +1622,12 @@ export default class TaskPrimitive extends BaseTask {
       logger.debug('CHECKOUT: Queue response: %j \nBody: %j', status, body);
       if (status === 302) {
         if (!redirectUrl || /throttle/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Not through queue (${status})` });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Waiting in queue' },
+            Events.TaskStatus,
+          );
           return States.QUEUE;
         }
 
@@ -1605,7 +1665,7 @@ export default class TaskPrimitive extends BaseTask {
                 this._selectedShippingRate,
               ));
 
-              this._emitTaskEvent({ message });
+              emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
               return nextState;
             }
           } catch (e) {
@@ -1657,7 +1717,7 @@ export default class TaskPrimitive extends BaseTask {
                   this._selectedShippingRate,
                 ));
 
-                this._emitTaskEvent({ message });
+                emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
                 return nextState;
               }
             }
@@ -1675,7 +1735,12 @@ export default class TaskPrimitive extends BaseTask {
       logger.debug('QUEUE: RedirectUrl at end of fn body: %j', redirectUrl);
 
       if (redirectUrl && /checkpoint/i.test(redirectUrl)) {
-        this._emitTaskEvent({ message: 'Going to checkpoint' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Going to checkpoint' },
+          Events.TaskStatus,
+        );
         this.checkpointUrl = redirectUrl;
         return States.GO_TO_CHECKPOINT;
       }
@@ -1693,15 +1758,15 @@ export default class TaskPrimitive extends BaseTask {
           this._selectedShippingRate,
         ));
 
-        this._emitTaskEvent({ message });
+        emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         return nextState;
       }
       logger.silly('CHECKOUT: Not passed queue, delaying 5000ms');
       message = status ? `Not through queue! (${status})` : 'Not through queue!';
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       this._delayer = waitForDelay(5000, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Polling queue' });
+      emitEvent(this.context, [this.context.id], { message: 'Polling queue' }, Events.TaskStatus);
       return States.QUEUE;
     } catch (err) {
       logger.error(
@@ -1717,14 +1782,19 @@ export default class TaskPrimitive extends BaseTask {
 
       if (nextState) {
         if (nextState.message) {
-          this._emitTaskEvent({ message: nextState.message });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: nextState.message },
+            Events.TaskStatus,
+          );
         }
         return nextState.nextState;
       }
 
       message =
         err.status || err.errno ? `Polling queue - (${err.status || err.errno})` : 'Polling queue';
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
 
       return States.QUEUE;
     }
@@ -1758,7 +1828,7 @@ export default class TaskPrimitive extends BaseTask {
         product: { variants, hash, restockUrl, randomInStock },
         size,
         type,
-        monitorDelay,
+        monitor,
       },
       proxy,
       parseType,
@@ -1782,7 +1852,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!variant) {
-      this._emitTaskEvent({ message: 'No size matched!' });
+      emitEvent(this.context, [this.context.id], { message: 'No size matched' }, Events.TaskStatus);
       return States.ERROR;
     }
 
@@ -1823,7 +1893,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -1833,28 +1903,31 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint', size });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
-        if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({
-            message: `Out of stock! Delaying ${monitorDelay}ms`,
-
-            size,
-          });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Adding to cart', size });
-          return States.ADD_TO_CART;
-        }
-
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Adding to cart', size });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Adding to cart' },
+            Events.TaskStatus,
+          );
           return States.ADD_TO_CART;
         }
 
@@ -1885,7 +1958,12 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue', size });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
           return States.QUEUE;
         }
       }
@@ -1893,23 +1971,39 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.text();
 
       if (/cannot find variant/i.test(body)) {
-        this._emitTaskEvent({
-          message: `Variant not live, delaying ${monitorDelay}ms`,
-
-          size,
-        });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Variant not found!' },
+          Events.TaskStatus,
+        );
+        this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Adding to cart', size });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Adding to cart' },
+          Events.TaskStatus,
+        );
         return States.ADD_TO_CART;
       }
 
       if (this._checkoutUrl) {
-        this._emitTaskEvent({ message: 'Going to checkout', size });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Going to checkout' },
+          Events.TaskStatus,
+        );
         return States.GO_TO_CHECKOUT;
       }
 
-      this._emitTaskEvent({ message: 'Going to cart', size });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Going to cart' },
+        Events.TaskStatus,
+      );
       return States.GO_TO_CART;
     } catch (err) {
       logger.error(
@@ -1927,7 +2021,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -1937,87 +2031,8 @@ export default class TaskPrimitive extends BaseTask {
           ? `Adding to cart - (${err.status || err.errno})`
           : 'Adding to cart';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.ADD_TO_CART;
-    }
-  }
-
-  async _handleClearCart() {
-    const {
-      aborted,
-      logger,
-      task: {
-        store: { url, apiKey },
-      },
-      proxy,
-    } = this.context;
-
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    try {
-      const res = await this._fetch(`${url}/cart/clear.js`, {
-        method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
-        },
-      });
-
-      const body = await res.json();
-
-      if (body && body.items && body.items.length) {
-        this._emitTaskEvent({ message: 'Failed to clear items, retrying...' });
-        return States.CLEAR_CART;
-      }
-
-      // extra padding to make sure that the variants are reset...
-      delete this.context.task.product.variants;
-      delete this.context.task.product.variant;
-      delete this.context.task.product.size;
-
-      this.context.task.type = Modes.SAFE;
-
-      this._emitTaskEvent({ message: 'Cart cleared!' });
-      return States.WAIT_FOR_PRODUCT;
-    } catch (err) {
-      logger.error(
-        'FRONTEND CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Clearing cart',
-        nextState: States.CLEAR_CART,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          this._emitTaskEvent({ message });
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno ? `Clearing cart - (${err.status || err.errno})` : 'Clearing cart';
-
-      this._emitTaskEvent({ message });
-      return States.CLEAR_CART;
     }
   }
 
@@ -2029,7 +2044,7 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, name, apiKey },
         product: { variants, hash, randomInStock },
         size,
-        monitorDelay,
+        monitor,
       },
       proxy,
       parseType,
@@ -2049,7 +2064,12 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!variant) {
-      this._emitTaskEvent({ message: 'No size matched!' });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'No size matched' },
+        Events.TaskStatus,
+      );
       return States.ERROR;
     }
 
@@ -2117,7 +2137,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -2128,11 +2148,16 @@ export default class TaskPrimitive extends BaseTask {
       // check redirects
       if (redirectUrl) {
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
           const message = this._isRestocking ? 'Checking stock' : 'Adding to cart';
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
           return States.ADD_TO_CART;
         }
 
@@ -2163,7 +2188,12 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
           return States.QUEUE;
         }
       }
@@ -2173,26 +2203,35 @@ export default class TaskPrimitive extends BaseTask {
         const error = body.errors.line_items[0];
         logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          // TODO: investigate this
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
           const message = this._isRestocking ? 'Checking stock' : 'Adding to cart';
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
           return States.ADD_TO_CART;
         }
         if (error && error.variant_id && error.variant_id.length) {
-          this._emitTaskEvent({
-            message: `Variant not live! Delaying ${monitorDelay}ms`,
-          });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Variant not live! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
           const message = this._isRestocking ? 'Checking stock' : 'Adding to cart';
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
           return States.ADD_TO_CART;
         }
 
         const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
-        this._emitTaskEvent({ message });
+        emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         return States.ADD_TO_CART;
       }
 
@@ -2207,7 +2246,12 @@ export default class TaskPrimitive extends BaseTask {
         this._prices.cart = parseFloat(totalPrice).toFixed(2);
 
         if (this._isRestocking) {
-          this._emitTaskEvent({ message: 'Submitting payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
           return States.PAYMENT_TOKEN;
         }
 
@@ -2216,14 +2260,24 @@ export default class TaskPrimitive extends BaseTask {
           this._prices.total = (
             parseFloat(this._prices.cart) + parseFloat(this._selectedShippingRate.price)
           ).toFixed(2);
-          this._emitTaskEvent({ message: 'Submitting payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
           return States.PAYMENT_TOKEN;
         }
-        this._emitTaskEvent({ message: 'Going to checkout' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Going to checkout' },
+          Events.TaskStatus,
+        );
         return States.GO_TO_CHECKOUT;
       }
       const message = status ? `Adding to cart – (${status})` : 'Adding to cart';
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.ADD_TO_CART;
     } catch (err) {
       logger.error(
@@ -2241,7 +2295,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -2251,7 +2305,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Adding to cart - (${err.status || err.errno})`
           : 'Adding to cart';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.ADD_TO_CART;
     }
   }
@@ -2262,7 +2316,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, apiKey },
       },
     } = this.context;
@@ -2304,7 +2358,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -2313,16 +2367,31 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Going to cart' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to cart' },
+            Events.TaskStatus,
+          );
           return States.GO_TO_CART;
         }
 
@@ -2359,7 +2428,13 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
       }
@@ -2393,11 +2468,22 @@ export default class TaskPrimitive extends BaseTask {
       logger.info('Cart form parsed: %j', this._cartForm);
 
       if (this._needsLogin) {
-        this._emitTaskEvent({ message: 'Waiting for captcha' });
-        // we can assume that if we're here and need a login, it's due to us hitting `/challenge`
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Waiting for captcha' },
+          Events.TaskStatus,
+        );
         return States.CAPTCHA;
       }
-      this._emitTaskEvent({ message: 'Creating checkout' });
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Creating checkout' },
+        Events.TaskStatus,
+      );
+
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -2415,7 +2501,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -2423,7 +2509,7 @@ export default class TaskPrimitive extends BaseTask {
       const message =
         err.status || err.errno ? `Going to cart - (${err.status || err.errno})` : 'Going to cart';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_CART;
     }
   }
@@ -2465,39 +2551,83 @@ export default class TaskPrimitive extends BaseTask {
 
         if (this._prevState === States.GO_TO_SHIPPING) {
           if (type === Modes.FAST) {
-            this._emitTaskEvent({ message: 'Submitting payment' });
+            emitEvent(
+              this.context,
+              [this.context.id],
+              { message: 'Submitting payment' },
+              Events.TaskStatus,
+            );
             return States.PAYMENT_TOKEN;
           }
-          this._emitTaskEvent({ message: 'Submitting shipping' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting shipping' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_SHIPPING;
         }
 
         // only happens in safe mode
         if (this._prevState === States.GO_TO_CART) {
-          this._emitTaskEvent({ message: 'Logging in' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Logging in' },
+            Events.TaskStatus,
+          );
+
           return States.LOGIN;
         }
 
         if (this._prevState === States.GO_TO_CHECKPOINT) {
-          this._emitTaskEvent({ message: 'Submitting checkpoint' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting checkpoint' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_CHECKPOINT;
         }
 
         if (this._prevState === States.GO_TO_CHECKOUT) {
           if (type === Modes.FAST) {
             if (this._selectedShippingRate.id) {
-              this._emitTaskEvent({ message: 'Submitting payment' });
+              emitEvent(
+                this.context,
+                [this.context.id],
+                { message: 'Submitting payment' },
+                Events.TaskStatus,
+              );
               return States.PAYMENT_TOKEN;
             }
-            this._emitTaskEvent({ message: 'Fetching rates' });
+            emitEvent(
+              this.context,
+              [this.context.id],
+              { message: 'Fetching rates' },
+              Events.TaskStatus,
+            );
             return States.GO_TO_SHIPPING;
           }
-          this._emitTaskEvent({ message: 'Submitting information' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
           return States.SUBMIT_CUSTOMER;
         }
 
         if (this._prevState === States.SUBMIT_PAYMENT) {
-          this._emitTaskEvent({ message: 'Submitting payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
 
@@ -2529,7 +2659,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { url, name, apiKey },
-        monitorDelay,
+        monitor,
         forceCaptcha,
         restockMode,
         type,
@@ -2578,7 +2708,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -2601,40 +2731,51 @@ export default class TaskPrimitive extends BaseTask {
         }
       }
 
-      let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
-        // TODO: toggle to send the checkout link to discord
-        this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
-      }
-
-      if (this.context.task.type === Modes.CART) {
-        this._emitTaskEvent({ message: 'Clearing cart!' });
-        return States.CLEAR_CART;
-      }
-
       const redirectUrl = headers.get('location');
       logger.silly(`CHECKOUT: Get checkout redirect url: %s`, redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
         if (/login/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Account needed!' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Account needed' },
+            Events.TaskStatus,
+          );
+
           return States.DONE;
         }
 
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
+
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Going to checkout' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkout' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKOUT;
         }
 
@@ -2665,34 +2806,68 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
           if (/dsm sg|dsm uk|dsm jp/i.test(name) && restockMode) {
-            this._emitTaskEvent({ message: `Creating checkout` });
+            emitEvent(
+              this.context,
+              [this.context.id],
+              { message: 'Creating checkout' },
+              Events.TaskStatus,
+            );
+
             this._isRestocking = true;
             return States.CREATE_CHECKOUT;
           }
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Going to checkout' });
-          return States.GO_TO_CHECKOUT;
-        }
 
-        if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Cart empty' });
-          return States.ADD_TO_CART;
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
+          await this._delayer;
+          
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkout' },
+            Events.TaskStatus,
+          );
+
+          return States.GO_TO_CHECKOUT;
         }
       }
 
       if (/stock_problems/i.test(body)) {
-        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: `Out of stock! Delaying ${monitor}ms` },
+          Events.TaskStatus,
+        );
+
+        this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Going to checkout' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Going to checkout' },
+          Events.TaskStatus,
+        );
+
         return States.GO_TO_CHECKOUT;
       }
 
@@ -2714,11 +2889,23 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Waiting for captcha' },
+          Events.TaskStatus,
+        );
+
         return States.CAPTCHA;
       }
 
-      this._emitTaskEvent({ message: 'Submitting information', checkoutUrl });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Submitting information' },
+        Events.TaskStatus,
+      );
+
       return States.SUBMIT_CUSTOMER;
     } catch (err) {
       logger.error(
@@ -2736,7 +2923,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -2746,7 +2933,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Going to checkout - (${err.status || err.errno})`
           : 'Going to checkout';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_CHECKOUT;
     }
   }
@@ -2757,7 +2944,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { url, apiKey },
-        monitorDelay,
+        monitor,
         forceCaptcha,
       },
       proxy,
@@ -2797,7 +2984,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -2808,29 +2995,67 @@ export default class TaskPrimitive extends BaseTask {
       // check if redirected
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
+
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/login/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Account needed!' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Account needed' },
+            Events.TaskStatus,
+          );
+
           return States.DONE;
         }
 
         if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Going to checkout' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkout' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKOUT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Going to checkout' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkout' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKOUT;
         }
 
@@ -2861,7 +3086,13 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
       }
@@ -2882,9 +3113,7 @@ export default class TaskPrimitive extends BaseTask {
       let checkoutUrl;
       if (this._storeId && this._checkoutToken && this._checkoutKey) {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
-        // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       // recaptcha sitekey parser...
@@ -2896,14 +3125,33 @@ export default class TaskPrimitive extends BaseTask {
 
       if (this._selectedShippingRate.id) {
         if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-          this._emitTaskEvent({ message: 'Waiting for captcha' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Waiting for captcha' },
+            Events.TaskStatus,
+          );
+
           return States.CAPTCHA;
         }
-        this._emitTaskEvent({ message: 'Submitting payment' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting payment' },
+          Events.TaskStatus,
+        );
+
         return States.SUBMIT_PAYMENT;
       }
 
-      this._emitTaskEvent({ message: 'Fetching rates' });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Fetching rates' },
+        Events.TaskStatus,
+      );
+
       return States.GO_TO_SHIPPING;
     } catch (err) {
       logger.error(
@@ -2921,7 +3169,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -2931,7 +3179,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Going to checkout - (${err.status || err.errno})`
           : 'Going to checkout';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_CHECKOUT;
     }
   }
@@ -2942,7 +3190,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, apiKey },
         type,
       },
@@ -3007,7 +3255,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3018,18 +3266,43 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKOUT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_CUSTOMER;
         }
 
@@ -3060,36 +3333,80 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
 
         if (/step=stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock, delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKOUT;
         }
 
         if (/step=shipping_method/i.test(redirectUrl)) {
-          this._captchaToken = ''; // reset captcha token
-          this._emitTaskEvent({ message: 'Fetching rates' });
+          this.context.setCaptchaToken(null);
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Fetching rates' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_SHIPPING;
         }
 
         if (/step=contact_information/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Submitting information' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKOUT;
         }
 
         if (/step=payment_method/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Submitting payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_PAYMENT;
         }
       }
 
-      this._emitTaskEvent({ message: 'Submitting information' });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Submitting information' },
+        Events.TaskStatus,
+      );
+
       return States.GO_TO_CHECKOUT;
     } catch (err) {
       logger.error(
@@ -3107,7 +3424,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3117,7 +3434,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting information - (${err.status || err.errno})`
           : 'Submitting information';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.SUBMIT_CUSTOMER;
     }
   }
@@ -3167,7 +3484,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3202,7 +3519,13 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
       }
@@ -3216,24 +3539,48 @@ export default class TaskPrimitive extends BaseTask {
         !body.checkout.billing_address
       ) {
         const message = status ? `Submitting information – (${status})` : 'Submitting information';
-        this._emitTaskEvent({ message });
+        emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         return States.SUBMIT_CUSTOMER;
       }
 
       if (this._isRestocking) {
         if (!this._selectedShippingRate.id) {
-          this._emitTaskEvent({ message: 'Fetching rates' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Fetching rates' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_SHIPPING;
         }
-        this._emitTaskEvent({ message: 'Submitting shipping' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting shipping' },
+          Events.TaskStatus,
+        );
         return States.SUBMIT_SHIPPING;
       }
 
       if (this.context.task.product.variants) {
-        this._emitTaskEvent({ message: 'Adding to cart' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Adding to cart' },
+          Events.TaskStatus,
+        );
         return States.ADD_TO_CART;
       }
-      this._emitTaskEvent({ message: 'Waiting for product' });
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Waiting for product' },
+        Events.TaskStatus,
+      );
+
       return States.WAIT_FOR_PRODUCT;
     } catch (err) {
       logger.error(
@@ -3251,7 +3598,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3261,7 +3608,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting information - (${err.status || err.errno})`
           : 'Submitting information';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.SUBMIT_CUSTOMER;
     }
   }
@@ -3273,7 +3620,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         store: { url, apiKey },
-        monitorDelay,
+        monitor,
         forceCaptcha,
         type,
       },
@@ -3323,7 +3670,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3351,7 +3698,6 @@ export default class TaskPrimitive extends BaseTask {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       const redirectUrl = headers.get('location');
@@ -3360,16 +3706,35 @@ export default class TaskPrimitive extends BaseTask {
       // check if redirected
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
+
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting shipping' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_SHIPPING;
         }
 
@@ -3400,39 +3765,77 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          ); 
+
           return States.QUEUE;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          // TODO: restock mode
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping' });
-          return States.GO_TO_SHIPPING;
-        }
 
-        if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Cart empty' });
-          return States.ADD_TO_CART;
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
+          await this._delayer;
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting shipping' },
+            Events.TaskStatus,
+          );
+
+          return States.GO_TO_SHIPPING;
         }
       }
 
       if (/stock_problems/i.test(body)) {
-        // TODO: restock mode
-        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: `Out of stock! Delaying ${monitor}ms` },
+          Events.TaskStatus,
+        );
+
+        this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting shipping' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting shipping' },
+          Events.TaskStatus,
+        );
         return States.GO_TO_SHIPPING;
       }
 
       if (/Getting available shipping rates/i.test(body)) {
-        this._emitTaskEvent({ message: 'Polling rates' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Polling rates' },
+          Events.TaskStatus,
+        );
+
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting shipping' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting shipping' },
+          Events.TaskStatus,
+        );
+
         return States.GO_TO_SHIPPING;
       }
 
@@ -3454,11 +3857,23 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Waiting for captcha' },
+          Events.TaskStatus,
+        );
+
         return States.CAPTCHA;
       }
 
-      this._emitTaskEvent({ message: 'Submitting shipping' });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Submitting shipping' },
+        Events.TaskStatus,
+      );
+
       return States.SUBMIT_SHIPPING;
     } catch (err) {
       logger.error(
@@ -3476,7 +3891,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3486,7 +3901,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Fetching rates - (${err.status || err.errno})`
           : 'Fetching rates';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_SHIPPING;
     }
   }
@@ -3532,13 +3947,19 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
 
       if (status === 422) {
-        this._emitTaskEvent({ message: 'Country not supported' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Country not supported' },
+          Events.TaskStatus,
+        );
+
         return States.ERROR;
       }
 
@@ -3552,27 +3973,66 @@ export default class TaskPrimitive extends BaseTask {
             logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
 
             if (this._isRestocking) {
-              this._emitTaskEvent({ message: 'Adding to cart' });
+              emitEvent(
+                this.context,
+                [this.context.id],
+                { message: 'Adding to cart' },
+                Events.TaskStatus,
+              );
+
               return States.ADD_TO_CART;
             }
 
             if (forceCaptcha && !this._captchaToken) {
-              this._emitTaskEvent({ message: 'Waiting for captcha' });
+              emitEvent(
+                this.context,
+                [this.context.id],
+                { message: 'Waiting for captcha' },
+                Events.TaskStatus,
+              );
+
               return States.CAPTCHA;
             }
-            this._emitTaskEvent({ message: 'Submitting payment' });
+
+            emitEvent(
+              this.context,
+              [this.context.id],
+              { message: 'Submitting payment' },
+              Events.TaskStatus,
+            );
+
             return States.PAYMENT_TOKEN;
           }
 
           if (errorMessage.indexOf("can't be blank") > -1) {
-            this._emitTaskEvent({ message: 'Submitting information' });
+            emitEvent(
+              this.context,
+              [this.context.id],
+              { message: 'Submitting information' },
+              Events.TaskStatus,
+            );
+
             return States.SUBMIT_CUSTOMER;
           }
         }
-        this._emitTaskEvent({ message: 'Polling rates' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Polling rates' },
+          Events.TaskStatus,
+        );
+
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Fetching rates' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Fetching rates' },
+          Events.TaskStatus,
+        );
+
         return States.GO_TO_SHIPPING;
       }
 
@@ -3595,16 +4055,43 @@ export default class TaskPrimitive extends BaseTask {
         ).toFixed(2);
         logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
         if (forceCaptcha && !this._captchaToken) {
-          this._emitTaskEvent({ message: 'Waiting for captcha' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Waiting for captcha' },
+            Events.TaskStatus,
+          );
+
           return States.CAPTCHA;
         }
-        this._emitTaskEvent({ message: 'Submitting payment' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting payment' },
+          Events.TaskStatus,
+        );
+
         return States.PAYMENT_TOKEN;
       }
-      this._emitTaskEvent({ message: 'Polling rates' });
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Polling rates' },
+        Events.TaskStatus,
+      );
+
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Fetching rates' });
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Fetching rates' },
+        Events.TaskStatus,
+      );
+
       return States.GO_TO_SHIPPING;
     } catch (err) {
       logger.error(
@@ -3622,7 +4109,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3632,7 +4119,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Fetching rates - (${err.status || err.errno})`
           : 'Fetching rates';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_SHIPPING;
     }
   }
@@ -3643,7 +4130,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, apiKey },
       },
     } = this.context;
@@ -3689,7 +4176,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3700,23 +4187,56 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/processing/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Processing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Processing payment' },
+            Events.TaskStatus,
+          );
+
           return States.PROCESS_PAYMENT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting shipping' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_SHIPPING;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting shipping' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting shipping' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_SHIPPING;
         }
 
@@ -3747,36 +4267,81 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
 
         if (/step=stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting information' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_PAYMENT;
         }
 
         if (/step=payment_method/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Submitting payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_PAYMENT;
         }
 
         if (/step=shipping_method/i.test(redirectUrl)) {
-          this._captchaToken = ''; // reset captcha token
-          this._emitTaskEvent({ message: 'Fetching rates' });
+          this.context.setCaptchaToken(null);
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Fetching rates' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_SHIPPING;
         }
 
         if (/step=contact_information/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Submitting information' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKOUT;
         }
       }
 
-      this._emitTaskEvent({ message: 'Submitting shipping' });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Submitting shipping' },
+        Events.TaskStatus,
+      );
+
       return States.GO_TO_SHIPPING;
     } catch (err) {
       logger.error(
@@ -3794,7 +4359,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3804,7 +4369,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting shipping - (${err.status || err.errno})`
           : 'Submitting shipping';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.SUBMIT_SHIPPING;
     }
   }
@@ -3815,7 +4380,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, apiKey },
         forceCaptcha,
       },
@@ -3861,7 +4426,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -3891,7 +4456,6 @@ export default class TaskPrimitive extends BaseTask {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       const redirectUrl = headers.get('location');
@@ -3901,16 +4465,35 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
+
           this.checkpointUrl = redirectUrl;
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_PAYMENT;
         }
 
@@ -3941,30 +4524,57 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          // TODO: restock mode
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
-          await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment' });
-          return States.GO_TO_PAYMENT;
-        }
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
 
-        if (/cart/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Cart empty' });
-          return States.ADD_TO_CART;
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
+          await this._delayer;
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
+          return States.GO_TO_PAYMENT;
         }
       }
 
       if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
-        this._emitTaskEvent({ message: 'Calculating taxes' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Calculating taxes' },
+          Events.TaskStatus,
+        );
+
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting payment' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting payment' },
+          Events.TaskStatus,
+        );
+
         return States.GO_TO_PAYMENT;
       }
 
@@ -3986,17 +4596,36 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Waiting for captcha' },
+          Events.TaskStatus,
+        );
+
         return States.CAPTCHA;
       }
 
       if (!this._paymentToken && priceRecap !== '0') {
-        this._emitTaskEvent({ message: 'Submitting payment' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting payment' },
+          Events.TaskStatus,
+        );
+
         return States.PAYMENT_TOKEN;
       }
 
       this._isFreeCheckout = true;
-      this._emitTaskEvent({ message: 'Submitting payment' });
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Submitting payment' },
+        Events.TaskStatus,
+      );
+
       return States.SUBMIT_PAYMENT;
     } catch (err) {
       logger.error(
@@ -4014,7 +4643,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -4024,7 +4653,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting payment - (${err.status || err.errno})`
           : 'Submitting payment';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_PAYMENT;
     }
   }
@@ -4035,7 +4664,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, apiKey },
         type,
       },
@@ -4113,7 +4742,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -4125,23 +4754,54 @@ export default class TaskPrimitive extends BaseTask {
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
       if (/stock_problems/i.test(body)) {
-        this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: `Out of stock! Delaying ${monitor}ms` },
+          Events.TaskStatus,
+        );
+
+        this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting payment' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting payment' },
+          Events.TaskStatus,
+        );
+
         return States.SUBMIT_PAYMENT;
       }
 
       if (/Your payment can’t be processed/i.test(body)) {
-        this._emitTaskEvent({ message: 'Processing error (429)' });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Processing error' },
+          Events.TaskStatus,
+        );
+
+        this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Submitting payment' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting payment' },
+          Events.TaskStatus,
+        );
+
         return States.SUBMIT_PAYMENT;
       }
 
       if (/captcha/i.test(body)) {
-        this._emitTaskEvent({ message: 'Waiting for captcha' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Waiting for captcha' },
+          Events.TaskStatus,
+        );
+
         return States.CAPTCHA;
       }
 
@@ -4150,23 +4810,55 @@ export default class TaskPrimitive extends BaseTask {
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/processing/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Processing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Processing payment' },
+            Events.TaskStatus,
+          );
+
           return States.PROCESS_PAYMENT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock, delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_PAYMENT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_PAYMENT;
         }
 
@@ -4197,7 +4889,13 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
       }
@@ -4207,32 +4905,67 @@ export default class TaskPrimitive extends BaseTask {
         const [, step] = match;
 
         if (/processing/i.test(step)) {
-          this._emitTaskEvent({ message: 'Processing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Processing payment' },
+            Events.TaskStatus,
+          );
+
           return States.PROCESS_PAYMENT;
         }
 
         if (/contact_information/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting information' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKOUT;
         }
 
         if (/shipping_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Fetching rates' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Fetching rates' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_SHIPPING;
         }
 
         if (/payment_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_PAYMENT;
         }
 
         if (/review/i.test(step)) {
-          this._emitTaskEvent({ message: 'Completing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_PAYMENT;
         }
       }
 
-      this._emitTaskEvent({ message: 'Submitting payment' });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Submitting payment' },
+        Events.TaskStatus,
+      );
       return States.GO_TO_PAYMENT;
     } catch (err) {
       logger.error(
@@ -4250,7 +4983,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -4270,7 +5003,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, apiKey },
         forceCaptcha,
       },
@@ -4330,7 +5063,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -4356,28 +5089,49 @@ export default class TaskPrimitive extends BaseTask {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       // check if redirected
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
-          this._captchaToken = '';
-          this._emitTaskEvent({ message: 'Processing payment' });
+          this.context.setCaptchaToken(null);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Processing payment' },
+            Events.TaskStatus,
+          );
+
           return States.PROCESS_PAYMENT;
         }
 
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
-          this.checkpointUrl = redirectUrl;
+          this.checkpointUrl = redirectUrl; 
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Submitting payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
           return States.SUBMIT_PAYMENT;
         }
 
@@ -4408,46 +5162,99 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
       }
 
       if ((/captcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Waiting for captcha' },
+          Events.TaskStatus,
+        );
+
         return States.CAPTCHA;
       }
 
       const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
       if (match && /review/i.test(match)) {
-        this._emitTaskEvent({ message: 'Completing payment' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Completing payment' },
+          Events.TaskStatus,
+        );
+
         return States.COMPLETE_PAYMENT;
       }
 
       if (match && /payment/i.test(match)) {
-        this._emitTaskEvent({ message: 'Submitting payment' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting payment' },
+          Events.TaskStatus,
+        );
+
         return States.SUBMIT_PAYMENT;
       }
 
       if (match && /shipping/i.test(match)) {
-        this._emitTaskEvent({ message: 'Submitting shipping' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting shipping' },
+          Events.TaskStatus,
+        );
+
         return States.SUBMIT_SHIPPING;
       }
 
       if (match && /process/i.test(match)) {
-        this._emitTaskEvent({ message: 'Processing payment' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Processing payment' },
+          Events.TaskStatus,
+        );
+
         return States.PROCESS_PAYMENT;
       }
 
-      this._emitTaskEvent({ message: 'Submitting payment' });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Submitting payment' },
+        Events.TaskStatus,
+      );
       return States.SUBMIT_PAYMENT;
     } catch (err) {
       logger.error(
@@ -4465,7 +5272,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -4475,7 +5282,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Submitting payment - (${err.status || err.errno})`
           : 'Submitting payment';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.SUBMIT_PAYMENT;
     }
   }
@@ -4486,7 +5293,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: {
-        monitorDelay,
+        monitor,
         store: { url, apiKey },
         type,
         forceCaptcha,
@@ -4538,7 +5345,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -4551,23 +5358,53 @@ export default class TaskPrimitive extends BaseTask {
         const [, step] = match;
 
         if (/processing/i.test(step)) {
-          this._emitTaskEvent({ message: 'Processing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Processing payment' },
+            Events.TaskStatus,
+          );
           return States.PROCESS_PAYMENT;
         }
 
         if (/stock_problems/i.test(step)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
 
         if (/password/i.test(step)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4598,56 +5435,123 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
           return States.QUEUE;
         }
 
         if (/contact_information/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting information' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_CUSTOMER;
         }
 
         if (/shipping_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting shipping' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting shipping' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_SHIPPING;
         }
 
         if (/payment_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_PAYMENT;
         }
 
         if (/review/i.test(step)) {
-          this._emitTaskEvent({ message: 'Completing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
       }
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/stock_problems/.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
 
         if (/processing/.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Processing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Processing payment' },
+            Events.TaskStatus,
+          );
+
           return States.PROCESS_PAYMENT;
         }
 
         if (/password/.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4678,16 +5582,34 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
       }
 
       if (/stock_problems/i.test(body)) {
-        this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-        this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: `Out of stock! Delaying ${monitor}ms` },
+          Events.TaskStatus,
+        );
+
+        this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
-        this._emitTaskEvent({ message: 'Completing payment' });
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Completing payment' },
+          Events.TaskStatus,
+        );
         return States.COMPLETE_PAYMENT;
       }
 
@@ -4699,11 +5621,23 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Waiting for captcha' },
+          Events.TaskStatus,
+        );
+
         return States.CAPTCHA;
       }
 
-      this._emitTaskEvent({ message: 'Completing payment' });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Completing payment' },
+        Events.TaskStatus,
+      );
+
       return States.COMPLETE_PAYMENT;
     } catch (err) {
       logger.error(
@@ -4721,7 +5655,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -4731,7 +5665,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Completing payment - (${err.status || err.errno})`
           : 'Completing payment';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.COMPLTE_PAYMENT;
     }
   }
@@ -4743,7 +5677,7 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         store: { url, apiKey },
-        monitorDelay,
+        monitor,
         forceCaptcha,
       },
     } = this.context;
@@ -4794,7 +5728,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -4815,37 +5749,73 @@ export default class TaskPrimitive extends BaseTask {
       let checkoutUrl;
       if (this._storeId && this._checkoutToken && this._checkoutKey) {
         checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
-        // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
-        this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl });
       }
 
       const redirectUrl = headers.get('location');
       if (redirectUrl) {
         if (/processing/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Processing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Processing payment' },
+            Events.TaskStatus,
+          );
+
           return States.PROCESS_PAYMENT;
         }
 
         if (/checkpoint/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Going to checkpoint' });
           this.checkpointUrl = redirectUrl;
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Going to checkpoint' },
+            Events.TaskStatus,
+          );
+
           return States.GO_TO_CHECKPOINT;
         }
 
         if (/password/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4876,13 +5846,25 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
       }
 
       if ((/captcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
-        this._emitTaskEvent({ message: 'Waiting for captcha' });
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Waiting for captcha' },
+          Events.TaskStatus,
+        );
+
         return States.CAPTCHA;
       }
 
@@ -4892,23 +5874,55 @@ export default class TaskPrimitive extends BaseTask {
         const [, step] = match;
 
         if (/processing/i.test(step)) {
-          this._emitTaskEvent({ message: 'Processing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Processing payment' },
+            Events.TaskStatus,
+          );
+
           return States.PROCESS_PAYMENT;
         }
 
         if (/stock_problems/i.test(step)) {
-          this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Out of stock! Delaying ${monitor}ms` },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
 
         if (/password/i.test(step)) {
-          this._emitTaskEvent({ message: 'Password page' });
-          this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Password page' },
+            Events.TaskStatus,
+          );
+
+          this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          this._emitTaskEvent({ message: 'Completing payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
 
@@ -4939,32 +5953,69 @@ export default class TaskPrimitive extends BaseTask {
             // fail silently...
           }
 
-          this._emitTaskEvent({ message: 'Polling queue' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Polling queue' },
+            Events.TaskStatus,
+          );
+
           return States.QUEUE;
         }
 
         if (/contact_information/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting information' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting information' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_CUSTOMER;
         }
 
         if (/shipping_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting shipping' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting shipping' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_SHIPPING;
         }
 
         if (/payment_method/i.test(step)) {
-          this._emitTaskEvent({ message: 'Submitting payment' });
+
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Submitting payment' },
+            Events.TaskStatus,
+          );
+
           return States.SUBMIT_PAYMENT;
         }
 
         if (/review/i.test(step)) {
-          this._emitTaskEvent({ message: 'Completing payment' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Completing payment' },
+            Events.TaskStatus,
+          );
+
           return States.COMPLETE_PAYMENT;
         }
       }
 
-      this._emitTaskEvent({ message: 'Completing payment' });
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Completing payment' },
+        Events.TaskStatus,
+      );
+
       return States.COMPLETE_PAYMENT;
     } catch (err) {
       logger.error(
@@ -4982,7 +6033,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -4992,7 +6043,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Completing payment - (${err.status || err.errno})`
           : 'Completing payment';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.COMPLETE_PAYMENT;
     }
   }
@@ -5007,7 +6058,7 @@ export default class TaskPrimitive extends BaseTask {
         profile: { profileName },
         oneCheckout,
         type,
-        monitorDelay,
+        monitor,
       },
       proxy,
       slack,
@@ -5048,7 +6099,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -5101,11 +6152,12 @@ export default class TaskPrimitive extends BaseTask {
             this._events.emit(TaskManagerEvents.Success, this.context.task);
           }
 
-          this._emitTaskEvent({
-            message: `Payment successful! Order ${orderName}`,
-            order: { number: orderName, url: statusUrl },
-            status: 'success',
-          });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: `Success! Order ${orderName} placed.` },
+            Events.TaskStatus,
+          );
 
           return States.DONE;
         }
@@ -5137,7 +6189,13 @@ export default class TaskPrimitive extends BaseTask {
             type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
               ? States.PAYMENT_TOKEN
               : States.GO_TO_PAYMENT;
-          this._emitTaskEvent({ message: 'Card declined!' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Payment failed' },
+            Events.TaskStatus,
+          );
+
           return rewindToState;
         }
 
@@ -5174,7 +6232,13 @@ export default class TaskPrimitive extends BaseTask {
                 ? States.PAYMENT_TOKEN
                 : States.GO_TO_PAYMENT;
 
-            this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms` });
+            emitEvent(
+              this.context,
+              [this.context.id],
+              { message: 'Payment failed' },
+              Events.TaskStatus,
+            );
+
             return rewindToState;
           }
 
@@ -5205,15 +6269,33 @@ export default class TaskPrimitive extends BaseTask {
               ? States.PAYMENT_TOKEN
               : States.GO_TO_PAYMENT;
 
-          this._emitTaskEvent({ message: 'Payment failed!' });
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: 'Payment failed' },
+            Events.TaskStatus,
+          );
+
           return rewindToState;
         }
       }
-      logger.silly('CHECKOUT: Processing payment');
-      this._emitTaskEvent({ message: 'Processing payment' });
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Processing payment' },
+        Events.TaskStatus,
+      );
+
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
-      this._emitTaskEvent({ message: 'Processing payment' });
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Processing payment' },
+        Events.TaskStatus,
+      );
       return States.PROCESS_PAYMENT;
     } catch (err) {
       logger.error(
@@ -5222,11 +6304,6 @@ export default class TaskPrimitive extends BaseTask {
         err.message,
         err.stack,
       );
-
-      if (/invalid json response/i.test(err.message)) {
-        this._emitTaskEvent({ message: 'Processing payment' });
-        return States.BACKUP_PROCESS_PAYMENT;
-      }
 
       const nextState = stateForError(err, {
         message: 'Processing payment',
@@ -5236,7 +6313,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message });
+          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         }
         return erroredState;
       }
@@ -5246,113 +6323,8 @@ export default class TaskPrimitive extends BaseTask {
           ? `Processing payment - (${err.status || err.errno})`
           : 'Processing payment';
 
-      this._emitTaskEvent({ message });
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.PROCESS_PAYMENT;
-    }
-  }
-
-  async _handleBackupProcessPayment() {
-    const {
-      aborted,
-      logger,
-      task: {
-        store: { url, apiKey },
-      },
-      proxy,
-    } = this.context;
-
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    try {
-      const res = await this._fetch(`${url}/${this._storeId}/checkouts/${this._checkoutToken}`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          'Content-Type': 'application/json',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-        },
-      });
-
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
-        {
-          message: 'Processing payment',
-          nextState: States.BACKUP_PROCESS_PAYMENT,
-        },
-      );
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          this._emitTaskEvent({ message });
-        }
-        return erroredState;
-      }
-
-      const redirectUrl = headers.get('location');
-
-      if (redirectUrl) {
-        if (/thank_you/i.test(redirectUrl)) {
-          this._emitTaskEvent({ message: 'Payment successful!' });
-          return States.DONE;
-        }
-      }
-
-      const body = await res.text();
-
-      if (/Card was decline/i.test(body)) {
-        this._emitTaskEvent({ message: 'Card declined!' });
-        return States.SUBMIT_PAYMENT;
-      }
-
-      if (/no match|Your payment can’t be processed/i.test(body)) {
-        this._emitTaskEvent({ message: 'Payment failed!' });
-        return States.SUBMIT_PAYMENT;
-      }
-      this._emitTaskEvent({ message: 'Processing payment' });
-      this._delayer = waitForDelay(1000, this._aborter.signal);
-      await this._delayer;
-      this._emitTaskEvent({ message: 'Processing payment' });
-      return States.PROCESS_PAYMENT;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Process Payment.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Processing payment',
-        nextState: States.BACKUP_PROCESS_PAYMENT,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          this._emitTaskEvent({ message });
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Processing payment - (${err.status || err.errno})`
-          : 'Processing payment';
-
-      this._emitTaskEvent({ message });
-      return States.BACKUP_PROCESS_PAYMENT;
     }
   }
 
@@ -5367,14 +6339,13 @@ export default class TaskPrimitive extends BaseTask {
     const stepMap = {
       [States.LOGIN]: this._handleLogin,
       [States.PAYMENT_TOKEN]: this._handlePaymentToken,
-      [States.GET_SITE_DATA]: this._handleGetSiteData,
+      [States.GATHER_DATA]: this._handleGatherData,
       [States.CREATE_CHECKOUT]: this._handleCreateCheckout,
       [States.GO_TO_CHECKPOINT]: this._handleGetCheckpoint,
       [States.SUBMIT_CHECKPOINT]: this._handleSubmitCheckpoint,
       [States.QUEUE]: this._handlePollQueue,
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
-      [States.CLEAR_CART]: this._handleClearCart,
       [States.GO_TO_CART]: this._handleGoToCart,
       [States.GO_TO_CHECKOUT]: this._handleGetCheckout,
       [States.CAPTCHA]: this._handleRequestCaptcha,
@@ -5385,7 +6356,6 @@ export default class TaskPrimitive extends BaseTask {
       [States.SUBMIT_PAYMENT]: this._handleSubmitPayment,
       [States.COMPLETE_PAYMENT]: this._handleCompletePayment,
       [States.PROCESS_PAYMENT]: this._handlePaymentProcess,
-      [States.BACKUP_PROCESS_PAYMENT]: this._handleBackupProcessPayment,
       [States.SWAP]: this._handleSwap,
       [States.DONE]: () => States.DONE,
       [States.ERROR]: () => States.DONE,
