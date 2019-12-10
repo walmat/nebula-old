@@ -1,5 +1,5 @@
 import { _getId, States, Platforms } from '../../../constants';
-import parseProductType from '../../../utils/parseProductType';
+import { parseProduct } from '../../../utils';
 import { TASK_LIST_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Tasks } from '../initial';
 
@@ -17,7 +17,7 @@ export default (state = Tasks, action) => {
       return state;
     }
 
-    const parsedProduct = parseProductType(task.product);
+    const parsedProduct = parseProduct(task.product);
 
     if (!parsedProduct) {
       return state;
