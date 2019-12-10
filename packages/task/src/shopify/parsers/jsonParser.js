@@ -36,8 +36,6 @@ export default class JsonParser {
         agent: proxy ? proxy.proxy : null,
       });
 
-      console.log(res);
-
       if (/429|430/.test(res.status)) {
         const error = new Error('Proxy banned!');
         error.status = res.status;
