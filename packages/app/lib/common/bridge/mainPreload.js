@@ -169,16 +169,18 @@ const _stopShippingRateTask = () => {
   return Promise.resolve();
 };
 
-/**
- * Sends proxies(s) that should be add to launcher.js
- */
+const _addWebhooks = webhooks => {
+  util.sendEvent(IPCKeys.RequestAddWebhooks, webhooks);
+};
+
+const _removeWebhooks = webhooks => {
+  util.sendEvent(IPCKeys.RequestRemoveWebhooks, webhooks);
+};
+
 const _addProxies = proxies => {
   util.sendEvent(IPCKeys.RequestAddProxies, proxies);
 };
 
-/**
- * Sends task(s) that should be removed to launcher.js
- */
 const _removeProxies = proxies => {
   util.sendEvent(IPCKeys.RequestRemoveProxies, proxies);
 };
@@ -242,6 +244,8 @@ process.once('loaded', () => {
     restartTasks: _restartTasks,
     stopTasks: _stopTasks,
     openInDefaultBrowser: _openInDefaultBrowser,
+    addWebhooks: _addWebhooks,
+    removeWebhooks: _removeWebhooks,
     addProxies: _addProxies,
     removeProxies: _removeProxies,
     changeDelay: _changeDelay,

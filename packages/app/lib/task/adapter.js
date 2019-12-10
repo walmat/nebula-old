@@ -85,6 +85,8 @@ class TaskManagerAdapter {
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestRestartTasks, this._onRestartTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestStopTasks, this._onStopTasksRequest.bind(this));
+    ipcRenderer.on(IPCKeys.RequestAddWebhooks, this._onAddWebhooksRequest.bind(this));
+    ipcRenderer.on(IPCKeys.RequestRemoveWebhooks, this._onRemoveWebhooksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestAddProxies, this._onAddProxiesRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestRemoveProxies, this._onRemoveProxiesRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestChangeDelay, this._onChangeDelayRequest.bind(this));
@@ -125,6 +127,14 @@ class TaskManagerAdapter {
     } else {
       this._taskManager.stop(tasks);
     }
+  }
+
+  _onAddWebhooksRequest(_, webhooks) {
+    this._taskManager.webhookManager.add(webhooks);
+  }
+
+  _onRemoveWebhooksRequest(_, webhooks) {
+    this._taskManager.webhookManager.remove(webhooks);
   }
 
   _onAddProxiesRequest(_, proxies) {

@@ -46,12 +46,14 @@ export default function webhookListReducer(state = Webhooks, action = {}) {
       } while (state.some(idCheck));
 
       webhook.id = newId;
+      window.Bridge.addWebhooks([webhook]);
       return [...state, webhook];
     }
 
     // existing webhook...
     return state.map(hook => {
       if (hook.id === webhook.id) {
+        window.Bridge.addWebhooks([webhook]);
         return webhook;
       }
       return hook;
@@ -64,6 +66,8 @@ export default function webhookListReducer(state = Webhooks, action = {}) {
     if (!webhook || (webhook && !webhook.id)) {
       return state;
     }
+
+    window.Bridge.removeWebhooks([webhook]);
 
     return state.filter(hook => hook.id !== webhook.id);
   }

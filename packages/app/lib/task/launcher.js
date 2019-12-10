@@ -41,6 +41,8 @@ class TaskLauncher {
       IPCKeys.RequestStopTasks,
       IPCKeys.RequestAddProxies,
       IPCKeys.RequestRemoveProxies,
+      IPCKeys.RequestAddWebhooks,
+      IPCKeys.RequestRemoveWebhooks,
       IPCKeys.RequestChangeDelay,
       IPCKeys.RequestWebhookUpdate,
       IPCKeys.RequestWebhookTest,
