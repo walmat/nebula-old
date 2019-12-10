@@ -78,6 +78,7 @@
     @include themify($themes) {
       background: themed('buttonColorPrimary');
       color: themed('buttonPrimaryText');
+      box-shadow: 0 0 5px themed('liveLogTableBorderTop');
     }
     width: 100%;
     margin-top: 19px;
@@ -88,6 +89,7 @@
     @include themify($themes) {
       background: themed('buttonColorSecondary');
       color: themed('buttonPrimaryText');
+      box-shadow: 0 0 5px themed('liveLogTableBorderTop');
     }
     width: 100%;
     margin-top: 19px;

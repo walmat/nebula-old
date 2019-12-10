@@ -2,9 +2,11 @@ import AbortController from 'abort-controller';
 import { pick } from 'lodash';
 
 import { Constants, Utils, Bases } from '../../common';
-import { Parser, getParsers } from '../parsers';
+import { getParsers } from '../parsers';
+import { Parse } from '../utils';
 import { Monitor as MonitorConstants } from '../constants';
 
+const { getFullProductInfo } = Parse;
 const { BaseMonitor } = Bases;
 const { rfrl, capitalizeFirstLetter, waitForDelay, emitEvent } = Utils;
 const { Platforms, Monitor, Task, ErrorCodes } = Constants;
@@ -14,22 +16,21 @@ const { States } = MonitorConstants;
 
 // SHOPIFY
 export default class MonitorPrimitive extends BaseMonitor {
-  constructor(context, type = ParseType.Unknown, platform = Platforms.Shopify) {
+  constructor(context, platform = Platforms.Shopify) {
     super(context, platform);
 
-    this._type = type;
     this._state = States.PARSE;
     this._prevState = States.PARSE;
   }
 
   async _handleErrors(errors = []) {
-    const { logger, aborted } = this._context;
+    const { logger, aborted } = this.context;
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    const { monitor } = this._context.task;
+    const { monitor } = this.context.task;
     let delayStatus;
     let ban = false; // assume we don't have a softban
     errors.forEach(({ status }) => {
@@ -56,8 +57,8 @@ export default class MonitorPrimitive extends BaseMonitor {
     if (ban) {
       logger.silly('Proxy was banned, swapping proxies...');
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        this.context.ids,
         {
           message: 'Proxy banned!',
         },
@@ -81,8 +82,8 @@ export default class MonitorPrimitive extends BaseMonitor {
     }
 
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      this.context.ids,
       {
         message: `${message} Delaying ${monitor}ms`,
       },
@@ -96,48 +97,40 @@ export default class MonitorPrimitive extends BaseMonitor {
 
   async _parse() {
     // Create the parsers and start the async run methods
-    const Parsers = getParsers(this._context.task.store.url);
-
-    const parsers = Parsers(
-      this._fetch,
-      this._parseType,
-      this._context.task,
-      this._context.proxy,
-      new AbortController(),
-      this._context.logger,
-    );
+    const Parsers = getParsers(this.context.task.store.url);
+    const parsers = Parsers(this.context, new AbortController(), this._fetch);
 
     // Return the winner of the race
     return rfrl(parsers.map(p => p.run()), 'parseAll');
   }
 
   async _keywords() {
-    const { aborted, logger } = this._context;
+    const { aborted, logger, task } = this.context;
 
     if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected');
       return States.ABORT;
     }
 
-    const { store } = this._context.task;
+    const { store } = task;
     let parsed;
     try {
       // Try parsing all files and wait for the first response
       parsed = await this._parse();
     } catch (errors) {
-      logger.debug('MONITOR: All request errored out! %j', errors);
+      console.log(errors);
+      logger.debug('All request errored out! %j', errors);
       // handle parsing errors
       return this._handleErrors(errors);
     }
 
-    logger.debug('MONITOR: %s retrieved as a matched product', parsed.title);
-    logger.debug('MONITOR: Mapping variant lists now...');
-    this._context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
-    this._context.task.product.image = parsed.featured_image;
-    this._context.task.product.hash = parsed.hash || '';
-    this._context.task.product.url = `${store.url}/products/${parsed.handle}`;
-    this._context.task.product.name = capitalizeFirstLetter(parsed.title);
-    this._context.task.product.variants = parsed.variants.map(v =>
+    logger.debug('Matched product: %s', parsed.title);
+    this.context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
+    this.context.task.product.image = parsed.featured_image;
+    this.context.task.product.hash = parsed.hash || '';
+    this.context.task.product.url = `${store.url}/products/${parsed.handle}`;
+    this.context.task.product.name = capitalizeFirstLetter(parsed.title);
+    this.context.task.product.variants = parsed.variants.map(v =>
       pick(
         v,
         'id',
@@ -151,12 +144,11 @@ export default class MonitorPrimitive extends BaseMonitor {
         'option4',
       ),
     );
-    logger.debug('MONITOR: Status is OK, emitting event');
 
-    const { name } = this._context.task.product;
+    const { name } = this.context.task.product;
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      this.context.ids,
       {
         message: `Product found: ${name}`,
       },
@@ -166,31 +158,23 @@ export default class MonitorPrimitive extends BaseMonitor {
   }
 
   async _url() {
-    const { aborted, logger } = this._context;
+    const { aborted, logger, proxy, task } = this.context;
     if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected');
       return States.ABORT;
     }
 
-    const [url] = this._context.task.product.url.split('?');
+    const [url] = task.product.url.split('?');
 
     try {
       // Try getting full product info
-      const fullProductInfo = await Parser.getFullProductInfo(
-        url,
-        this._context.proxy,
-        this._fetch,
-        logger,
-      );
+      const fullProductInfo = await getFullProductInfo(this._fetch, url, proxy, logger);
 
       // Generate Variants
-      logger.silly(
-        'MONITOR: Retrieve Full Product %s, Mapping Variants List...',
-        fullProductInfo.title,
-      );
-      this._context.task.product.image = fullProductInfo.featured_image;
-      this._context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
-      this._context.task.product.variants = fullProductInfo.variants.map(v =>
+      logger.silly('Retrieved product %s', fullProductInfo.title);
+      this.context.task.product.image = fullProductInfo.featured_image;
+      this.context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
+      this.context.task.product.variants = fullProductInfo.variants.map(v =>
         pick(
           v,
           'id',
@@ -204,17 +188,16 @@ export default class MonitorPrimitive extends BaseMonitor {
           'option4',
         ),
       );
-      logger.silly('MONITOR: Variants mapped! Updating context...');
+      logger.silly('Variants mapped! Updating context...');
 
       // Everything is setup -- kick it off to checkout
-      logger.silly('MONITOR: Status is OK, proceeding checkout');
-      this._context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
+      this.context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
 
-      const { name } = this._context.task.product;
+      const { name } = this.context.task.product;
 
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        this.context.ids,
         {
           message: `Product found: ${name}`,
         },
@@ -230,16 +213,16 @@ export default class MonitorPrimitive extends BaseMonitor {
   }
 
   async _handleParse() {
-    const { aborted, logger, parseType } = this._context;
+    const { aborted, logger, parseType } = this.context;
 
     if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected');
       return States.ABORT;
     }
 
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      this.context.ids,
       {
         message: `Parsing products`,
       },
@@ -248,30 +231,28 @@ export default class MonitorPrimitive extends BaseMonitor {
 
     switch (parseType) {
       case ParseType.Variant: {
-        logger.silly('MONITOR: Variant Parsing Detected');
-        logger.silly('MONITOR: Variants mapped! Updating context...');
-        this._context.task.product.variants = [{ id: this._context.task.product.variant }];
+        logger.silly('Variant Parsing Detected');
+        this.context.task.product.variants = [{ id: this.context.task.product.variant }];
 
-        logger.silly('MONITOR: Status is OK, proceeding to checkout');
         return States.DONE;
       }
       case ParseType.Url: {
-        logger.silly('MONITOR: Url Parsing Detected');
+        logger.silly('Url Parsing Detected');
         return this._url();
       }
       case ParseType.Keywords: {
-        logger.silly('MONITOR: Keyword Parsing Detected');
+        logger.silly('Keyword Parsing Detected');
         return this._keywords();
       }
       default: {
-        logger.error('MONITOR: Unable to Monitor Type: %s', parseType);
+        logger.error('Unable to Monitor Type: %s', parseType);
         return States.ERROR;
       }
     }
   }
 
   async _handleStepLogic(currentState) {
-    const { logger } = this._context;
+    const { logger } = this.context;
 
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');

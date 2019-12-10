@@ -1,40 +1,33 @@
 import React from 'react';
 
-import ViewTask from './components/viewTask';
-import LogTask from './components/logTask';
-import CreateTask from './components/createTask';
+import ActionBar from './components/actions';
+import TaskTable from './components/table';
 
 import '../styles/index.scss';
 import './styles/index.scss';
 
-export default () => (
+const Tasks = () => (
   <div className="container tasks">
     <div className="row row--expand" style={{ width: '100%' }}>
-      <div className="col col--expand col--start" style={{ flexGrow: 0.5 }}>
+      <div className="col col--expand col--start">
         <div className="row row--start">
           <div className="col col--no-gutter-left">
             <h1 className="text-header tasks__title">Tasks</h1>
           </div>
         </div>
-        <div className="row row--expand">
+        <div className="row row--expand" style={{ marginTop: 15 }}>
           <div className="col col--expand">
-            <div className="row row--start">
-              <div className="col col--no-gutter-left">
-                <p className="body-text section-header tasks-create__section-header">Create</p>
-              </div>
-            </div>
             <div className="row row--expand">
               <div className="col col--start col--expand col--no-gutter-left">
-                <CreateTask />
+                <TaskTable />
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="col col--expand col--start" style={{ flexGrow: 5 }}>
-        <LogTask />
+        <ActionBar />
       </div>
     </div>
-    <ViewTask />
   </div>
 );
+
+export default Tasks;

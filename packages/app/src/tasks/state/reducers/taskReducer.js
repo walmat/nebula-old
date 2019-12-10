@@ -7,8 +7,7 @@ import {
   mapTaskFieldsToKey,
 } from '../../../store/actions';
 import { CurrentTask } from '../initial';
-import { platformForStore } from '../../../constants/platforms';
-import { mapTypeToNextType } from '../../../constants/tasks';
+import { platformForStore, mapTypeToNextType } from '../../../constants';
 
 export default (state = CurrentTask, action = {}) => {
   const { type } = action;
@@ -24,26 +23,19 @@ export default (state = CurrentTask, action = {}) => {
       switch (field) {
         case TASK_FIELDS.EDIT_PRODUCT: {
           let change = {
-            ...state.product,
-            raw: value || '',
+            ...state,
+            product: {
+              ...state.product,
+              raw: value || '',
+            },
           };
 
           if (!value || !value.startsWith('http')) {
-            return {
-              ...state,
-              product: {
-                ...change,
-              },
-            };
+            return { ...state, ...change };
           }
           const URL = parseURL(value);
           if (!URL || !URL.host) {
-            return {
-              ...state,
-              product: {
-                ...change,
-              },
-            };
+            return { ...state, ...change };
           }
           let newStore;
 
@@ -54,14 +46,10 @@ export default (state = CurrentTask, action = {}) => {
             }
           });
 
-          if (!newStore || newStore.label === state.store.name) {
-            return {
-              ...state,
-              product: {
-                ...change,
-              },
-            };
+          if (!newStore || (newStore.label && state.site && newStore.label === state.store.name)) {
+            return { ...state, ...change };
           }
+
           change = {
             ...change,
             store: {
@@ -79,14 +67,23 @@ export default (state = CurrentTask, action = {}) => {
             return state;
           }
 
-          // if we're selecting the same store...
-          // TODO: Should we do a shallow compare instead of just comparing the names?
           if (state.store && value.name && value.name === state.store.name) {
             return state;
           }
 
+          // patch back in the defaults..
+          if (platformForStore(value.url) !== state.platform) {
+            return {
+              ...CurrentTask,
+              ...state,
+              platform: platformForStore(value.url),
+              store: value,
+            };
+          }
+
           return { ...state, platform: platformForStore(value.url), store: value };
         }
+
         case TASK_FIELDS.EDIT_SIZE:
           return { ...state, size: value };
 

@@ -13,6 +13,8 @@ const actionsList = [
   'TRANSFER_SHIPPING',
 ];
 
+export const profileActionsNeededForTask = ['@@Profile/REMOVE_PROFILE', '@@Profile/UPDATE_PROFILE'];
+
 export const profileActionsList = [
   '@@Profile/CREATE_PROFILE',
   '@@Profile/REMOVE_PROFILE',
@@ -40,7 +42,7 @@ const editProfile = makeActionCreator(
 );
 const transferProfile = makeActionCreator(PROFILE_ACTIONS.TRANSFER_SHIPPING);
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT_PROFILE, 'profile');
-const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'site', 'rate');
+const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'store', 'rate');
 
 export const profileActions = {
   create: createProfile,
@@ -58,7 +60,7 @@ export const PROFILE_FIELDS = {
   EDIT_BILLING: 'EDIT_BILLING',
   EDIT_PAYMENT: 'EDIT_PAYMENT',
   EDIT_RATES: 'EDIT_RATES',
-  EDIT_SELECTED_SITE: 'EDIT_SELECTED_SITE',
+  EDIT_SELECTED_STORE: 'EDIT_SELECTED_STORE',
   TOGGLE_MATCHES: 'TOGGLE_MATCHES',
   EDIT_NAME: 'EDIT_NAME',
 };
@@ -93,7 +95,7 @@ export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.EDIT_BILLING]: 'billing',
   [PROFILE_FIELDS.EDIT_PAYMENT]: 'payment',
   [PROFILE_FIELDS.EDIT_RATES]: 'rates',
-  [PROFILE_FIELDS.EDIT_SELECTED_SITE]: 'selectedSite',
+  [PROFILE_FIELDS.EDIT_SELECTED_STORE]: 'selectedStore',
   [PROFILE_FIELDS.TOGGLE_MATCHES]: 'matches',
   [PROFILE_FIELDS.EDIT_NAME]: 'profileName',
 };

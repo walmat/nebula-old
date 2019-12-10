@@ -4,14 +4,13 @@ import { min, isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
 import notification from '../hooks';
-import { Classes, Bases, Utils, Constants } from '../../common';
+import { Bases, Utils, Constants } from '../../common';
 import { Task as TaskConstants, Monitor } from '../constants';
 import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
 
 const { addToCart, parseForm, patchCheckoutForm } = Forms;
 const { Task, Manager, Platforms } = Constants;
 const { currencyWithSymbol, userAgent, waitForDelay } = Utils;
-const { Timer } = Classes;
 const { BaseTask } = Bases;
 
 const { Events } = Task;
@@ -22,22 +21,18 @@ const { ParseType } = Monitor;
 export default class TaskPrimitive extends BaseTask {
   constructor(context, platform = Platforms.Shopify) {
     super(context, platform);
-    this._timers = {
-      checkout: new Timer(),
-      monitor: new Timer(),
-    };
 
-    this._needsLogin = this._context.task.account || false;
+    this._needsLogin = this.context.task.account || false;
     this._state = States.STARTED;
     this.checkpointUrl = '/checkpoint'; // default to normal checkpoint
     this._backupCheckout = false;
 
     // decide what our start state should be!
-    if (!this._context.task.store.apiKey) {
+    if (!this.context.task.store.apiKey) {
       this._state = States.GATHER_DATA;
     } else if (this._needsLogin) {
       this._state = States.LOGIN;
-    } else if (this._context.task.type === Modes.FAST) {
+    } else if (this.context.task.type === Modes.FAST) {
       this._state = States.CREATE_CHECKOUT;
     } else {
       this._state = States.WAIT_FOR_PRODUCT;
@@ -47,8 +42,8 @@ export default class TaskPrimitive extends BaseTask {
 
     this._history = [];
 
-    const preFetchedShippingRates = this._context.task.profile.rates.find(
-      r => r.store.url === this._context.task.store.url,
+    const preFetchedShippingRates = this.context.task.profile.rates.find(
+      r => r.store.url === this.context.task.store.url,
     );
 
     this._selectedShippingRate = {
@@ -96,35 +91,13 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   _handleHarvest(id, token) {
-    const { id: thisId, captchaQueue } = this._context;
+    const { id: thisId, captchaQueue } = this.context;
 
     if (id !== thisId || !captchaQueue) {
       return null;
     }
 
     return captchaQueue.insert(token);
-  }
-
-  async getCookie(jar, name) {
-    const store = jar.Store || jar.store;
-
-    if (!store) {
-      return null;
-    }
-
-    let found = null;
-    store.getAllCookies((_, cookies) => {
-      for (let i = 0; i < cookies.length; i += 1) {
-        const cookie = cookies[i];
-        this._logger.info(`Cookie key/value: %j/%j`, cookie.key, cookie.value);
-        if (cookie.key.indexOf(name) > -1) {
-          this._logger.debug('Found existing ctd cookie %j', cookie.value);
-          found = cookie.value;
-          break;
-        }
-      }
-    });
-    return found;
   }
 
   // MARK: State Machine Step Logic
@@ -137,46 +110,32 @@ export default class TaskPrimitive extends BaseTask {
         monitorDelay,
         type,
       },
+      logger,
       proxy,
       rawProxy,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    const form = new URLSearchParams();
-    let heads = {
-      'User-Agent': userAgent,
-    };
-
-    if (this._captchaToken) {
-      form.append('utf8', '✓');
-      form.append('authenticity_token', '');
-      form.append('g-recaptcha-response', this._captchaToken);
-      heads = {
-        ...heads,
-        Referer: `${url}/challenge`,
-      };
-    } else {
-      form.append('form_data', 'customer_login');
-      form.append('utf8', '✓');
-      form.append('customer[email]', username);
-      form.append('customer[password]', password);
-      form.append('Referer', `${url}/account/login`);
-    }
-
     try {
-      const res = await this._fetch(`${url}/account/login`, {
+      const res = await fetch(`${url}/account/login`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
-        headers: heads,
-        body: form,
+        headers: {
+          'user-agent': userAgent,
+          'content-type': 'application/x-www-form-urlencoded',
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+          origin: url,
+        },
+        body: `form_type=customer_login&utf8=%E2%9C%93&customer%5Bemail%5D=${encodeURIComponent(username)}&customer%5Bpassword%5D=${encodeURIComponent(password)}&return_url=%2Faccount`,
       });
 
       const { status, headers } = res;
@@ -217,7 +176,7 @@ export default class TaskPrimitive extends BaseTask {
         // DON'T SET `this._needsLogin` to false
         if (/challenge/i.test(redirectUrl)) {
           if (type === Modes.SAFE) {
-            if (this._context.task.product.variants && this._context.task.product.variants.length) {
+            if (this.context.task.product.variants && this.context.task.product.variants.length) {
               this._emitTaskEvent({ message: 'Adding to cart', proxy: rawProxy });
               return States.ADD_TO_CART;
             }
@@ -238,7 +197,7 @@ export default class TaskPrimitive extends BaseTask {
           this._needsLogin = false; // update global check for login
 
           if (type === Modes.SAFE && !this._captchaToken) {
-            if (this._context.task.product.variants && this._context.task.product.variants.length) {
+            if (this.context.task.product.variants && this.context.task.product.variants.length) {
               this._emitTaskEvent({ message: 'Adding to cart', proxy: rawProxy });
               return States.ADD_TO_CART;
             }
@@ -260,7 +219,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message, rawProxy });
       return States.LOGIN;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -296,12 +255,12 @@ export default class TaskPrimitive extends BaseTask {
         store: { url },
       },
       proxy,
-      rawProxy,
-    } = this._context;
+      logger,
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -309,7 +268,7 @@ export default class TaskPrimitive extends BaseTask {
       let res = await this._fetch('https://elb.deposit.shopifycs.com/sessions', {
         method: 'OPTIONS',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
@@ -335,7 +294,7 @@ export default class TaskPrimitive extends BaseTask {
       res = await this._fetch('https://elb.deposit.shopifycs.com/sessions', {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: {
           'User-Agent': userAgent,
           'Content-Type': 'application/json',
@@ -375,7 +334,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -383,14 +342,14 @@ export default class TaskPrimitive extends BaseTask {
       const { id } = await res.json();
 
       if (id) {
-        this._logger.silly('Payment token: %s', id);
+        logger.silly('Payment token: %s', id);
         this._paymentToken = id;
         return States.SUBMIT_PAYMENT;
       }
 
       return States.PAYMENT_TOKEN;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Payment Token.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -405,7 +364,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -415,7 +374,7 @@ export default class TaskPrimitive extends BaseTask {
           ? `Creating payment session - (${err.status || err.errno})`
           : 'Creating payment session';
 
-      this._emitTaskEvent({ message, rawProxy });
+      this._emitTaskEvent({ message });
       return States.PAYMENT_TOKEN;
     }
   }
@@ -423,17 +382,17 @@ export default class TaskPrimitive extends BaseTask {
   async _handleGatherData() {
     const {
       aborted,
-      rawProxy,
       proxy,
       task: {
         store: { url },
         type,
       },
-    } = this._context;
+      logger,
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -441,7 +400,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(url, {
         method: 'GET',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         headers: {
           'User-Agent': userAgent,
@@ -461,7 +420,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message, nextState: erroredState } = nextState;
         if (message) {
-          this._emitTaskEvent({ message, rawProxy });
+          this._emitTaskEvent({ message });
         }
         return erroredState;
       }
@@ -472,7 +431,7 @@ export default class TaskPrimitive extends BaseTask {
       let accessToken;
       if (match && match.length) {
         [, accessToken] = match;
-        this._context.task.store.apiKey = accessToken;
+        this.context.task.store.apiKey = accessToken;
       }
 
       if (!accessToken) {
@@ -480,48 +439,44 @@ export default class TaskPrimitive extends BaseTask {
         match = body.match(/"accessToken":(.*)","betas"/);
 
         if (!match || !match.length) {
-          this._emitTaskEvent({ message: 'Invalid Shopify Store', rawProxy });
+          this._emitTaskEvent({ message: 'Invalid Shopify Store' });
           return States.ERROR;
         }
         [, accessToken] = match;
-        this._context.task.store.apiKey = accessToken;
+        this.context.task.store.apiKey = accessToken;
       }
       if (type === Modes.SAFE) {
         if (!this._needsLogin) {
-          if (this._context.task.product.variants && this._context.task.product.variants.length) {
+          if (this.context.task.product.variants && this.context.task.product.variants.length) {
             this._emitTaskEvent({
               message: 'Adding to cart',
-              rawProxy,
-              apiKey: this._context.task.store.apiKey || undefined,
+              apiKey: this.context.task.store.apiKey || undefined,
             });
             return States.ADD_TO_CART;
           }
           this._emitTaskEvent({
             message: 'Waiting for product',
-            rawProxy,
-            apiKey: this._context.task.store.apiKey || undefined,
+            apiKey: this.context.task.store.apiKey || undefined,
           });
           return States.WAIT_FOR_PRODUCT;
         }
         this._emitTaskEvent({
           message: 'Logging in',
-          rawProxy,
-          apiKey: this._context.task.store.apiKey || undefined,
+          apiKey: this.context.task.store.apiKey || undefined,
         });
         return States.LOGIN;
       }
       if (!this._needsLogin) {
         this._emitTaskEvent({
           message: 'Creating checkout',
-          rawProxy,
-          apiKey: this._context.task.store.apiKey || undefined,
+          apiKey: this.context.task.store.apiKey || undefined,
         });
         return States.CREATE_CHECKOUT;
       }
-      this._emitTaskEvent({ message: 'Logging in', rawProxy });
+      this._emitTaskEvent({ message: 'Logging in' });
       return States.LOGIN;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -558,10 +513,10 @@ export default class TaskPrimitive extends BaseTask {
         monitorDelay,
         store: { url, apiKey },
       },
-    } = this._context;
+    } = this.context;
 
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -569,7 +524,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(this.checkpointUrl, {
         method: 'GET',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -597,7 +552,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.debug('Checkpoint redirect url: %j', redirectUrl);
+      logger.debug('Checkpoint redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
@@ -620,7 +575,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -628,7 +583,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -674,7 +629,7 @@ export default class TaskPrimitive extends BaseTask {
         if (/g-recaptcha-response/i.test(name)) {
           return;
         }
-        this._logger.info('Checkpoint form value detected: { name: %j, value: %j }', name, value);
+        logger.info('Checkpoint form value detected: { name: %j, value: %j }', name, value);
 
         if (name) {
           this._checkpointForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
@@ -684,8 +639,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.store.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
+        [, this.context.task.store.sitekey] = match;
+        logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
       if (this._checkpointForm.endsWith('&')) {
@@ -695,7 +650,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Checkpoint captcha', rawProxy });
       return States.CAPTCHA;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %d Request Error..\n Step: Going to checkpoint.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -734,10 +689,10 @@ export default class TaskPrimitive extends BaseTask {
         monitorDelay,
         store: { url, apiKey },
       },
-    } = this._context;
+    } = this.context;
 
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -762,13 +717,13 @@ export default class TaskPrimitive extends BaseTask {
       this._checkpointForm = this._checkpointForm.slice(0, -1);
     }
 
-    this._logger.debug('CHECKPOINT FORM: %j', this._checkpointForm);
+    logger.debug('CHECKPOINT FORM: %j', this._checkpointForm);
 
     try {
       const res = await this._fetch(`/checkpoint`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -797,7 +752,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.debug('Checkpoint redirect url: %j', redirectUrl);
+      logger.debug('Checkpoint redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
         if (/checkout/i.test(redirectUrl)) {
@@ -825,7 +780,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -833,7 +788,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -872,7 +827,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message, rawProxy });
       return States.SUBMIT_CHECKPOINT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %d Request Error..\n Step: Checkpoint.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -912,11 +867,11 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, name, apiKey },
         type,
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -936,7 +891,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`${url}/cart`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -968,7 +923,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
+      logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
@@ -991,7 +946,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -999,7 +954,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1038,7 +993,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message, rawProxy });
       return States.CREATE_CHECKOUT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -1078,11 +1033,11 @@ export default class TaskPrimitive extends BaseTask {
         type,
       },
       proxy,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -1090,7 +1045,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`${url}/checkout`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: getHeaders({ url, apiKey }),
@@ -1116,7 +1071,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
+      logger.debug('Create checkout redirect url: %j', redirectUrl);
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
@@ -1143,7 +1098,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -1151,7 +1106,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1190,7 +1145,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message, rawProxy });
       return States.CREATE_CHECKOUT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -1229,11 +1184,11 @@ export default class TaskPrimitive extends BaseTask {
         monitorDelay,
       },
       proxy,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -1241,7 +1196,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`${url}/wallets/checkouts`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: getHeaders({ url, apiKey }),
@@ -1277,7 +1232,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.debug('Create checkout redirect url: %j', redirectUrl);
+      logger.debug('Create checkout redirect url: %j', redirectUrl);
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
@@ -1300,7 +1255,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -1308,7 +1263,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1353,7 +1308,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message, rawProxy });
       return States.CREATE_CHECKOUT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -1393,11 +1348,11 @@ export default class TaskPrimitive extends BaseTask {
       },
       proxy,
       timers: { monitor },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -1407,7 +1362,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`${url}/checkout/poll?js_poll=1`, {
         method: 'GET',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -1424,7 +1379,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const { status, headers } = res;
 
-      this._logger.debug('Checkout: poll response %d', status);
+      logger.debug('Checkout: poll response %d', status);
       nextState = stateForError(
         { status },
         {
@@ -1448,7 +1403,7 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.text();
 
       let redirectUrl = headers.get('location');
-      this._logger.debug('CHECKOUT: Queue response: %j \nBody: %j', status, body);
+      logger.debug('CHECKOUT: Queue response: %j \nBody: %j', status, body);
       if (status === 302) {
         if (!redirectUrl || /throttle/i.test(redirectUrl)) {
           this._emitTaskEvent({ message: `Not through queue (${status})`, rawProxy });
@@ -1460,7 +1415,7 @@ export default class TaskPrimitive extends BaseTask {
             const response = await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               headers: {
                 ...getHeaders({ url, apiKey }),
@@ -1472,7 +1427,7 @@ export default class TaskPrimitive extends BaseTask {
 
             const respBody = await response.text();
 
-            this._logger.debug('NEW QUEUE BODY: %j', respBody);
+            logger.debug('NEW QUEUE BODY: %j', respBody);
 
             const [, checkoutUrl] = respBody.match(/href="(.*)"/);
 
@@ -1485,7 +1440,7 @@ export default class TaskPrimitive extends BaseTask {
 
               ({ message, nextState } = StateMap[this._prevState](
                 type,
-                this._context.task,
+                this.context.task,
                 this._selectedShippingRate,
               ));
 
@@ -1493,15 +1448,15 @@ export default class TaskPrimitive extends BaseTask {
               return nextState;
             }
           } catch (e) {
-            this._logger.error('Error fetching cookied checkout: %j', e);
+            logger.error('Error fetching cookied checkout: %j', e);
           }
         }
-        this._logger.silly('CHECKOUT: Polling queue redirect url %s...', redirectUrl);
+        logger.silly('CHECKOUT: Polling queue redirect url %s...', redirectUrl);
       } else if (status === 200) {
         if (isEmpty(body) || (!isEmpty(body) && body.length < 2)) {
           let ctd;
           if (!this._ctd) {
-            ctd = await this.getCookie(this._context.jar, '_ctd');
+            ctd = await this.getCookie(this.context.jar, '_ctd');
           } else {
             ctd = this._ctd;
           }
@@ -1510,7 +1465,7 @@ export default class TaskPrimitive extends BaseTask {
             const response = await this._fetch(`${url}/throttle/queue?_ctd=${ctd}&_ctd_update=`, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1522,13 +1477,13 @@ export default class TaskPrimitive extends BaseTask {
             });
 
             const respBody = await response.text();
-            this._logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);
+            logger.debug('QUEUE: 200 RESPONSE BODY: %j', respBody);
 
             const match = respBody.match(/href="(.*)"/);
 
             if (match && match.length) {
               const [, checkoutUrl] = match;
-              this._logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
+              logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
               if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
                 const [checkoutNoQs] = checkoutUrl.split('?');
                 [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
@@ -1537,7 +1492,7 @@ export default class TaskPrimitive extends BaseTask {
                 }
                 ({ message, nextState } = StateMap[this._prevState](
                   type,
-                  this._context.task,
+                  this.context.task,
                   this._selectedShippingRate,
                 ));
 
@@ -1556,7 +1511,7 @@ export default class TaskPrimitive extends BaseTask {
           [redirectUrl] = checkoutUrl.split('?');
         }
       }
-      this._logger.debug('QUEUE: RedirectUrl at end of fn body: %j', redirectUrl);
+      logger.debug('QUEUE: RedirectUrl at end of fn body: %j', redirectUrl);
 
       if (redirectUrl && /checkpoint/i.test(redirectUrl)) {
         this._emitTaskEvent({ message: 'Going to checkpoint', rawProxy });
@@ -1573,14 +1528,14 @@ export default class TaskPrimitive extends BaseTask {
         }
         ({ message, nextState } = StateMap[this._prevState](
           type,
-          this._context.task,
+          this.context.task,
           this._selectedShippingRate,
         ));
 
         this._emitTaskEvent({ message, rawProxy });
         return nextState;
       }
-      this._logger.silly('CHECKOUT: Not passed queue, delaying 5000ms');
+      logger.silly('CHECKOUT: Not passed queue, delaying 5000ms');
       message = status ? `Not through queue! (${status})` : 'Not through queue!';
       this._emitTaskEvent({ message, rawProxy });
       this._delayer = waitForDelay(5000, this._aborter.signal);
@@ -1588,7 +1543,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Polling queue' });
       return States.QUEUE;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Poll Queue.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -1615,15 +1570,15 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleWaitForProduct() {
-    const { aborted } = this._context;
+    const { aborted } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    if (this._context.task.product.variants) {
+    if (this.context.task.product.variants) {
       return States.ADD_TO_CART;
     }
 
@@ -1650,11 +1605,11 @@ export default class TaskPrimitive extends BaseTask {
       },
       proxy,
       parseType,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -1664,7 +1619,7 @@ export default class TaskPrimitive extends BaseTask {
 
     let variant;
     if (parseType !== ParseType.Variant) {
-      variant = await pickVariant(variants, size, url, this._logger, randomInStock);
+      variant = await pickVariant(variants, size, url, logger, randomInStock);
     } else {
       [variant] = variants;
     }
@@ -1676,13 +1631,13 @@ export default class TaskPrimitive extends BaseTask {
 
     const { option, id } = variant;
 
-    this._context.task.product.size = option;
+    this.context.task.product.size = option;
 
     try {
       const res = await this._fetch('/cart/add.js', {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: {
           origin: url,
           host: `${url.split('/')[2]}`,
@@ -1717,7 +1672,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.silly('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
+      logger.silly('FRONTEND CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       if (redirectUrl) {
         if (/checkpoint/i.test(redirectUrl)) {
@@ -1752,7 +1707,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -1760,7 +1715,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -1800,7 +1755,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Going to cart', rawProxy, size });
       return States.GO_TO_CART;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -1838,11 +1793,11 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, apiKey },
       },
       proxy,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -1850,7 +1805,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`${url}/cart/clear.js`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -1872,16 +1827,16 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       // extra padding to make sure that the variants are reset...
-      delete this._context.task.product.variants;
-      delete this._context.task.product.variant;
-      delete this._context.task.product.size;
+      delete this.context.task.product.variants;
+      delete this.context.task.product.variant;
+      delete this.context.task.product.size;
 
-      this._context.task.type = Modes.SAFE;
+      this.context.task.type = Modes.SAFE;
 
       this._emitTaskEvent({ message: 'Cart cleared!', rawProxy });
       return States.WAIT_FOR_PRODUCT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -1921,17 +1876,17 @@ export default class TaskPrimitive extends BaseTask {
       },
       proxy,
       parseType,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
     let variant;
     if (parseType !== ParseType.Variant) {
-      variant = await pickVariant(variants, size, url, this._logger, randomInStock);
+      variant = await pickVariant(variants, size, url, logger, randomInStock);
     } else {
       [variant] = variants;
     }
@@ -1943,7 +1898,7 @@ export default class TaskPrimitive extends BaseTask {
 
     const { option, id } = variant;
 
-    this._context.task.product.size = option;
+    this.context.task.product.size = option;
 
     let opts = {};
     const base = {
@@ -1978,7 +1933,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/wallets/checkouts/${this._checkoutToken}.json`, {
         method: 'PATCH',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/json',
@@ -2011,7 +1966,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.silly('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
+      logger.silly('API CHECKOUT: Add to cart redirect url: %s', redirectUrl);
 
       // check redirects
       if (redirectUrl) {
@@ -2030,7 +1985,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -2038,7 +1993,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -2059,7 +2014,7 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.json();
       if (body.errors && body.errors.line_items) {
         const error = body.errors.line_items[0];
-        this._logger.silly('Error adding to cart: %j', error);
+        logger.silly('Error adding to cart: %j', error);
         if (error && error.quantity) {
           this._emitTaskEvent({ message: `Out of stock! Delaying ${monitorDelay}ms`, rawProxy });
           this._delayer = waitForDelay(monitorDelay, this._aborter.signal);
@@ -2088,8 +2043,8 @@ export default class TaskPrimitive extends BaseTask {
       if (body.checkout && body.checkout.line_items && body.checkout.line_items.length) {
         const { total_price: totalPrice } = body.checkout;
 
-        this._context.task.product.name = body.checkout.line_items[0].title;
-        this._context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
+        this.context.task.product.name = body.checkout.line_items[0].title;
+        this.context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
           ? body.checkout.line_items[0].image_url
           : `http:${body.checkout.line_items[0].image_url}`;
 
@@ -2101,7 +2056,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (this._selectedShippingRate.id) {
-          this._logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
+          logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
           this._prices.total = (
             parseFloat(this._prices.cart) + parseFloat(this._selectedShippingRate.price)
           ).toFixed(2);
@@ -2115,7 +2070,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message, rawProxy });
       return States.ADD_TO_CART;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -2154,11 +2109,11 @@ export default class TaskPrimitive extends BaseTask {
         monitorDelay,
         store: { url, apiKey },
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -2166,7 +2121,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`${url}/cart`, {
         method: 'GET',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -2221,7 +2176,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -2229,7 +2184,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -2264,7 +2219,7 @@ export default class TaskPrimitive extends BaseTask {
         const name = $(el).attr('name');
         const value = $(el).attr('value') || '';
 
-        this._logger.info('Cart form value detected: { name: %j, value: %j }', name, value);
+        logger.info('Cart form value detected: { name: %j, value: %j }', name, value);
         // Blacklisted values/names
         if (
           name &&
@@ -2279,7 +2234,7 @@ export default class TaskPrimitive extends BaseTask {
         this._cartForm = this._cartForm.slice(0, -1);
       }
 
-      this._logger.info('Cart form parsed: %j', this._cartForm);
+      logger.info('Cart form parsed: %j', this._cartForm);
 
       if (this._needsLogin) {
         this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
@@ -2289,7 +2244,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Creating checkout', rawProxy });
       return States.CREATE_CHECKOUT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -2322,10 +2277,10 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       task: { type },
       rawProxy,
-    } = this._context;
+    } = this.context;
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       if (this._captchaTokenRequest) {
         // cancel the request if it was previously started
         this._captchaTokenRequest.cancel('aborted');
@@ -2395,21 +2350,21 @@ export default class TaskPrimitive extends BaseTask {
       }
       case 'cancelled':
       case 'destroyed': {
-        this._logger.silly(
+        logger.silly(
           'Harvest Captcha status: %s, stopping...',
           this._captchaTokenRequest.status,
         );
         // clear out the status so we get a generic "errored out task event"
-        this._context.status = null;
+        this.context.status = null;
         return States.ERROR;
       }
       default: {
-        this._logger.silly(
+        logger.silly(
           'Unknown Harvest Captcha status! %s, stopping...',
           this._captchaTokenRequest.status,
         );
         // clear out the status so we get a generic "errored out task event"
-        this._context.status = null;
+        this.context.status = null;
         return States.ERROR;
       }
     }
@@ -2427,11 +2382,11 @@ export default class TaskPrimitive extends BaseTask {
         type,
       },
       proxy,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -2443,7 +2398,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'GET',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -2489,7 +2444,7 @@ export default class TaskPrimitive extends BaseTask {
 
         if (match) {
           [, this._checkoutKey] = match;
-          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
       }
 
@@ -2501,13 +2456,13 @@ export default class TaskPrimitive extends BaseTask {
         this._emitTaskEvent({ message: `Created checkout: ${checkoutUrl}`, checkoutUrl, rawProxy });
       }
 
-      if (this._context.task.type === Modes.CART) {
+      if (this.context.task.type === Modes.CART) {
         this._emitTaskEvent({ message: 'Clearing cart!' });
         return States.CLEAR_CART;
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.silly(`CHECKOUT: Get checkout redirect url: %s`, redirectUrl);
+      logger.silly(`CHECKOUT: Get checkout redirect url: %s`, redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
@@ -2536,7 +2491,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -2544,7 +2499,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -2593,7 +2548,7 @@ export default class TaskPrimitive extends BaseTask {
         $,
         States.GO_TO_CHECKOUT,
         this._checkoutToken,
-        this._context.task.profile,
+        this.context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
       );
@@ -2601,8 +2556,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.store.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
+        [, this.context.task.store.sitekey] = match;
+        logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
@@ -2613,7 +2568,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Submitting information', rawProxy, checkoutUrl });
       return States.SUBMIT_CUSTOMER;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -2653,11 +2608,11 @@ export default class TaskPrimitive extends BaseTask {
         forceCaptcha,
       },
       proxy,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -2665,7 +2620,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'GET',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -2695,7 +2650,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.silly('CHECKOUT: Get checkout redirect url: %s', redirectUrl);
+      logger.silly('CHECKOUT: Get checkout redirect url: %s', redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
@@ -2732,7 +2687,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -2740,7 +2695,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -2767,7 +2722,7 @@ export default class TaskPrimitive extends BaseTask {
 
         if (match) {
           [, this._checkoutKey] = match;
-          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
       }
 
@@ -2782,8 +2737,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.store.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
+        [, this.context.task.store.sitekey] = match;
+        logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
       if (this._selectedShippingRate.id) {
@@ -2798,7 +2753,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
       return States.GO_TO_SHIPPING;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Ping Checkout.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -2838,11 +2793,11 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, apiKey },
         type,
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -2868,7 +2823,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -2906,7 +2861,7 @@ export default class TaskPrimitive extends BaseTask {
 
       // if we followed a redirect at some point...
       const redirectUrl = headers.get('location');
-      this._logger.error('SUBMIT CUSTOMER REDIRECT URL: %s', redirectUrl);
+      logger.error('SUBMIT CUSTOMER REDIRECT URL: %s', redirectUrl);
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/stock_problems/i.test(redirectUrl)) {
@@ -2931,7 +2886,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -2939,7 +2894,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -2984,7 +2939,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Submitting information', rawProxy });
       return States.GO_TO_CHECKOUT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -3023,11 +2978,11 @@ export default class TaskPrimitive extends BaseTask {
         profile: { shipping, billing, payment, billingMatchesShipping },
         store: { url, apiKey },
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -3035,7 +2990,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/wallets/checkouts/${this._checkoutToken}.json`, {
         method: 'PATCH',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -3073,7 +3028,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -3081,7 +3036,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -3121,14 +3076,14 @@ export default class TaskPrimitive extends BaseTask {
         return States.SUBMIT_SHIPPING;
       }
 
-      if (this._context.task.product.variants) {
+      if (this.context.task.product.variants) {
         this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
         return States.ADD_TO_CART;
       }
       this._emitTaskEvent({ message: 'Waiting for product', rawProxy });
       return States.WAIT_FOR_PRODUCT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'API CHECKOUT: %s Request Error..\n Step: Submitting Information.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -3169,11 +3124,11 @@ export default class TaskPrimitive extends BaseTask {
         forceCaptcha,
         type,
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -3187,7 +3142,7 @@ export default class TaskPrimitive extends BaseTask {
         {
           method: 'GET',
           compress: true,
-          agent: proxy,
+          agent: proxy ? proxy.proxy : null,
           redirect: 'manual',
           follow: 0,
           headers: {
@@ -3234,7 +3189,7 @@ export default class TaskPrimitive extends BaseTask {
 
         if (match) {
           [, this._checkoutKey] = match;
-          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
       }
 
@@ -3247,7 +3202,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.silly(`CHECKOUT: Get shipping redirect url: %s`, redirectUrl);
+      logger.silly(`CHECKOUT: Get shipping redirect url: %s`, redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
@@ -3271,7 +3226,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -3279,7 +3234,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -3333,7 +3288,7 @@ export default class TaskPrimitive extends BaseTask {
         $,
         States.GO_TO_SHIPPING,
         this._checkoutToken,
-        this._context.task.profile,
+        this.context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
       );
@@ -3341,8 +3296,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.store.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
+        [, this.context.task.store.sitekey] = match;
+        logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
@@ -3353,7 +3308,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
       return States.SUBMIT_SHIPPING;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'FRONTEND CHECKOUT: %s Request Error..\n Step: Get shipping .\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -3392,11 +3347,11 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, apiKey },
         forceCaptcha,
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -3406,7 +3361,7 @@ export default class TaskPrimitive extends BaseTask {
         {
           method: 'GET',
           compress: true,
-          agent: proxy,
+          agent: proxy ? proxy.proxy : null,
           headers: getHeaders({ url, apiKey }),
         },
       );
@@ -3436,12 +3391,12 @@ export default class TaskPrimitive extends BaseTask {
 
       const body = await res.json();
       if (body && body.errors) {
-        this._logger.silly('CHECKOUT: Error getting shipping rates: %j', body.errors);
+        logger.silly('CHECKOUT: Error getting shipping rates: %j', body.errors);
         const { checkout } = body.errors;
         if (checkout) {
           const errorMessage = JSON.stringify(checkout);
           if (errorMessage.indexOf('does_not_require_shipping') > -1) {
-            this._logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
+            logger.silly('API CHECKOUT: Cart empty, retrying add to cart');
 
             if (this._isRestocking) {
               this._emitTaskEvent({ message: 'Adding to cart', rawProxy });
@@ -3478,14 +3433,14 @@ export default class TaskPrimitive extends BaseTask {
         // Store cheapest shipping rate
         const { id, title } = cheapest;
         this._selectedShippingRate = { id, name: title };
-        this._logger.silly('API CHECKOUT: Using shipping method: %s', title);
+        logger.silly('API CHECKOUT: Using shipping method: %s', title);
 
         // set shipping price for cart
         this._prices.shipping = parseFloat(cheapest.price).toFixed(2);
         this._prices.total = (
           parseFloat(this._prices.cart) + parseFloat(this._prices.shipping)
         ).toFixed(2);
-        this._logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
+        logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
         if (forceCaptcha && !this._captchaToken) {
           this._emitTaskEvent({ message: 'Waiting for captcha', rawProxy });
           return States.CAPTCHA;
@@ -3499,7 +3454,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Fetching rates', rawProxy });
       return States.GO_TO_SHIPPING;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Shipping Rates.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -3538,11 +3493,11 @@ export default class TaskPrimitive extends BaseTask {
         monitorDelay,
         store: { url, apiKey },
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -3550,7 +3505,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -3588,7 +3543,7 @@ export default class TaskPrimitive extends BaseTask {
 
       // if we followed a redirect at some point...
       const redirectUrl = headers.get('location');
-      this._logger.error('SUBMIT SHIPPING REDIRECT URL: %s', redirectUrl);
+      logger.error('SUBMIT SHIPPING REDIRECT URL: %s', redirectUrl);
       if (redirectUrl) {
         this._redirectUrl = redirectUrl;
         if (/processing/i.test(redirectUrl)) {
@@ -3618,7 +3573,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -3626,7 +3581,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -3671,7 +3626,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Submitting shipping', rawProxy });
       return States.GO_TO_SHIPPING;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Submit shipping .\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -3711,11 +3666,11 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, apiKey },
         forceCaptcha,
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -3725,7 +3680,7 @@ export default class TaskPrimitive extends BaseTask {
         {
           method: 'GET',
           compress: true,
-          agent: proxy,
+          agent: proxy ? proxy.proxy : null,
           redirect: 'manual',
           follow: 0,
           headers: {
@@ -3774,7 +3729,7 @@ export default class TaskPrimitive extends BaseTask {
 
         if (match) {
           [, this._checkoutKey] = match;
-          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
       }
 
@@ -3787,7 +3742,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.silly(`CHECKOUT: Get payment redirect url: %s`, redirectUrl);
+      logger.silly(`CHECKOUT: Get payment redirect url: %s`, redirectUrl);
 
       // check if redirected
       if (redirectUrl) {
@@ -3812,7 +3767,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -3820,7 +3775,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -3865,7 +3820,7 @@ export default class TaskPrimitive extends BaseTask {
         $,
         States.GO_TO_PAYMENT,
         this._checkoutToken,
-        this._context.task.profile,
+        this.context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
       );
@@ -3873,8 +3828,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (match && match.length) {
-        [, this._context.task.store.sitekey] = match;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
+        [, this.context.task.store.sitekey] = match;
+        logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
@@ -3891,7 +3846,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
       return States.SUBMIT_PAYMENT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Get payment .\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -3931,7 +3886,7 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, apiKey },
         type,
       },
-    } = this._context;
+    } = this.context;
 
     if (type === Modes.FAST) {
       return this._handleBackupSubmitPayment();
@@ -3939,7 +3894,7 @@ export default class TaskPrimitive extends BaseTask {
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -3972,7 +3927,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -4068,7 +4023,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -4076,7 +4031,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -4127,7 +4082,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
       return States.GO_TO_PAYMENT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Submit shipping information .\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -4166,11 +4121,11 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, apiKey },
         forceCaptcha,
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -4197,7 +4152,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'PATCH',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         follow: 0,
         redirect: 'manual',
         headers: {
@@ -4228,7 +4183,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const redirectUrl = headers.get('location');
-      this._logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
+      logger.silly('CHECKOUT: Post payment redirect url: %s', redirectUrl);
 
       const body = await res.text();
 
@@ -4239,7 +4194,7 @@ export default class TaskPrimitive extends BaseTask {
 
         if (match) {
           [, this._checkoutKey] = match;
-          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
       }
 
@@ -4279,7 +4234,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -4287,7 +4242,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -4342,7 +4297,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Submitting payment', rawProxy });
       return States.SUBMIT_PAYMENT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Post Payment.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -4383,7 +4338,7 @@ export default class TaskPrimitive extends BaseTask {
         type,
         forceCaptcha,
       },
-    } = this._context;
+    } = this.context;
 
     if (type === Modes.FAST) {
       return this._handleBackupCompletePayment();
@@ -4391,7 +4346,7 @@ export default class TaskPrimitive extends BaseTask {
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -4399,7 +4354,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'POST',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -4469,7 +4424,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -4477,7 +4432,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -4549,7 +4504,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -4557,7 +4512,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -4586,8 +4541,8 @@ export default class TaskPrimitive extends BaseTask {
       // recaptcha sitekey parser...
       const key = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
       if (key && key.length) {
-        [, this._context.task.store.sitekey] = key;
-        this._logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
+        [, this.context.task.store.sitekey] = key;
+        logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
       if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
@@ -4598,7 +4553,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Completing payment', rawProxy });
       return States.COMPLETE_PAYMENT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Completing payment .\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -4638,11 +4593,11 @@ export default class TaskPrimitive extends BaseTask {
         monitorDelay,
         forceCaptcha,
       },
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -4661,7 +4616,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'PATCH',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         follow: 0,
         redirect: 'manual',
         headers: {
@@ -4700,7 +4655,7 @@ export default class TaskPrimitive extends BaseTask {
 
         if (match) {
           [, this._checkoutKey] = match;
-          this._logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
         }
       }
 
@@ -4747,7 +4702,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -4755,7 +4710,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -4810,7 +4765,7 @@ export default class TaskPrimitive extends BaseTask {
 
           if (parsed && parsed._ctd) {
             this.queueReferer = redirectUrl;
-            this._logger.info('FIRST _CTD: %j', parsed._ctd);
+            logger.info('FIRST _CTD: %j', parsed._ctd);
             this._ctd = parsed._ctd;
           }
 
@@ -4818,7 +4773,7 @@ export default class TaskPrimitive extends BaseTask {
             await this._fetch(redirectUrl, {
               method: 'GET',
               compress: true,
-              agent: proxy,
+              agent: proxy ? proxy.proxy : null,
               redirect: 'manual',
               follow: 0,
               headers: {
@@ -4859,7 +4814,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Completing payment', rawProxy });
       return States.COMPLETE_PAYMENT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Complete Payment.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -4904,11 +4859,11 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       slack,
       discord,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -4916,7 +4871,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`${url}/wallets/checkouts/${this._checkoutToken}/payments`, {
         method: 'GET',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         headers: {
           ...getHeaders({ url, apiKey }),
@@ -4963,7 +4918,7 @@ export default class TaskPrimitive extends BaseTask {
           productImage = lineItems[0].image_url;
         }
 
-        this._logger.silly('CHECKOUT: Payment object: %j', payment);
+        logger.silly('CHECKOUT: Payment object: %j', payment);
         if (/thank_you/i.test(bodyString)) {
           const {
             order: { name: orderName, status_url: statusUrl },
@@ -4990,7 +4945,7 @@ export default class TaskPrimitive extends BaseTask {
 
           this._events.emit(TaskManagerEvents.Webhook, hooks);
           if (oneCheckout) {
-            this._events.emit(TaskManagerEvents.Success, this._context.task);
+            this._events.emit(TaskManagerEvents.Success, this.context.task);
           }
 
           this._emitTaskEvent({
@@ -5101,14 +5056,14 @@ export default class TaskPrimitive extends BaseTask {
           return rewindToState;
         }
       }
-      this._logger.silly('CHECKOUT: Processing payment');
+      logger.silly('CHECKOUT: Processing payment');
       this._emitTaskEvent({ message: 'Processing payment', rawProxy });
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
       this._emitTaskEvent({ message: 'Processing payment', rawProxy });
       return States.PROCESS_PAYMENT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Process Payment.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -5150,12 +5105,13 @@ export default class TaskPrimitive extends BaseTask {
       task: {
         store: { url, apiKey },
       },
+      logger,
       proxy,
-    } = this._context;
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
-      this._logger.silly('Abort Detected, Stopping...');
+      logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
@@ -5163,7 +5119,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`${url}/${this._storeId}/checkouts/${this._checkoutToken}`, {
         method: 'GET',
         compress: true,
-        agent: proxy,
+        agent: proxy ? proxy.proxy : null,
         redirect: 'manual',
         follow: 0,
         headers: {
@@ -5218,7 +5174,7 @@ export default class TaskPrimitive extends BaseTask {
       this._emitTaskEvent({ message: 'Processing payment', rawProxy });
       return States.PROCESS_PAYMENT;
     } catch (err) {
-      this._logger.error(
+      logger.error(
         'CHECKOUT: %s Request Error..\n Step: Process Payment.\n\n %j %j',
         err.status || err.errno,
         err.message,
@@ -5253,7 +5209,7 @@ export default class TaskPrimitive extends BaseTask {
       throw new Error('Reached Unknown State!');
     }
 
-    this._logger.silly('Handling state: %s', currentState);
+    logger.silly('Handling state: %s', currentState);
 
     const stepMap = {
       [States.LOGIN]: this._handleLogin,

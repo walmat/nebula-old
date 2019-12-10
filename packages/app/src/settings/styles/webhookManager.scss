@@ -1,0 +1,84 @@
+@import '../../styles/mixins';
+@import '../../styles/themes';
+
+.settings {
+  &--webhook-manager {
+    &__section-header {
+      margin-top: 15px;
+    }
+
+    &__adjust-margin {
+      margin: 0 23px;
+    }
+
+    &__input-group {
+      @include input-group;
+
+      &--webhook {
+        @include select-font;
+        height: 29px;
+      }
+
+      &--name {
+        @include select-font;
+        border-width: 1px;
+        flex-grow: 2;
+        border-style: solid;
+        height: 29px;
+        border-radius: 3px;
+      }
+
+      &--url {
+        @include select-font;
+        border-width: 1px;
+        flex-grow: 2;
+        border-style: solid;
+        height: 29px;
+        border-radius: 3px;
+      }
+
+      &--label {
+        @include select-font;
+        @include themify($themes) {
+          color: themed('tableHeaderColor');
+        }
+        margin: 0;
+        margin-bottom: 2px;
+      }
+
+      &--create {
+        @include button-base;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary') !important;
+          color: themed('buttonPrimaryText') !important;
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
+        }
+        width: 83px !important;
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed !important;
+        }
+      }
+
+      &--remove {
+        @include button-base;
+        @include themify($themes) {
+          background: themed('buttonColorSecondary') !important;
+          color: themed('buttonPrimaryText') !important;
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
+        }
+        width: 83px !important;
+      }
+
+      &--test {
+        @include button-base;
+        @include themify($themes) {
+          background: themed('buttonColorWarning') !important;
+          color: themed('buttonPrimaryText') !important;
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
+        }
+        width: 83px !important;
+      }
+    }
+  }
+}

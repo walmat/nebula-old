@@ -41,8 +41,7 @@ class Slack {
             color: success ? '#46ADB4' : '#EF415E',
             fields: [],
             footer: 'Nebula Orion @ 2019',
-            footer_icon:
-              'https://pbs.twimg.com/profile_images/1133844004141961216/rZL94TBk_400x400.png',
+            footer_icon: 'https://imgur.com/4ptVqtH',
             ts: Math.floor(new Date().getTime() / 1000),
           },
         ],

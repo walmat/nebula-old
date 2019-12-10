@@ -31,7 +31,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleError(error = {}, state) {
-    const { aborted, logger } = this._context;
+    const { aborted, logger } = this.context;
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
@@ -69,15 +69,15 @@ export default class TaskPrimitive extends BaseTask {
 
     if (/(?!([235][0-9]))\d{3}/g.test(status)) {
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        [this.context.id],
         {
-          message: `Delaying ${this._context.task.error}ms (${status})`,
+          message: `Delaying ${this.context.task.error}ms (${status})`,
         },
         Events.TaskStatus,
       );
 
-      this._delayer = waitForDelay(this._context.task.error, this._aborter.signal);
+      this._delayer = waitForDelay(this.context.task.error, this._aborter.signal);
       await this._delayer;
     }
 
@@ -85,19 +85,19 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleWaitForProduct() {
-    const { aborted, logger } = this._context;
+    const { aborted, logger } = this.context;
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    if (this._context.task.product.variants) {
-      const variant = await pickVariant(this._context);
+    if (this.context.task.product.variants) {
+      const variant = await pickVariant(this.context);
       // maybe we should loop back around?
       if (!variant) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: 'No sizes found',
           },
@@ -108,8 +108,8 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       logger.debug('Chose variant: %j', variant);
-      this._context.updateVariant(variant);
-      this._context.setProductFound(true);
+      this.context.updateVariant(variant);
+      this.context.setProductFound(true);
       return States.ADD_TO_CART;
     }
 
@@ -151,7 +151,7 @@ export default class TaskPrimitive extends BaseTask {
         throw error;
       }
 
-      const { jar, task } = this._context;
+      const { jar, task } = this.context;
 
       return body.map(({ name, value }) => jar.setCookieSync(`${name}=${value};`, task.store.url));
     } catch (err) {
@@ -160,7 +160,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleAddToCart() {
-    const { aborted, proxy, logger } = this._context;
+    const { aborted, proxy, logger } = this.context;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -174,11 +174,11 @@ export default class TaskPrimitive extends BaseTask {
       },
       monitor,
       captcha,
-    } = this._context.task;
+    } = this.context.task;
 
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      [this.context.id],
       {
         message: 'Adding to cart',
       },
@@ -217,8 +217,8 @@ export default class TaskPrimitive extends BaseTask {
 
       if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: `Out of stock, delaying ${monitor}ms`,
           },
@@ -228,8 +228,8 @@ export default class TaskPrimitive extends BaseTask {
         this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: `Adding to cart`,
           },
@@ -250,22 +250,22 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleCaptcha() {
-    const { aborted, logger } = this._context;
+    const { aborted, logger } = this.context;
     // exit if abort is detected
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
-      if (this._context.captchaRequest) {
+      if (this.context.captchaRequest) {
         // cancel the request if it was previously started
-        this._context.captchaRequest.cancel('aborted');
+        this.context.captchaRequest.cancel('aborted');
       }
       return States.ABORT;
     }
 
     // start request if it hasn't started already
-    if (!this._context.captchaRequest) {
+    if (!this.context.captchaRequest) {
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        [this.context.id],
         {
           message: 'Waiting for captcha',
         },
@@ -273,15 +273,15 @@ export default class TaskPrimitive extends BaseTask {
       );
 
       const requester = await Captcha.getCaptcha(
-        this._context,
+        this.context,
         this._handleHarvest,
         this._platform,
       );
-      this._context.setCaptchaRequest(requester);
+      this.context.setCaptchaRequest(requester);
     }
 
     // Check the status of the request
-    switch (this._context.captchaRequest.status) {
+    switch (this.context.captchaRequest.status) {
       case 'pending': {
         // waiting for token, sleep for 1s and then return same state to check again
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -289,15 +289,15 @@ export default class TaskPrimitive extends BaseTask {
       }
       case 'fulfilled': {
         // token was returned, store it and remove the request
-        const { value } = this._context.captchaRequest;
-        this._context.setCaptchaToken(value);
-        this._context.setCaptchaRequest(null);
+        const { value } = this.context.captchaRequest;
+        this.context.setCaptchaToken(value);
+        this.context.setCaptchaRequest(null);
         // We have the token, so suspend harvesting for now
-        Captcha.suspendHarvestCaptcha(this._context, this._platform);
+        Captcha.suspendHarvestCaptcha(this.context, this._platform);
 
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: 'Submitting checkout',
           },
@@ -310,14 +310,14 @@ export default class TaskPrimitive extends BaseTask {
       case 'destroyed': {
         logger.silly(
           'Harvest Captcha status: %s, stopping...',
-          this._context.captchaRequest.status,
+          this.context.captchaRequest.status,
         );
         return States.ERROR;
       }
       default: {
         logger.silly(
           'Unknown Harvest Captcha status! %s, stopping...',
-          this._context.captchaRequest.status,
+          this.context.captchaRequest.status,
         );
         return States.ERROR;
       }
@@ -330,7 +330,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       proxy,
       task: { checkoutDelay, monitor },
-    } = this._context;
+    } = this.context;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -343,14 +343,14 @@ export default class TaskPrimitive extends BaseTask {
         product: {
           variant: { id: s },
         },
-      } = this._context.task;
+      } = this.context.task;
 
       const profileInfo = billingMatchesShipping ? shipping : billing;
       this._form = backupForm(this._region, profileInfo, payment, s);
 
       // patch in the captcha token
-      if (this._context.captchaToken) {
-        this._form += `&g-recaptcha-response=${this._context.captchaToken}`;
+      if (this.context.captchaToken) {
+        this._form += `&g-recaptcha-response=${this.context.captchaToken}`;
       }
     }
 
@@ -368,8 +368,8 @@ export default class TaskPrimitive extends BaseTask {
     const totalTimeout = checkoutDelay - this._timer.getTotalTime(0);
     if (totalTimeout && totalTimeout > 0) {
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        [this.context.id],
         {
           message: `Delaying ${totalTimeout}ms`,
         },
@@ -383,8 +383,8 @@ export default class TaskPrimitive extends BaseTask {
     logger.info('parsed form: %j', this._form);
 
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      [this.context.id],
       {
         message: 'Submitting checkout',
       },
@@ -410,13 +410,13 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const body = await res.json();
-      console.log(body);
+
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
           emitEvent(
-            this._context,
-            this._context.ids,
+            this.context,
+            [this.context.id],
             {
               message: 'Invalid slug',
             },
@@ -431,8 +431,8 @@ export default class TaskPrimitive extends BaseTask {
 
       if (body && body.status && /out/i.test(body.status)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: `Out of stock! Delaying ${monitor}ms`,
           },
@@ -443,8 +443,8 @@ export default class TaskPrimitive extends BaseTask {
         await this._delayer;
 
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: 'Submitting checkout',
           },
@@ -456,8 +456,8 @@ export default class TaskPrimitive extends BaseTask {
 
       if (body && body.status && /dup/i.test(body.status)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: 'Duplicate order',
           },
@@ -469,15 +469,15 @@ export default class TaskPrimitive extends BaseTask {
 
       if (body && body.status && /failed/i.test(body.status)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: `Checkout failed!`,
           },
           Events.TaskStatus,
         );
 
-        this._context.task.checkoutDelay += 250;
+        this.context.task.checkoutDelay += 250;
         return States.ADD_TO_CART;
       }
 
@@ -491,7 +491,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleCheckStatus() {
-    const { aborted, logger, proxy, events } = this._context;
+    const { aborted, logger, proxy, events } = this.context;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -499,8 +499,8 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      [this.context.id],
       {
         message: `Checking status`,
       },
@@ -527,8 +527,8 @@ export default class TaskPrimitive extends BaseTask {
 
       if (body && body.status && /failed|out/i.test(body.status)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: `Checkout failed`,
           },
@@ -549,7 +549,7 @@ export default class TaskPrimitive extends BaseTask {
           },
           slack,
           discord,
-        } = this._context;
+        } = this.context;
 
         if (!this._sentWebhook) {
           this._sentWebhook = true;
@@ -569,20 +569,20 @@ export default class TaskPrimitive extends BaseTask {
           events.emit(TaskManagerEvents.Webhook, hooks);
         }
 
-        this._context.setCaptchaToken(null);
-        this._context.task.checkoutDelay = 0;
+        this.context.setCaptchaToken(null);
+        this.context.task.checkoutDelay = 0;
 
         if (this._region === Regions.US) {
           emitEvent(
-            this._context,
-            this._context.ids,
+            this.context,
+            [this.context.id],
             {
-              message: `Delaying ${this._context.task.monitor}ms`,
+              message: `Delaying ${this.context.task.monitor}ms`,
             },
             Events.TaskStatus,
           );
 
-          this._delayer = waitForDelay(this._context.task.monitor, this._aborter.signal);
+          this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
           await this._delayer;
 
           return States.SUBMIT_CHECKOUT;
@@ -593,8 +593,8 @@ export default class TaskPrimitive extends BaseTask {
 
       if (body && body.status && /paid/i.test(body.status)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: 'Payment successful',
           },
@@ -615,7 +615,7 @@ export default class TaskPrimitive extends BaseTask {
           },
           slack,
           discord,
-        } = this._context;
+        } = this.context;
 
         const hooks = await notification(slack, discord, {
           success: true,
@@ -637,8 +637,8 @@ export default class TaskPrimitive extends BaseTask {
       await this._delayer;
 
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        [this.context.id],
         {
           message: 'Checking status',
         },
@@ -652,7 +652,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleStepLogic(currentState) {
-    const { logger } = this._context;
+    const { logger } = this.context;
 
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');

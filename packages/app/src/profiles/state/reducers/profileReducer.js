@@ -41,6 +41,10 @@ export const profileReducer = (state = profileState, action) => {
     return { ...state, matches: !state.matches };
   }
 
+  if (field === PROFILE_FIELDS.EDIT_SELECTED_STORE) {
+    return { ...state, selectedStore: value };
+  }
+
   return state;
 };
 
@@ -98,6 +102,35 @@ export const currentProfileReducer = (state = CurrentProfile, action) => {
     }
 
     return CurrentProfile;
+  }
+
+  if (type === PROFILE_ACTIONS.DELETE_RATE) {
+    const { store, rate } = action;
+
+    if (!store || !rate) {
+      return state;
+    }
+
+    // get site object that corresponds to action's site
+    const storeObj = state.rates.find(r => r.store.url === store.value);
+
+    // reset the selectedRate
+    storeObj.selectedRate = null;
+    // remove the passed in rate field from the rates array
+    storeObj.rates = storeObj.rates.filter(r => r.rate !== rate.rate);
+
+    // check to see if the rates array is empty,
+    // if so, remove the store obj itself from the
+    if (storeObj.rates.length === 0) {
+      // delete the store entry entirely if it's the last entry
+      const idx = state.rates.indexOf(storeObj);
+      const found = state.rates[idx];
+      if (found) {
+        state.rates.splice(idx, 1);
+      }
+    }
+
+    return { ...state, selectedStore: null };
   }
 
   return state;

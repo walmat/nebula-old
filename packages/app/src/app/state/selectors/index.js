@@ -1,17 +1,17 @@
 import { createSelector } from 'reselect';
-import { App, Sites } from '../initial';
+import { App, Stores } from '../initial';
 
 export const makeTheme = createSelector(
   state => state.App || App,
   state => state.theme || App.theme,
 );
 
-export const makeSites = createSelector(
-  state => state.Sites || Sites,
-  state => state || Sites,
+export const makeStores = createSelector(
+  state => state.Sites || Stores,
+  state => state || Stores,
 );
 
 export const makeShopifySites = createSelector(
-  state => state.Sites || Sites,
-  state => (state || Sites).filter(s => s.label === 'Shopify'),
+  state => state.Sites || Stores,
+  state => (state || Stores).filter(s => s.label === 'Shopify'),
 );

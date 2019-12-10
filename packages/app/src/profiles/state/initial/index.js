@@ -11,17 +11,6 @@ export const location = {
   province: null,
   zip: '',
   phone: '',
-  errors: {
-    firstName: null,
-    lastName: null,
-    address: null,
-    apt: null,
-    city: null,
-    country: null,
-    province: null,
-    zip: null,
-    phone: null,
-  },
 };
 
 export const payment = {
@@ -29,12 +18,6 @@ export const payment = {
   card: '',
   exp: '',
   cvv: '',
-  errors: {
-    email: null,
-    card: null,
-    exp: null,
-    cvv: null,
-  },
 };
 
 export const Rates = [];
@@ -46,9 +29,6 @@ export const profile = {
   shipping: location,
   billing: location,
   payment,
-  errors: {
-    name: null,
-  },
 };
 
 export const CurrentProfile = { ...profile };

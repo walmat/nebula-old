@@ -1,7 +1,10 @@
 import makeActionCreator from '../../../store/creator';
 import prefixer from '../../../store/reducers/prefixer';
 
-import { States } from '../../../constants/tasks';
+const States = {
+  Running: 'RUNNING',
+  Stopped: 'STOPPED',
+};
 
 const prefix = '@@Task';
 const tasksActions = ['EDIT_TASK'];
@@ -9,53 +12,30 @@ export const taskActionsList = ['@@Task/EDIT_TASK'];
 
 const tasksListActions = [
   'CREATE_TASK',
-  'UPDATE_TASK',
   'DUPLICATE_TASK',
   'UPDATE_MESSAGE',
   'SELECT_TASK',
   'SELECT_ALL_TASKS',
-  'START_TASK',
-  'START_ALL_TASKS',
-  'STOP_TASK',
-  'STOP_ALL_TASKS',
-  'REMOVE_TASK',
-  'REMOVE_ALL_TASKS',
+  'START_TASKS',
+  'STOP_TASKS',
+  'REMOVE_TASKS',
 ];
 
 export const taskListActionsList = [
   '@@Task/CREATE_TASK',
-  '@@Task/UPDATE_TASK',
   '@@Task/DUPLICATE_TASK',
   '@@Task/UPDATE_MESSAGE',
   '@@Task/SELECT_TASK',
   '@@Task/SELECT_ALL_TASKS',
-  '@@Task/START_TASK',
-  '@@Task/START_ALL_TASKS',
-  '@@Task/STOP_TASK',
-  '@@Task/STOP_ALL_TASKS',
-  '@@Task/REMOVE_TASK',
-  '@@Task/REMOVE_ALL_TASKS',
+  '@@Task/START_TASKS',
+  '@@Task/STOP_TASKS',
+  '@@Task/REMOVE_TASKS',
 ];
 
 export const TASK_ACTIONS = prefixer(prefix, tasksActions);
 export const TASK_LIST_ACTIONS = prefixer(prefix, tasksListActions);
 
-const _duplicateTaskRequest = async task => ({ task });
-
-const _startTaskRequest = async (task, delays, proxies = []) => {
-  if (task.state === States.Running) {
-    return null;
-  }
-
-  if (window.Bridge) {
-    window.Bridge.addProxies(proxies);
-    window.Bridge.startTasks({ ...task, ...delays }, {});
-  }
-
-  return { task };
-};
-
-const _startAllTasksRequest = async (tasks, delays, proxies = []) => {
+const _startTasksRequest = async (tasks, delays, proxies = []) => {
   const newTasks = tasks.filter(t => t.state !== States.Running);
 
   if (window.Bridge) {
@@ -68,19 +48,7 @@ const _startAllTasksRequest = async (tasks, delays, proxies = []) => {
   };
 };
 
-const _stopTaskRequest = async task => {
-  if (task.state !== States.Running) {
-    return null;
-  }
-
-  if (window.Bridge) {
-    window.Bridge.stopTasks(task);
-  }
-
-  return { task };
-};
-
-const _stopAllTasksRequest = async tasks => {
+const _stopTasksRequest = async tasks => {
   const runningTasks = tasks.filter(t => t.state === States.Running);
 
   if (!runningTasks || !runningTasks.length) {
@@ -94,18 +62,7 @@ const _stopAllTasksRequest = async tasks => {
   return { tasks: runningTasks.map(t => ({ ...t, state: States.Stopped, message: '' })) };
 };
 
-const _removeTaskRequest = async task => {
-  if (!task) {
-    return null;
-  }
-  if (window.Bridge) {
-    window.Bridge.stopTasks(task);
-  }
-
-  return task.id;
-};
-
-const _removeAllTasksRequest = async tasks => {
+const _removeTasksRequest = async tasks => {
   if (!tasks.length) {
     return null;
   }
@@ -118,45 +75,27 @@ const _removeAllTasksRequest = async tasks => {
 };
 
 // Private Actions
-const _removeTask = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_TASK, 'id');
-const _removeAllTasks = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_ALL_TASKS, 'response');
-const _duplicateTask = makeActionCreator(TASK_LIST_ACTIONS.DUPLICATE_TASK, 'response');
-const _startTask = makeActionCreator(TASK_LIST_ACTIONS.START_TASK, 'response');
-const _startAllTasks = makeActionCreator(TASK_LIST_ACTIONS.START_ALL_TASKS, 'response');
-const _stopTask = makeActionCreator(TASK_LIST_ACTIONS.STOP_TASK, 'response');
-const _stopAllTasks = makeActionCreator(TASK_LIST_ACTIONS.STOP_ALL_TASKS, 'response');
+const _startTasks = makeActionCreator(TASK_LIST_ACTIONS.START_TASKS, 'response');
+const _stopTasks = makeActionCreator(TASK_LIST_ACTIONS.STOP_TASKS, 'response');
+const _removeTask = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_TASKS, 'response');
 
 // Public Actions
-const createTask = makeActionCreator(TASK_LIST_ACTIONS.CREATE_TASK, 'response');
+const createTask = makeActionCreator(TASK_LIST_ACTIONS.CREATE_TASK, 'task');
+const duplicateTask = makeActionCreator(TASK_LIST_ACTIONS.DUPLICATE_TASK, 'response');
 const editTask = makeActionCreator(TASK_ACTIONS.EDIT_TASK, 'id', 'field', 'value', 'sites');
-const updateTask = makeActionCreator(TASK_ACTIONS.UPDATE_TASK, 'task', 'edits');
-const selectTask = makeActionCreator(TASK_LIST_ACTIONS.SELECT_TASK, 'task');
+const selectTask = makeActionCreator(TASK_LIST_ACTIONS.SELECT_TASK, 'ctrl', 'task');
 const selectAllTasks = makeActionCreator(TASK_LIST_ACTIONS.SELECT_ALL_TASKS, 'tasks');
 const messageTask = makeActionCreator(TASK_LIST_ACTIONS.UPDATE_MESSAGE, 'buffer');
 
 // Public Thunks
-const removeTask = task => dispatch =>
-  _removeTaskRequest(task).then(id => dispatch(_removeTask(id)));
+const removeTasks = task => dispatch =>
+  _removeTasksRequest(task).then(response => dispatch(_removeTask(response)));
 
-const removeAllTasks = tasks => dispatch =>
-  _removeAllTasksRequest(tasks).then(response => dispatch(_removeAllTasks(response)));
+const startTasks = (tasks, delays, proxies) => dispatch =>
+  _startTasksRequest(tasks, delays, proxies).then(response => dispatch(_startTasks(response)));
 
-const duplicateTask = task => dispatch =>
-  _duplicateTaskRequest(task).then(response => dispatch(_duplicateTask(response)));
-
-const startTask = (task, delays, proxies) => dispatch =>
-  _startTaskRequest(task, delays, proxies).then(response => dispatch(_startTask(response)));
-
-const startAllTasks = (tasks, delays, proxies) => dispatch =>
-  _startAllTasksRequest(tasks, delays, proxies).then(response =>
-    dispatch(_startAllTasks(response)),
-  );
-
-const stopTask = task => dispatch =>
-  _stopTaskRequest(task).then(response => dispatch(_stopTask(response)));
-
-const stopAllTasks = tasks => dispatch =>
-  _stopAllTasksRequest(tasks).then(response => dispatch(_stopAllTasks(response)));
+const stopTasks = tasks => dispatch =>
+  _stopTasksRequest(tasks).then(response => dispatch(_stopTasks(response)));
 
 // Field Edits
 export const TASK_FIELDS = {
@@ -179,17 +118,13 @@ export const TASK_FIELDS = {
 export const taskActions = {
   edit: editTask,
   create: createTask,
-  update: updateTask,
   select: selectTask,
   selectAll: selectAllTasks,
   message: messageTask,
   duplicate: duplicateTask,
-  start: startTask,
-  startAll: startAllTasks,
-  stop: stopTask,
-  stopAll: stopAllTasks,
-  remove: removeTask,
-  removeAll: removeAllTasks,
+  start: startTasks,
+  stop: stopTasks,
+  remove: removeTasks,
 };
 
 export const mapTaskFieldsToKey = {

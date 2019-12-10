@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { CurrentTask, Tasks } from '../initial';
-import { States } from '../../../constants/tasks';
+import { States } from '../../../constants';
 
 export const makeTasks = createSelector(
   state => state.Tasks || Tasks,
@@ -9,12 +9,12 @@ export const makeTasks = createSelector(
 
 export const makeRunningTasks = createSelector(
   state => state.Tasks || Tasks,
-  state => (state || Tasks).filter(t => t.state === States.Running),
+  state => state.filter(t => t.state === States.Running),
 );
 
 export const makeSelectedTasks = createSelector(
   state => state.Tasks || Tasks,
-  state => (state || Tasks).filter(t => t.selected),
+  state => state.filter(t => t.selected),
 );
 
 export const makeCurrentTask = createSelector(

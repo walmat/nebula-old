@@ -1,8 +1,7 @@
 // Top Level Export for parsers
-import Parser from './parser';
-import AtomParser from './standard/atomParser';
-import JsonParser from './standard/jsonParser';
-import XmlParser from './standard/xmlParser';
+import CollectionParser from './collectionParser';
+import JsonParser from './jsonParser';
+import XmlParser from './xmlParser';
 
 function getParsers(url) {
   if (/eflash|travis/i.test(url)) {
@@ -10,14 +9,14 @@ function getParsers(url) {
   }
 
   if (/kith/i.test(url)) {
-    return (...params) => [new JsonParser(...params), new AtomParser(...params)];
+    return (...params) => [new JsonParser(...params), new CollectionParser(...params)];
   }
 
   return (...params) => [
     new JsonParser(...params),
-    new AtomParser(...params),
+    new CollectionParser(...params),
     new XmlParser(...params),
   ];
 }
 
-export { Parser, AtomParser, JsonParser, XmlParser, getParsers };
+export { CollectionParser, JsonParser, XmlParser, getParsers };

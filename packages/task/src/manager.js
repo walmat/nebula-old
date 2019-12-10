@@ -10,7 +10,6 @@ import {
   RateFetcher,
   Discord as ShopifyDiscord,
   Slack as ShopifySlack,
-  TaskTypes,
 } from './shopify';
 import { Parse } from './shopify/utils';
 
@@ -28,7 +27,7 @@ const { ProxyManager, WebhookManager, CaptchaManager } = Classes;
 const { Platforms, Manager, Task, Monitor } = Constants;
 const { ParseType } = Monitor;
 const { Events } = Manager;
-const { Events: TaskEvents, HookTypes } = Task;
+const { Events: TaskEvents, HookTypes, Types } = Task;
 
 export default class TaskManager {
   get logPath() {
@@ -221,7 +220,7 @@ export default class TaskManager {
    * @param {object} options Options to customize the task:
    *   - type - The task type to start
    */
-  async start(task, { type = TaskTypes.Normal }) {
+  async start(task, { type = Types.Normal }) {
     const proxy = await this.proxyManager.reserve(task.id, task.store.url, task.platform);
 
     this._logger.silly('Starting task for %s with proxy %j', task.id, proxy);
@@ -417,7 +416,7 @@ export default class TaskManager {
           webhookManager: this.webhookManager,
         });
 
-        if (type === TaskTypes.Normal) {
+        if (type === Types.Normal) {
           newTask = new ShopifyTask(context);
 
           const found = Object.values(this._monitors).find(async m => {
@@ -452,7 +451,7 @@ export default class TaskManager {
           } else {
             monitor = new ShopifyMonitor(context);
           }
-        } else if (type === TaskTypes.ShippingRates) {
+        } else if (type === Types.Rates) {
           newTask = new RateFetcher(context);
         }
         break;

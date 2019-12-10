@@ -10,7 +10,9 @@ import {
   appActionsList,
   navbarActionsList,
   profileActionsList,
-  sharedActionsList,
+  profileActionsNeededForTask,
+  delaysActionsList,
+  proxiesActionsList,
   shippingActionsList,
   taskActionsList,
   taskListActionsList,
@@ -29,7 +31,7 @@ import {
   accountListReducer as Accounts,
   accountReducer as CurrentAccount,
   delayReducer as Delays,
-  proxiesReducer as Proxies,
+  proxyListReducer as Proxies,
   shippingReducer as Shipping,
   webhookListReducer as Webhooks,
   webhookReducer as CurrentWebhook,
@@ -44,34 +46,34 @@ const reducers = asyncReducers =>
   combineReducers({
     App: filterActions(App, [...appActionsList, ...globalActionsList]),
     Accounts: filterActions(Accounts, [...accountActionsList, ...globalActionsList]),
-    CurrentAccount: filterActions(CurrentAccount, [
-      ...accountActionsList,
-      ...sharedActionsList,
-      ...globalActionsList,
-    ]),
-    CurrentProfile: filterActions(CurrentProfile, [...profileActionsList, ...globalActionsList]),
-    CurrentWebhook: filterActions(CurrentWebhook, [
-      ...webhookActionsList,
-      ...sharedActionsList,
-      ...globalActionsList,
-    ]),
-    Delays: filterActions(Delays, [...sharedActionsList, ...globalActionsList]),
-    Navbar: filterActions(Navbar, navbarActionsList),
-    Profiles: filterActions(Profiles, [...profileActionsList, ...globalActionsList]),
-    Proxies: filterActions(Proxies, [...sharedActionsList, ...globalActionsList]),
-    Sites: filterActions(Sites, appActionsList),
-    Shipping: filterActions(Shipping, [
+    CurrentAccount: filterActions(CurrentAccount, [...accountActionsList, ...globalActionsList]),
+    CurrentProfile: filterActions(CurrentProfile, [
+      ...profileActionsList,
       ...shippingActionsList,
-      ...sharedActionsList,
       ...globalActionsList,
     ]),
-    Tasks: filterActions(Tasks, [...taskListActionsList, ...globalActionsList]),
-    CurrentTask: filterActions(CurrentTask, [...taskActionsList, ...globalActionsList]),
-    Webhooks: filterActions(Webhooks, [
-      ...webhookActionsList,
-      ...sharedActionsList,
+    CurrentWebhook: filterActions(CurrentWebhook, [...webhookActionsList, ...globalActionsList]),
+    Delays: filterActions(Delays, [...delaysActionsList, ...globalActionsList]),
+    Navbar: filterActions(Navbar, navbarActionsList),
+    Profiles: filterActions(Profiles, [
+      ...profileActionsList,
+      ...shippingActionsList,
       ...globalActionsList,
     ]),
+    Proxies: filterActions(Proxies, [...proxiesActionsList, ...globalActionsList]),
+    Sites: filterActions(Sites, appActionsList),
+    Shipping: filterActions(Shipping, [...shippingActionsList, ...globalActionsList]),
+    Tasks: filterActions(Tasks, [
+      ...taskListActionsList,
+      ...profileActionsNeededForTask,
+      ...globalActionsList,
+    ]),
+    CurrentTask: filterActions(CurrentTask, [
+      ...taskActionsList,
+      ...profileActionsNeededForTask,
+      ...globalActionsList,
+    ]),
+    Webhooks: filterActions(Webhooks, [...webhookActionsList, ...globalActionsList]),
     ...asyncReducers,
   });
 
@@ -96,7 +98,7 @@ export default (state = undefined, action = {}) => {
       return reducers(state, action);
     }
     // TODO: Migrations
-    // NOTE: This is NOT a mutation, just a re-assign.
+    // NOTE: This is NOT a mutation, just a direct re-assign.
     // eslint-disable-next-line no-param-reassign
     state = newState;
   }
