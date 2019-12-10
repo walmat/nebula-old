@@ -17,6 +17,7 @@ import { buildProfileOptions } from '../../../constants';
 
 import { makeProfiles } from '../../../profiles/state/selectors';
 import { makeTheme } from '../../../app/state/selectors';
+import { makeShipping } from '../../state/selectors';
 import { settingsActions, SETTINGS_FIELDS } from '../../../store/actions';
 import { buildStyle } from '../../../styles';
 
@@ -27,7 +28,7 @@ const onChange = (e, profiles, onSelect) => {
   onSelect(currentProfile);
 };
 
-const ProfileSelect = ({ placeholder, type, theme, profile, profiles, onSelect }) => {
+const ProfileSelect = ({ theme, profile, profiles, onSelect }) => {
   let shippingProfileValue = null;
   if (profile && profile.id !== null) {
     shippingProfileValue = {
@@ -41,11 +42,11 @@ const ProfileSelect = ({ placeholder, type, theme, profile, profiles, onSelect }
       <p className="settings--shipping-manager__input-group--label">Profile</p>
       <Select
         required
-        placeholder={placeholder}
+        placeholder="Choose Profile"
         components={{ DropdownIndicator, IndicatorSeparator, Control, Option, Menu, MenuList }}
         isMulti={false}
         isClearable={false}
-        className={`settings--shipping-manager__input-group--${type}`}
+        className="settings--shipping-manager__input-group--profile"
         classNamePrefix="select"
         styles={colourStyles(theme, buildStyle(false, null))}
         onChange={e => onChange(e, profiles, onSelect)}
@@ -58,8 +59,6 @@ const ProfileSelect = ({ placeholder, type, theme, profile, profiles, onSelect }
 };
 
 ProfileSelect.propTypes = {
-  placeholder: PropTypes.string.isRequired,
-  type: PropTypes.string.isRequired,
   theme: PropTypes.string.isRequired,
   profile: PropTypes.objectOf(PropTypes.any),
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
@@ -70,12 +69,10 @@ ProfileSelect.defaultProps = {
   profile: null,
 };
 
-export const mapStateToProps = (state, ownProps) => ({
+export const mapStateToProps = state => ({
   profiles: makeProfiles(state),
-  profile: state.Shipping.profile,
+  profile: makeShipping(state).profile,
   theme: makeTheme(state),
-  placeholder: ownProps.placeholder,
-  type: ownProps.type,
 });
 
 export const mapDispatchToProps = dispatch => ({

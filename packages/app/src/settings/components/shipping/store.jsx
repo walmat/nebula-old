@@ -28,7 +28,7 @@ const handleCreateStore = (event, field, onChange) => {
   return onChange({ field, value: newStore });
 };
 
-const StoreSelect = ({ placeholder, type, theme, store, sites, onChange }) => {
+const StoreSelect = ({ theme, store, stores, onChange }) => {
   let shippingSiteValue = null;
   if (store && store.name) {
     shippingSiteValue = {
@@ -43,10 +43,10 @@ const StoreSelect = ({ placeholder, type, theme, store, sites, onChange }) => {
         isClearable={false}
         isOptionDisabled={option => !option.supported && option.supported !== undefined}
         required
-        placeholder={placeholder}
+        placeholder="Choose Store"
         components={{ DropdownIndicator, IndicatorSeparator, Control, Option, Menu, MenuList }}
         isMulti={false}
-        className={`settings--shipping-manager__input-group--${type}`}
+        className="settings--shipping-manager__input-group--store"
         classNamePrefix="select"
         styles={colourStyles(theme, buildStyle(false, null))}
         onChange={event =>
@@ -57,18 +57,16 @@ const StoreSelect = ({ placeholder, type, theme, store, sites, onChange }) => {
         }
         onCreateOption={e => handleCreateStore(e, SETTINGS_FIELDS.EDIT_SHIPPING_STORE, onChange)}
         value={shippingSiteValue}
-        options={sites}
+        options={stores}
       />
     </div>
   );
 };
 
 StoreSelect.propTypes = {
-  placeholder: PropTypes.string.isRequired,
-  type: PropTypes.string.isRequired,
   theme: PropTypes.string.isRequired,
   store: PropTypes.objectOf(PropTypes.any),
-  sites: PropTypes.arrayOf(PropTypes.any).isRequired,
+  stores: PropTypes.arrayOf(PropTypes.any).isRequired,
   onChange: PropTypes.func.isRequired,
 };
 
@@ -79,7 +77,7 @@ StoreSelect.defaultProps = {
 export const mapStateToProps = state => ({
   store: state.Shipping.store,
   profiles: makeProfiles(state),
-  sites: makeShopifySites(state),
+  stores: makeShopifySites(state),
   theme: makeTheme(state),
 });
 

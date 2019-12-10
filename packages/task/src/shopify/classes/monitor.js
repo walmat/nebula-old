@@ -118,6 +118,7 @@ export default class MonitorPrimitive extends BaseMonitor {
       // Try parsing all files and wait for the first response
       parsed = await this._parse();
     } catch (errors) {
+      console.log(errors);
       logger.debug('All request errored out! %j', errors);
       // handle parsing errors
       return this._handleErrors(errors);

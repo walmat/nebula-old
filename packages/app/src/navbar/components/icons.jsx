@@ -3,9 +3,11 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-import { navbarDefaults } from '../../constants';
+import { makeLocation } from '../state/selectors';
 import { navbarActions, NAVBAR_ACTIONS, mapActionsToRoutes } from '../../store/actions';
+
 import { renderSvgIcon } from '../../utils';
+import { navbarDefaults } from '../../constants';
 
 const NavbarIcon = ({ props: { Icon, iconName, className, onClick } }) => (
   <div key={iconName} className="row row--expand">
@@ -73,7 +75,7 @@ const NavbarIconRows = ({ location, history, onRoute }) =>
   );
 
 const mapStateToProps = state => ({
-  location: state.Navbar.location,
+  location: makeLocation(state),
 });
 
 const mapDispatchToProps = dispatch => ({

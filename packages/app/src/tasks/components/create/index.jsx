@@ -6,50 +6,9 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
 import { makeTheme } from '../../../app/state/selectors';
-import { THEMES } from '../../../constants';
+import { modalStyles } from '../../../constants';
 
 import ModalBody from './modal';
-
-const modalStyles = {
-  [THEMES.LIGHT]: {
-    overlay: {
-      backgroundColor: 'rgba(244, 244, 244, 0.83)',
-    },
-    content: {
-      top: '50%',
-      left: '50%',
-      right: 'auto',
-      bottom: 'auto',
-      marginRight: '-50%',
-      transform: 'translate(-50%, -50%)',
-      borderRadius: '5px',
-      border: 'none',
-      boxShadow: '0 0 10px',
-      backgroundColor: '#f4f4f4',
-      opacity: 1,
-      zIndex: 99999,
-    },
-  },
-  [THEMES.DARK]: {
-    overlay: {
-      backgroundColor: 'rgba(44, 47, 51, 0.83)',
-    },
-    content: {
-      top: '50%',
-      left: '50%',
-      right: 'auto',
-      bottom: 'auto',
-      marginRight: '-50%',
-      transform: 'translate(-50%, -50%)',
-      borderRadius: '5px',
-      border: 'none',
-      boxShadow: '0 0 10px',
-      backgroundColor: '#23272a',
-      opacity: 1,
-      zIndex: 99999,
-    },
-  },
-};
 
 const CreateTaskPrimitive = ({ show, toggleCreate, theme }) => (
   <Modal isOpen={show} style={modalStyles[theme]} onRequestClose={toggleCreate} ariaHideApp={false}>

@@ -1,6 +1,7 @@
 import EventEmitter from 'eventemitter3';
 import { CookieJar } from 'tough-cookie';
 
+import { Timer } from '../classes';
 import { Task as TaskConstants } from '../constants';
 
 const { HarvestStates, Types } = TaskConstants;
@@ -35,6 +36,10 @@ export default class Context {
     this.lastProxy = proxy;
     this.message = message;
     this.events = events;
+    this.timers = {
+      checkout: new Timer(),
+      monitor: new Timer(),
+    };
     this.jar = jar;
     this.logger = logger;
     this.discord = discord;

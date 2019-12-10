@@ -2,6 +2,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
+import { makeTheme } from '../../app/state/selectors';
+
 import { Platforms, harvesterDefaults } from '../../constants';
 import { openCaptchaWindow, closeWindows } from '../../constants/bridgeFns';
 
@@ -44,10 +46,10 @@ Harvesters.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  theme: state.App.theme,
+  theme: makeTheme(state),
 });
 
-const mapDispatchToProps = dispatch => ({});
+const mapDispatchToProps = () => ({});
 
 export default connect(
   mapStateToProps,

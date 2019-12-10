@@ -10,6 +10,7 @@ import {
   colourStyles,
 } from '../../../styles/components/select';
 
+import { makeTheme } from '../../../app/state/selectors';
 import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../../store/actions';
 
 const StoreSelect = ({ theme, onChange, selectedStore, rates }) => {
@@ -46,7 +47,7 @@ StoreSelect.defaultProps = {
 
 const mapStateToProps = (state, ownProps) => ({
   selectedStore: ownProps.profile.selectedStore,
-  theme: state.App.theme,
+  theme: makeTheme(state),
   rates: ownProps.profile.rates,
 });
 
