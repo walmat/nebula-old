@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import CreatableSelect from 'react-select/creatable';
 
 import { TASK_FIELDS, taskActions } from '../../../../store/actions';
-import { makeSites, makeTheme } from '../../../../app/state/selectors';
+import { makeStores, makeTheme } from '../../../../app/state/selectors';
 import { makeCurrentTask } from '../../../state/selectors';
 
 import { createStore } from '../../../../constants';
@@ -29,7 +29,7 @@ const handleCreateStore = (event, onChange) => {
   return onChange(newStore);
 };
 
-const StoreSelect = ({ theme, store, sites, onSelect }) => {
+const StoreSelect = ({ theme, store, stores, onSelect }) => {
   let newTaskStoreValue = null;
   if (store && store.name !== null) {
     newTaskStoreValue = {
@@ -65,7 +65,7 @@ const StoreSelect = ({ theme, store, sites, onSelect }) => {
           })
         }
         onCreateOption={e => handleCreateStore(e, onSelect)}
-        options={sites}
+        options={stores}
         value={newTaskStoreValue}
       />
     </div>
@@ -75,13 +75,13 @@ const StoreSelect = ({ theme, store, sites, onSelect }) => {
 StoreSelect.propTypes = {
   theme: PropTypes.string.isRequired,
   onSelect: PropTypes.func.isRequired,
-  sites: PropTypes.arrayOf(PropTypes.any).isRequired,
+  stores: PropTypes.arrayOf(PropTypes.any).isRequired,
   store: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 const mapStateToProps = state => ({
   theme: makeTheme(state),
-  sites: makeSites(state),
+  stores: makeStores(state),
   store: makeCurrentTask(state).store,
 });
 

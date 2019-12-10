@@ -9,6 +9,7 @@ const CvvField = ({ value, onChange }) => (
     required
     className="col col--start col--expand profiles-payment__input-group--cvv"
     placeholder="CVV"
+    maxLength={4}
     onChange={e => onChange({ field: PAYMENT_FIELDS.CVV, value: e.target.value })}
     value={value.cvv}
     data-private

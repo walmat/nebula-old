@@ -305,24 +305,41 @@ export const matchKeywords = (products, keywords, _filter, logger, returnAll) =>
 
     // match every keyword in the positive array
     if (keywords.pos.length > 0) {
-      pos = every(
-        keywords.pos.map(k => k.toUpperCase()),
-        keyword =>
-          title.indexOf(keyword.toUpperCase()) > -1 ||
-          handle.indexOf(keyword) > -1 ||
-          bodyHtml.indexOf(keyword) > -1,
-      );
+      pos = every(keywords.pos.map(k => k.toUpperCase()), keyword => {
+        if (title) {
+          return title.indexOf(keyword.toUpperCase()) > -1;
+        }
+
+        if (handle) {
+          return handle.indexOf(keyword.toUpperCase()) > -1;
+        }
+
+        if (bodyHtml) {
+          return bodyHtml.toUpperCase().indexOf(keyword.toUpperCase()) > -1;
+        }
+
+        return false;
+      });
     }
 
     // match none of the keywords in the negative array
     if (keywords.neg.length > 0) {
-      neg = some(
-        keywords.neg.map(k => k.toUpperCase()),
-        keyword =>
-          title.indexOf(keyword) > -1 ||
-          handle.indexOf(keyword) > -1 ||
-          bodyHtml.indexOf(keyword) > -1,
-      );
+      console.log('checking negative keywords');
+      neg = some(keywords.neg.map(k => k.toUpperCase()), keyword => {
+        if (title) {
+          return title.indexOf(keyword.toUpperCase()) > -1;
+        }
+
+        if (handle) {
+          return handle.indexOf(keyword.toUpperCase()) > -1;
+        }
+
+        if (bodyHtml) {
+          return bodyHtml.toUpperCase().indexOf(keyword.toUpperCase()) > -1;
+        }
+
+        return false;
+      });
     }
     return pos && !neg;
   });
@@ -347,7 +364,7 @@ export const matchKeywords = (products, keywords, _filter, logger, returnAll) =>
         _logger.log('silly', "Overriding filter's limit and returning all products...");
         limit = 0;
       }
-      filtered = filterAndLimit(matches, _filter.sorter, limit, this._logger);
+      filtered = filterAndLimit(matches, _filter.sorter, limit, _logger);
       if (!returnAll) {
         _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
         return filtered[0];
@@ -361,11 +378,11 @@ export const matchKeywords = (products, keywords, _filter, logger, returnAll) =>
     );
     if (returnAll) {
       _logger.log('silly', 'Returning all products...');
-      filtered = filterAndLimit(matches, 'updated_at', 0, this._logger);
+      filtered = filterAndLimit(matches, 'updated_at', 0, _logger);
       _logger.log('silly', 'Returning %d Matched Products', filtered);
       return filtered;
     }
-    filtered = filterAndLimit(matches, 'updated_at', -1, this._logger);
+    filtered = filterAndLimit(matches, 'updated_at', -1, _logger);
     _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
     return filtered[0];
   }

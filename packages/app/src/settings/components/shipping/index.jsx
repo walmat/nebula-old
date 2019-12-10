@@ -21,13 +21,13 @@ const ShippingManagerPrimitive = () => (
             <div className="col col--start col--expand settings--shipping-manager__input-group">
               <div className="row row--start row--expand row--gutter" style={{ margin: '15px 0' }}>
                 <ProductField />
-                <ProfileSelect placeholder="Choose Profile" type="profile" />
+                <ProfileSelect />
               </div>
               <div
                 className="row row--start row--expand row--gutter"
                 style={{ marginBottom: '15px' }}
               >
-                <StoreSelect placeholder="Choose Store" type="store" />
+                <StoreSelect />
                 <ActionButtons />
               </div>
             </div>

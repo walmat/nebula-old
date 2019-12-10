@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
+import { makeCurrentProfile } from '../../state/selectors';
 import { profileActions, PROFILE_FIELDS } from '../../../store/actions';
 
 const saveProfile = (currentProfile, onCreate, onUpdate) => {
@@ -51,7 +52,7 @@ SaveProfileFields.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  currentProfile: state.CurrentProfile,
+  currentProfile: makeCurrentProfile(state),
 });
 
 export const mapDispatchToProps = dispatch => ({

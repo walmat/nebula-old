@@ -395,7 +395,6 @@ export default class TaskManager {
 
     const { platform, id } = task;
 
-    console.log(type, Types);
     switch (platform) {
       case Platforms.Shopify: {
         const parseType = getParseType(task.product, null, platform);

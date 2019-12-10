@@ -4,4 +4,4 @@ export const App = {
   theme: THEMES.LIGHT,
 };
 
-export const Sites = [];
+export const Stores = [];

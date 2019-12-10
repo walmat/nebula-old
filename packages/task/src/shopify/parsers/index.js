@@ -1,7 +1,7 @@
 // Top Level Export for parsers
-import CollectionParser from './standard/collectionParser';
-import JsonParser from './standard/jsonParser';
-import XmlParser from './standard/xmlParser';
+import CollectionParser from './collectionParser';
+import JsonParser from './jsonParser';
+import XmlParser from './xmlParser';
 
 function getParsers(url) {
   if (/eflash|travis/i.test(url)) {

@@ -10,6 +10,7 @@ import PhoneField from './phone';
 import ShippingActions from './actions';
 
 import { PROFILE_FIELDS } from '../../../store/actions';
+import { makeCurrentProfile } from '../../state/selectors';
 
 const LocationFieldsPrimitive = ({ id, header, className, profile, field, disabled }) => (
   <div className={className}>
@@ -52,11 +53,11 @@ LocationFieldsPrimitive.propTypes = {
 
 const mapStateToProps = (state, ownProps) => ({
   id: ownProps.id,
-  field: !state.CurrentProfile.matches ? ownProps.field : PROFILE_FIELDS.EDIT_SHIPPING,
+  field: !makeCurrentProfile(state).matches ? ownProps.field : PROFILE_FIELDS.EDIT_SHIPPING,
   header: ownProps.header,
-  disabled: ownProps.id === 'billing' ? state.CurrentProfile.matches : false,
+  disabled: ownProps.id === 'billing' ? makeCurrentProfile(state).matches : false,
   className: ownProps.className,
-  profile: state.CurrentProfile,
+  profile: makeCurrentProfile(state),
 });
 
 const mapDispatchToProps = () => ({});

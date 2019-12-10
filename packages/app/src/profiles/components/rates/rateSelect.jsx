@@ -10,6 +10,7 @@ import {
   colourStyles,
 } from '../../../styles/components/select';
 
+import { makeTheme } from '../../../app/state/selectors';
 import { RATES_FIELDS, profileActions, PROFILE_FIELDS } from '../../../store/actions';
 
 const RateSelect = ({ theme, onChange, selectedStore, rates }) => {
@@ -56,9 +57,9 @@ const RateSelect = ({ theme, onChange, selectedStore, rates }) => {
 
 RateSelect.propTypes = {
   theme: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
   rates: PropTypes.arrayOf(PropTypes.any).isRequired,
   selectedStore: PropTypes.objectOf(PropTypes.any),
+  onChange: PropTypes.func.isRequired,
 };
 
 RateSelect.defaultProps = {
@@ -66,9 +67,9 @@ RateSelect.defaultProps = {
 };
 
 const mapStateToProps = (state, ownProps) => ({
-  selectedStore: ownProps.profile.selectedStore,
-  theme: state.App.theme,
+  theme: makeTheme(state),
   rates: ownProps.profile.rates,
+  selectedStore: ownProps.profile.selectedStore,
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({

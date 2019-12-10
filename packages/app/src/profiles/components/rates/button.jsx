@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
+import { makeCurrentProfile } from '../../state/selectors';
 import { profileActions } from '../../../store/actions';
 
 const onClick = (selectedStore, rates, onDelete) => {
@@ -44,8 +45,8 @@ DeleteButton.defaultProps = {
 };
 
 const mapStateToProps = state => ({
-  selectedStore: state.CurrentProfile.selectedStore,
-  rates: state.CurrentProfile.rates,
+  selectedStore: makeCurrentProfile(state).selectedStore,
+  rates: makeCurrentProfile(state).rates,
 });
 
 const mapDispatchToProps = dispatch => ({
