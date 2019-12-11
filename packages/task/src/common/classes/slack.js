@@ -1,34 +1,41 @@
 import SlackWebhook from 'slack-webhook';
 
-class Slack {
-  constructor(hook) {
-    if (hook) {
-      this.hook = new SlackWebhook(hook);
+export default class Slack {
+  constructor(url) {
+    if (url) {
+      this.client = new SlackWebhook(url);
     }
   }
 
-  build(success = false, type, checkoutUrl, product, price, store, order, profile, size, image) {
-    if (this.hook) {
-      let fallback;
+  build({
+    success = false,
+    type,
+    checkoutUrl,
+    product,
+    price,
+    store,
+    order,
+    profile,
+    size,
+    image,
+  }) {
+    if (this.client) {
       let title;
 
       switch (success) {
         case true: {
+          // this will only happen for Shopify
           if (checkoutUrl) {
-            fallback = `<Successful checkout (${type})|${checkoutUrl}>`;
             title = `<Successful checkout (${type})|${checkoutUrl}>`;
           }
-          fallback = `Successful checkout (${type})`;
-          title = `Successful checkout (${type})`;
+          title = type ? `Successful checkout (${type})` : 'Successful checkout';
           break;
         }
         default: {
           if (checkoutUrl) {
-            fallback = `<Payment failed! (${type})|${checkoutUrl}>`;
             title = `<Payment failed! (${type})|${checkoutUrl}>`;
           }
-          fallback = `Payment failed! (${type})`;
-          title = `Payment failed! (${type})`;
+          title = type ? `Payment failed! (${type})` : 'Payment failed';
           break;
         }
       }
@@ -36,12 +43,11 @@ class Slack {
       const embed = {
         attachments: [
           {
-            fallback,
             title,
             color: success ? '#46ADB4' : '#EF415E',
             fields: [],
-            footer: 'Nebula Orion @ 2019',
-            footer_icon: 'https://imgur.com/4ptVqtH',
+            footer: 'Nebula @ 2019',
+            footer_icon: 'https://i.ibb.co/1dqVb6k/logo.png',
             ts: Math.floor(new Date().getTime() / 1000),
           },
         ],
@@ -52,16 +58,16 @@ class Slack {
       }
 
       if (product) {
-        if (product.url) {
+        if (product.url && product.name) {
           embed.attachments[0].fields.push({
             title: 'Product',
             value: `<${product.url}|${product.name}>`,
             short: true,
           });
-        } else if (product.name) {
+        } else {
           embed.attachments[0].fields.push({
             title: 'Product',
-            value: product.name,
+            value: product,
             short: true,
           });
         }
@@ -108,7 +114,7 @@ class Slack {
       }
 
       if (profile) {
-        embed.attachments[0].fields.push({
+        embed.attachments[0].push({
           title: 'Billing Profile',
           value: profile,
           short: true,
@@ -123,9 +129,12 @@ class Slack {
         });
       }
 
-      return { embed, client: this.hook };
+      return embed;
     }
     return null;
   }
+
+  send(embed) {
+    this.client.send(embed);
+  }
 }
-module.exports = Slack;

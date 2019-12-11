@@ -61,11 +61,11 @@ export default class MonitorPrimitive extends BaseMonitor {
         this.context,
         this.context.ids,
         {
-          message: `${status}! Delaying ${this.context.task.error}ms (${status})`,
+          message: `${status}! Delaying ${this.context.task.monitor}ms (${status})`,
         },
         Events.MonitorStatus,
       );
-      this._delayer = waitForDelay(this.context.task.error, this._aborter.signal);
+      this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
       await this._delayer;
     } else if (
       status === ErrorCodes.ProductNotFound ||
@@ -236,7 +236,6 @@ export default class MonitorPrimitive extends BaseMonitor {
       );
       return States.DONE;
     } catch (error) {
-      console.log(error);
       return this._handleError(error, States.STOCK);
     }
   }

@@ -39,10 +39,14 @@ export class App extends PureComponent {
     if (window.Bridge) {
       const {
         App: { theme },
+        Webhooks,
       } = store.getState();
       const backgroundColor = mapBackgroundThemeToColor[theme];
       window.Bridge.setTheme({ backgroundColor });
       window.Bridge.registerForTaskEvents(this.taskHandler);
+      if (Webhooks.length) {
+        window.Bridge.addWebhooks(Webhooks);
+      }
     }
     fetchSites(store);
     this.siteInterval = setInterval(() => fetchSites(store), 5000);

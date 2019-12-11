@@ -4,22 +4,11 @@ import EventEmitter from 'eventemitter3';
 import { Utils, Classes, Constants, Context } from './common';
 
 // Shopify includes
-import {
-  Monitor as ShopifyMonitor,
-  Task as ShopifyTask,
-  RateFetcher,
-  Discord as ShopifyDiscord,
-  Slack as ShopifySlack,
-} from './shopify';
+import { Monitor as ShopifyMonitor, Task as ShopifyTask, RateFetcher } from './shopify';
 import { Parse } from './shopify/utils';
 
 // Supreme includes
-import {
-  Monitor as SupremeMonitor,
-  Task as SupremeTask,
-  Discord as SupremeDiscord,
-  Slack as SupremeSlack,
-} from './supreme';
+import { Monitor as SupremeMonitor, Task as SupremeTask } from './supreme';
 
 const { getParseType } = Parse;
 const { createLogger, registerForEvent, deregisterForEvent, compareProductData } = Utils;
@@ -27,7 +16,7 @@ const { ProxyManager, WebhookManager, CaptchaManager } = Classes;
 const { Platforms, Manager, Task, Monitor } = Constants;
 const { ParseType } = Monitor;
 const { Events } = Manager;
-const { Events: TaskEvents, HookTypes, Types } = Task;
+const { Events: TaskEvents, Types } = Task;
 
 export default class TaskManager {
   get logPath() {
@@ -77,23 +66,6 @@ export default class TaskManager {
    */
   deregisterForTaskEvents(callback) {
     this._events.removeListener('status', callback);
-  }
-
-  async handleWebhook(hooks = {}) {
-    if (hooks instanceof Array) {
-      hooks.map(async hook => {
-        if (hook) {
-          this.webhookManager.insert(hook);
-          await this.webhookManager.send();
-        }
-      });
-    }
-    const { embed, client } = hooks;
-    if (client) {
-      this.webhookManager.insert({ embed, client });
-      return this.webhookManager.send();
-    }
-    return null;
   }
 
   // TODO: Move this somewhere where it makes more sense?
@@ -164,44 +136,6 @@ export default class TaskManager {
 
         if (task.delayer) {
           task.delayer.clear();
-        }
-        return task;
-      }),
-    );
-  }
-
-  updateHook(hook, type) {
-    this._logger.silly('Updating %s webhook to: %s', type, hook);
-    // since monitor/task pairs share the same context, we can just update the tasks' context here..
-    return Promise.all(
-      Object.values(this._tasks).map(t => {
-        const task = t;
-        const { platform } = task;
-        task.context.task[type] = hook;
-
-        switch (platform) {
-          case Platforms.Shopify: {
-            if (type === HookTypes.discord) {
-              const discord = hook ? new ShopifyDiscord(hook) : null;
-              task.context.setDiscord(discord);
-            } else if (type === HookTypes.slack) {
-              const slack = hook ? new ShopifySlack(hook) : null;
-              task.context.setSlack(slack);
-            }
-            break;
-          }
-          case Platforms.Supreme: {
-            if (type === HookTypes.discord) {
-              const discord = hook ? new SupremeDiscord(hook) : null;
-              task.context.setDiscord(discord);
-            } else if (type === HookTypes.slack) {
-              const slack = hook ? new SupremeSlack(hook) : null;
-              task.context.setSlack(slack);
-            }
-            break;
-          }
-          default:
-            break;
         }
         return task;
       }),
@@ -410,8 +344,6 @@ export default class TaskManager {
             name: `Task-${id}`,
             prefix: `task-${id}`,
           }),
-          discord: new ShopifyDiscord(task.discord),
-          slack: new ShopifySlack(task.slack),
           proxyManager: this.proxyManager,
           webhookManager: this.webhookManager,
         });
@@ -467,8 +399,6 @@ export default class TaskManager {
             name: `Task-${id}`,
             prefix: `task-${id}`,
           }),
-          discord: new SupremeDiscord(task.discord),
-          slack: new SupremeSlack(task.slack),
           proxyManager: this.proxyManager,
           webhookManager: this.webhookManager,
         });

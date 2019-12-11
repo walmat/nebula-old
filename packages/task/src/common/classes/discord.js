@@ -1,31 +1,43 @@
 import { RichEmbed, WebhookClient } from 'discord.js';
 
-class Discord {
-  constructor(hook) {
-    if (hook) {
-      const [, , , , , id, token] = hook.split('/');
-      this.hook = new WebhookClient(id, token);
+export default class Discord {
+  constructor(url) {
+    if (url) {
+      const [, , , , , id, token] = url.split('/');
+      this.client = new WebhookClient(id, token);
     }
   }
 
-  build(success = false, type, checkoutUrl, product, price, store, order, profile, size, image) {
-    if (this.hook) {
+  build({
+    success = false,
+    type,
+    checkoutUrl,
+    product,
+    price,
+    store,
+    order,
+    profile,
+    size,
+    image,
+  }) {
+    if (this.client) {
       const embed = new RichEmbed()
-        .setTitle(success ? `Successful checkout (${type})` : `Payment failed! (${type})`)
         .setColor(success ? 4631988 : 15679838)
         .setTimestamp(new Date())
-        .setFooter('Nebula Orion © 2019', 'https://imgur.com/4ptVqtH');
+        .setFooter('Nebula © 2019', 'https://i.ibb.co/1dqVb6k/logo.png');
+
+      if (type) {
+        embed.setTitle(success ? `Successful checkout (${type})` : `Payment failed! (${type})`);
+      } else {
+        embed.setTitle(success ? 'Successful checkout!' : 'Payment failed!');
+      }
 
       if (image) {
         embed.setThumbnail(image);
       }
 
       if (product) {
-        if (product.url) {
-          embed.addField('Product', `[${product.name}](${product.url})`, false);
-        } else if (product.name) {
-          embed.addField('Product', product.name, false);
-        }
+        embed.addField('Product', product, false);
       }
 
       if (price) {
@@ -54,9 +66,13 @@ class Discord {
       if (checkoutUrl) {
         embed.setURL(checkoutUrl);
       }
-      return { embed, client: this.hook };
+
+      return embed;
     }
     return null;
   }
+
+  send(embed) {
+    this.client.send(embed);
+  }
 }
-module.exports = Discord;

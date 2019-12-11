@@ -130,11 +130,11 @@ class TaskManagerAdapter {
   }
 
   _onAddWebhooksRequest(_, webhooks) {
-    this._taskManager.webhookManager.add(webhooks);
+    this._taskManager.webhookManager.registerAll(webhooks);
   }
 
   _onRemoveWebhooksRequest(_, webhooks) {
-    this._taskManager.webhookManager.remove(webhooks);
+    this._taskManager.webhookManager.deregisterAll(webhooks);
   }
 
   _onAddProxiesRequest(_, proxies) {

@@ -3,7 +3,6 @@ import cheerio from 'cheerio';
 import { min, isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
-import notification from '../hooks';
 import { Bases, Utils, Constants } from '../../common';
 import { Task as TaskConstants } from '../constants';
 import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
@@ -1607,12 +1606,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if (status === 400) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Invalid queue' },
-          Events.TaskStatus,
-        );
+        emitEvent(this.context, [this.context.id], { message: 'Invalid queue' }, Events.TaskStatus);
         return States.CREATE_CHECKOUT;
       }
 
@@ -1998,12 +1992,7 @@ export default class TaskPrimitive extends BaseTask {
         return States.GO_TO_CHECKOUT;
       }
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Going to cart' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'Going to cart' }, Events.TaskStatus);
       return States.GO_TO_CART;
     } catch (err) {
       logger.error(
@@ -2064,12 +2053,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!variant) {
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'No size matched' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'No size matched' }, Events.TaskStatus);
       return States.ERROR;
     }
 
@@ -2571,12 +2555,7 @@ export default class TaskPrimitive extends BaseTask {
 
         // only happens in safe mode
         if (this._prevState === States.GO_TO_CART) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Logging in' },
-            Events.TaskStatus,
-          );
+          emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
 
           return States.LOGIN;
         }
@@ -2838,7 +2817,7 @@ export default class TaskPrimitive extends BaseTask {
 
           this._delayer = waitForDelay(monitor, this._aborter.signal);
           await this._delayer;
-          
+
           emitEvent(
             this.context,
             [this.context.id],
@@ -3145,12 +3124,7 @@ export default class TaskPrimitive extends BaseTask {
         return States.SUBMIT_PAYMENT;
       }
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Fetching rates' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'Fetching rates' }, Events.TaskStatus);
 
       return States.GO_TO_SHIPPING;
     } catch (err) {
@@ -3344,7 +3318,6 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/step=stock_problems/i.test(redirectUrl)) {
-
           emitEvent(
             this.context,
             [this.context.id],
@@ -3770,13 +3743,12 @@ export default class TaskPrimitive extends BaseTask {
             [this.context.id],
             { message: 'Polling queue' },
             Events.TaskStatus,
-          ); 
+          );
 
           return States.QUEUE;
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-
           emitEvent(
             this.context,
             [this.context.id],
@@ -3819,12 +3791,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if (/Getting available shipping rates/i.test(body)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Polling rates' },
-          Events.TaskStatus,
-        );
+        emitEvent(this.context, [this.context.id], { message: 'Polling rates' }, Events.TaskStatus);
 
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
@@ -4016,12 +3983,7 @@ export default class TaskPrimitive extends BaseTask {
           }
         }
 
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Polling rates' },
-          Events.TaskStatus,
-        );
+        emitEvent(this.context, [this.context.id], { message: 'Polling rates' }, Events.TaskStatus);
 
         this._delayer = waitForDelay(1000, this._aborter.signal);
         await this._delayer;
@@ -4075,22 +4037,12 @@ export default class TaskPrimitive extends BaseTask {
         return States.PAYMENT_TOKEN;
       }
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Polling rates' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'Polling rates' }, Events.TaskStatus);
 
       this._delayer = waitForDelay(1000, this._aborter.signal);
       await this._delayer;
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Fetching rates' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'Fetching rates' }, Events.TaskStatus);
 
       return States.GO_TO_SHIPPING;
     } catch (err) {
@@ -4219,7 +4171,6 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/password/i.test(redirectUrl)) {
-
           emitEvent(
             this.context,
             [this.context.id],
@@ -4278,7 +4229,6 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/step=stock_problems/i.test(redirectUrl)) {
-
           emitEvent(
             this.context,
             [this.context.id],
@@ -4557,7 +4507,6 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
-
         emitEvent(
           this.context,
           [this.context.id],
@@ -5106,7 +5055,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/checkpoint/i.test(redirectUrl)) {
-          this.checkpointUrl = redirectUrl; 
+          this.checkpointUrl = redirectUrl;
           emitEvent(
             this.context,
             [this.context.id],
@@ -5986,7 +5935,6 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/payment_method/i.test(step)) {
-
           emitEvent(
             this.context,
             [this.context.id],
@@ -6055,14 +6003,12 @@ export default class TaskPrimitive extends BaseTask {
       task: {
         store: { url, apiKey, name },
         product: { size, name: productName, url: productUrl, image },
-        profile: { profileName },
+        profile: { name: profileName },
         oneCheckout,
         type,
-        monitor,
       },
       proxy,
-      slack,
-      discord,
+      webhookManager,
     } = this.context;
 
     // exit if abort is detected
@@ -6128,7 +6074,7 @@ export default class TaskPrimitive extends BaseTask {
             order: { name: orderName, status_url: statusUrl },
           } = payment.checkout;
 
-          const hooks = await notification(slack, discord, {
+          webhookManager.insert({
             success: true,
             type,
             checkoutUrl: webUrl,
@@ -6147,7 +6093,7 @@ export default class TaskPrimitive extends BaseTask {
             image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
           });
 
-          this._events.emit(TaskManagerEvents.Webhook, hooks);
+          webhookManager.send();
           if (oneCheckout) {
             this._events.emit(TaskManagerEvents.Success, this.context.task);
           }
@@ -6166,7 +6112,7 @@ export default class TaskPrimitive extends BaseTask {
           if (!this.webhookSent) {
             this.webhookSent = true;
 
-            const hooks = await notification(slack, discord, {
+            webhookManager.insert({
               success: false,
               type,
               checkoutUrl: webUrl,
@@ -6181,8 +6127,7 @@ export default class TaskPrimitive extends BaseTask {
               size,
               image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
             });
-
-            this._events.emit(TaskManagerEvents.Webhook, hooks);
+            webhookManager.send();
           }
 
           const rewindToState =
@@ -6206,7 +6151,7 @@ export default class TaskPrimitive extends BaseTask {
             if (!this.webhookSent) {
               this.webhookSent = true;
 
-              const hooks = await notification(slack, discord, {
+              webhookManager.insert({
                 success: false,
                 type,
                 checkoutUrl: webUrl,
@@ -6223,8 +6168,7 @@ export default class TaskPrimitive extends BaseTask {
                   ? productImage
                   : `https:${productImage}`,
               });
-
-              this._events.emit(TaskManagerEvents.Webhook, hooks);
+              webhookManager.send();
             }
 
             const rewindToState =
@@ -6245,7 +6189,7 @@ export default class TaskPrimitive extends BaseTask {
           if (!this.webhookSent) {
             this.webhookSent = true;
 
-            const hooks = await notification(slack, discord, {
+            webhookManager.insert({
               success: false,
               type,
               checkoutUrl: webUrl,
@@ -6260,8 +6204,7 @@ export default class TaskPrimitive extends BaseTask {
               size,
               image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
             });
-
-            this._events.emit(TaskManagerEvents.Webhook, hooks);
+            webhookManager.send();
           }
 
           const rewindToState =

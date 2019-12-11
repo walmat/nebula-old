@@ -1,13 +1,11 @@
 /* eslint-disable consistent-return */
 /* eslint-disable array-callback-return */
 import { Task, Regions } from '../constants';
-import notification from '../hooks';
 import getHeaders, { getRegion, Forms, pickVariant } from '../utils';
 import { Utils, Bases, Classes, Constants } from '../../common';
 
 const { cart, backupForm, parseForm } = Forms;
-const { Manager, Task: TaskConstants, Platforms } = Constants;
-const { Events: TaskManagerEvents } = Manager;
+const { Task: TaskConstants, Platforms } = Constants;
 const { States } = Task;
 const { Events } = TaskConstants;
 const { BaseTask } = Bases;
@@ -72,12 +70,12 @@ export default class TaskPrimitive extends BaseTask {
         this.context,
         [this.context.id],
         {
-          message: `Delaying ${this.context.task.error}ms (${status})`,
+          message: `Delaying ${this.context.task.monitor}ms (${status})`,
         },
         Events.TaskStatus,
       );
 
-      this._delayer = waitForDelay(this.context.task.error, this._aborter.signal);
+      this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
       await this._delayer;
     }
 
@@ -518,7 +516,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleCheckStatus() {
-    const { aborted, logger, proxy, events } = this.context;
+    const { aborted, logger, proxy } = this.context;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -572,28 +570,25 @@ export default class TaskPrimitive extends BaseTask {
               variant: { name: size },
             },
             store: { name: storeName, url: storeUrl },
-            profile: { profileName },
+            profile: { name },
           },
-          slack,
-          discord,
+          webhookManager,
         } = this.context;
 
         if (!this._sentWebhook) {
           this._sentWebhook = true;
-          const hooks = await notification(slack, discord, {
+          webhookManager.insert({
             success: false,
             product: productName,
             price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
               price.toString().slice(0, -2),
             ),
             store: { name: storeName, url: storeUrl },
-            profile: profileName,
+            profile: name,
             size,
             image: `${image}`.startsWith('http') ? image : `https:${image}`,
           });
-
-          // emit the webhook event
-          events.emit(TaskManagerEvents.Webhook, hooks);
+          webhookManager.send();
         }
 
         this.context.setCaptchaToken(null);
@@ -638,25 +633,24 @@ export default class TaskPrimitive extends BaseTask {
               variant: { name: size },
             },
             store: { name: storeName, url: storeUrl },
-            profile: { profileName },
+            profile: { name },
           },
-          slack,
-          discord,
+          webhookManager,
         } = this.context;
 
-        const hooks = await notification(slack, discord, {
+        webhookManager.insert({
           success: true,
           product: productName,
           price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
             price.toString().slice(0, -2),
           ),
           store: { name: storeName, url: storeUrl },
-          profile: profileName,
+          profile: name,
           size,
           image: `${image}`.startsWith('http') ? image : `https:${image}`,
         });
+        webhookManager.send();
 
-        events.emit(TaskManagerEvents.Webhook, hooks);
         return States.DONE;
       }
 

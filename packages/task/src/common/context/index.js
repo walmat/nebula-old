@@ -17,8 +17,6 @@ export default class Context {
     events = new EventEmitter(),
     jar = new CookieJar(),
     logger,
-    discord,
-    slack,
     aborted = false,
     proxyManager,
     webhookManager,
@@ -42,8 +40,6 @@ export default class Context {
     };
     this.jar = jar;
     this.logger = logger;
-    this.discord = discord;
-    this.slack = slack;
     this.aborted = aborted;
     this.proxyManager = proxyManager;
     this.webhookManager = webhookManager;
