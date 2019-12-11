@@ -276,3 +276,13 @@ export const modalStyles = {
     },
   },
 };
+
+export const statusColorMap = {
+  'Waiting for captcha': 'warning',
+  'Duplicate order': 'warning',
+  'Checking status': 'warning',
+  'Polling queue': 'warning',
+  'Payment successful': 'success',
+  'Payment failed': 'failed',
+  'Checkout failed': 'failed',
+};

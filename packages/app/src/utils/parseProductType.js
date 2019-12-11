@@ -7,14 +7,14 @@ export default product => {
 
   if (regexes.urlRegex.test(product.raw)) {
     return {
-      raw: product.raw,
+      ...product,
       url: product.raw,
     };
   }
 
   if (regexes.variantRegex.test(product.raw)) {
     return {
-      raw: product.raw,
+      ...product,
       variant: product.raw,
     };
   }
@@ -33,7 +33,11 @@ export default product => {
       }
     });
 
+    const modifiedProduct = product;
+    delete modifiedProduct.url;
+
     return {
+      ...modifiedProduct,
       raw: product.raw,
       pos: posKeywords,
       neg: negKeywords,

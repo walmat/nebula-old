@@ -5,7 +5,7 @@ import notification from '../hooks';
 import getHeaders, { getRegion, Forms, pickVariant } from '../utils';
 import { Utils, Bases, Classes, Constants } from '../../common';
 
-const { cart, backupForm } = Forms;
+const { cart, backupForm, parseForm } = Forms;
 const { Manager, Task: TaskConstants, Platforms } = Constants;
 const { Events: TaskManagerEvents } = Manager;
 const { States } = Task;
@@ -159,6 +159,34 @@ export default class TaskPrimitive extends BaseTask {
     }
   }
 
+  async generateForm() {
+    const { NEBULA_FORM_API } = process.env;
+
+    const {
+      profile: { billing, payment },
+      product: {
+        variant: { id: size },
+      },
+    } = this.context.task;
+
+    try {
+      const res = await this._fetch(`${NEBULA_FORM_API}/${this._region}`);
+
+      if (!res.ok) {
+        const error = new Error('Unable to fetch form');
+        error.status = res.status || 404;
+        throw error;
+      }
+
+      const form = await res.json();
+
+      this._form = await parseForm(form, billing, payment, size);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   async _handleAddToCart() {
     const { aborted, proxy, logger } = this.context;
 
@@ -239,7 +267,7 @@ export default class TaskPrimitive extends BaseTask {
         return States.ADD_TO_CART;
       }
 
-      if (captcha && !this.captchaToken) {
+      if (captcha && !this.context.captchaToken) {
         return States.CAPTCHA;
       }
 
@@ -272,11 +300,7 @@ export default class TaskPrimitive extends BaseTask {
         Events.TaskStatus,
       );
 
-      const requester = await Captcha.getCaptcha(
-        this.context,
-        this._handleHarvest,
-        this._platform,
-      );
+      const requester = await Captcha.getCaptcha(this.context, this._handleHarvest, this._platform);
       this.context.setCaptchaRequest(requester);
     }
 
@@ -284,6 +308,9 @@ export default class TaskPrimitive extends BaseTask {
     switch (this.context.captchaRequest.status) {
       case 'pending': {
         // waiting for token, sleep for 1s and then return same state to check again
+        if (!this._form) {
+          this.generateForm();
+        }
         await new Promise(resolve => setTimeout(resolve, 1000));
         return States.CAPTCHA;
       }
@@ -308,10 +335,7 @@ export default class TaskPrimitive extends BaseTask {
       }
       case 'cancelled':
       case 'destroyed': {
-        logger.silly(
-          'Harvest Captcha status: %s, stopping...',
-          this.context.captchaRequest.status,
-        );
+        logger.silly('Harvest Captcha status: %s, stopping...', this.context.captchaRequest.status);
         return States.ERROR;
       }
       default: {
@@ -329,7 +353,14 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       logger,
       proxy,
-      task: { checkoutDelay, monitor },
+      task: {
+        profile: { matches, shipping, billing, payment },
+        product: {
+          variant: { id: size },
+        },
+        checkoutDelay,
+        monitor,
+      },
     } = this.context;
 
     if (aborted) {
@@ -338,15 +369,12 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!this._form) {
-      const {
-        profile: { payment, shipping, billing, billingMatchesShipping },
-        product: {
-          variant: { id: s },
-        },
-      } = this.context.task;
+      const generated = await this.generateForm();
 
-      const profileInfo = billingMatchesShipping ? shipping : billing;
-      this._form = backupForm(this._region, profileInfo, payment, s);
+      if (!generated) {
+        const profileInfo = matches ? shipping : billing;
+        this._form = backupForm(this._region, profileInfo, payment, size);
+      }
 
       // patch in the captcha token
       if (this.context.captchaToken) {
@@ -477,7 +505,6 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
-        this.context.task.checkoutDelay += 250;
         return States.ADD_TO_CART;
       }
 
@@ -664,6 +691,7 @@ export default class TaskPrimitive extends BaseTask {
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
       [States.CAPTCHA]: this._handleCaptcha,
+      [States.FORM]: this._handleParseForm,
       [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
       [States.CHECK_STATUS]: this._handleCheckStatus,
       [States.SWAP]: this._handleSwap,

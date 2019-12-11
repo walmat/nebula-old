@@ -162,10 +162,36 @@
         }
 
         &__status {
-          @include input-field;
-          width: 100px;
-          flex-grow: 5;
-          margin-left: 15px !important;
+          &--normal {
+            @include input-field;
+            width: 100px;
+            flex-grow: 5;
+            margin-left: 15px !important;
+          }
+
+          &--success {
+            @include input-field;
+            width: 100px;
+            flex-grow: 5;
+            margin-left: 15px !important;
+            color: #46adb4;
+          }
+
+          &--failed {
+            @include input-field;
+            width: 100px;
+            flex-grow: 5;
+            margin-left: 15px !important;
+            color: #ef415e;
+          }
+
+          &--warning {
+            @include input-field;
+            width: 100px;
+            flex-grow: 5;
+            margin-left: 15px !important;
+            color: #d8973c;
+          }
         }
       }
 

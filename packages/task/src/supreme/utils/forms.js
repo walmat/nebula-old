@@ -12,124 +12,103 @@ export const cart = (size, style, region) => {
   }
 };
 
-export const parseForm = async ($, formName, wanted, billing, payment, size) => {
-  const data = [];
+export const parseForm = async (form, billing, payment, size) => {
+  const { firstName, lastName, address, apt, city, country, province, zip, phone } = billing;
+  const { card, email, exp, cvv } = payment;
 
-  await $(`${formName} ${wanted}`).each((_, el) => {
-    const name = $(el).attr('name');
-    const value = $(el).attr('value') || '';
-
-    // blacklisted values/names
-    if (/qty|size-options|store_address/i.test(name)) {
-      return;
-    }
-
-    if (name) {
-      data.push({ name, value });
-    }
-  });
-
-  let country;
-
-  switch (billing.country.value) {
+  let countryValue;
+  switch (country.value) {
     case 'US': {
-      country = 'USA';
+      countryValue = 'USA';
       break;
     }
     case 'CA': {
-      country = 'CANADA';
+      countryValue = 'CANADA';
       break;
     }
     default: {
-      country = billing.country.value;
+      countryValue = billing.country.value;
       break;
     }
   }
 
-  const formValues = data.map(({ name, value }) => {
-    let val = value.toString();
-    if (/email/i.test(name)) {
-      val = encodeURIComponent(payment.email);
-    }
-    if (/tel/i.test(name)) {
-      val = phoneFormatter.format(billing.phone, 'NNN-NNN-NNNN');
-    }
-    if (/address/i.test(name) && !/same|store/i.test(name)) {
-      if (!/2|3/i.test(name)) {
-        val = billing.address.replace(/\s/g, '+');
-      } else if (/2/i.test(name)) {
-        val = billing.apt ? billing.apt.replace(/\s/g, '+') : '';
-      }
-    }
-    if (/zip/i.test(name)) {
-      val = billing.zip;
-    }
-    if (/city/i.test(name)) {
-      val = billing.city.replace(/\s/g, '+');
-    }
-    if (/state/i.test(name)) {
-      val = billing.province ? billing.province.value.replace(/\s/g, '+') : '';
-    }
-    if (/country/i.test(name)) {
-      val = country;
-    }
-    if (/bn/i.test(name)) {
-      const fullName = `${billing.firstName.replace(/\s/g, '+')}+${billing.lastName.replace(
-        /\s/g,
-        '+',
-      )}`;
-      val = fullName;
-    }
-    if (/carn|card|riearmxa/i.test(name) && !/month|year|vv|meknk|type/i.test(name)) {
-      val = payment.card.match(/.{1,4}/g).join('+');
-    }
-    if (/card/i.test(name) && /month/i.test(name)) {
-      let month = payment.exp.slice(0, 2);
-      if (month.length !== 2) {
-        month = `0${month}`;
-      }
-      val = month;
-    }
-    if (/card/i.test(name) && /year/i.test(name)) {
-      val = `20${payment.exp.slice(3, 5)}`;
-    }
-    if (/card/i.test(name) && /type/i.test(name)) {
-      const validNumber = validator.number(payment.card);
-      let cardType = validNumber.card ? validNumber.card.type : 'visa';
-      if (/american/i.test(cardType)) {
-        cardType = 'american_express';
-      }
-      if (/master/i.test(cardType)) {
-        cardType = 'master';
-      }
-      val = cardType;
-    }
-    if (/card/i.test(name) && /vv|meknk/i.test(name)) {
-      val = payment.cvv;
-    }
-    if (/cookie-sub/i.test(name)) {
-      // NOTE: disable this ESLint error, as we can't include the spaces here!!
-      // eslint-disable-next-line prettier/prettier
-      val = encodeURIComponent(encodeURIComponent(JSON.stringify({[size]:1})));
-    }
-
-    if (!val) {
-      return `${encodeURI(name)}=&`;
-    }
-    return `${encodeURI(name)}=${val}&`;
-  });
-
-  let fv = formValues.join('');
-
-  // replace any leftover spaces with a +
-  fv = fv.replace(/\s/g, '+');
-
-  // trim off the trailing ampersand
-  if (fv.endsWith('&')) {
-    fv = fv.slice(0, -1);
+  let month = payment.exp.slice(0, 2);
+  if (month.length !== 2) {
+    month = `0${month}`;
   }
 
-  return fv;
+  let data = await form.map(({ name, friendly, value }) => {
+    if (friendly) {
+      if (/name/i.test(friendly)) {
+        return `${encodeURI(name)}=${firstName} ${lastName}&`;
+      }
+
+      if (/email/i.test(friendly)) {
+        return `${encodeURI(name)}=${encodeURIComponent(email)}&`;
+      }
+
+      if (/phone/i.test(friendly)) {
+        return `${encodeURI(name)}=${phoneFormatter.format(phone, 'NNN-NNN-NNNN')}&`;
+      }
+
+      if (/address/i.test(friendly)) {
+        return `${encodeURI(name)}=${address}&`;
+      }
+
+      if (/apt/i.test(friendly)) {
+        return `${encodeURI(name)}=${apt || ''}&`;
+      }
+
+      if (/zip/i.test(friendly)) {
+        return `${encodeURI(name)}=${zip}&`;
+      }
+
+      if (/city/i.test(friendly)) {
+        return `${encodeURI(name)}=${city}&`;
+      }
+
+      if (/province/i.test(friendly)) {
+        return `${encodeURI(name)}=${province ? province.value : ''}&`;
+      }
+
+      if (/country/i.test(friendly)) {
+        return `${encodeURI(name)}=${countryValue}&`;
+      }
+
+      if (/card/i.test(friendly)) {
+        return `${encodeURI(name)}=${card.match(/.{1,4}/g).join('+')}&`;
+      }
+
+      if (/month/i.test(friendly)) {
+        return `${encodeURI(name)}=${month}&`;
+      }
+
+      if (/year/i.test(friendly)) {
+        return `${encodeURI(name)}=${`20${exp.slice(3, 5)}`}&`;
+      }
+
+      if (/cvv/i.test(friendly)) {
+        return `${encodeURI(name)}=${cvv}&`;
+      }
+    }
+
+    if (/cookie-sub/i.test(name)) {
+      // eslint-disable-next-line prettier/prettier
+      return `${name}=${encodeURIComponent(encodeURIComponent(JSON.stringify({[size]:1})))}&`;
+    }
+
+    return `${name}=${value}&`;
+  });
+
+  data = data.join('');
+
+  data = data.replace(/\s/g, '+');
+
+  if (data.endsWith('&')) {
+    data = data.slice(0, -1);
+  }
+
+  return data;
 };
 
 export const backupForm = (region, billing, payment, size) => {

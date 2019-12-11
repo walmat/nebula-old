@@ -18,6 +18,7 @@ export default (state = Tasks, action) => {
     }
 
     const parsedProduct = parseProductType(task.product);
+    console.log(parsedProduct);
 
     if (!parsedProduct) {
       return state;
