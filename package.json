@@ -13,7 +13,7 @@
     "build:app": "yarn workspace @nebula/orion build",
     "build:task": "yarn workspace @nebula/task build",
     "build:task:dev": "yarn workspace @nebula/task build:babel",
-    "pack": "yarn workspace @nebula/orion publish",
+    "pack": "yarn workspace @nebula/orion run publish",
     "dev": "concurrently \"yarn dev-server\" \"yarn dev-app\"",
     "dev-server": "yarn workspace @nebula/orion dev-server",
     "dev-app": "wait-on tcp:3000 && yarn workspace @nebula/orion dev",
