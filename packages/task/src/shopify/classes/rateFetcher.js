@@ -2,9 +2,10 @@ import AbortController from 'abort-controller';
 import { pick } from 'lodash';
 
 import { Constants, Utils, Bases } from '../../common';
-import { pickVariant, Forms } from '../utils';
-import { Parser, getParsers } from '../parsers';
+import { pickVariant, Forms, Parse } from '../utils';
+import { getParsers } from '../parsers';
 
+const { getFullProductInfo } = Parse;
 const { addToCart } = Forms;
 const { BaseTask } = Bases;
 const { rfrl, userAgent } = Utils;
@@ -98,7 +99,7 @@ export default class RateFetcher extends BaseTask {
     let fullProductInfo;
     try {
       // Try getting full product info
-      fullProductInfo = await Parser.getFullProductInfo(url, proxy, this._fetch, logger);
+      fullProductInfo = await getFullProductInfo(this._fetch, url, proxy, logger);
     } catch (error) {
       const cont = error.some(e => /aborterror/i.test(e.name));
       if (!cont) {

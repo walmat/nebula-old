@@ -67,7 +67,6 @@ export default function shippingReducer(state = Shipping, action = {}) {
         return { ...state, store: value };
       }
       case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE: {
-        console.log(action);
         const { value } = action;
 
         if (!value) {

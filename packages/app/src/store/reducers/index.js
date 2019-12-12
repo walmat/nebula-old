@@ -1,10 +1,8 @@
-import { isEmpty } from 'lodash';
 import { combineReducers } from 'redux';
 import { filterActions } from 'redux-ignore';
 
 // global actions
 import {
-  GLOBAL_ACTIONS,
   globalActionsList,
   accountActionsList,
   appActionsList,

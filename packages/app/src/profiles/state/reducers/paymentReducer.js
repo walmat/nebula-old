@@ -9,7 +9,7 @@ const Payment = (state = payment, action = {}) => {
 
   switch (type) {
     default:
-      return { ...state, [mapPaymentFieldToKey[type]]: value }; 
+      return { ...state, [mapPaymentFieldToKey[type]]: value };
   }
 };
 export default Payment;

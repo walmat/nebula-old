@@ -61,7 +61,7 @@ export const mapStateToProps = state => ({
   tasks: makeTasks(state),
 });
 
-export const mapDispatchToProps = dispatch => ({});
+export const mapDispatchToProps = () => ({});
 
 export default connect(
   mapStateToProps,

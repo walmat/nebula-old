@@ -6025,7 +6025,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { url, apiKey, name },
-        product: { size, name: productName, url: productUrl, image },
+        product: { size, name: productName, image },
         profile: { name: profileName },
         oneCheckout,
         type,

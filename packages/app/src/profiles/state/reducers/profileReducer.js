@@ -48,7 +48,7 @@ export const profileReducer = (state = profileState, action = {}) => {
   return state;
 };
 
-export const currentProfileReducer = (state = CurrentProfile, action) => {
+export const currentProfileReducer = (state = CurrentProfile, action = {}) => {
   const { type } = action;
 
   if (type === GLOBAL_ACTIONS.RESET) {
