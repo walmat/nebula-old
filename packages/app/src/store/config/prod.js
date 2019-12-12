@@ -17,12 +17,6 @@ const configureStore = initialState => {
 
   const store = createStore(rootReducer(), initialState, enhancer);
 
-  store.asyncReducers = {};
-  store.injectReducer = (key, reducer) => {
-    store.asyncReducers[key] = reducer;
-    store.replaceReducer(rootReducer(store.asyncReducers));
-    return store;
-  };
   return store;
 };
 

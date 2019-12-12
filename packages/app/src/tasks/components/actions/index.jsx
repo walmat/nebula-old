@@ -8,7 +8,7 @@ import CreateModal from '../create';
 
 import { taskActions } from '../../state/actions';
 import { makeSelectedTasks } from '../../state/selectors';
-import { makeDelays, makeProxies, makeWebhooks } from '../../../settings/state/selectors';
+import { makeDelays, makeProxies } from '../../../settings/state/selectors';
 
 class ActionBar extends Component {
   constructor(props) {
@@ -95,10 +95,10 @@ class ActionBar extends Component {
   }
 
   _start() {
-    const { tasks, delays, webhooks, proxies, start } = this.props;
+    const { tasks, delays, proxies, start } = this.props;
 
     if (tasks.length) {
-      return start(tasks, delays, webhooks, proxies);
+      return start(tasks, delays, proxies);
     }
     return null;
   }
@@ -189,7 +189,6 @@ ActionBar.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
   delays: PropTypes.objectOf(PropTypes.any).isRequired,
   proxies: PropTypes.arrayOf(PropTypes.string).isRequired,
-  webhooks: PropTypes.arrayOf(PropTypes.string).isRequired,
   select: PropTypes.func.isRequired,
   start: PropTypes.func.isRequired,
   stop: PropTypes.func.isRequired,
@@ -199,19 +198,14 @@ ActionBar.propTypes = {
 const mapStateToProps = state => ({
   tasks: makeSelectedTasks(state),
   delays: makeDelays(state),
-  webhooks: makeWebhooks(state),
   proxies: makeProxies(state),
 });
 
 const mapDispatchToProps = dispatch => ({
   select: tasks => dispatch(taskActions.selectAll(tasks)),
-  start: (tasks, delays, webhooks, proxies) =>
-    dispatch(taskActions.start(tasks, delays, webhooks, proxies)),
+  start: (tasks, delays, proxies) => dispatch(taskActions.start(tasks, delays, proxies)),
   stop: tasks => dispatch(taskActions.stop(tasks)),
   remove: tasks => dispatch(taskActions.remove(tasks)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ActionBar);
+export default connect(mapStateToProps, mapDispatchToProps)(ActionBar);

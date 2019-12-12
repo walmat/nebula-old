@@ -35,17 +35,22 @@ export const taskListActionsList = [
 export const TASK_ACTIONS = prefixer(prefix, tasksActions);
 export const TASK_LIST_ACTIONS = prefixer(prefix, tasksListActions);
 
-const _startTasksRequest = async (tasks, delays, webhooks, proxies = []) => {
+const _startTasksRequest = async (tasks, delays, proxies = []) => {
   const newTasks = tasks.filter(t => t.state !== States.Running);
+
+  const toStart = newTasks.map(t => ({
+    ...t,
+    delays,
+    state: States.Running,
+    message: 'Starting task!',
+  }));
 
   if (window.Bridge) {
     window.Bridge.addProxies(proxies);
-    window.Bridge.startTasks(newTasks.map(t => ({ ...t, ...delays, webhooks })), {});
+    window.Bridge.startTasks(toStart, {});
   }
 
-  return {
-    tasks: newTasks.map(t => ({ ...t, state: States.Running, message: 'Starting task!' })),
-  };
+  return { tasks: toStart };
 };
 
 const _stopTasksRequest = async tasks => {
@@ -91,10 +96,8 @@ const messageTask = makeActionCreator(TASK_LIST_ACTIONS.UPDATE_MESSAGE, 'buffer'
 const removeTasks = task => dispatch =>
   _removeTasksRequest(task).then(response => dispatch(_removeTask(response)));
 
-const startTasks = (tasks, delays, webhooks, proxies) => dispatch =>
-  _startTasksRequest(tasks, delays, webhooks, proxies).then(response =>
-    dispatch(_startTasks(response)),
-  );
+const startTasks = (tasks, delays, proxies) => dispatch =>
+  _startTasksRequest(tasks, delays, proxies).then(response => dispatch(_startTasks(response)));
 
 const stopTasks = tasks => dispatch =>
   _stopTasksRequest(tasks).then(response => dispatch(_stopTasks(response)));

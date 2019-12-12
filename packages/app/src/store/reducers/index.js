@@ -72,5 +72,5 @@ export default asyncReducers =>
       ...globalActionsList,
     ]),
     Webhooks: filterActions(Webhooks, [...webhookActionsList, ...globalActionsList]),
-    ...asyncReducers,
+    // ...asyncReducers,
   });

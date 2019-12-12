@@ -1,7 +1,7 @@
 import { mapActionsToRoutes } from '../actions';
 import Navbar from '../initial';
 
-export default function navbarReducer(state = Navbar, action = {}) {
+export default (state = Navbar, action = {}) => {
   const { type } = action;
   // if routing to the same location, don't update the state..
   if (state.location === mapActionsToRoutes[type]) {
@@ -9,4 +9,4 @@ export default function navbarReducer(state = Navbar, action = {}) {
   }
 
   return { ...state, location: mapActionsToRoutes[type] || state.location };
-}
+};

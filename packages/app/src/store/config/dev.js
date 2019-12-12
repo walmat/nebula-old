@@ -40,13 +40,6 @@ const configureStore = initialState => {
   // Create Store
   const store = createStore(rootReducer(), initialState, enhancer);
 
-  store.asyncReducers = {};
-  store.injectReducer = (key, reducer) => {
-    store.asyncReducers[key] = reducer;
-    store.replaceReducer(rootReducer(store.asyncReducers));
-    return store;
-  };
-
   if (module.hot) {
     // eslint-disable-next-line global-require
     module.hot.accept('../reducers', () => store.replaceReducer(require('../reducers').default));

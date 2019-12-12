@@ -66,7 +66,7 @@ const _fetchShippingRequest = async task => {
       (titleMatch && !titleMatch.length) ||
       (priceMatch && !priceMatch.length)
     ) {
-      throw new Error('Invalid prefetched data!');
+      return null;
     }
 
     const [, title] = titleMatch;
@@ -81,11 +81,11 @@ const _fetchShippingRequest = async task => {
   const parsedProduct = parseProductType(copy.product);
 
   if (!parsedProduct) {
-    throw new Error('Unable to parse product information!');
+    return null;
   }
 
   if (!window.Bridge) {
-    throw new Error('Bridge has not been injected!');
+    return null;
   }
   copy.product = parsedProduct;
   return window.Bridge.startShippingRateTask(copy);
