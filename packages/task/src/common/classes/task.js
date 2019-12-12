@@ -4,7 +4,7 @@ import defaults from 'fetch-defaults';
 
 import { waitForDelay, emitEvent } from '../utils';
 import { stopHarvestCaptcha } from './captcha';
-import { Task } from '../constants';
+import { Task, Platforms } from '../constants';
 
 const { States, Events } = Task;
 
@@ -33,7 +33,10 @@ export default class BaseTask {
     this._delayer = null;
 
     // eslint-disable-next-line global-require
-    const _fetch = require('fetch-cookie/node-fetch')(fetch, context.jar);
+    let _fetch = fetch;
+    if (platform !== Platforms.Footsites) {
+       _fetch = require('fetch-cookie/node-fetch')(fetch, context.jar);
+    }
     this._fetch = defaults(_fetch, context.task.store.url, {
       timeout: 10000, // can be overridden as necessary per request
       signal: this._aborter.signal,

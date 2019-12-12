@@ -96,7 +96,16 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async getCSRF() {
+    const { aborted, logger } = this._context;
+
+    if (aborted) {
+      logger.silly('Abort Detected, Stopping...');
+      return States.ABORT;
+    }
+
     try {
+      logger.silly('Trying to get CSRF token');
+
       const res = await this._fetch(`api/session?timestamp=${Date.now()}`, {
         headers: {
           'Accept': 'application/json',
@@ -113,15 +122,18 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const body = await res.json();
-      if (!body || (body && !body.length)) {
-        const error = new Error('Invalid cookie list');
+
+      if (!body) {
+        const error = new Error('Could not get session data');
         error.status = res.status || res.errno;
         throw error;
       }
 
-      return res.data.csrfToken;
+      logger.debug(body.data.csrfToken);
+      
+      return body.data.csrfToken;
     } catch (e) {
-      throw e;
+      return this._handleError(e, States.ADD_TO_CART);
     }
   }
 
@@ -132,9 +144,10 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
-    if (this._context.task.product.id) {
-      logger.debug('Chose variant: %j', this._context.task.product.id);
-      this._context.setProductFond(true);
+    logger.silly("Test" + this._context.task.product.id);
+    if (typeof this._context.task.product.id !== undefined) {
+      logger.debug('Chose variant: %j', this._context.task.product);
+      this._context.setProductFound(true);
       return States.ADD_TO_CART;
     }
     // return States.ADD_TO_CART;
@@ -171,8 +184,10 @@ export default class TaskPrimitive extends BaseTask {
         productQuantity: 1,
       };
 
-      let csrf = await this.getCSRF();
+      logger.silly(typeof postData.productId);
 
+      let csrf = await this.getCSRF();
+      logger.debug(postData);
       // incomplete but will send ATC request
       let res = await this._fetch(`/api/users/carts/current/entries?timestamp=${Date.now()}`, {
         method: 'POST',
@@ -180,13 +195,18 @@ export default class TaskPrimitive extends BaseTask {
           'accept': 'application/json',
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
+          'content-type': 'application/json',
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36',
           'x-csrf-token': csrf,
           'x-fl-productid': task.product.id,
         },
         body: JSON.stringify(postData)
       });
 
+      logger.debug('got response');
+
       if (!res.ok) {
+        logger.silly('couldnt ATC');
         const error = new Error('Failed add to cart');
         error.status = res.status || res.errno;
         throw error;
@@ -194,11 +214,17 @@ export default class TaskPrimitive extends BaseTask {
 
       const body = await res.json();
 
+      logger.silly(body);
+      logger.silly(res.headers.raw());
+
+      if (body) {
+        return States.DONE;
+      }
+
     } catch (e) {
+      logger.silly(e);
       return this._handleError(e, States.ADD_TO_CART);
     }
-
-    return States.DONE;
   }
 
   async _handleStepLogic(currentState) {
