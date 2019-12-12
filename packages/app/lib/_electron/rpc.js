@@ -25,7 +25,7 @@ class RPC {
     }
 
     this.client.setActivity({
-      details: '🎃👻💀⚰️',
+      details: '🎅❄️☃️🎁',
       state: `${this.version}`,
       startTimestamp: this.startTimestamp,
       largeImageKey: 'logo',

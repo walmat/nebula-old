@@ -73,6 +73,9 @@ export default class WebhookManager {
         for (const [id, client] of this._webhooks.entries()) {
           let sanitized = embed;
           if (id === process.env.NEBULA_ENV_WEBHOOK_ID) {
+            if (!sanitized.success) {
+              return;
+            }
             sanitized = WebhookManager.sanitize(embed);
           }
           // eslint-disable-next-line no-await-in-loop
@@ -104,28 +107,27 @@ export default class WebhookManager {
 
   async test(hook, type) {
     this._logger.silly('Testing %s with url: %s', type, hook);
-    const payload = [
-      true,
-      'SAFE',
-      null,
-      { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
-      '$220.00',
-      { name: 'Test Site', url: 'https://example.com' },
-      { number: '#123123', url: 'https://example.com' },
-      'Test Profile',
-      'Random',
-      'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
-    ];
+    const payload = {
+      success: true,
+      type: 'SAFE',
+      checkoutUrl: null,
+      product: 'Yeezy Boost 350 v2 – Static',
+      price: '$220.00',
+      store: { name: 'Test Site', url: 'https://example.com' },
+      order: { number: '#123123', url: 'https://example.com' },
+      profile: 'Test Profile',
+      size: 'Random',
+      image: 'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
+    };
 
-    let embed;
+    let client;
     if (type === HookTypes.discord) {
-      embed = new Discord(hook).build(...payload);
+      client = new Discord(hook);
     } else if (type === HookTypes.slack) {
-      embed = new Slack(hook).build(...payload);
+      client = new Slack(hook);
     }
 
-    if (embed) {
-      embed.send();
-    }
+    const embed = client.build(payload);
+    return client.send(embed);
   }
 }
