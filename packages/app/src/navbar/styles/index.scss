@@ -22,13 +22,13 @@ $randomNumber: random(5);
 
 @keyframes rotation {
   0% {
-    transform: rotate3d(0);
+    transform: rotate3d(0, 0, 0, 0);
   }
   50% {
     transform: rotate3d(1, 1, 180, 45deg);
   }
   100% {
-    transform: rotate3d(0);
+    transform: rotate3d(0, 0, 0, 0);
   }
 }
 
