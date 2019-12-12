@@ -79,7 +79,7 @@ export default (state = Tasks, action = {}) => {
       if (t.state === States.Running) {
         return {
           ...t,
-          message: buffer[t.id] || t.message,
+          ...buffer[t.id],
         };
       }
       return t;

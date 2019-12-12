@@ -37,10 +37,13 @@ class TaskManagerAdapter {
      */
     this._taskEventHandler = async (taskIds, message) => {
       if (message) {
-        return Promise.all(
-          // eslint-disable-next-line array-callback-return
-          [...taskIds].map(taskId => (this.statusMessages[taskId] = message)),
-        );
+        [...taskIds].forEach(taskId => {
+          const previous = this.statusMessages[taskId];
+          this.statusMessages[taskId] = {
+            ...previous,
+            ...message,
+          };
+        });
       }
       return null;
     };
