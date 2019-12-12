@@ -42,7 +42,7 @@ import {
   currentTaskReducer as CurrentTask,
 } from '../../tasks/state/reducers';
 
-const reducers = asyncReducers =>
+export default asyncReducers =>
   combineReducers({
     App: filterActions(App, [...appActionsList, ...globalActionsList]),
     Accounts: filterActions(Accounts, [...accountActionsList, ...globalActionsList]),
@@ -76,32 +76,3 @@ const reducers = asyncReducers =>
     Webhooks: filterActions(Webhooks, [...webhookActionsList, ...globalActionsList]),
     ...asyncReducers,
   });
-
-// Wrapped context to allow global actions
-// e.g. - reset, import, etc..
-export default (state = undefined, action = {}) => {
-  const { type } = action;
-  if (type === GLOBAL_ACTIONS.RESET) {
-    // Forces a state refresh here to the initial state of each reducer
-    // NOTE: This is NOT a mutation, just a re-assign.
-    // eslint-disable-next-line no-param-reassign
-    state = undefined;
-  }
-
-  if (type === GLOBAL_ACTIONS.IMPORT) {
-    const { state: newState } = action;
-
-    // if we aren't given a new state
-    // or the new state is empty
-    // of if we have an improper version..
-    if (!newState || isEmpty(newState) || (newState && !newState.version)) {
-      return reducers(state, action);
-    }
-    // TODO: Migrations
-    // NOTE: This is NOT a mutation, just a direct re-assign.
-    // eslint-disable-next-line no-param-reassign
-    state = newState;
-  }
-
-  return reducers(state, action);
-};

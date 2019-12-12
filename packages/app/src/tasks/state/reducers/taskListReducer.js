@@ -3,7 +3,7 @@ import parseProductType from '../../../utils/parseProductType';
 import { TASK_LIST_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Tasks } from '../initial';
 
-export default (state = Tasks, action) => {
+export default (state = Tasks, action = {}) => {
   const { type } = action;
 
   if (type === GLOBAL_ACTIONS.RESET) {
@@ -18,7 +18,6 @@ export default (state = Tasks, action) => {
     }
 
     const parsedProduct = parseProductType(task.product);
-    console.log(parsedProduct);
 
     if (!parsedProduct) {
       return state;

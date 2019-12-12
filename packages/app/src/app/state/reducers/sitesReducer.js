@@ -1,7 +1,7 @@
 import { APP_ACTIONS } from '../actions';
 import { Stores } from '../initial';
 
-export default (state = Stores, action) => {
+export default (state = Stores, action = {}) => {
   // Return state if a null/undefined action is given
   if (!action) {
     return state || Stores;

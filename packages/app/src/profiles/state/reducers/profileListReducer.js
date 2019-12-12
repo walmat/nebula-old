@@ -4,7 +4,7 @@ import { PROFILE_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
 import { Profiles, Rates } from '../initial';
 import { SHIPPING_ACTIONS } from '../../../settings/state/actions';
 
-export default (state = Profiles, action) => {
+export default (state = Profiles, action = {}) => {
   const { type } = action;
 
   if (type === GLOBAL_ACTIONS.RESET) {

@@ -1,7 +1,7 @@
 import { Rates } from '../initial';
 import { mapRateFieldToKey, RATES_FIELDS } from '../../../store/actions';
 
-const ratesReducer = (state = Rates, action) => {
+const ratesReducer = (state = Rates, action = {}) => {
   const { type, value } = action;
 
   if (!action || !type || !mapRateFieldToKey[type]) {

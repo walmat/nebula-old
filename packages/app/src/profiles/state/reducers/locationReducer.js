@@ -1,7 +1,7 @@
 import { mapLocationFieldToKey, LOCATION_FIELDS } from '../../../store/actions';
 import { location } from '../initial';
 
-const locationReducer = (state = location, action) => {
+const locationReducer = (state = location, action = {}) => {
   const { type, value } = action;
   if (!type || !mapLocationFieldToKey[type]) {
     // If we can't map the field to a location key, don't change anything

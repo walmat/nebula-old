@@ -7,7 +7,6 @@ const withReducer = (key, reducer) => WrappedComponent => {
 
     render() {
       const { store } = this.context;
-      console.log(this.context, this.props);
       store.injectReducer(key, reducer);
       return <WrappedComponent {...this.props} />;
     }

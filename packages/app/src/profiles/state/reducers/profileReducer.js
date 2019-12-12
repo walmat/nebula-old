@@ -10,7 +10,7 @@ import { CurrentProfile, profile as profileState } from '../initial';
 import ratesReducer from './ratesReducer';
 
 // shared reducer for current, and selected task
-export const profileReducer = (state = profileState, action) => {
+export const profileReducer = (state = profileState, action = {}) => {
   const { type, field, value, subField } = action;
 
   if (!type || !mapProfileFieldToKey[field] || type !== PROFILE_ACTIONS.EDIT_PROFILE) {
