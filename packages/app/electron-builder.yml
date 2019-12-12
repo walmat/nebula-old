@@ -27,7 +27,7 @@ releaseInfo:
   releaseNotesFile: ./RELEASE-NOTES.md
 
 dmg:
-  backgroundColor: "#46adb4"
+  backgroundColor: "#23272a"
   artifactName: 'Nebula.Orion-${version}-installer.${ext}'
   icon: "build/assets/icons/mac/icon.icns"
   iconSize: 128
