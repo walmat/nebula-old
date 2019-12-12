@@ -12,7 +12,11 @@ const { Types } = Task;
 
 export const waitForDelay = (time, signal) => delay(time, { signal });
 export const reflect = p =>
-  p.then(v => ({ v, status: 'fulfilled' }), e => ({ e, status: 'rejected' }));
+  p.then(
+    v => ({ v, status: 'fulfilled' }),
+    e => ({ e, status: 'rejected' }),
+  );
+
 export const userAgent =
   'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; LCTE; rv:11.0) like Gecko';
 
@@ -85,7 +89,7 @@ export const emitEvent = (context, ids, payload = {}, event) => {
   const { message } = payload;
   if (message && message !== context.messsage) {
     context.setMessage(message);
-    _emitEvent(context, ids, event, payload.message);
+    _emitEvent(context, ids, event, { ...payload, type: Types.Normal });
   }
 };
 

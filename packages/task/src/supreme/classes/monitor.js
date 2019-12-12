@@ -233,6 +233,7 @@ export default class MonitorPrimitive extends BaseMonitor {
         this.context.ids,
         {
           message: `Product found: ${name}`,
+          productName: `${name} / ${matchedVariation.name}`,
         },
         Events.MonitorStatus,
       );

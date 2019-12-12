@@ -104,6 +104,16 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       logger.debug('Chose variant: %j', variant);
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        {
+          message: `Chose size ${variant.name}`,
+          chosenSize: variant.name,
+        },
+        Events.TaskStatus,
+      );
       this.context.updateVariant(variant);
       this.context.setProductFound(true);
       return States.ADD_TO_CART;

@@ -34,9 +34,9 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
               ? `col col--no-gutter tasks-row__product--${task.type}`
               : 'col col--no-gutter tasks-row__product'
           }
-          title={task.product.raw}
+          title={task.productName || task.product.raw}
         >
-          {`${task.product.raw} ${task.product.variation ? `/ ${task.product.variation}` : ''}`}
+          {task.productName ? task.productName : `${task.product.raw} / ${task.product.variation}`}
         </div>
         <div className="col col--no-gutter tasks-row__store">
           {task.store ? task.store.name : 'None'}
@@ -44,7 +44,7 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
         <div className="col col--no-gutter tasks-row__profile">
           {task.profile ? task.profile.name : 'None'}
         </div>
-        <div className="col col--no-gutter tasks-row__sizes">{task.size}</div>
+        <div className="col col--no-gutter tasks-row__sizes">{task.chosenSize || task.size}</div>
         <div className={`col col--no-gutter tasks-row__status--${messageClassName}`}>
           {task.message}
         </div>
@@ -72,7 +72,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(TaskRowPrimitive);
+export default connect(mapStateToProps, mapDispatchToProps)(TaskRowPrimitive);

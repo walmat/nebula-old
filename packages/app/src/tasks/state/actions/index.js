@@ -40,7 +40,7 @@ const _startTasksRequest = async (tasks, delays, proxies = []) => {
 
   const toStart = newTasks.map(t => ({
     ...t,
-    delays,
+    ...delays,
     state: States.Running,
     message: 'Starting task!',
   }));
@@ -64,7 +64,13 @@ const _stopTasksRequest = async tasks => {
     window.Bridge.stopTasks(runningTasks);
   }
 
-  return { tasks: runningTasks.map(t => ({ ...t, state: States.Stopped, message: '' })) };
+  return {
+    tasks: runningTasks.map(({ productName, chosenSize, ...t }) => ({
+      ...t,
+      state: States.Stopped,
+      message: '',
+    })),
+  };
 };
 
 const _removeTasksRequest = async tasks => {
