@@ -81,6 +81,11 @@ const SiteKeyForPlatform = {
   [Platforms.Mesh]: '',
 };
 
+const HostForPlatform = {
+  [Platforms.Shopify]: 'http://checkout.shopify.com',
+  [Platforms.Supreme]: 'http://www.supremenewyork.com',
+};
+
 const Manager = {
   Events: TaskManagerEvents,
 };
@@ -100,4 +105,4 @@ const Task = {
   States: SharedStates,
 };
 
-export { Manager, Task, Monitor, ErrorCodes, Platforms, SiteKeyForPlatform };
+export { Manager, Task, Monitor, ErrorCodes, Platforms, SiteKeyForPlatform, HostForPlatform };

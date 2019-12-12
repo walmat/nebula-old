@@ -158,11 +158,11 @@ export const matchVariation = async (variations, variation, logger = { log: () =
     const { name } = v;
     let variationMatcher;
     if (/[0-9]+/.test(name)) {
-      // We are matching a shoe size
-      variationMatcher = s => new RegExp(`${name}`, 'i').test(s);
+      // We are matching a shoe name
+      variationMatcher = s => new RegExp(name, 'i').test(s);
     } else {
-      // We are matching a garment size
-      variationMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${name}`, 'i').test(s.trim());
+      // We are matching a garment name
+      variationMatcher = s => !/[0-9]+/.test(s) && new RegExp(s, 'i').test(name);
     }
 
     if (variationMatcher(variation)) {

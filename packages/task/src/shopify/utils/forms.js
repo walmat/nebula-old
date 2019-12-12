@@ -3,15 +3,7 @@ import { Task as TaskConstants } from '../constants';
 
 const { States } = TaskConstants;
 
-export const patchCheckoutForm = (
-  billingMatchesShipping,
-  shipping,
-  billing,
-  payment,
-  variant,
-  name,
-  hash,
-) => {
+export const patchCheckoutForm = (matches, shipping, billing, payment, variant, name, hash) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   let data = {
     complete: '1',
@@ -27,12 +19,12 @@ export const patchCheckoutForm = (
         country: shipping.country.value,
         province: shippingProvinceValue,
         state: shippingProvinceValue,
-        zip: shipping.zipCode,
+        zip: shipping.zip,
         phone: shipping.phone,
       },
     },
   };
-  if (billingMatchesShipping) {
+  if (matches) {
     data = {
       ...data,
       checkout: {
@@ -46,7 +38,7 @@ export const patchCheckoutForm = (
           country: shipping.country.value,
           province: shippingProvinceValue,
           state: shippingProvinceValue,
-          zip: shipping.zipCode,
+          zip: shipping.zip,
           phone: shipping.phone,
         },
       },
@@ -66,7 +58,7 @@ export const patchCheckoutForm = (
           country: billing.country.value,
           province: billingProvinceValue,
           state: billingProvinceValue,
-          zip: billing.zipCode,
+          zip: billing.zip,
           phone: billing.phone,
         },
       },
@@ -175,7 +167,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
 
         // just set the dba to true and fill the rest of the form
         if (/different_billing_address/i.test(name)) {
-          value = !profile.billingMatchesShipping;
+          value = !profile.matches;
         }
 
         if (/recaptcha/i.test(name)) {
@@ -183,7 +175,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
         }
 
         if (
-          (profile.billingMatchesShipping &&
+          (profile.matches &&
             data.some(({ name: existing }) => /shipping_address/i.test(existing)) &&
             /billing_address/i.test(name) &&
             !/different_billing_address/i.test(name)) ||
@@ -244,7 +236,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
     data.push({ name: 'checkout[client_details][browser_tz]', value: 240 });
   }
 
-  const billingInfo = profile.billingMatchesShipping ? profile.shipping : profile.billing;
+  const billingInfo = profile.matches ? profile.shipping : profile.billing;
 
   const formValuesObj = {
     'checkout[email]': encodeURIComponent(profile.payment.email),
@@ -258,7 +250,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
     'checkout[shipping_address][province]': profile.shipping.province
       ? profile.shipping.province.value
       : '',
-    'checkout[shipping_address][zip]': profile.shipping.zipCode,
+    'checkout[shipping_address][zip]': profile.shipping.zip,
     'checkout[shipping_address][phone]': profile.shipping.phone,
     'checkout[billing_address][first_name]': billingInfo.firstName,
     'checkout[billing_address][last_name]': billingInfo.lastName,
@@ -267,7 +259,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
     'checkout[billing_address][city]': billingInfo.city,
     'checkout[billing_address][country]': billingInfo.country.label,
     'checkout[billing_address][province]': billingInfo.province ? billingInfo.province.value : '',
-    'checkout[billing_address][zip]': billingInfo.zipCode,
+    'checkout[billing_address][zip]': billingInfo.zip,
     'checkout[billing_address][phone]': billingInfo.phone,
   };
 

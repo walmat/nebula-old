@@ -79,12 +79,12 @@ class CaptchaWindowManager {
       IPCKeys.RequestCloseWindow,
       this.validateSender(ev => {
         // No need to check for `undefined` because `validateSender` has done that for us...
-        const winToClose = Object.values(this._captchaWindows)  // Array of captcha window arrays: [[win, ...], [win, ...]]
-          .flat()                                               // Flatten to a single array of captcha windows: [win, win, ...]
-          .find(win => win.webContents.id === ev.sender.id);    // Find the first window that matches the sender (should only be 1 max)
+        const winToClose = Object.values(this._captchaWindows) // Array of captcha window arrays: [[win, ...], [win, ...]]
+          .flat() // Flatten to a single array of captcha windows: [win, win, ...]
+          .find(win => win.webContents.id === ev.sender.id); // Find the first window that matches the sender (should only be 1 max)
         // Close window if it is found
         if (winToClose) {
-          winToClose.close()
+          winToClose.close();
         }
       }),
     );
@@ -341,7 +341,7 @@ class CaptchaWindowManager {
     CaptchaWindowManager.setupIntercept(win);
 
     win.webContents.session.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36',
+      'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0',
       '*/*',
     );
     const winId = win.id;
@@ -562,7 +562,9 @@ class CaptchaWindowManager {
     }
 
     console.log('[DEBUG]: Closing all captcha windows...');
-    Object.values(this._captchaWindows).flat().forEach(win => win.close());
+    Object.values(this._captchaWindows)
+      .flat()
+      .forEach(win => win.close());
   }
 
   /**
@@ -574,7 +576,8 @@ class CaptchaWindowManager {
       ...options,
     };
     // Update currently opened windows
-    Object.values(this._captchaWindows).flat()
+    Object.values(this._captchaWindows)
+      .flat()
       .forEach(win => win.webContents.send(IPCKeys.ChangeTheme, this._captchaThemeOpts));
   }
 
@@ -612,7 +615,7 @@ class CaptchaWindowManager {
         console.log('[DEBUG]: Resuming harvesters...');
         this.startHarvesting(id, sitekey, host);
       }
-    }
+    };
   }
 
   /**
@@ -668,7 +671,9 @@ class CaptchaWindowManager {
   }
 
   _onRequestSaveCaptchaProxy(_, winId, proxy) {
-    const win = Object.values(this._captchaWindows).flat().find(w => w.id === winId);
+    const win = Object.values(this._captchaWindows)
+      .flat()
+      .find(w => w.id === winId);
 
     if (win) {
       const { id: sessionId } = Object.values(this._sessions).find(s => s.window === winId);

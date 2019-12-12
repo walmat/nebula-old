@@ -5,7 +5,7 @@ const log = require('electron-log');
 
 const { IPCKeys } = require('../common/constants');
 const nebulaEnv = require('./env');
-const { createAboutWindow, createAuthWindow, createMainWindow, urls } = require('./windows');
+const { createAuthWindow, createMainWindow, urls } = require('./windows');
 
 const CaptchaWindowManager = require('./captchaWindowManager');
 

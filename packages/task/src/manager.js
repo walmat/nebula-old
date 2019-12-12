@@ -351,7 +351,7 @@ export default class TaskManager {
         if (type === Types.Normal) {
           newTask = new ShopifyTask(context);
 
-          const found = Object.values(this._monitors).find(async m => {
+          const found = await Object.values(this._monitors).find(async m => {
             if (m.platform === platform) {
               const { context: mContext } = m;
               const isSameProduct = await compareProductData(
@@ -369,6 +369,7 @@ export default class TaskManager {
               if (isSameProduct && mContext.task.store.url === context.task.store.url) {
                 return m;
               }
+              return null;
             }
             return null;
           });
@@ -405,7 +406,7 @@ export default class TaskManager {
 
         newTask = new SupremeTask(context);
 
-        const found = Object.values(this._monitors).find(async m => {
+        const found = await Object.values(this._monitors).find(async m => {
           if (m.platform === platform) {
             const { context: mContext } = m;
             const isSameProduct = await compareProductData(
@@ -428,6 +429,7 @@ export default class TaskManager {
             ) {
               return m;
             }
+            return null;
           }
           return null;
         });

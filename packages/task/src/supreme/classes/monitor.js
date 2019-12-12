@@ -61,7 +61,7 @@ export default class MonitorPrimitive extends BaseMonitor {
         this.context,
         this.context.ids,
         {
-          message: `${status}! Delaying ${this.context.task.monitor}ms (${status})`,
+          message: `Delaying ${this.context.task.monitor}ms (${status})`,
         },
         Events.MonitorStatus,
       );
@@ -216,7 +216,9 @@ export default class MonitorPrimitive extends BaseMonitor {
           },
           Events.MonitorStatus,
         );
-        return States.ABORT;
+        const error = new Error('No Product Styles');
+        error.status = 404;
+        throw error;
       }
 
       task.product.id = matchedVariation.id;

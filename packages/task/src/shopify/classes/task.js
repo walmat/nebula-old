@@ -3,7 +3,7 @@ import cheerio from 'cheerio';
 import { min, isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
-import { Bases, Utils, Constants } from '../../common';
+import { Bases, Utils, Constants, Classes } from '../../common';
 import { Task as TaskConstants } from '../constants';
 import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
 
@@ -16,6 +16,7 @@ const { Events } = Task;
 const { Events: TaskManagerEvents } = Manager;
 const { States, Modes, StateMap } = TaskConstants;
 const { ParseType } = Monitor;
+const { Captcha } = Classes;
 
 export default class TaskPrimitive extends BaseTask {
   constructor(context, platform = Platforms.Shopify) {
@@ -23,6 +24,7 @@ export default class TaskPrimitive extends BaseTask {
 
     this._needsLogin = this.context.task.account || false;
     this._state = States.STARTED;
+    this._prevState = this._state;
 
     // decide what our start state should be!
     if (!this.context.task.store.apiKey) {
@@ -60,9 +62,7 @@ export default class TaskPrimitive extends BaseTask {
 
     // checkout specific globals
     this._shippingMethods = [];
-    this._captchaToken = null;
     this._webhookSent = false;
-    this._captchaTokenRequest = null;
     this._cartForm = '';
     this._paymentToken = null;
     this._checkoutUrl = null;
@@ -106,6 +106,7 @@ export default class TaskPrimitive extends BaseTask {
         monitor,
         type,
       },
+      captchaToken,
       logger,
       proxy,
     } = this.context;
@@ -202,7 +203,7 @@ export default class TaskPrimitive extends BaseTask {
         if (/account/i.test(redirectUrl)) {
           this._needsLogin = false; // update global check for login
 
-          if (type === Modes.SAFE && !this._captchaToken) {
+          if (type === Modes.SAFE && !captchaToken) {
             if (this.context.task.product.variants && this.context.task.product.variants.length) {
               emitEvent(
                 this.context,
@@ -334,7 +335,7 @@ export default class TaskPrimitive extends BaseTask {
         },
         body: JSON.stringify({
           credit_card: {
-            number: payment.cardNumber,
+            number: payment.card,
             name: `${billing.firstName} ${billing.lastName}`,
             month: parseInt(payment.exp.slice(0, 2), 10),
             year: `20${parseInt(payment.exp.slice(3, 5), 10)}`,
@@ -749,6 +750,7 @@ export default class TaskPrimitive extends BaseTask {
         monitor,
         store: { url, apiKey },
       },
+      captchaToken,
     } = this.context;
 
     if (aborted) {
@@ -763,14 +765,14 @@ export default class TaskPrimitive extends BaseTask {
       Events.TaskStatus,
     );
 
-    if (this._captchaToken && !/g-recaptcha-response/i.test(this._checkpointForm)) {
+    if (captchaToken && !/g-recaptcha-response/i.test(this._checkpointForm)) {
       const parts = this._checkpointForm.split('&');
       if (parts && parts.length) {
         this._checkpointForm = '';
         // eslint-disable-next-line array-callback-return
         parts.forEach(part => {
           if (/authenticity_token/i.test(part)) {
-            this._checkpointForm += `${part}&g-recaptcha-response=${this._captchaToken}&`;
+            this._checkpointForm += `${part}&g-recaptcha-response=${captchaToken}&`;
           } else {
             this._checkpointForm += `${part}&`;
           }
@@ -2498,7 +2500,7 @@ export default class TaskPrimitive extends BaseTask {
     }
   }
 
-  async _handleRequestCaptcha() {
+  async _handleCaptcha() {
     const {
       aborted,
       logger,
@@ -2507,20 +2509,35 @@ export default class TaskPrimitive extends BaseTask {
     // exit if abort is detected
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
-      if (this._captchaTokenRequest) {
+      if (this.context.captchaRequest) {
         // cancel the request if it was previously started
-        this._captchaTokenRequest.cancel('aborted');
+        this.context.captchaRequest.cancel('aborted');
       }
       return States.ABORT;
     }
 
     // start request if it hasn't started already
-    if (!this._captchaTokenRequest) {
-      this._captchaTokenRequest = await this.getCaptcha();
+    if (!this.context.captchaRequest) {
+      emitEvent(
+        this.context,
+        [this.context.id],
+        {
+          message: 'Waiting for captcha',
+        },
+        Events.TaskStatus,
+      );
+
+      const requester = await Captcha.getCaptcha(
+        this.context,
+        this._handleHarvest,
+        this._platform,
+        this._prevState === States.GO_TO_CHECKPOINT ? 1 : 0,
+      );
+      this.context.setCaptchaRequest(requester);
     }
 
     // Check the status of the request
-    switch (this._captchaTokenRequest.status) {
+    switch (this.context.captchaRequest.status) {
       case 'pending': {
         // waiting for token, sleep for delay and then return same state to check again
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -2528,10 +2545,11 @@ export default class TaskPrimitive extends BaseTask {
       }
       case 'fulfilled': {
         // token was returned, store it and remove the request
-        ({ value: this._captchaToken } = this._captchaTokenRequest);
-        this._captchaTokenRequest = null;
+        const { value } = this.context.captchaRequest;
+        this.context.setCaptchaToken(value);
+        this.context.setCaptchaRequest(null);
         // We have the token, so suspend harvesting for now
-        this.suspendHarvestCaptcha();
+        Captcha.suspendHarvestCaptcha(this.context, this._platform);
 
         if (this._prevState === States.GO_TO_SHIPPING) {
           if (type === Modes.FAST) {
@@ -2615,18 +2633,14 @@ export default class TaskPrimitive extends BaseTask {
       }
       case 'cancelled':
       case 'destroyed': {
-        logger.silly('Harvest Captcha status: %s, stopping...', this._captchaTokenRequest.status);
-        // clear out the status so we get a generic "errored out task event"
-        this.context.status = null;
+        logger.silly('Harvest Captcha status: %s, stopping...', this.context.captchaRequest.status);
         return States.ERROR;
       }
       default: {
         logger.silly(
           'Unknown Harvest Captcha status! %s, stopping...',
-          this._captchaTokenRequest.status,
+          this.context.captchaRequest.status,
         );
-        // clear out the status so we get a generic "errored out task event"
-        this.context.status = null;
         return States.ERROR;
       }
     }
@@ -2639,10 +2653,11 @@ export default class TaskPrimitive extends BaseTask {
       task: {
         store: { url, name, apiKey },
         monitor,
-        forceCaptcha,
+        captcha,
         restockMode,
         type,
       },
+      captchaToken,
       proxy,
     } = this.context;
 
@@ -2867,7 +2882,7 @@ export default class TaskPrimitive extends BaseTask {
         logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
-      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
         emitEvent(
           this.context,
           [this.context.id],
@@ -2924,8 +2939,9 @@ export default class TaskPrimitive extends BaseTask {
       task: {
         store: { url, apiKey },
         monitor,
-        forceCaptcha,
+        captcha,
       },
+      captchaToken,
       proxy,
     } = this.context;
 
@@ -3103,7 +3119,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if (this._selectedShippingRate.id) {
-        if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+        if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
           emitEvent(
             this.context,
             [this.context.id],
@@ -3168,6 +3184,7 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, apiKey },
         type,
       },
+      captchaToken,
     } = this.context;
 
     // exit if abort is detected
@@ -3180,13 +3197,13 @@ export default class TaskPrimitive extends BaseTask {
       return this._handleBackupSubmitCustomer();
     }
 
-    if (this._captchaToken && !/g-recaptcha-response/i.test(this._formValues)) {
+    if (captchaToken && !/g-recaptcha-response/i.test(this._formValues)) {
       const parts = this._formValues.split('button=');
       if (parts && parts.length) {
         this._formValues = '';
         parts.forEach((part, i) => {
           if (i === 0) {
-            this._formValues += `${part}g-recaptcha-response=${this._captchaToken}`;
+            this._formValues += `${part}g-recaptcha-response=${captchaToken}`;
           } else {
             this._formValues += part;
           }
@@ -3594,9 +3611,10 @@ export default class TaskPrimitive extends BaseTask {
       task: {
         store: { url, apiKey },
         monitor,
-        forceCaptcha,
+        captcha,
         type,
       },
+      captchaToken,
     } = this.context;
 
     // exit if abort is detected
@@ -3823,7 +3841,7 @@ export default class TaskPrimitive extends BaseTask {
         logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
-      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
         emitEvent(
           this.context,
           [this.context.id],
@@ -3880,8 +3898,9 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { url, apiKey },
-        forceCaptcha,
+        captcha,
       },
+      captchaToken,
     } = this.context;
 
     // exit if abort is detected
@@ -3950,7 +3969,7 @@ export default class TaskPrimitive extends BaseTask {
               return States.ADD_TO_CART;
             }
 
-            if (forceCaptcha && !this._captchaToken) {
+            if (captcha && !captchaToken) {
               emitEvent(
                 this.context,
                 [this.context.id],
@@ -4016,7 +4035,7 @@ export default class TaskPrimitive extends BaseTask {
           parseFloat(this._prices.cart) + parseFloat(this._prices.shipping)
         ).toFixed(2);
         logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
-        if (forceCaptcha && !this._captchaToken) {
+        if (captcha && !captchaToken) {
           emitEvent(
             this.context,
             [this.context.id],
@@ -4332,8 +4351,9 @@ export default class TaskPrimitive extends BaseTask {
       task: {
         monitor,
         store: { url, apiKey },
-        forceCaptcha,
+        captcha,
       },
+      captchaToken,
     } = this.context;
 
     // exit if abort is detected
@@ -4544,7 +4564,7 @@ export default class TaskPrimitive extends BaseTask {
         logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
-      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
         emitEvent(
           this.context,
           [this.context.id],
@@ -4954,8 +4974,9 @@ export default class TaskPrimitive extends BaseTask {
       task: {
         monitor,
         store: { url, apiKey },
-        forceCaptcha,
+        captcha,
       },
+      captchaToken,
     } = this.context;
 
     // exit if abort is detected
@@ -4976,10 +4997,10 @@ export default class TaskPrimitive extends BaseTask {
       },
     };
 
-    if (this._captchaToken) {
+    if (captchaToken) {
       form = {
         ...form,
-        'g-recaptcha-response': this._captchaToken,
+        'g-recaptcha-response': captchaToken,
       };
     }
 
@@ -5142,7 +5163,7 @@ export default class TaskPrimitive extends BaseTask {
         }
       }
 
-      if ((/captcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/captcha/i.test(body) || captcha) && !captchaToken) {
         emitEvent(
           this.context,
           [this.context.id],
@@ -5245,8 +5266,9 @@ export default class TaskPrimitive extends BaseTask {
         monitor,
         store: { url, apiKey },
         type,
-        forceCaptcha,
+        captcha,
       },
+      captchaToken,
     } = this.context;
 
     if (type === Modes.FAST) {
@@ -5569,7 +5591,7 @@ export default class TaskPrimitive extends BaseTask {
         logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
-      if ((/recaptcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
         emitEvent(
           this.context,
           [this.context.id],
@@ -5627,8 +5649,9 @@ export default class TaskPrimitive extends BaseTask {
       task: {
         store: { url, apiKey },
         monitor,
-        forceCaptcha,
+        captcha,
       },
+      captchaToken,
     } = this.context;
 
     // exit if abort is detected
@@ -5641,10 +5664,10 @@ export default class TaskPrimitive extends BaseTask {
       complete: 1,
     };
 
-    if (this._captchaToken) {
+    if (captchaToken) {
       form = {
         ...form,
-        'g-recaptcha-response': this._captchaToken,
+        'g-recaptcha-response': captchaToken,
       };
     }
 
@@ -5806,7 +5829,7 @@ export default class TaskPrimitive extends BaseTask {
         }
       }
 
-      if ((/captcha/i.test(body) || forceCaptcha) && !this._captchaToken) {
+      if ((/captcha/i.test(body) || captcha) && !captchaToken) {
         emitEvent(
           this.context,
           [this.context.id],
@@ -6032,6 +6055,7 @@ export default class TaskPrimitive extends BaseTask {
       });
 
       const body = await res.json();
+
       const { status } = res;
 
       const nextState = stateForError(
@@ -6050,43 +6074,37 @@ export default class TaskPrimitive extends BaseTask {
         return erroredState;
       }
 
-      const { payments } = body;
+      const { checkout } = body;
 
-      if (payments && payments.length) {
-        const bodyString = JSON.stringify(payments[0]);
-        const [payment] = payments;
+      const bodyString = JSON.stringify(body);
 
+      if (checkout) {
         const {
           currency,
           payment_due: paymentDue,
           web_url: webUrl,
           line_items: lineItems,
-        } = payment.checkout;
+          payments,
+        } = checkout;
 
         let productImage = image;
         if (!productImage) {
           productImage = lineItems[0].image_url;
         }
 
-        logger.silly('CHECKOUT: Payment object: %j', payment);
         if (/thank_you/i.test(bodyString)) {
-          const {
-            order: { name: orderName, status_url: statusUrl },
-          } = payment.checkout;
+          const { order_id: orderName, order_status_url: orderStatusUrl } = checkout;
 
           webhookManager.insert({
             success: true,
             type,
             checkoutUrl: webUrl,
-            product: {
-              name: productName,
-              url: productUrl,
-            },
+            product: productName,
             price: currencyWithSymbol(paymentDue, currency),
             store: { name, url },
             order: {
               number: orderName,
-              url: statusUrl,
+              url: orderStatusUrl,
             },
             profile: profileName,
             size,
@@ -6108,7 +6126,7 @@ export default class TaskPrimitive extends BaseTask {
           return States.DONE;
         }
 
-        if (/your card was declined/i.test(bodyString)) {
+        if (/issue processing|your card was declined/i.test(bodyString)) {
           if (!this.webhookSent) {
             this.webhookSent = true;
 
@@ -6116,10 +6134,7 @@ export default class TaskPrimitive extends BaseTask {
               success: false,
               type,
               checkoutUrl: webUrl,
-              product: {
-                name: productName,
-                url: productUrl,
-              },
+              product: productName,
               price: currencyWithSymbol(paymentDue, currency),
               store: { name, url },
               order: null,
@@ -6155,10 +6170,7 @@ export default class TaskPrimitive extends BaseTask {
                 success: false,
                 type,
                 checkoutUrl: webUrl,
-                product: {
-                  name: productName,
-                  url: productUrl,
-                },
+                product: productName,
                 price: currencyWithSymbol(paymentDue, currency),
                 store: { name, url },
                 order: null,
@@ -6193,10 +6205,7 @@ export default class TaskPrimitive extends BaseTask {
               success: false,
               type,
               checkoutUrl: webUrl,
-              product: {
-                name: productName,
-                url: productUrl,
-              },
+              product: productName,
               price: currencyWithSymbol(paymentDue, currency),
               store: { name, url },
               order: null,
@@ -6291,7 +6300,7 @@ export default class TaskPrimitive extends BaseTask {
       [States.ADD_TO_CART]: this._handleAddToCart,
       [States.GO_TO_CART]: this._handleGoToCart,
       [States.GO_TO_CHECKOUT]: this._handleGetCheckout,
-      [States.CAPTCHA]: this._handleRequestCaptcha,
+      [States.CAPTCHA]: this._handleCaptcha,
       [States.SUBMIT_CUSTOMER]: this._handleSubmitCustomer,
       [States.GO_TO_SHIPPING]: this._handleGetShipping,
       [States.SUBMIT_SHIPPING]: this._handleSubmitShipping,

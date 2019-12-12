@@ -20,10 +20,6 @@ require('v8-compile-cache');
  * Application entry point.
  */
 class App {
-
-  get windowManager() {
-    return this._windowManager;
-  }
   /**
    * Initialize instance.
    */

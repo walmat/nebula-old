@@ -1,5 +1,3 @@
-/* eslint-disable consistent-return */
-/* eslint-disable array-callback-return */
 import { Task, Regions } from '../constants';
 import getHeaders, { getRegion, Forms, pickVariant } from '../utils';
 import { Utils, Bases, Classes, Constants } from '../../common';
@@ -237,7 +235,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       // start the padding timer...
-      this._timer.start(new Date().getTime());
+      this.context.timers.checkout.start(new Date().getTime());
 
       const body = await res.json();
 
@@ -389,9 +387,9 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     // stop the padding timer...
-    this._timer.stop(new Date().getTime());
+    this.context.timers.checkout.stop(new Date().getTime());
 
-    const totalTimeout = checkoutDelay - this._timer.getTotalTime(0);
+    const totalTimeout = checkoutDelay - this.context.timers.checkout.getTotalTime(0);
     if (totalTimeout && totalTimeout > 0) {
       emitEvent(
         this.context,
