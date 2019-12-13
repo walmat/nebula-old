@@ -1797,7 +1797,16 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleWaitForProduct() {
-    const { aborted, logger } = this.context;
+    const {
+      aborted,
+      logger,
+      parseType,
+      task: {
+        store: { url },
+        product: { variants, randomInStock },
+        size,
+      },
+    } = this.context;
 
     // exit if abort is detected
     if (aborted) {
@@ -1806,6 +1815,33 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (this.context.task.product.variants) {
+      let variant;
+      if (parseType !== ParseType.Variant) {
+        variant = await pickVariant(variants, size, url, logger, randomInStock);
+      } else {
+        [variant] = variants;
+      }
+
+      if (!variant) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'No size matched' },
+          Events.TaskStatus,
+        );
+        return States.ABORT;
+      }
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        {
+          chosenSize: variant.option,
+        },
+        Events.TaskStatus,
+      );
+
+      this.context.updateVariant(variant);
       return States.ADD_TO_CART;
     }
 
@@ -1821,13 +1857,11 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { name, url },
-        product: { variants, hash, restockUrl, randomInStock },
-        size,
+        product: { variant, hash, restockUrl },
         type,
         monitor,
       },
       proxy,
-      parseType,
     } = this.context;
 
     // exit if abort is detected
@@ -1839,22 +1873,6 @@ export default class TaskPrimitive extends BaseTask {
     if (this._isRestocking || type === Modes.FAST) {
       return this._handleBackupAddToCart();
     }
-
-    let variant;
-    if (parseType !== ParseType.Variant) {
-      variant = await pickVariant(variants, size, url, logger, randomInStock);
-    } else {
-      [variant] = variants;
-    }
-
-    if (!variant) {
-      emitEvent(this.context, [this.context.id], { message: 'No size matched' }, Events.TaskStatus);
-      return States.ERROR;
-    }
-
-    const { option, id } = variant;
-
-    this.context.task.product.size = option;
 
     try {
       const res = await this._fetch('/cart/add.js', {
@@ -1873,7 +1891,7 @@ export default class TaskPrimitive extends BaseTask {
             ? 'application/x-www-form-urlencoded; charset=UTF-8'
             : 'application/json',
         },
-        body: addToCart(id, name, hash),
+        body: addToCart(variant.id, name, hash),
       });
 
       const { status, headers } = res;
@@ -2033,12 +2051,10 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { url, name, apiKey },
-        product: { variants, hash, randomInStock },
-        size,
+        product: { variant, hash },
         monitor,
       },
       proxy,
-      parseType,
     } = this.context;
 
     // exit if abort is detected
@@ -2047,28 +2063,12 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
-    let variant;
-    if (parseType !== ParseType.Variant) {
-      variant = await pickVariant(variants, size, url, logger, randomInStock);
-    } else {
-      [variant] = variants;
-    }
-
-    if (!variant) {
-      emitEvent(this.context, [this.context.id], { message: 'No size matched' }, Events.TaskStatus);
-      return States.ERROR;
-    }
-
-    const { option, id } = variant;
-
-    this.context.task.product.size = option;
-
     let opts = {};
     const base = {
       checkout: {
         line_items: [
           {
-            variant_id: id,
+            variant_id: variant.id,
             quantity: 1,
             properties: /dsm uk/i.test(name)
               ? {

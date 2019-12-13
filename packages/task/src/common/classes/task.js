@@ -2,7 +2,7 @@ import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
-import { waitForDelay, emitEvent } from '../utils';
+import { emitEvent } from '../utils';
 import { stopHarvestCaptcha } from './captcha';
 import { Task } from '../constants';
 
@@ -41,8 +41,8 @@ export default class BaseTask {
   }
 
   _handleHarvest(id, token) {
-    const { captchaQueue } = this._context;
-    if (id !== this._context.id || !captchaQueue) {
+    const { captchaQueue } = this.context;
+    if (id !== this.context.id || !captchaQueue) {
       return;
     }
 
@@ -50,76 +50,44 @@ export default class BaseTask {
   }
 
   async swapProxies() {
-    const { id, proxy, task, logger, proxyManager } = this._context;
+    const { id, proxy, task, logger, proxyManager } = this.context;
     const proxyId = proxy ? proxy.id : null;
-    logger.debug('Swapping proxy with id: %j', proxyId);
+    logger.debug('Swapping proxy: %j', proxy ? proxy.raw : null);
     const newProxy = await proxyManager.swap(id, proxyId, task.store.url, this._platform);
-    logger.debug('Received new proxy: %j', newProxy ? newProxy.proxy : null);
+    logger.debug('Received new proxy: %j', newProxy ? newProxy.raw : null);
     return newProxy;
   }
 
   async _handleSwap() {
-    const {
-      task: { errorDelay },
-      logger,
-    } = this._context;
+    const { logger } = this.context;
     try {
       logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
       logger.debug('Proxy in _handleSwap: %j', proxy);
-      // Proxy is fine, update the references
-      if ((proxy || proxy === null) && this._context.proxy !== proxy) {
-        this._context.setLastProxy(this._context.proxy);
-        this._context.setProxy(proxy);
+      this.context.setLastProxy(this.context.proxy);
+      this.context.setProxy(proxy);
 
-        logger.silly('Swap Proxies Handler completed sucessfully: %s', proxy);
-        emitEvent(
-          this._context,
-          this._context.ids,
-          {
-            message: `Swapped proxy to: ${proxy ? proxy.raw : 'localhost'}`,
-          },
-          Events.TaskStatus,
-        );
-
-        logger.debug('Rewinding to state: %s', this._prevState);
-        return this._prevState;
-      }
-
-      // If we get a null proxy back while our previous proxy was also null.. then there aren't any available
-      // We should wait the error delay, then try again
-      emitEvent(
-        this._context,
-        this._context.ids,
-        {
-          message: `No open proxies! Delaying ${errorDelay}ms`,
-        },
-        Events.TaskStatus,
-      );
-
-      this._delayer = waitForDelay(errorDelay, this._aborter.signal);
-      await this._delayer;
+      logger.debug('Rewinding to state: %s', this._prevState);
+      return this._prevState;
     } catch (error) {
       logger.error('Swap Proxies Handler completed with errors: %s', error.toString());
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        this.context.ids,
         {
           message: 'Error swapping proxies! Retrying',
         },
         Events.TaskStatus,
       );
     }
-
-    // Go back to previous state
     return this._prevState;
   }
 
   async loop() {
     let nextState = this._state;
 
-    const { aborted, logger } = this._context;
+    const { aborted, logger } = this.context;
     if (aborted) {
       nextState = States.ABORT;
       return true;
@@ -151,6 +119,15 @@ export default class BaseTask {
   async run() {
     let shouldStop = false;
 
+    emitEvent(
+      this.context,
+      [this.context.id],
+      {
+        chosenProxy: this.context.proxy ? this.context.proxy.raw : null,
+      },
+      Events.TaskStatus,
+    );
+
     do {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.loop();
@@ -165,10 +142,10 @@ export default class BaseTask {
     if (this._delayer) {
       this._delayer.clear();
     }
-    return this._context.setAborted(true);
+    return this.context.setAborted(true);
   }
 
   _cleanup() {
-    stopHarvestCaptcha(this._context, this._handleHarvest, this._platform);
+    stopHarvestCaptcha(this.context, this._handleHarvest, this._platform);
   }
 }

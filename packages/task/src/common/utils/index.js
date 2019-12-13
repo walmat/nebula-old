@@ -86,11 +86,8 @@ const _emitEvent = (context, ids, event, payload) => {
 };
 
 export const emitEvent = (context, ids, payload = {}, event) => {
-  const { message } = payload;
-  if (message && message !== context.messsage) {
-    context.setMessage(message);
-    _emitEvent(context, ids, event, { ...payload, type: Types.Normal });
-  }
+  context.setMessage(payload.message);
+  _emitEvent(context, ids, event, { ...payload, type: Types.Normal });
 };
 
 export const compareProductData = async (product1, product2, parseType) => {

@@ -44,7 +44,6 @@ class TaskLauncher {
       IPCKeys.RequestAddWebhooks,
       IPCKeys.RequestRemoveWebhooks,
       IPCKeys.RequestChangeDelay,
-      IPCKeys.RequestWebhookUpdate,
       IPCKeys.RequestWebhookTest,
     ].forEach(key => {
       context.ipc.on(key, (ev, ...params) => {
@@ -148,7 +147,6 @@ class TaskLauncher {
         console.log('Launcher Ready!');
         this._launcherWindow.webContents.openDevTools();
       }
-
       // Start listening for events since we have at least one listener
       this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
       this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);

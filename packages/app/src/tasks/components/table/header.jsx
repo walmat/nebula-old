@@ -15,6 +15,9 @@ export default () => (
       <div className="col tasks-table__header__sizes">
         <p>Size</p>
       </div>
+      <div className="col tasks-table__header__proxy">
+        <p>Proxy</p>
+      </div>
       <div className="col tasks-table__header__status">
         <p>Status</p>
       </div>

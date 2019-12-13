@@ -41,14 +41,14 @@
 
       .tasks-table__header__store {
         @include header-field;
-        width: 125px;
+        width: 75px;
         flex-grow: 1;
         margin-left: 15px;
       }
 
       .tasks-table__header__profile {
         @include header-field;
-        width: 125px;
+        width: 75px;
         margin-left: 15px;
         flex-grow: 1;
       }
@@ -56,6 +56,13 @@
       .tasks-table__header__sizes {
         @include header-field;
         width: 65px;
+        flex-grow: 1;
+        margin-left: 15px;
+      }
+
+      .tasks-table__header__proxy {
+        @include header-field;
+        width: 75px;
         flex-grow: 1;
         margin-left: 15px;
       }
@@ -153,14 +160,14 @@
         &__store {
           @include input-field;
           text-overflow: ellipsis;
-          width: 125px;
+          width: 75px;
           margin-left: 15px !important;
           flex-grow: 1;
         }
 
         &__profile {
           @include input-field;
-          width: 125px;
+          width: 75px;
           margin-left: 15px !important;
           flex-grow: 1;
         }
@@ -168,6 +175,13 @@
         &__sizes {
           @include input-field;
           width: 65px;
+          flex-grow: 1;
+          margin-left: 15px !important;
+        }
+
+        &__proxy {
+          @include input-field;
+          width: 75px;
           flex-grow: 1;
           margin-left: 15px !important;
         }

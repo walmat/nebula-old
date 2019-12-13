@@ -101,7 +101,10 @@ export default class MonitorPrimitive extends BaseMonitor {
     const parsers = Parsers(this.context, new AbortController(), this._fetch);
 
     // Return the winner of the race
-    return rfrl(parsers.map(p => p.run()), 'parseAll');
+    return rfrl(
+      parsers.map(p => p.run()),
+      'parseAll',
+    );
   }
 
   async _keywords() {
@@ -150,6 +153,7 @@ export default class MonitorPrimitive extends BaseMonitor {
       this.context.ids,
       {
         message: `Product found: ${name}`,
+        productName: name,
       },
       Events.MonitorStatus,
     );
@@ -199,6 +203,7 @@ export default class MonitorPrimitive extends BaseMonitor {
         this.context.ids,
         {
           message: `Product found: ${name}`,
+          productName: name,
         },
         Events.MonitorStatus,
       );

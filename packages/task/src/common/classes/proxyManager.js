@@ -165,7 +165,7 @@ export default class ProxyManager {
         proxy.platforms[platform] = true;
         // push the proxy back onto the end of the stack
         this._proxies.set(proxy.id, proxy);
-        this._logger.debug('Returning proxy: %s', proxy.proxy);
+        this._logger.debug('Returning proxy: %s', proxy.raw);
         return proxy;
       }
     }
@@ -224,23 +224,21 @@ export default class ProxyManager {
       shouldRelease = false;
     }
 
-    this._logger.debug('Attempting to swap: %j', oldProxy ? oldProxy.proxy : null);
+    this._logger.debug('Attempting to swap: %j', oldProxy ? oldProxy.raw : null);
 
     // Attempt to reserve a proxy first before releasing the old one
     const newProxy = await this.reserve(id, store, platform);
 
     this._logger.debug(
       'Swapped old proxy: %s \n Returned new proxy: %s',
-      oldProxy ? oldProxy.proxy : null,
-      newProxy ? newProxy.proxy : null,
+      oldProxy ? oldProxy.raw : null,
+      newProxy ? newProxy.raw : null,
     );
 
-    // Check if we need to release and ban the old proxy
+    // Check if we need to release the old proxy
     if (shouldRelease) {
-      this._logger.debug('Releasing old proxy... %s', oldProxy.proxy);
-
-      await this.release(id, store, platform, proxyId, true);
-      // await this.ban(id, store, proxyId, shouldBan);
+      this._logger.debug('Releasing old proxy... %s', oldProxy.raw);
+      await this.release(id, store, platform, proxyId);
     }
 
     if (!newProxy) {
@@ -248,8 +246,7 @@ export default class ProxyManager {
       return null;
     }
 
-    this._logger.debug('New proxy: %j', newProxy.proxy);
-    // Return the new reserved proxy
+    this._logger.debug('New proxy: %j', newProxy.raw);
     return newProxy;
   }
 

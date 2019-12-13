@@ -45,6 +45,7 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
           {task.profile ? task.profile.name : 'None'}
         </div>
         <div className="col col--no-gutter tasks-row__sizes">{task.chosenSize || task.size}</div>
+        <div className="col col--no-gutter tasks-row__proxy">{task.chosenProxy || 'None'}</div>
         <div className={`col col--no-gutter tasks-row__status--${messageClassName}`}>
           {task.message}
         </div>

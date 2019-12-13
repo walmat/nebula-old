@@ -105,10 +105,6 @@ export default class Context {
     this.aborted = aborted;
   }
 
-  setProductFound(productFound) {
-    this.productFound = productFound;
-  }
-
   setHarvestState(harvestState) {
     this.harvestState = harvestState;
   }
