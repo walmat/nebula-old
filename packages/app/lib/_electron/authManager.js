@@ -16,23 +16,23 @@ class AuthManager {
    */
   constructor(context) {
     this._context = context;
-    this._authInterval = setInterval(async () => {
-      const windowManager = this._context._windowManager;
-      if (!windowManager._main) {
-        return;
-      }
+    // this._authInterval = setInterval(async () => {
+    //   const windowManager = this._context._windowManager;
+    //   if (!windowManager._main) {
+    //     return;
+    //   }
 
-      const validUser = await this.checkSession();
-      if (!validUser) {
-        clearInterval(this._authInterval);
-        this._authInterval = null;
-        await this.removeActiveSession();
-        await this.clearSession();
-        windowManager._captchaWindowManager.closeAllCaptchaWindows();
-        windowManager.transitionToDeauthedState();
-      }
-      // eslint-disable-next-line no-bitwise
-    }, random(5500, 10000));
+    //   const validUser = await this.checkSession();
+    //   if (!validUser) {
+    //     clearInterval(this._authInterval);
+    //     this._authInterval = null;
+    //     await this.removeActiveSession();
+    //     await this.clearSession();
+    //     windowManager._captchaWindowManager.closeAllCaptchaWindows();
+    //     windowManager.transitionToDeauthedState();
+    //   }
+    //   // eslint-disable-next-line no-bitwise
+    // }, random(5500, 10000));
 
     /**
      * Application Store
@@ -286,25 +286,25 @@ class AuthManager {
     const windowManager = this._context._windowManager;
 
     if (!session || (session && session.errors)) {
-      if (!windowManager._auth) {
-        clearInterval(this._authInterval);
-        this._authInterval = null;
-        await this.clearSession();
-        windowManager._captchaWindowManager.closeAllCaptchaWindows();
-        windowManager.transitionToDeauthedState();
-      }
+      // if (!windowManager._auth) {
+      //   clearInterval(this._authInterval);
+      //   this._authInterval = null;
+      //   await this.clearSession();
+      //   windowManager._captchaWindowManager.closeAllCaptchaWindows();
+      //   windowManager.transitionToDeauthedState();
+      // }
     } else {
-      this._authInterval = setInterval(async () => {
-        const validUser = await this.checkSession();
+      // this._authInterval = setInterval(async () => {
+      //   const validUser = await this.checkSession();
 
-        if (!validUser) {
-          clearInterval(this._authInterval);
-          this._authInterval = null;
-          await this.clearSession();
-          windowManager._captchaWindowManager.closeAllCaptchaWindows();
-          windowManager.transitionToDeauthedState();
-        }
-      }, random(5500, 10000));
+      //   if (!validUser) {
+      //     clearInterval(this._authInterval);
+      //     this._authInterval = null;
+      //     await this.clearSession();
+      //     windowManager._captchaWindowManager.closeAllCaptchaWindows();
+      //     windowManager.transitionToDeauthedState();
+      //   }
+      // }, random(5500, 10000));
       await this.createActiveSession();
       windowManager.transitiontoAuthedState();
     }

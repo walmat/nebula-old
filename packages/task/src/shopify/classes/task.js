@@ -37,10 +37,6 @@ export default class TaskPrimitive extends BaseTask {
       this._state = States.WAIT_FOR_PRODUCT;
     }
 
-    this._deregisterOverride = false;
-
-    this._history = [];
-
     const preFetchedShippingRates = this.context.task.profile.rates.find(
       r => r.store.url === this.context.task.store.url,
     );
@@ -61,8 +57,6 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     // checkout specific globals
-    this._shippingMethods = [];
-    this._webhookSent = false;
     this._cartForm = '';
     this._paymentToken = null;
     this._checkoutUrl = null;
@@ -71,30 +65,11 @@ export default class TaskPrimitive extends BaseTask {
     this._checkoutKey = null;
     this._storeId = null;
 
-    this._prices = {
-      cart: 0,
-      shipping: 0,
-      taxes: 0,
-      total: 0,
-    };
-
     // safe mode includes
     this._checkpointForm = '';
     this._formValues = '';
     this._isFreeCheckout = false;
-    this._isChecking = false;
     this._isRestocking = false;
-    this._previousProxy = null;
-  }
-
-  _handleHarvest(id, token) {
-    const { id: thisId, captchaQueue } = this.context;
-
-    if (id !== thisId || !captchaQueue) {
-      return null;
-    }
-
-    return captchaQueue.insert(token);
   }
 
   async _handleLogin() {
@@ -155,94 +130,88 @@ export default class TaskPrimitive extends BaseTask {
 
       const redirectUrl = headers.get('location');
 
-      if (redirectUrl) {
-        if (/checkpoint/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkpoint' },
-            Events.TaskStatus,
-          );
-          this.checkpointUrl = redirectUrl;
-          return States.GO_TO_CHECKPOINT;
-        }
+      if (!redirectUrl) {
+        const message = status ? `Logging in - (${status})` : 'Logging in';
+        emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+        return States.LOGIN;
+      }
 
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-          emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
-          return States.LOGIN;
-        }
+      if (/checkpoint/i.test(redirectUrl)) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Going to checkpoint' },
+          Events.TaskStatus,
+        );
+        this.checkpointUrl = redirectUrl;
+        return States.GO_TO_CHECKPOINT;
+      }
 
-        if (/challenge/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Login capcha needed' },
-            Events.TaskStatus,
-          );
-          return States.ERROR;
-        }
+      if (/password/i.test(redirectUrl)) {
+        emitEvent(this.context, [this.context.id], { message: 'Password page' }, Events.TaskStatus);
+        this._delayer = waitForDelay(monitor, this._aborter.signal);
+        await this._delayer;
+        emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
+        return States.LOGIN;
+      }
 
-        if (/login/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Invalid credentials' },
-            Events.TaskStatus,
-          );
-          return States.ERROR;
-        }
+      if (/challenge/i.test(redirectUrl)) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Login capcha needed' },
+          Events.TaskStatus,
+        );
+        return States.ERROR;
+      }
 
-        if (/account/i.test(redirectUrl)) {
-          this._needsLogin = false; // update global check for login
+      if (/login/i.test(redirectUrl)) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Invalid credentials' },
+          Events.TaskStatus,
+        );
+        return States.ERROR;
+      }
 
-          if (type === Modes.SAFE && !captchaToken) {
-            if (this.context.task.product.variants && this.context.task.product.variants.length) {
-              emitEvent(
-                this.context,
-                [this.context.id],
-                { message: 'Adding to cart' },
-                Events.TaskStatus,
-              );
-              return States.ADD_TO_CART;
-            }
+      if (/account/i.test(redirectUrl)) {
+        this._needsLogin = false; // update global check for login
+
+        if (type === Modes.SAFE && !captchaToken) {
+          if (this.context.task.product.variants && this.context.task.product.variants.length) {
             emitEvent(
               this.context,
               [this.context.id],
-              { message: 'Waiting for product' },
+              { message: 'Adding to cart' },
               Events.TaskStatus,
             );
-            return States.WAIT_FOR_PRODUCT;
+            return States.ADD_TO_CART;
           }
-
           emitEvent(
             this.context,
             [this.context.id],
-            { message: 'Creating checkout' },
+            { message: 'Waiting for product' },
             Events.TaskStatus,
           );
-
-          return States.CREATE_CHECKOUT;
+          return States.WAIT_FOR_PRODUCT;
         }
+
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Creating checkout' },
+          Events.TaskStatus,
+        );
+
+        return States.CREATE_CHECKOUT;
       }
 
       const message = status ? `Logging in - (${status})` : 'Logging in';
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.LOGIN;
     } catch (err) {
-      logger.error(
-        'Error: %j\n Step: Login.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
+      logger.error('Login Error: %s\n %j', err.status || err.errno, err.message);
 
       const nextState = stateForError(err, {
         message: 'Logging in',
@@ -688,7 +657,7 @@ export default class TaskPrimitive extends BaseTask {
         logger.info('Checkpoint form value detected: { name: %j, value: %j }', name, value);
 
         if (name) {
-          this._checkpointForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+          this._formValues += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
         }
       });
 
@@ -699,8 +668,8 @@ export default class TaskPrimitive extends BaseTask {
         logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
-      if (this._checkpointForm.endsWith('&')) {
-        this._checkpointForm = this._checkpointForm.slice(0, -1);
+      if (this._formValues.endsWith('&')) {
+        this._formValues = this._formValues.slice(0, -1);
       }
 
       emitEvent(
@@ -765,26 +734,26 @@ export default class TaskPrimitive extends BaseTask {
       Events.TaskStatus,
     );
 
-    if (captchaToken && !/g-recaptcha-response/i.test(this._checkpointForm)) {
-      const parts = this._checkpointForm.split('&');
+    if (captchaToken && !/g-recaptcha-response/i.test(this._formValues)) {
+      const parts = this._formValues.split('&');
       if (parts && parts.length) {
-        this._checkpointForm = '';
+        this._formValues = '';
         // eslint-disable-next-line array-callback-return
         parts.forEach(part => {
           if (/authenticity_token/i.test(part)) {
-            this._checkpointForm += `${part}&g-recaptcha-response=${captchaToken}&`;
+            this._formValues += `${part}&g-recaptcha-response=${captchaToken}&`;
           } else {
-            this._checkpointForm += `${part}&`;
+            this._formValues += `${part}&`;
           }
         });
       }
     }
 
-    if (this._checkpointForm.endsWith('&')) {
-      this._checkpointForm = this._checkpointForm.slice(0, -1);
+    if (this._formValues.endsWith('&')) {
+      this._formValues = this._formValues.slice(0, -1);
     }
 
-    logger.debug('CHECKPOINT FORM: %j', this._checkpointForm);
+    logger.debug('CHECKPOINT FORM: %j', this._formValues);
 
     try {
       const res = await this._fetch(`/checkpoint`, {
@@ -797,7 +766,7 @@ export default class TaskPrimitive extends BaseTask {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/x-www-form-urlencoded',
         },
-        body: this._checkpointForm,
+        body: this._formValues,
       });
 
       const { status, headers } = res;
@@ -823,7 +792,6 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl) {
         if (/checkout/i.test(redirectUrl)) {
-          this._backupCheckout = true;
           emitEvent(
             this.context,
             [this.context.id],
@@ -2229,8 +2197,6 @@ export default class TaskPrimitive extends BaseTask {
           ? body.checkout.line_items[0].image_url
           : `http:${body.checkout.line_items[0].image_url}`;
 
-        this._prices.cart = parseFloat(totalPrice).toFixed(2);
-
         if (this._isRestocking) {
           emitEvent(
             this.context,
@@ -2242,10 +2208,6 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (this._selectedShippingRate.id) {
-          logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
-          this._prices.total = (
-            parseFloat(this._prices.cart) + parseFloat(this._selectedShippingRate.price)
-          ).toFixed(2);
           emitEvent(
             this.context,
             [this.context.id],
@@ -4019,22 +3981,10 @@ export default class TaskPrimitive extends BaseTask {
 
       if (body && body.shipping_rates && body.shipping_rates.length > 0) {
         const { shipping_rates: shippingRates } = body;
-        shippingRates.forEach(rate => {
-          this._shippingMethods.push(rate);
-        });
 
-        const cheapest = min(this._shippingMethods, rate => rate.price);
-        // Store cheapest shipping rate
-        const { id, title } = cheapest;
-        this._selectedShippingRate = { id, name: title };
-        logger.silly('API CHECKOUT: Using shipping method: %s', title);
+        const cheapest = min(shippingRates, rate => rate.price);
+        this._selectedShippingRate = { id: cheapest.id, name: cheapest.title };
 
-        // set shipping price for cart
-        this._prices.shipping = parseFloat(cheapest.price).toFixed(2);
-        this._prices.total = (
-          parseFloat(this._prices.cart) + parseFloat(this._prices.shipping)
-        ).toFixed(2);
-        logger.silly('API CHECKOUT: Shipping total: %s', this._prices.shipping);
         if (captcha && !captchaToken) {
           emitEvent(
             this.context,
