@@ -71,7 +71,10 @@ class CaptchaWindowManager {
       this.validateSender(this._onRequestSaveCaptchaProxy),
     );
     context.ipc.on(IPCKeys.HarvestCaptcha, this.validateSender(this._onHarvestToken));
-    context.ipc.on(IPCKeys.RequestRefresh, this.validateSender(ev => ev.sender.reload()));
+    context.ipc.on(
+      IPCKeys.RequestRefresh,
+      this.validateSender(ev => ev.sender.reload()),
+    );
     context.ipc.on(IPCKeys.RequestCloseAllCaptchaWindows, () => {
       this.closeAllCaptchaWindows();
     });
@@ -292,7 +295,6 @@ class CaptchaWindowManager {
    * Create a captcha window and show it
    */
   spawnCaptchaWindow(options = {}) {
-
     const { host, sitekey, id } = options;
 
     if (!this._harvestStatus[sitekey]) {
