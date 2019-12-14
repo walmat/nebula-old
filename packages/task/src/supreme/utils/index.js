@@ -5,7 +5,7 @@ import { filter, every, some, sortBy } from 'lodash';
 import { Utils } from '../../common';
 import { Regions } from '../constants';
 import pickVariant from './pickVariant';
-import { cart, backupForm, parseForm } from './forms';
+import { cart, backupForm, parseForm, Forms as FormTypes } from './forms';
 
 const { getRandomIntInclusive } = Utils;
 
@@ -89,7 +89,10 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
     }
 
     if (keywords.neg.length) {
-      neg = some(keywords.neg.map(k => k.toUpperCase()), keyword => name.indexOf(keyword) > -1);
+      neg = some(
+        keywords.neg.map(k => k.toUpperCase()),
+        keyword => name.indexOf(keyword) > -1,
+      );
     }
 
     return pos && !neg;
@@ -107,7 +110,11 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
       'Searched %d products. %d Products Found',
       products.length,
       matches.length,
-      JSON.stringify(matches.map(({ name }) => name), null, 2),
+      JSON.stringify(
+        matches.map(({ name }) => name),
+        null,
+        2,
+      ),
     );
     if (_filter && _filter.sorter && _filter.limit) {
       _logger.log('silly', 'Using given filtering heuristic on the products...');
@@ -187,6 +194,7 @@ export const Forms = {
   cart,
   parseForm,
   backupForm,
+  FormTypes,
 };
 
 export { pickVariant };

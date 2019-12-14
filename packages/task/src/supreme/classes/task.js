@@ -2,7 +2,7 @@ import { Task, Regions } from '../constants';
 import getHeaders, { getRegion, Forms, pickVariant } from '../utils';
 import { Utils, Bases, Classes, Constants } from '../../common';
 
-const { cart, backupForm, parseForm } = Forms;
+const { cart, backupForm, parseForm, FormTypes } = Forms;
 const { Task: TaskConstants, Platforms } = Constants;
 const { States } = Task;
 const { Events } = TaskConstants;
@@ -157,24 +157,19 @@ export default class TaskPrimitive extends BaseTask {
 
       const { jar, task } = this.context;
 
-      return body.map(({ name, value }) => jar.setCookieSync(`${name}=${value};`, task.store.url));
+      await body.map(({ name, value }) => jar.setCookieSync(`${name}=${value};`, task.store.url));
+
+      return true;
     } catch (err) {
       throw err;
     }
   }
 
-  async generateForm() {
+  async generateForm(type) {
     const { NEBULA_FORM_API } = process.env;
 
-    const {
-      profile: { billing, payment },
-      product: {
-        variant: { id: size },
-      },
-    } = this.context.task;
-
     try {
-      const res = await this._fetch(`${NEBULA_FORM_API}/${this._region}`);
+      const res = await this._fetch(`${NEBULA_FORM_API}/${this._region}/${type}`);
 
       if (!res.ok) {
         const error = new Error('Unable to fetch form');
@@ -184,7 +179,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const form = await res.json();
 
-      this._form = await parseForm(form, billing, payment, size);
+      this._form = await parseForm(form, type, this.context.task);
       return true;
     } catch (error) {
       return false;
@@ -217,6 +212,14 @@ export default class TaskPrimitive extends BaseTask {
       Events.TaskStatus,
     );
 
+    if (!this._form) {
+      const generated = await this.generateForm(FormTypes.Cart);
+
+      if (!generated) {
+        this._form = cart(s, st, this._region);
+      }
+    }
+
     if (!this._pooky) {
       try {
         this._pooky = await this.generatePooky(this._region);
@@ -233,7 +236,7 @@ export default class TaskPrimitive extends BaseTask {
           ...getHeaders(),
           'content-type': 'application/x-www-form-urlencoded',
         },
-        body: cart(s, st, this._region),
+        body: this._form,
       });
 
       if (!res.ok) {
@@ -246,7 +249,6 @@ export default class TaskPrimitive extends BaseTask {
       this.context.timers.checkout.start(new Date().getTime());
 
       const body = await res.json();
-
       if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
         emitEvent(
           this.context,
@@ -271,6 +273,7 @@ export default class TaskPrimitive extends BaseTask {
         return States.ADD_TO_CART;
       }
 
+      this._form = null; // reset atc form
       if (captcha && !this.context.captchaToken) {
         return States.CAPTCHA;
       }
@@ -313,7 +316,7 @@ export default class TaskPrimitive extends BaseTask {
       case 'pending': {
         // waiting for token, sleep for 1s and then return same state to check again
         if (!this._form) {
-          this.generateForm();
+          this.generateForm(FormTypes.Checkout);
         }
         await new Promise(resolve => setTimeout(resolve, 1000));
         return States.CAPTCHA;
@@ -373,7 +376,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!this._form) {
-      const generated = await this.generateForm();
+      const generated = await this.generateForm(FormTypes.Checkout);
 
       if (!generated) {
         const profileInfo = matches ? shipping : billing;
@@ -483,6 +486,7 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
+        this._pooky = false;
         return States.SUBMIT_CHECKOUT;
       }
 

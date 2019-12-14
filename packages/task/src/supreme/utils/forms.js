@@ -3,107 +3,147 @@ import phoneFormatter from 'phone-formatter';
 
 import { Regions } from '../constants';
 
+export const Forms = {
+  Cart: 'Cart',
+  Checkout: 'Checkout',
+};
+
 export const cart = (size, style, region) => {
   switch (region) {
     case Regions.EU:
       return `size=${size}&style=${style}&qty=1`;
     default:
-      return `s=${size}&st=${style}&qty=1`;
+      return `s=${size}&st=${style}&ds=bog&qty=1`;
   }
 };
 
-export const parseForm = async (form, billing, payment, size) => {
-  const { firstName, lastName, address, apt, city, country, province, zip, phone } = billing;
-  const { card, email, exp, cvv } = payment;
+export const parseForm = async (form, type, task) => {
+  let data = [];
+  switch (type) {
+    case Forms.Cart: {
+      const {
+        product: {
+          id: st,
+          variant: { id: s },
+        },
+      } = task;
 
-  let countryValue;
-  switch (country.value) {
-    case 'US': {
-      countryValue = 'USA';
+      data = await form.map(({ name, value }) => {
+        if (/s/.test(name) && !/st|ds/.test(name)) {
+          return `${name}=${s}&`;
+        }
+
+        if (/st/.test(name)) {
+          return `${name}=${st}&`;
+        }
+
+        return `${name}=${value}&`;
+      });
       break;
     }
-    case 'CA': {
-      countryValue = 'CANADA';
+
+    case Forms.Checkout: {
+      const {
+        profile: { billing, payment },
+        product: {
+          variant: { id: size },
+        },
+      } = task;
+
+      const { firstName, lastName, address, apt, city, country, province, zip, phone } = billing;
+      const { card, email, exp, cvv } = payment;
+
+      let countryValue;
+      switch (country.value) {
+        case 'US': {
+          countryValue = 'USA';
+          break;
+        }
+        case 'CA': {
+          countryValue = 'CANADA';
+          break;
+        }
+        default: {
+          countryValue = billing.country.value;
+          break;
+        }
+      }
+
+      let month = payment.exp.slice(0, 2);
+      if (month.length !== 2) {
+        month = `0${month}`;
+      }
+
+      data = await form.map(({ name, friendly, value }) => {
+        if (friendly) {
+          if (/name/i.test(friendly)) {
+            return `${encodeURI(name)}=${firstName} ${lastName}&`;
+          }
+
+          if (/email/i.test(friendly)) {
+            return `${encodeURI(name)}=${encodeURIComponent(email)}&`;
+          }
+
+          if (/phone/i.test(friendly)) {
+            return `${encodeURI(name)}=${phoneFormatter.format(phone, 'NNN-NNN-NNNN')}&`;
+          }
+
+          if (/address/i.test(friendly)) {
+            return `${encodeURI(name)}=${address}&`;
+          }
+
+          if (/apt/i.test(friendly)) {
+            return `${encodeURI(name)}=${apt || ''}&`;
+          }
+
+          if (/zip/i.test(friendly)) {
+            return `${encodeURI(name)}=${zip}&`;
+          }
+
+          if (/city/i.test(friendly)) {
+            return `${encodeURI(name)}=${city}&`;
+          }
+
+          if (/province/i.test(friendly)) {
+            return `${encodeURI(name)}=${province ? province.value : ''}&`;
+          }
+
+          if (/country/i.test(friendly)) {
+            return `${encodeURI(name)}=${countryValue}&`;
+          }
+
+          if (/card/i.test(friendly)) {
+            return `${encodeURI(name)}=${card.match(/.{1,4}/g).join('+')}&`;
+          }
+
+          if (/month/i.test(friendly)) {
+            return `${encodeURI(name)}=${month}&`;
+          }
+
+          if (/year/i.test(friendly)) {
+            return `${encodeURI(name)}=${`20${exp.slice(3, 5)}`}&`;
+          }
+
+          if (/cvv/i.test(friendly)) {
+            return `${encodeURI(name)}=${cvv}&`;
+          }
+        }
+
+        if (/cookie-sub/i.test(name)) {
+          // eslint-disable-next-line prettier/prettier
+        return `${name}=${encodeURIComponent(encodeURIComponent(JSON.stringify({[size]:1})))}&`;
+        }
+
+        return `${name}=${value}&`;
+      });
       break;
     }
-    default: {
-      countryValue = billing.country.value;
+
+    default:
       break;
-    }
   }
 
-  let month = payment.exp.slice(0, 2);
-  if (month.length !== 2) {
-    month = `0${month}`;
-  }
-
-  let data = await form.map(({ name, friendly, value }) => {
-    if (friendly) {
-      if (/name/i.test(friendly)) {
-        return `${encodeURI(name)}=${firstName} ${lastName}&`;
-      }
-
-      if (/email/i.test(friendly)) {
-        return `${encodeURI(name)}=${encodeURIComponent(email)}&`;
-      }
-
-      if (/phone/i.test(friendly)) {
-        return `${encodeURI(name)}=${phoneFormatter.format(phone, 'NNN-NNN-NNNN')}&`;
-      }
-
-      if (/address/i.test(friendly)) {
-        return `${encodeURI(name)}=${address}&`;
-      }
-
-      if (/apt/i.test(friendly)) {
-        return `${encodeURI(name)}=${apt || ''}&`;
-      }
-
-      if (/zip/i.test(friendly)) {
-        return `${encodeURI(name)}=${zip}&`;
-      }
-
-      if (/city/i.test(friendly)) {
-        return `${encodeURI(name)}=${city}&`;
-      }
-
-      if (/province/i.test(friendly)) {
-        return `${encodeURI(name)}=${province ? province.value : ''}&`;
-      }
-
-      if (/country/i.test(friendly)) {
-        return `${encodeURI(name)}=${countryValue}&`;
-      }
-
-      if (/card/i.test(friendly)) {
-        return `${encodeURI(name)}=${card.match(/.{1,4}/g).join('+')}&`;
-      }
-
-      if (/month/i.test(friendly)) {
-        return `${encodeURI(name)}=${month}&`;
-      }
-
-      if (/year/i.test(friendly)) {
-        return `${encodeURI(name)}=${`20${exp.slice(3, 5)}`}&`;
-      }
-
-      if (/cvv/i.test(friendly)) {
-        return `${encodeURI(name)}=${cvv}&`;
-      }
-    }
-
-    if (/cookie-sub/i.test(name)) {
-      // eslint-disable-next-line prettier/prettier
-      return `${name}=${encodeURIComponent(encodeURIComponent(JSON.stringify({[size]:1})))}&`;
-    }
-
-    return `${name}=${value}&`;
-  });
-
-  data = data.join('');
-
-  data = data.replace(/\s/g, '+');
-
+  data = data.join('').replace(/\s/g, '+');
   if (data.endsWith('&')) {
     data = data.slice(0, -1);
   }

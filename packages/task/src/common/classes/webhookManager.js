@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 import Discord from './discord';
 import Slack from './slack';
 import { Task } from '../constants';
@@ -65,30 +67,23 @@ export default class WebhookManager {
     return this._webhooks.delete(id);
   }
 
-  // send hooks here..
-  notify(embed) {
-    const interval = setInterval(async () => {
-      try {
-        // eslint-disable-next-line no-restricted-syntax
-        for (const [id, client] of this._webhooks.entries()) {
-          let sanitized = embed;
-          if (id === process.env.NEBULA_ENV_WEBHOOK_ID) {
-            if (!sanitized.success) {
-              return;
-            }
-            sanitized = WebhookManager.sanitize(embed);
-          }
-          // eslint-disable-next-line no-await-in-loop
-          const toSend = await client.build(sanitized);
-          // eslint-disable-next-line no-await-in-loop
+  async notify(webhooks, embed) {
+    try {
+      for (const [id, client] of webhooks.entries()) {
+        if (id === process.env.NEBULA_ENV_WEBHOOK_ID && embed.success) {
+          const toSend = await client.build(WebhookManager.sanitize(embed));
+          await client.send(toSend);
+        } else if (id !== process.env.NEBULA_ENV_WEBHOOK_ID) {
+          const toSend = await client.build(embed);
           await client.send(toSend);
         }
-        clearInterval(interval);
-      } catch (e) {
-        this._logger.error('Error sending webhook! %j', e);
-        this.notify(embed);
+        webhooks.delete(id);
       }
-    }, 2500);
+    } catch (e) {
+      this._logger.error('Error sending webhook! %j', e);
+      // recursively call notify again to finish emitting the webhooks
+      this.notify(webhooks, embed);
+    }
   }
 
   insert(datum) {
@@ -100,7 +95,7 @@ export default class WebhookManager {
   async send() {
     this._logger.debug('Queue length: %j', this._queue.length);
     if (this._queue.length) {
-      return this.notify(this._queue.pop());
+      return this.notify(new Map(this._webhooks), this._queue.pop());
     }
     return null;
   }
@@ -117,7 +112,8 @@ export default class WebhookManager {
       order: { number: '#123123', url: 'https://example.com' },
       profile: 'Test Profile',
       size: 'Random',
-      image: 'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
+      image:
+        'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
     };
 
     let client;
