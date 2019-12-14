@@ -68,30 +68,32 @@ export default class TaskPrimitive extends BaseTask {
 
   async generateCookies() {
     //Basically just edited version of getPooky for now, very incomplete
-    const { jar, task } = this._context;
+    const { jar, task, logger } = this._context;
     const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
 
     try {
-      const res = await this._fetch(
-        `${NEBULA_API_BASE}?key=${NEBULA_API_UUID}&storeurl=${task.store.url}`,
-      );
+      // const res = await this._fetch(
+      //   `${NEBULA_API_BASE}?key=${NEBULA_API_UUID}&storeurl=${task.store.url}`,
+      // );
 
-      if (!res.ok) {
-        const error = new Error('Unable to fetch cookies');
-        error.status = res.status || res.errno;
-        throw error;
-      }
+      // if (!res.ok) {
+      //   const error = new Error('Unable to fetch cookies');
+      //   error.status = res.status || res.errno;
+      //   throw error;
+      // }
 
-      const body = await res.json();
-      if (!body || (body && !body.length)) {
-        const error = new Error('Invalid cookie list');
-        error.status = res.status || res.errno;
-        throw error;
-      }
+      // const body = await res.json();
+      // if (!body || (body && !body.length)) {
+      //   const error = new Error('Invalid cookie list');
+      //   error.status = res.status || res.errno;
+      //   throw error;
+      // }
 
-      return body.map(({ name, value }) => jar.setCookieSync(`${name}=${value};`, task.store.url));
+      // return body.map(({ name, value }) => jar.setCookieSync(`${name}=${value};`, task.store.url));
+      return jar.setCookieSync('_abck=5DD2B7318E2F2F9E3BEBDF6CB117647A~-1~YAAQdPJUuBy4I/1uAQAACQudAAO7TK6tdR9kVhhpVREo8SAfXXTTv4AKSKlx2whIPTcPj6ImPL5/KAn5LPGMEzbkNnYFtsXIxmj/5GGsg7Gvzn0kT/koDSFgUGZUW7OqJpyj5N0N6siwK8HxVn3nlRYhhb6tvrBA7hz9omxNqzn6y2WqagaBuM+W1RGmQTA/DXMPLD81YuzgiDVr2k9KuRBq+IB9yppbL/aPDjIS/mIVfRlulSLeugcjdQkI/D15R9vaCwMSCIWbBJTPg57xpzSGao4hUCFOA6dt1vzxfgz0DDm8NEOFvp/IR1CgdA==~-1~-1~-1', task.store.url);
     } catch (e) {
-      throw e;
+      logger.debug(e);
+      this._handleError(e, States.ADD_TO_CART);
     }
   }
 
@@ -133,6 +135,7 @@ export default class TaskPrimitive extends BaseTask {
       
       return body.data.csrfToken;
     } catch (e) {
+      logger.debug(e);
       return this._handleError(e, States.ADD_TO_CART);
     }
   }
@@ -144,8 +147,8 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
-    logger.silly("Test" + this._context.task.product.id);
-    if (typeof this._context.task.product.id !== undefined) {
+    logger.silly("Test 1");
+    if (typeof this._context.task.product.id !== 'undefined') {
       logger.debug('Chose variant: %j', this._context.task.product);
       this._context.setProductFound(true);
       return States.ADD_TO_CART;
@@ -185,10 +188,11 @@ export default class TaskPrimitive extends BaseTask {
       };
 
       logger.silly(typeof postData.productId);
-
+      let cookie = await this.generateCookies();
       let csrf = await this.getCSRF();
       logger.debug(postData);
       // incomplete but will send ATC request
+      // logger.debug(await this._context.jar.cookieString());
       let res = await this._fetch(`/api/users/carts/current/entries?timestamp=${Date.now()}`, {
         method: 'POST',
         headers: {
@@ -196,6 +200,7 @@ export default class TaskPrimitive extends BaseTask {
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
           'content-type': 'application/json',
+          'cookie': this._context.jar.cookieString(),
           'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36',
           'x-csrf-token': csrf,
           'x-fl-productid': task.product.id,
@@ -220,6 +225,8 @@ export default class TaskPrimitive extends BaseTask {
       if (body) {
         return States.DONE;
       }
+
+      return States.DONE;
 
     } catch (e) {
       logger.silly(e);
