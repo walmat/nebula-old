@@ -22,14 +22,13 @@ export default class TaskPrimitive extends BaseTask {
   constructor(context, platform = Platforms.Shopify) {
     super(context, platform);
 
-    this._needsLogin = this.context.task.account || false;
     this._state = States.STARTED;
     this._prevState = this._state;
 
     // decide what our start state should be!
     if (!this.context.task.store.apiKey) {
       this._state = States.GATHER_DATA;
-    } else if (this._needsLogin) {
+    } else if (this.context.task.account) {
       this._state = States.LOGIN;
     } else if (this.context.task.type === Modes.FAST) {
       this._state = States.CREATE_CHECKOUT;
@@ -57,19 +56,11 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     // checkout specific globals
-    this._cartForm = '';
     this._paymentToken = null;
-    this._checkoutUrl = null;
-    this._redirectUrl = null;
-    this._checkoutToken = null;
+    this._checkoutHash = null;
     this._checkoutKey = null;
     this._storeId = null;
-
-    // safe mode includes
-    this._checkpointForm = '';
-    this._formValues = '';
-    this._isFreeCheckout = false;
-    this._isRestocking = false;
+    this._form = null;
   }
 
   async _handleLogin() {
@@ -2190,8 +2181,6 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       if (body.checkout && body.checkout.line_items && body.checkout.line_items.length) {
-        const { total_price: totalPrice } = body.checkout;
-
         this.context.task.product.name = body.checkout.line_items[0].title;
         this.context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
           ? body.checkout.line_items[0].image_url
@@ -6268,6 +6257,3 @@ export default class TaskPrimitive extends BaseTask {
     return handler.call(this);
   }
 }
-
-TaskPrimitive.Events = Events;
-TaskPrimitive.States = States;

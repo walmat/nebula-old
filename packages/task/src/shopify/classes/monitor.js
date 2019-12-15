@@ -103,7 +103,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     // Return the winner of the race
     return rfrl(
       parsers.map(p => p.run()),
-      'parseAll',
+      'parse',
     );
   }
 

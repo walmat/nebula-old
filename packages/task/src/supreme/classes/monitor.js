@@ -205,38 +205,8 @@ export default class MonitorPrimitive extends BaseMonitor {
         throw error;
       }
 
-      const matchedVariation = await matchVariation(styles, variation, logger);
+      this.context.task.product.styles = styles;
 
-      if (!matchedVariation) {
-        emitEvent(
-          this.context,
-          this.context.ids,
-          {
-            message: 'No variation matched!',
-          },
-          Events.MonitorStatus,
-        );
-        const error = new Error('No Product Styles');
-        error.status = 404;
-        throw error;
-      }
-
-      task.product.id = matchedVariation.id;
-      task.product.variants = matchedVariation.sizes;
-      task.product.currency = matchedVariation.currency;
-      task.product.image = matchedVariation.image_url;
-      task.product.chosenVariation = matchedVariation.name;
-
-      const { name } = task.product;
-      emitEvent(
-        this.context,
-        this.context.ids,
-        {
-          message: `Product found: ${name}`,
-          productName: `${name} / ${matchedVariation.name}`,
-        },
-        Events.MonitorStatus,
-      );
       return States.DONE;
     } catch (error) {
       return this._handleError(error, States.STOCK);

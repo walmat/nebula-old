@@ -17,13 +17,13 @@ export const cart = (size, style, region) => {
   }
 };
 
-export const parseForm = async (form, type, task) => {
+export const parseForm = async (form, type, product, task) => {
   let data = [];
   switch (type) {
     case Forms.Cart: {
+      const { id: st } = product;
       const {
         product: {
-          id: st,
           variant: { id: s },
         },
       } = task;

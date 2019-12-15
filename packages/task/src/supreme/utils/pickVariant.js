@@ -2,12 +2,11 @@ import { Utils } from '../../common';
 
 const { getRandomIntInclusive } = Utils;
 
-export default context => {
+export default (product, context) => {
+  const { variants, randomInStock } = product;
+
   const {
-    task: {
-      product: { variants, randomInStock },
-      size,
-    },
+    task: { size },
     logger,
   } = context;
 
