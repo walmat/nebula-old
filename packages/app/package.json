@@ -1,6 +1,6 @@
 {
   "name": "@nebula/orion",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "private": true,
   "main": "./dist/_electron/electron.js",
   "homepage": "./",
@@ -22,7 +22,7 @@
     "afterinstall": "electron-builder install-app-deps",
     "clean": "rimraf build dist",
     "compile": "yarn run build",
-    "pack": "electron-builder -w --publish never",
+    "pack": "electron-builder -m --publish never",
     "dist": "electron-builder -mw --publish always",
     "deploy": "run-s clean compile pack",
     "publish": "run-s clean compile dist",
