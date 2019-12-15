@@ -132,7 +132,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       logger.debug(body.data.csrfToken);
-      
+
       return body.data.csrfToken;
     } catch (e) {
       logger.debug(e);
@@ -189,23 +189,24 @@ export default class TaskPrimitive extends BaseTask {
 
       logger.silly(typeof postData.productId);
       let cookie = await this.generateCookies();
-      let csrf = await this.getCSRF();
+      const csrf = await this.getCSRF();
       logger.debug(postData);
       // incomplete but will send ATC request
       // logger.debug(await this._context.jar.cookieString());
-      let res = await this._fetch(`/api/users/carts/current/entries?timestamp=${Date.now()}`, {
+      const res = await this._fetch(`/api/users/carts/current/entries?timestamp=${Date.now()}`, {
         method: 'POST',
         headers: {
-          'accept': 'application/json',
+          accept: 'application/json',
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
           'content-type': 'application/json',
-          'cookie': this._context.jar.cookieString(),
-          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36',
+          cookie: this._context.jar.cookieString(),
+          'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36',
           'x-csrf-token': csrf,
           'x-fl-productid': task.product.id,
         },
-        body: JSON.stringify(postData)
+        body: JSON.stringify(postData),
       });
 
       logger.debug('got response');
@@ -227,7 +228,6 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       return States.DONE;
-
     } catch (e) {
       logger.silly(e);
       return this._handleError(e, States.ADD_TO_CART);

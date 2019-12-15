@@ -75,10 +75,10 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     logger.silly("Test 1");
-    if (typeof this._context.task.product.id !== 'undefined') {
+    if (typeof this._context.task.product.b !== 'undefined') {
       logger.debug('Chose variant: %j', this._context.task.product);
       this._context.setProductFound(true);
-      return States.WAIT_FOR_PRODUCT;
+      return States.DONE;
     }
     // return States.ADD_TO_CART;
 
