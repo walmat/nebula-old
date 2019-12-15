@@ -13,7 +13,6 @@ const { bindDebugEvents } = require('./debug');
 nebulaEnv.setUpEnvironment();
 
 Error.stackTraceLimit = 100; // https://v8.dev/docs/stack-trace-api
-
 require('v8-compile-cache');
 
 /**
@@ -178,11 +177,6 @@ class App {
     clearInterval(this._loggerInterval);
     this._rpcInterval = null;
     this._loggerInterval = null;
-
-    const session = await this._authManager.getSession();
-    if (session && !nebulaEnv.isDevelopment()) {
-      await this._authManager.removeActiveSession();
-    }
   }
 
   /**

@@ -87,10 +87,10 @@ export class App extends PureComponent {
     this.forceUpdate();
   }
 
-  taskHandler(_, statusMessageBuffer) {
+  taskHandler(_, statusMessages) {
     const { store } = this.props;
-    if (!isEmpty(statusMessageBuffer)) {
-      store.dispatch(taskActions.message(statusMessageBuffer));
+    if (!isEmpty(statusMessages)) {
+      store.dispatch(taskActions.message(statusMessages));
     }
   }
 

@@ -55,6 +55,7 @@
     "react-hot-loader": "^4.12.18",
     "react-loader-spinner": "^2.3.0",
     "react-modal": "^3.11.1",
+    "react-modal-image": "^2.5.0",
     "react-number-format": "^4.0.8",
     "react-redux": "^7.1.0",
     "react-router-dom": "^5.0.1",

@@ -89,7 +89,11 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (this.context.task.product.styles) {
-      const matchedVariation = await matchVariation(this.context.task.product.styles, this.context.task.product.variation, logger);
+      const matchedVariation = await matchVariation(
+        this.context.task.product.styles,
+        this.context.task.product.variation,
+        logger,
+      );
       if (!matchedVariation) {
         emitEvent(
           this.context,
@@ -130,7 +134,10 @@ export default class TaskPrimitive extends BaseTask {
         this.context,
         [this.context.id],
         {
-          productImage: this._product.image,
+          productImage: `${this._product.image}`.startsWith('http')
+            ? this._product.image
+            : `https:${this._product.image}`,
+          productImageHi: `${matchedVariation.image_url}`.startsWith('http') ? matchedVariation.image_url : `https:${matchedVariation.image_url}`,
           productName: `${this.context.task.product.name} / ${this._product.chosenVariation}`,
           chosenSize: variant.name,
         },
@@ -607,10 +614,7 @@ export default class TaskPrimitive extends BaseTask {
           webhookManager,
         } = this.context;
 
-        const {
-          image,
-          currency,
-        } = this._product;
+        const { image, currency } = this._product;
 
         if (!this._sentWebhook) {
           this._sentWebhook = true;
@@ -660,10 +664,7 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
-        const {
-          image,
-          currency,
-        } = this._product;
+        const { image, currency } = this._product;
 
         const {
           task: {

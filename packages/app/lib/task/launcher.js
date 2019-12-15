@@ -234,10 +234,10 @@ class TaskLauncher {
     }
   }
 
-  _taskEventHandler(_, statusMessageBuffer) {
+  _taskEventHandler(_, statusMessages) {
     // forward event if we have listeners
     if (this._eventListeners.length > 0) {
-      Promise.all(this._eventListeners.map(l => l.send(_TASK_EVENT_KEY, statusMessageBuffer)));
+      Promise.all(this._eventListeners.map(l => l.send(_TASK_EVENT_KEY, statusMessages)));
     }
   }
 
@@ -284,18 +284,10 @@ class TaskLauncher {
   }
 
   _addEventListener(listener) {
-    // Don't do anything if we haven't launched yet
-    if (!this._launcherWindow) {
-      return;
-    }
     this._eventListeners.push(listener);
   }
 
   _removeEventListener(listener) {
-    // Don't do anything if we haven't launched yet
-    if (!this._launcherWindow) {
-      return;
-    }
     this._eventListeners = this._eventListeners.filter(l => l !== listener);
   }
 

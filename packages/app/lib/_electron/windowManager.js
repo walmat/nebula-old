@@ -38,12 +38,6 @@ class WindowManager {
     this._windows = new Map();
 
     /**
-     * About dialog.
-     * @type {BrowserWindow}
-     */
-    this._aboutDialog = null;
-
-    /**
      * Main Window
      * @type {BrowserWindow}
      */
@@ -255,9 +249,7 @@ class WindowManager {
       this._windows.delete(winId);
       this._notifyUpdateWindowIDs(winId);
 
-      if (this._aboutDialog && winId === this._aboutDialog.id) {
-        this._aboutDialog = null;
-      } else if (this._main && winId === this._main.id) {
+      if (this._main && winId === this._main.id) {
         // Stop the task launcher when the main window closes
         this._context.taskLauncher.stop();
         await this._captchaWindowManager.freeAllSessions();

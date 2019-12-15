@@ -162,9 +162,9 @@ class TaskManagerAdapter {
 }
 
 process.once('loaded', () => {
+  let tma = null;
   ipcRenderer.once('LOG_PATH', (_, logPath) => {
     console.log(`Received log path: ${logPath}`);
-    // eslint-disable-next-line no-unused-vars
-    const tma = new TaskManagerAdapter(logPath);
+    tma = new TaskManagerAdapter(logPath);
   });
 });

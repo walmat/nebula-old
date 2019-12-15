@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import Img from 'react-cool-img';
+import ModalImage from 'react-modal-image';
 import PropTypes from 'prop-types';
 
 import { taskActions } from '../../../store/actions';
@@ -38,11 +38,12 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
           title={task.productName || task.product.raw}
         >
           {task.productImage ? (
-            <Img
+            <ModalImage
               className="col col--no-gutter tasks-row__product--image"
-              style={{ backgroundColor: 'grey' }}
-              debounce={1000}
-              src={task.productImage}
+              small={task.productImage}
+              large={task.productImageHi}
+              hideDownload
+              hideZoom
               alt=""
             />
           ) : null}
