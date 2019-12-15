@@ -54,20 +54,5 @@
     "prettier": "^1.18.2",
     "wait-on": "^3.2.0",
     "yarn": "^1.19.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.(json|ya?ml|css[34]?|md(own)?|less|s[ac]ss|gql|html?)": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.jsx?": [
-      "eslint --no-ignore --fix",
-      "git add"
-    ]
   }
 }

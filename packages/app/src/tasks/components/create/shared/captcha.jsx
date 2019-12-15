@@ -6,14 +6,16 @@ import PropTypes from 'prop-types';
 import Switch from 'react-switch';
 
 import { TASK_FIELDS, taskActions } from '../../../../store/actions';
+import { makeTheme } from '../../../../app/state/selectors';
 import { makeCurrentTask } from '../../../state/selectors';
+import { THEMES } from '../../../../constants';
 
-const ForceCaptcha = ({ captcha, onToggle }) => (
-  <div className="col col--start col--expand" style={{ marginTop: 8 }}>
+const ForceCaptcha = ({ theme, captcha, onToggle }) => (
+  <div className="col col--start col--expand" style={{ marginTop: 4 }}>
     <Switch
       checked={captcha}
       checkedIcon={
-        <svg width="16" height="16" viewBox="-4 -3 16 16" version="1.1">
+        <svg width="48" height="48" viewBox="-2 -2 24 24" version="1.1">
           <g id="surface1">
             <path
               style={{
@@ -46,25 +48,27 @@ const ForceCaptcha = ({ captcha, onToggle }) => (
         </svg>
       }
       onChange={() => onToggle()}
-      onColor="#ced46e"
-      onHandleColor="#F68E5F"
-      handleDiameter={14}
+      onColor={theme === THEMES.LIGHT ? '#dcdcdc' : '#2c2f33'}
+      onHandleColor="#6d6e70"
+      handleDiameter={18}
       uncheckedIcon={false}
       boxShadow="0px 1px 5px rgba(0, 0, 0, 0.6)"
       activeBoxShadow="0px 0px 1px 10px rgba(0, 0, 0, 0.2)"
-      height={14}
-      width={28}
+      height={24}
+      width={48}
       className="react-switch"
     />
   </div>
 );
 
 ForceCaptcha.propTypes = {
+  theme: PropTypes.string.isRequired,
   onToggle: PropTypes.func.isRequired,
   captcha: PropTypes.bool.isRequired,
 };
 
 export const mapStateToProps = state => ({
+  theme: makeTheme(state),
   captcha: makeCurrentTask(state).captcha,
 });
 
@@ -74,7 +78,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ForceCaptcha);
+export default connect(mapStateToProps, mapDispatchToProps)(ForceCaptcha);
