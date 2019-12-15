@@ -3,7 +3,7 @@ const Platforms = {
   Footsites: 'Footsites',
   Supreme: 'Supreme',
   Mesh: 'Mesh',
-  YS: 'YS',
+  YeezySupply: 'YeezySupply',
   Other: 'Other',
 };
 
@@ -13,7 +13,7 @@ export const platformForStore = url => {
   }
 
   if (/yeezysupply/i.test(url)) {
-    return Platforms.YS;
+    return Platforms.YeezySupply;
   }
 
   if(/champs|footlocker|footaction/i.test(url)) {

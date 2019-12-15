@@ -35,6 +35,7 @@ const Platforms = {
   Footsites: 'Footsites',
   Supreme: 'Supreme',
   Mesh: 'Mesh',
+  YeezySupply: 'YeezySupply'
 };
 
 const ErrorCodes = {
