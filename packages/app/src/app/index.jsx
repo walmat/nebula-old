@@ -66,7 +66,7 @@ export class App extends PureComponent {
 
     const runningTasks = tasks.filter(t => t.state === States.Running);
     if (runningTasks && runningTasks.length) {
-      store.dispatch(taskActions.stopAll(runningTasks));
+      store.dispatch(taskActions.stop(runningTasks));
     }
     if (window.Bridge) {
       window.Bridge.deregisterForTaskEvents(this.taskHandler);

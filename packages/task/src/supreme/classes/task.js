@@ -184,7 +184,7 @@ export default class TaskPrimitive extends BaseTask {
 
       return true;
     } catch (err) {
-      throw err;
+      return false;
     }
   }
 
@@ -269,7 +269,7 @@ export default class TaskPrimitive extends BaseTask {
         throw error;
       }
 
-      // start the padding timer...
+      // start the checkout padding timer...
       this.context.timers.checkout.start(new Date().getTime());
 
       const body = await res.json();

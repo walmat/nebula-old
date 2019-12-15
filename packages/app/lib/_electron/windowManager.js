@@ -416,8 +416,8 @@ class WindowManager {
    *
    * Forward call to Captcha Window Manager
    */
-  startHarvestingCaptcha(id, siteKey, host) {
-    this._captchaWindowManager.startHarvesting(id, siteKey, host);
+  startHarvestingCaptcha(id, sitekey, host) {
+    this._captchaWindowManager.startHarvesting(id, sitekey, host);
   }
 
   /**
@@ -425,8 +425,8 @@ class WindowManager {
    *
    * Forward call to Captcha Window Manager
    */
-  stopHarvestingCaptcha(id, siteKey) {
-    this._captchaWindowManager.stopHarvesting(id, siteKey);
+  stopHarvestingCaptcha(id, sitekey) {
+    this._captchaWindowManager.stopHarvesting(id, sitekey);
   }
 
   /**
