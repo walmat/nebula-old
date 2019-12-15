@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import Img from 'react-cool-img';
 import PropTypes from 'prop-types';
 
 import { taskActions } from '../../../store/actions';
@@ -36,7 +37,26 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
           }
           title={task.productName || task.product.raw}
         >
-          {task.productName ? task.productName : `${task.product.raw} / ${task.product.variation}`}
+          {task.productImage ? (
+            <Img
+              className="col col--no-gutter tasks-row__product--image"
+              style={{ backgroundColor: 'grey' }}
+              debounce={1000}
+              src={task.productImage}
+              alt=""
+            />
+          ) : null}
+          <p
+            className={
+              task.productImage
+                ? 'col col--no-gutter tasks-row__product--clearfix'
+                : 'col col--no-gutter'
+            }
+          >
+            {task.productName
+              ? task.productName
+              : `${task.product.raw} / ${task.product.variation}`}
+          </p>
         </div>
         <div className="col col--no-gutter tasks-row__store">
           {task.store ? task.store.name : 'None'}

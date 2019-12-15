@@ -1,5 +1,5 @@
 import { Task, Regions } from '../constants';
-import getHeaders, { getRegion, Forms, pickVariant } from '../utils';
+import getHeaders, { getRegion, Forms, pickVariant, matchVariation } from '../utils';
 import { Utils, Bases, Classes, Constants } from '../../common';
 
 const { cart, backupForm, parseForm, FormTypes } = Forms;
@@ -17,6 +17,7 @@ export default class TaskPrimitive extends BaseTask {
 
     // internals
     this._sentWebhook = false;
+    this._product = null;
     this._state = States.WAIT_FOR_PRODUCT;
     this._prevState = this._state;
     this._timer = new Timer();
@@ -87,9 +88,29 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
-    if (this.context.task.product.variants) {
-      const variant = await pickVariant(this.context);
-      // maybe we should loop back around?
+    if (this.context.task.product.styles) {
+      const matchedVariation = await matchVariation(this.context.task.product.styles, this.context.task.product.variation, logger);
+      if (!matchedVariation) {
+        emitEvent(
+          this.context,
+          [this.context.ud],
+          {
+            message: 'No variation matched',
+          },
+          Events.TaskStatus,
+        );
+        return States.ERROR;
+      }
+
+      this._product = {
+        id: matchedVariation.id,
+        variants: matchedVariation.sizes,
+        currency: matchedVariation.currency,
+        image: matchedVariation.swatch_url_hi || matchedVariation.image_url,
+        chosenVariation: matchedVariation.name,
+      };
+
+      const variant = await pickVariant(this._product, this.context);
       if (!variant) {
         emitEvent(
           this.context,
@@ -109,6 +130,8 @@ export default class TaskPrimitive extends BaseTask {
         this.context,
         [this.context.id],
         {
+          productImage: this._product.image,
+          productName: `${this.context.task.product.name} / ${this._product.chosenVariation}`,
           chosenSize: variant.name,
         },
         Events.TaskStatus,
@@ -179,7 +202,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const form = await res.json();
 
-      this._form = await parseForm(form, type, this.context.task);
+      this._form = await parseForm(form, type, this._product, this.context.task);
       return true;
     } catch (error) {
       return false;
@@ -194,9 +217,10 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
+    const { id: st } = this._product;
+
     const {
       product: {
-        id: st,
         variant: { id: s },
       },
       monitor,
@@ -574,9 +598,7 @@ export default class TaskPrimitive extends BaseTask {
           task: {
             product: {
               name: productName,
-              image,
               price,
-              currency,
               variant: { name: size },
             },
             store: { name: storeName, url: storeUrl },
@@ -584,6 +606,11 @@ export default class TaskPrimitive extends BaseTask {
           },
           webhookManager,
         } = this.context;
+
+        const {
+          image,
+          currency,
+        } = this._product;
 
         if (!this._sentWebhook) {
           this._sentWebhook = true;
@@ -634,12 +661,15 @@ export default class TaskPrimitive extends BaseTask {
         );
 
         const {
+          image,
+          currency,
+        } = this._product;
+
+        const {
           task: {
             product: {
               name: productName,
-              image,
               price,
-              currency,
               variant: { name: size },
             },
             store: { name: storeName, url: storeUrl },

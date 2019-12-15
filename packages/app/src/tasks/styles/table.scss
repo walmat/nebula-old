@@ -121,6 +121,23 @@
           margin-left: 15px !important;
           overflow: hidden;
 
+          &--clearfix {
+            margin-left: 45px !important;
+          }
+
+          &--image {
+            width: auto;
+            height: 24px;
+            position: absolute;
+            @include themify($themes) {
+              border-color: themed('tableBorderColor');
+              box-shadow: 0 0 10px themed('liveLogTableBorderTop');
+            }
+            border-style: solid;
+            border-width: 0;
+            border-radius: 5%;
+          }
+
           &--normal {
             @include input-field;
             width: 100px;
