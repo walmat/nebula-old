@@ -74,23 +74,28 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
-    logger.silly("THIS IS IN TASKS");
+    logger.silly("Test 1");
+    if (typeof this._context.task.product.id !== 'undefined') {
+      logger.debug('Chose variant: %j', this._context.task.product);
+      this._context.setProductFound(true);
+      return States.WAIT_FOR_PRODUCT;
+    }
+    // return States.ADD_TO_CART;
 
-    // this._delayer = waitForDelay(500, this._aborter.signal);
-    // logger.silly('have not found product');
-    // await this._delayer;
+    this._delayer = waitForDelay(500, this._aborter.signal);
+    logger.silly('have not found product');
+    await this._delayer;
 
-    return States.DONE;
+    return States.WAIT_FOR_PRODUCT;
   }
 
-  async _handleWaitInSplash() {
-
-  }
+  async _handleWaitInSplash() {}
 
   async _handleStepLogic(currentState) {
     const { logger } = this._context;
 
     async function defaultHandler() {
+      logger.silly(currentState);
       throw new Error('Reached Unknown State!');
     }
 
@@ -98,7 +103,6 @@ export default class TaskPrimitive extends BaseTask {
 
     const stepMap = {
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
-      [States.IN_SPLASH]: this._handleWaitInSplash,
       [States.SWAP]: this._handleSwapProxies,
       [States.DONE]: () => States.DONE,
       [States.ERROR]: () => States.DONE,

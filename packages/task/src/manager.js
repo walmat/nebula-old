@@ -26,14 +26,14 @@ import {
   Monitor as FootsitesMonitor,
   Task as FootsitesTask,
   Discord as FootsitesDiscord,
-  Slack as FootsitesSlack
+  Slack as FootsitesSlack,
 } from './footsites';
 
 import {
   Monitor as YeezySupplyMonitor,
   Task as YeezySupplyTask,
   Discord as YeezySupplyDiscord,
-  Slack as YeezySupplySlack
+  Slack as YeezySupplySlack,
 } from './yeezysupply';
 
 const { getParseType } = Parse;
@@ -538,12 +538,12 @@ export default class TaskManager {
           logger: createLogger({
             dir: this._logPath,
             name: `Task-${id}`,
-            prefix: `task-${id}`
+            prefix: `task-${id}`,
           }),
           discord: new FootsitesDiscord(task.discord),
           slack: new FootsitesSlack(task.slack),
           proxyManager: this.proxyManager,
-          webhookManager: this.webhookManager
+          webhookManager: this.webhookManager,
         });
 
         newTask = new FootsitesTask(context);
@@ -563,10 +563,7 @@ export default class TaskManager {
               mContext.task.store.url === context.task.store.url,
             );
 
-            if (
-              isSameProduct &&
-              mContext.task.store.url === context.task.store.url
-            ) {
+            if (isSameProduct && mContext.task.store.url === context.task.store.url) {
               return m;
             }
           }
@@ -588,7 +585,6 @@ export default class TaskManager {
       }
 
       case Platforms.YeezySupply: {
-        this._logger.debug('1');
         const context = new Context({
           id,
           task,
@@ -597,12 +593,12 @@ export default class TaskManager {
           logger: createLogger({
             dir: this._logPath,
             name: `Task-${id}`,
-            prefix: `task-${id}`
+            prefix: `task-${id}`,
           }),
           discord: new YeezySupplyDiscord(task.discord),
           slack: new YeezySupplySlack(task.slack),
           proxyManager: this.proxyManager,
-          webhookManager: this.webhookManager
+          webhookManager: this.webhookManager,
         });
 
         newTask = new YeezySupplyTask(context);
@@ -622,10 +618,7 @@ export default class TaskManager {
               mContext.task.store.url === context.task.store.url,
             );
 
-            if (
-              isSameProduct &&
-              mContext.task.store.url === context.task.store.url
-            ) {
+            if (isSameProduct && mContext.task.store.url === context.task.store.url) {
               return m;
             }
           }

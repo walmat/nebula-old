@@ -1,10 +1,12 @@
+import fetch from 'node-fetch';
+
 import { Monitor } from '../constants';
 import { Bases, Constants, Utils } from '../../common';
 
 const { States } = Monitor;
 const { Platforms, Task: TaskConstants, ErrorCodes } = Constants;
 const { BaseMonitor } = Bases;
-const { emitEvent } = Utils;
+const { emitEvent, waitForDelay } = Utils;
 const { Events } = TaskConstants;
 
 export default class MonitorPrimitive extends BaseMonitor {
@@ -82,7 +84,7 @@ export default class MonitorPrimitive extends BaseMonitor {
 
   async _handleStock() {
     const { aborted, task, proxy, logger } = this.context;
-    const { product, category } = task;
+    const { product } = task;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -101,19 +103,22 @@ export default class MonitorPrimitive extends BaseMonitor {
     logger.debug('finding product');
 
     try {
-
-      const res = await this._fetch(
-        `/api/products/${product.variant}/availability`, {
+      const res = await fetch(
+        `https://yeezysupply.com/api/products/${product.variant}/availability`,
+        {
           method: 'get',
           agent: proxy ? proxy.proxy : null,
           headers: {
-            'Accept': 'application/json',
+            Accept: '*/*',
             'Accept-encoding': 'gzip, deflate, br',
             'Accept-language': 'en-US,en;q=0.9',
+            'content-type': 'application/json',
             'User-Agent':
               'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36',
           },
-        });
+          timeout: 10000,
+        },
+      );
 
       if (!res.ok) {
         const error = new Error('Error getting stock');
@@ -129,12 +134,12 @@ export default class MonitorPrimitive extends BaseMonitor {
         throw error;
       }
 
-      if (body.availability_status === "PREVIEW") {
+      if (body.availability_status === 'PREVIEW') {
         // do something when not avaliable yet
       }
 
-      if (body.availability_status === "IN_STOCK") {
-        logger.silly('found product');
+      if (body.availability_status === 'IN_STOCK') {
+        logger.silly(body);
       }
 
       return States.DONE;
@@ -156,7 +161,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     const stepMap = {
       [States.STOCK]: this._handleStock,
       [States.SWAP]: this._handleSwapProxies,
-      [States.DONE]: () => States.DONE,
+      [States.DONE]: () => States.ABORT,
       [States.ERROR]: () => States.ABORT,
       [States.ABORT]: () => States.ABORT,
     };
