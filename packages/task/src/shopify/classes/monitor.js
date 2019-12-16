@@ -126,9 +126,11 @@ export default class MonitorPrimitive extends BaseMonitor {
       return this._handleErrors(errors);
     }
 
+    console.log(parsed);
+
     logger.debug('Matched product: %s', parsed.title);
     this.context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
-    this.context.task.product.image = parsed.featured_image;
+    this.context.task.product.image = parsed.featured_image || parsed.images ? parsed.images[0].src : '';
     this.context.task.product.hash = parsed.hash || '';
     this.context.task.product.url = `${store.url}/products/${parsed.handle}`;
     this.context.task.product.name = capitalizeFirstLetter(parsed.title);
@@ -145,17 +147,6 @@ export default class MonitorPrimitive extends BaseMonitor {
         'option3',
         'option4',
       ),
-    );
-
-    const { name } = this.context.task.product;
-    emitEvent(
-      this.context,
-      this.context.ids,
-      {
-        message: `Product found: ${name}`,
-        productName: name,
-      },
-      Events.MonitorStatus,
     );
     return States.DONE;
   }
@@ -192,22 +183,8 @@ export default class MonitorPrimitive extends BaseMonitor {
         ),
       );
       logger.silly('Variants mapped! Updating context...');
-
-      // Everything is setup -- kick it off to checkout
       this.context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
-
-      const { name } = this.context.task.product;
-
-      emitEvent(
-        this.context,
-        this.context.ids,
-        {
-          message: `Product found: ${name}`,
-          productName: name,
-        },
-        Events.MonitorStatus,
-      );
-
+      
       return States.DONE;
     } catch (errors) {
       // handle parsing errors

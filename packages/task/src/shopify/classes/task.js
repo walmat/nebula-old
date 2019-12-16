@@ -61,6 +61,7 @@ export default class TaskPrimitive extends BaseTask {
     this._checkoutKey = null;
     this._storeId = null;
     this._form = null;
+    this._product = null;
   }
 
   async _handleLogin() {
@@ -1795,6 +1796,9 @@ export default class TaskPrimitive extends BaseTask {
         this.context,
         [this.context.id],
         {
+          productImage: `${this.context.task.product.image}`.startsWith('http') ? this.context.task.product.image : `https:${this.context.task.product.image}`,
+          productImageHi: `${this.context.task.product.image}`.startsWith('http') ? this.context.task.product.image : `https:${this.context.task.product.image}`,
+          productName: this.context.task.product.name,
           chosenSize: variant.option,
         },
         Events.TaskStatus,

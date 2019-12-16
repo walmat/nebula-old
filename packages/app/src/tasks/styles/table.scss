@@ -2,6 +2,11 @@
 @import '../../styles/themes';
 @import '../../styles/mixins';
 
+.__react_modal_image__medium_img {
+  min-width: 25% !important;
+  max-width: 25% !important;
+}
+
 .tasks {
   .tasks-table-container {
     flex-grow: 5;

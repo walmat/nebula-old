@@ -56,7 +56,7 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
           >
             {task.productName
               ? task.productName
-              : `${task.product.raw} / ${task.product.variation}`}
+              : task.product.variation ? `${task.product.raw} / ${task.product.variation}` : task.product.raw}
           </p>
         </div>
         <div className="col col--no-gutter tasks-row__store">

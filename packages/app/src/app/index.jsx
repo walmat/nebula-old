@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { AppContainer } from 'react-hot-loader';
+import { AppContainer, setConfig } from 'react-hot-loader';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 import { isEmpty } from 'lodash';
@@ -134,6 +134,7 @@ App.propTypes = {
   store: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
+setConfig({ showReactDomPatchNotification: false });
 const createApp = (store, props) => <App store={store} {...props} />;
 
 export default createApp;
