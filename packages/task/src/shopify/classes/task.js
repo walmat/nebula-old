@@ -20,12 +20,8 @@ const { Captcha } = Classes;
 
 export default class TaskPrimitive extends BaseTask {
   constructor(context, platform = Platforms.Shopify) {
-    super(context, platform);
+    super(context, States.STARTED, platform);
 
-    this._state = States.STARTED;
-    this._prevState = this._state;
-
-    // decide what our start state should be!
     if (!this.context.task.store.apiKey) {
       this._state = States.GATHER_DATA;
     } else if (this.context.task.account) {
@@ -1796,8 +1792,12 @@ export default class TaskPrimitive extends BaseTask {
         this.context,
         [this.context.id],
         {
-          productImage: `${this.context.task.product.image}`.startsWith('http') ? this.context.task.product.image : `https:${this.context.task.product.image}`,
-          productImageHi: `${this.context.task.product.image}`.startsWith('http') ? this.context.task.product.image : `https:${this.context.task.product.image}`,
+          productImage: `${this.context.task.product.image}`.startsWith('http')
+            ? this.context.task.product.image
+            : `https:${this.context.task.product.image}`,
+          productImageHi: `${this.context.task.product.image}`.startsWith('http')
+            ? this.context.task.product.image
+            : `https:${this.context.task.product.image}`,
           productName: this.context.task.product.name,
           chosenSize: variant.option,
         },

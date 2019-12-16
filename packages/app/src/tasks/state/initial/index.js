@@ -12,6 +12,7 @@ export const CurrentTask = {
     neg: null,
     url: null,
   },
+  schedule: null,
   captcha: false,
   profile: null,
   size: null,

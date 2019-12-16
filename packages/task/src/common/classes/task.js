@@ -25,7 +25,7 @@ export default class BaseTask {
     return this._delayer;
   }
 
-  constructor(context, platform) {
+  constructor(context, state, platform) {
     this._context = context;
     this._aborter = new AbortController();
     this._signal = this._aborter.signal;
@@ -38,6 +38,9 @@ export default class BaseTask {
       timeout: 10000, // can be overridden as necessary per request
       signal: this._aborter.signal,
     });
+
+    this._state = state;
+    this._prevState = this._state;
   }
 
   _handleHarvest(id, token) {

@@ -51,6 +51,7 @@
     "ps-list": "^6.3.0",
     "react": "^16.8",
     "react-cool-img": "^1.0.1",
+    "react-datetime-picker": "^2.8.0",
     "react-dom": "^16.4.2",
     "react-hot-loader": "^4.12.18",
     "react-loader-spinner": "^2.3.0",

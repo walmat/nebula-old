@@ -8,19 +8,16 @@ const { States } = Task;
 const { Events } = TaskConstants;
 const { BaseTask } = Bases;
 const { emitEvent, waitForDelay } = Utils;
-const { Timer, Captcha } = Classes;
+const { Captcha } = Classes;
 
 // SUPREME
 export default class TaskPrimitive extends BaseTask {
   constructor(context, platform = Platforms.Supreme) {
-    super(context, platform);
+    super(context, States.WAIT_FOR_PRODUCT, platform);
 
     // internals
     this._sentWebhook = false;
     this._product = null;
-    this._state = States.WAIT_FOR_PRODUCT;
-    this._prevState = this._state;
-    this._timer = new Timer();
     this._region = getRegion(context.task.store.name);
     this._pooky = false;
     this._slug = null;
@@ -137,7 +134,9 @@ export default class TaskPrimitive extends BaseTask {
           productImage: `${this._product.image}`.startsWith('http')
             ? this._product.image
             : `https:${this._product.image}`,
-          productImageHi: `${matchedVariation.image_url}`.startsWith('http') ? matchedVariation.image_url : `https:${matchedVariation.image_url}`,
+          productImageHi: `${matchedVariation.image_url}`.startsWith('http')
+            ? matchedVariation.image_url
+            : `https:${matchedVariation.image_url}`,
           productName: `${this.context.task.product.name} / ${this._product.chosenVariation}`,
           chosenSize: variant.name,
         },

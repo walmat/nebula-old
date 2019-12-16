@@ -7,6 +7,10 @@ import ProductField from './shared/product';
 import StoreSelect from './shared/store';
 import ProfileSelect from './shared/profile';
 import SizeSelect from './shared/sizes';
+import Schedule from './shared/schedule';
+import Captcha from './shared/captcha';
+import AmountField from './shared/amount';
+import CreateButton from './shared/button';
 import RandomInStockToggle from './shared/randomInStock';
 
 const ModalBody = ({ toggleCreate }) => (
@@ -23,6 +27,12 @@ const ModalBody = ({ toggleCreate }) => (
         <RandomInStockToggle />
       </div>
       <PlatformFields />
+      <div className="row row--start row--expand">
+        <Schedule />
+        <Captcha />
+        <AmountField />
+        <CreateButton />
+      </div>
     </div>
   </>
 );

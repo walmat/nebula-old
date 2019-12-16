@@ -90,6 +90,11 @@ export default (state = CurrentTask, action = {}) => {
         case TASK_FIELDS.EDIT_TASK_TYPE:
           return { ...state, type: mapTypeToNextType(state.type) };
 
+        case TASK_FIELDS.EDIT_DATE_TIME: {
+          console.log(action);
+          return { ...state, schedule: value };
+        }
+
         case TASK_FIELDS.TOGGLE_CAPTCHA:
           return { ...state, captcha: !state.captcha };
 
