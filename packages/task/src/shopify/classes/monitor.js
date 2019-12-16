@@ -126,8 +126,6 @@ export default class MonitorPrimitive extends BaseMonitor {
       return this._handleErrors(errors);
     }
 
-    console.log(parsed);
-
     logger.debug('Matched product: %s', parsed.title);
     this.context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
     this.context.task.product.image = parsed.featured_image || parsed.images ? parsed.images[0].src : '';
