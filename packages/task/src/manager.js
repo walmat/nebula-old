@@ -351,7 +351,8 @@ export default class TaskManager {
         if (type === Types.Normal) {
           newTask = new ShopifyTask(context);
 
-          const found = await Object.values(this._monitors).find(async m => {
+          let found = null;
+          for (const m of Object.values(this._monitors)) {
             if (m.platform === platform) {
               const { context: mContext } = m;
               const isSameProduct = await compareProductData(
@@ -367,12 +368,11 @@ export default class TaskManager {
               );
 
               if (isSameProduct && mContext.task.store.url === context.task.store.url) {
-                return m;
+                found = m;
+                break;
               }
-              return null;
             }
-            return null;
-          });
+          }
 
           this._logger.debug('Existing monitor? %j', found || false);
 
@@ -406,7 +406,8 @@ export default class TaskManager {
 
         newTask = new SupremeTask(context);
 
-        const found = await Object.values(this._monitors).find(async m => {
+        let found = null;
+        for (const m of Object.values(this._monitors)) {
           if (m.platform === platform) {
             const { context: mContext } = m;
             const isSameProduct = await compareProductData(
@@ -427,12 +428,11 @@ export default class TaskManager {
               mContext.task.category === context.task.category &&
               mContext.task.store.url === context.task.store.url
             ) {
-              return m;
+              found = m;
+              break;
             }
-            return null;
           }
-          return null;
-        });
+        }
 
         this._logger.debug('Existing monitor? %j', found || false);
 

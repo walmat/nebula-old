@@ -43,6 +43,10 @@ export default (state = Tasks, action = {}) => {
         break;
     }
 
+    if (newTask.schedule) {
+      newTask.message = 'Waiting to start';
+    }
+
     const { amount } = task;
 
     const newTasks = [...Array(amount)].map(() => {

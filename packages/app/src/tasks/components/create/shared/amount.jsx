@@ -10,7 +10,7 @@ import { buildStyle } from '../../../../styles';
 import { makeTheme } from '../../../../app/state/selectors';
 
 const AmountField = ({ theme, amount, onChange }) => (
-  <div className="col col--start col--expand">
+  <div className="col col--start col--expand col--no-gutter-right">
     <input
       type="number"
       className={`create-tasks__amount--${theme}`}

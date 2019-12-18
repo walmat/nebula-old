@@ -38,7 +38,7 @@ export const TASK_LIST_ACTIONS = prefixer(prefix, tasksListActions);
 const _startTasksRequest = async (tasks, delays, proxies = []) => {
   const newTasks = tasks.filter(t => t.state !== States.Running);
 
-  const toStart = newTasks.map(t => ({
+  const toStart = newTasks.map(({ schedule, ...t }) => ({
     ...t,
     ...delays,
     state: States.Running,

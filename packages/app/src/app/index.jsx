@@ -3,6 +3,7 @@ import { AppContainer, setConfig } from 'react-hot-loader';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 import { isEmpty } from 'lodash';
+import moment from 'moment';
 import PropTypes from 'prop-types';
 
 // Components
@@ -29,8 +30,10 @@ export class App extends PureComponent {
     super(props);
     this.taskHandler = this.taskHandler.bind(this);
     this._cleanupTasks = this._cleanupTasks.bind(this);
+    this._schedule = this._schedule.bind(this);
     this._setTheme = this._setTheme.bind(this);
 
+    this.scheduler = null;
     this.siteInterval = null;
   }
 
@@ -48,8 +51,14 @@ export class App extends PureComponent {
         window.Bridge.addWebhooks(Webhooks);
       }
     }
+
+    // fetch store API updates
     fetchSites(store);
     this.siteInterval = setInterval(() => fetchSites(store), 5000);
+
+    // start the task scheduler
+    this._schedule();
+    this.scheduler = setInterval(() => this._schedule(), 1000);
     window.addEventListener('beforeunload', this._cleanupTasks);
   }
 
@@ -70,6 +79,24 @@ export class App extends PureComponent {
     }
     if (window.Bridge) {
       window.Bridge.deregisterForTaskEvents(this.taskHandler);
+    }
+  }
+
+  _schedule() {
+    const { store } = this.props;
+    const { Tasks: tasks, Delays: delays, Proxies: proxies } = store.getState();
+
+    const timeChecker = now => {
+      const diff = moment(now).diff(moment(), 'seconds');
+
+      // if the tasks are WAY overdue, don't start them...
+      return diff <= 0 && diff > -10;
+    };
+
+    const tasksToRun = tasks.filter(t => t.schedule && (timeChecker(t.schedule) && t.state !== States.Running));
+    console.log(tasksToRun);
+    if (tasksToRun && tasksToRun.length) {
+      store.dispatch(taskActions.start(tasksToRun, delays, proxies));
     }
   }
 

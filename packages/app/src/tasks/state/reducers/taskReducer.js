@@ -91,7 +91,6 @@ export default (state = CurrentTask, action = {}) => {
           return { ...state, type: mapTypeToNextType(state.type) };
 
         case TASK_FIELDS.EDIT_DATE_TIME: {
-          console.log(action);
           return { ...state, schedule: value };
         }
 
