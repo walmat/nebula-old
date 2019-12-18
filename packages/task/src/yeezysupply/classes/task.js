@@ -75,10 +75,14 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     logger.silly("Test 1");
-    if (typeof this._context.task.product.b !== 'undefined') {
+    if (this._context.task.product.id !== 'undefined') {
       logger.debug('Chose variant: %j', this._context.task.product);
       this._context.setProductFound(true);
-      return States.DONE;
+      if (this._context.task.product.splash === true) {
+        return States.WAIT_IN_QUEUE;
+      } else {
+        return States.ADD_TO_CART;
+      }
     }
     // return States.ADD_TO_CART;
 
@@ -90,6 +94,8 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleWaitInSplash() {}
+
+  async _handleAddToCart() {}
 
   async _handleStepLogic(currentState) {
     const { logger } = this._context;
