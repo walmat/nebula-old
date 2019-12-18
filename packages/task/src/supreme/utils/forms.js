@@ -28,12 +28,12 @@ export const parseForm = async (form, type, product, task) => {
         },
       } = task;
 
-      data = await form.map(({ name, value }) => {
-        if (/s/.test(name) && !/st|ds/.test(name)) {
+      data = await form.map(({ name, friendly, value }) => {
+        if (/size/.test(friendly)) {
           return `${name}=${s}&`;
         }
 
-        if (/st/.test(name)) {
+        if (/style/.test(friendly)) {
           return `${name}=${st}&`;
         }
 

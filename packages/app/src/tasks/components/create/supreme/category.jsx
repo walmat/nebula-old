@@ -60,9 +60,13 @@ const CategorySelect = ({ category, theme, onSelect }) => {
 };
 
 CategorySelect.propTypes = {
-  category: PropTypes.string.isRequired,
+  category: PropTypes.string,
   theme: PropTypes.string.isRequired,
   onSelect: PropTypes.func.isRequired,
+};
+
+CategorySelect.defaultProps = {
+  category: null,
 };
 
 export const mapStateToProps = state => ({

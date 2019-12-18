@@ -39,7 +39,7 @@ const SizeSelect = ({ theme, size, onSelect }) => {
   }
 
   return (
-    <div className="col col--start col--expand" style={{ flexGrow: 3 }}>
+    <div className="col col--start col--expand" style={{ flexGrow: 2 }}>
       <p className={`create-tasks__label--${theme}`}>Size</p>
       <CreatableSelect
         required
@@ -68,7 +68,11 @@ const SizeSelect = ({ theme, size, onSelect }) => {
 SizeSelect.propTypes = {
   theme: PropTypes.string.isRequired,
   onSelect: PropTypes.func.isRequired,
-  size: PropTypes.string.isRequired,
+  size: PropTypes.string,
+};
+
+SizeSelect.defaultProps = {
+  size: null,
 };
 
 const mapStateToProps = state => ({

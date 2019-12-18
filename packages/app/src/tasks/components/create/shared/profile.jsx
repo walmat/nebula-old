@@ -40,7 +40,7 @@ const ProfileSelect = ({ theme, profile, profiles, onSelect }) => {
   }
 
   return (
-    <div className="col col--start col--expand" style={{ flexGrow: 3 }}>
+    <div className="col col--start col--expand" style={{ flexGrow: 5 }}>
       <p className={`create-tasks__label--${theme}`}>Billing Profile</p>
       <Select
         required
@@ -68,8 +68,12 @@ const ProfileSelect = ({ theme, profile, profiles, onSelect }) => {
 ProfileSelect.propTypes = {
   onSelect: PropTypes.func.isRequired,
   profiles: PropTypes.arrayOf(PropTypes.any).isRequired,
-  profile: PropTypes.objectOf(PropTypes.any).isRequired,
+  profile: PropTypes.objectOf(PropTypes.any),
   theme: PropTypes.string.isRequired,
+};
+
+ProfileSelect.defaultProps = {
+  profile: null,
 };
 
 export const mapStateToProps = state => ({
