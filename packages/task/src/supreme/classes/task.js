@@ -256,14 +256,9 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!this._pooky) {
-      try {
-        this._pooky = await this.generatePooky(this._region);
-      } catch (error) {
-        // TODO!
-      }
+      await this.generatePooky(this._region);
     }
 
-    this._logCookies(this.context.jar);
 
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
@@ -275,8 +270,6 @@ export default class TaskPrimitive extends BaseTask {
         },
         body: this._form,
       });
-
-      this._pooky = null;
 
       if (!res.ok) {
         const error = new Error('Failed add to cart');
@@ -313,7 +306,6 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       this._form = null; // reset atc form
-      this._pooky = null;
       if (captcha && !this.context.captchaToken) {
         return States.CAPTCHA;
       }
@@ -430,14 +422,8 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!this._pooky) {
-      try {
-        this._pooky = await this.generatePooky(this._region);
-      } catch (error) {
-        // TODO!
-      }
+      await this.generatePooky(this._region);
     }
-
-    this._logCookies(this.context.jar);
 
     // stop the padding timer...
     this.context.timers.checkout.stop(new Date().getTime());
@@ -479,8 +465,6 @@ export default class TaskPrimitive extends BaseTask {
         },
         body: this._form,
       });
-
-      this._pooky = null;
 
       if (!res.ok) {
         const error = new Error('Failed submitting checkout');
@@ -529,7 +513,6 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
-        this._pooky = false;
         return States.SUBMIT_CHECKOUT;
       }
 
