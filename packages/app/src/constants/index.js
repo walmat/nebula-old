@@ -278,6 +278,7 @@ export const modalStyles = {
 };
 
 export const statusColorMap = {
+  'Starting at': 'warning',
   'Waiting for captcha': 'warning',
   'Duplicate order': 'warning',
   'Checking status': 'warning',

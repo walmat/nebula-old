@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { _getId, States, Platforms } from '../../../constants';
 import parseProductType from '../../../utils/parseProductType';
 import { TASK_LIST_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
@@ -23,7 +24,7 @@ export default (state = Tasks, action = {}) => {
       return state;
     }
 
-    const newTask = task;
+    const newTask = { ...task };
     newTask.product = parsedProduct;
 
     // trim some fat off the task object..
@@ -43,12 +44,13 @@ export default (state = Tasks, action = {}) => {
         break;
     }
 
-    if (newTask.schedule) {
-      newTask.message = 'Waiting to start';
+
+    if (newTask.schedule && moment(newTask.schedule).diff(moment(), 'seconds') > 0) {
+      newTask.message = `Starting at ${moment(newTask.schedule).format('h:mm:ss A')}`;
     }
 
     const { amount } = task;
-
+    delete newTask.amount;
     const newTasks = [...Array(amount)].map(() => {
       const { id } = _getId(state);
       return { ...newTask, id };

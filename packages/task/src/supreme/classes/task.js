@@ -1,3 +1,4 @@
+import { isEmpty } from 'lodash';
 import { Task, Regions } from '../constants';
 import getHeaders, { getRegion, Forms, pickVariant, matchVariation } from '../utils';
 import { Utils, Bases, Classes, Constants } from '../../common';
@@ -153,40 +154,31 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async generatePooky(region = Regions.US) {
-    const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
+    const { NEBULA_API_BASE, NEBULA_API_AUTH } = process.env;
 
-    const regionMap = {
-      [Regions.EU]: 'EU',
-      [Regions.JP]: 'JP',
-      [Regions.US]: 'NA',
-    };
-
+    const lastid = Date.now();
     try {
-      const res = await this._fetch(
-        `${NEBULA_API_BASE}?key=${NEBULA_API_UUID}&region=${regionMap[region]}`,
-      );
+      const res = await this._fetch(NEBULA_API_BASE, {
+        headers: {
+          'Authorization': NEBULA_API_AUTH,
+        },
+      });
 
-      const { status } = res;
       if (!res.ok) {
-        if (status === 404) {
-          // pooky disabled flag...
-          return true;
-        }
         const error = new Error('Unable to fetch cookies');
         error.status = res.status || res.errno;
         throw error;
       }
 
       const body = await res.json();
-      if (!body || (body && !body.length)) {
-        const error = new Error('Invalid cookie list');
+      if (!body || isEmpty(body)) {
+        const error = new Error('Invalid cookies');
         error.status = res.status || res.errno;
         throw error;
       }
 
-      const { jar, task } = this.context;
-
-      await body.map(({ name, value }) => jar.setCookieSync(`${name}=${value};`, task.store.url));
+      this.context.jar.setCookieSync(`lastid=${lastid};`, this.context.task.store.url)
+      Object.entries(body).map(([name, value]) => this.context.jar.setCookieSync(`${name}=${value};`, this.context.task.store.url));
 
       return true;
     } catch (err) {
@@ -213,6 +205,19 @@ export default class TaskPrimitive extends BaseTask {
     } catch (error) {
       return false;
     }
+  }
+
+
+  async _logCookies(jar) {
+    const store = jar.Store || jar.store;
+
+    if (!store) {
+      return null;
+    }
+
+    store.getAllCookies((_, cookies) => {
+      this.context.logger.info(JSON.stringify(cookies, null, 2));
+    });
   }
 
   async _handleAddToCart() {
@@ -258,6 +263,8 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
+    this._logCookies(this.context.jar);
+
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
         method: 'POST',
@@ -268,6 +275,8 @@ export default class TaskPrimitive extends BaseTask {
         },
         body: this._form,
       });
+
+      this._pooky = null;
 
       if (!res.ok) {
         const error = new Error('Failed add to cart');
@@ -304,6 +313,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       this._form = null; // reset atc form
+      this._pooky = null;
       if (captcha && !this.context.captchaToken) {
         return States.CAPTCHA;
       }
@@ -427,6 +437,8 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
+    this._logCookies(this.context.jar);
+
     // stop the padding timer...
     this.context.timers.checkout.stop(new Date().getTime());
 
@@ -468,6 +480,8 @@ export default class TaskPrimitive extends BaseTask {
         body: this._form,
       });
 
+      this._pooky = null;
+
       if (!res.ok) {
         const error = new Error('Failed submitting checkout');
         error.status = res.status || res.errno;
@@ -475,7 +489,6 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const body = await res.json();
-
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {

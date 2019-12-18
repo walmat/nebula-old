@@ -89,12 +89,11 @@ export class App extends PureComponent {
     const timeChecker = now => {
       const diff = moment(now).diff(moment(), 'seconds');
 
-      // if the tasks are WAY overdue, don't start them...
+      // if the tasks are more than 10s overdue, don't start them...
       return diff <= 0 && diff > -10;
     };
 
-    const tasksToRun = tasks.filter(t => t.schedule && (timeChecker(t.schedule) && t.state !== States.Running));
-    console.log(tasksToRun);
+    const tasksToRun = tasks.filter(t => t.schedule && timeChecker(t.schedule) && t.state !== States.Running);
     if (tasksToRun && tasksToRun.length) {
       store.dispatch(taskActions.start(tasksToRun, delays, proxies));
     }

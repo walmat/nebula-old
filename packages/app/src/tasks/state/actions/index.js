@@ -65,7 +65,7 @@ const _stopTasksRequest = async tasks => {
   }
 
   return {
-    tasks: runningTasks.map(({ productName, productImage, chosenSize, ...t }) => ({
+    tasks: runningTasks.map(({ productName, productImage, productImageHi, chosenSize, chosenProxy, ...t }) => ({
       ...t,
       state: States.Stopped,
       message: '',

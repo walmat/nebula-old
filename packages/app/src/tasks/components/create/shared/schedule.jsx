@@ -16,23 +16,20 @@ import { THEMES } from '../../../../constants';
 moment.locale('en');
 momentLocalizer();
 
-const ScheduleToggle = ({ theme, schedule, onChange }) => {
-
-  console.log(schedule);
-  return (
-    <div className="col col--start col--expand" style={{ flexGrow: 1 }}>
-      <DateTimePicker
-        containerClassName={theme === THEMES.LIGHT ? 'rw--light' : 'rw--dark'}
-        dropUp
-        placeholder="No schedule"
-        format="MM/DD/YY h:mm:ss a"
-        step={60}
-        value={new Date(schedule)}
-        onChange={onChange}
-      />
-    </div>
-  );
-};
+const ScheduleToggle = ({ theme, schedule, onChange }) => (
+  <div className="col col--start col--expand" style={{ flexGrow: 1 }}>
+    <DateTimePicker
+      containerClassName={theme === THEMES.LIGHT ? 'rw--light' : 'rw--dark'}
+      dropUp
+      placeholder="No schedule"
+      format="MM/DD   h:mm:ss A"
+      step={60}
+      min={new Date()}
+      value={schedule ? new Date(schedule) : null}
+      onChange={onChange}
+    />
+  </div>
+);
 
 ScheduleToggle.propTypes = {
   theme: PropTypes.string.isRequired,
