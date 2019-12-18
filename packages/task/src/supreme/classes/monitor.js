@@ -168,7 +168,7 @@ export default class MonitorPrimitive extends BaseMonitor {
 
   async _handleStock() {
     const { task, aborted, proxy, logger } = this.context;
-    const { variation, style } = task.product;
+    const { style } = task.product;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');

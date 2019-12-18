@@ -1,3 +1,4 @@
+import strip from 'strip-bom';
 import { Utils } from '../../common';
 
 const { getRandomIntInclusive } = Utils;
@@ -33,7 +34,7 @@ export default (product, context) => {
       sizeMatcher = s => new RegExp(`${size}`, 'i').test(s);
     } else {
       // We are matching a garment size
-      sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
+      sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(strip(s).trim());
     }
 
     if (sizeMatcher(v.name)) {

@@ -1,5 +1,6 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
+import strip from 'strip-bom';
 import { filter, every, some, sortBy } from 'lodash';
 
 import { Utils } from '../../common';
@@ -75,7 +76,7 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
   }
 
   const matches = filter(products, product => {
-    const name = product.name.toUpperCase();
+    const name = strip(product.name).toUpperCase();
 
     // defaults
     let pos = true;
@@ -169,7 +170,7 @@ export const matchVariation = async (variations, variation, logger = { log: () =
       variationMatcher = s => new RegExp(name, 'i').test(s);
     } else {
       // We are matching a garment name
-      variationMatcher = s => !/[0-9]+/.test(s) && new RegExp(s, 'i').test(name);
+      variationMatcher = s => !/[0-9]+/.test(s) && new RegExp(s, 'i').test(strip(name));
     }
 
     if (variationMatcher(variation)) {
