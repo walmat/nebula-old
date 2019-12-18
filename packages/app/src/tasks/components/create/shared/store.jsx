@@ -76,7 +76,11 @@ StoreSelect.propTypes = {
   theme: PropTypes.string.isRequired,
   onSelect: PropTypes.func.isRequired,
   stores: PropTypes.arrayOf(PropTypes.any).isRequired,
-  store: PropTypes.objectOf(PropTypes.any).isRequired,
+  store: PropTypes.objectOf(PropTypes.any),
+};
+
+StoreSelect.defaultProps = {
+  store: null,
 };
 
 const mapStateToProps = state => ({

@@ -42,7 +42,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(CheckoutDelayField);
+export default connect(mapStateToProps, mapDispatchToProps)(CheckoutDelayField);

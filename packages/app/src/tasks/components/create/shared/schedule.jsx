@@ -34,7 +34,11 @@ const ScheduleToggle = ({ theme, schedule, onChange }) => (
 ScheduleToggle.propTypes = {
   theme: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
-  schedule: PropTypes.bool.isRequired,
+  schedule: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+};
+
+ScheduleToggle.defaultProps = {
+  schedule: null,
 };
 
 export const mapStateToProps = state => ({
@@ -48,7 +52,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ScheduleToggle);
+export default connect(mapStateToProps, mapDispatchToProps)(ScheduleToggle);
