@@ -92,16 +92,21 @@ export default class TaskPrimitive extends BaseTask {
         this.context.task.product.variation,
         logger,
       );
+
       if (!matchedVariation) {
         emitEvent(
           this.context,
           [this.context.id],
           {
-            message: 'No variation matched',
+            message: 'Waiting for restock',
           },
           Events.TaskStatus,
         );
-        return States.ERROR;
+
+        this._delayer = waitForDelay(500, this._aborter.signal);
+        await this._delayer;
+
+        return States.WAIT_FOR_PRODUCT;
       }
 
       this._product = {
@@ -118,15 +123,13 @@ export default class TaskPrimitive extends BaseTask {
           this.context,
           [this.context.id],
           {
-            message: 'No sizes found',
+            message: 'No size matched',
           },
           Events.TaskStatus,
         );
 
         return States.ERROR;
       }
-
-      logger.debug('Chose variant: %j', variant);
 
       emitEvent(
         this.context,
@@ -160,7 +163,7 @@ export default class TaskPrimitive extends BaseTask {
     try {
       const res = await this._fetch(NEBULA_API_BASE, {
         headers: {
-          'Authorization': NEBULA_API_AUTH,
+          Authorization: NEBULA_API_AUTH,
         },
       });
 
@@ -177,8 +180,10 @@ export default class TaskPrimitive extends BaseTask {
         throw error;
       }
 
-      this.context.jar.setCookieSync(`lastid=${lastid};`, this.context.task.store.url)
-      Object.entries(body).map(([name, value]) => this.context.jar.setCookieSync(`${name}=${value};`, this.context.task.store.url));
+      this.context.jar.setCookieSync(`lastid=${lastid};`, this.context.task.store.url);
+      Object.entries(body).map(([name, value]) =>
+        this.context.jar.setCookieSync(`${name}=${value};`, this.context.task.store.url),
+      );
 
       return true;
     } catch (err) {
@@ -207,12 +212,11 @@ export default class TaskPrimitive extends BaseTask {
     }
   }
 
-
   async _logCookies(jar) {
     const store = jar.Store || jar.store;
 
     if (!store) {
-      return null;
+      return;
     }
 
     store.getAllCookies((_, cookies) => {
@@ -234,6 +238,7 @@ export default class TaskPrimitive extends BaseTask {
       product: {
         variant: { id: s },
       },
+      size,
       monitor,
       captcha,
     } = this.context.task;
@@ -258,7 +263,6 @@ export default class TaskPrimitive extends BaseTask {
     if (!this._pooky) {
       await this.generatePooky(this._region);
     }
-
 
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
@@ -301,6 +305,10 @@ export default class TaskPrimitive extends BaseTask {
           },
           Events.TaskStatus,
         );
+
+        if (/random/i.test(size)) {
+          return States.WAIT_FOR_PRODUCT;
+        }
 
         return States.ADD_TO_CART;
       }

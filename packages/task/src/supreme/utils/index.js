@@ -156,13 +156,21 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
 };
 
 export const matchVariation = async (variations, variation, logger = { log: () => {} }) => {
+  const grouping = variations.filter(({ sizes }) => sizes.some(s => s.stock_level > 0));
+
+  logger.log('debug', 'Variations in stock: %j', grouping);
+  // if no variations are in stock, revert..
+  if (!grouping || !grouping.length) {
+    return null;
+  }
+
   if (/random/i.test(variation)) {
-    const rand = getRandomIntInclusive(0, variations.length - 1);
-    const variant = variations[rand];
+    const rand = getRandomIntInclusive(0, grouping.length - 1);
+    const variant = grouping[rand];
     return variant;
   }
 
-  return variations.find(v => {
+  return grouping.find(v => {
     const { name } = v;
     let variationMatcher;
     if (/[0-9]+/.test(name)) {

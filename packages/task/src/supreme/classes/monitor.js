@@ -1,5 +1,5 @@
 import { Bases, Constants, Utils } from '../../common';
-import getHeaders, { matchKeywords, matchVariation } from '../utils';
+import getHeaders, { matchKeywords } from '../utils';
 import { Monitor } from '../constants';
 
 const { BaseMonitor } = Bases;
@@ -158,7 +158,14 @@ export default class MonitorPrimitive extends BaseMonitor {
       this.context.task.product.price = matchedProduct.price;
       this.context.task.product.style = matchedProduct.id;
 
-      logger.silly('Supreme Monitor: Product found: %j', matchedProduct.name);
+      emitEvent(
+        this.context,
+        this.context.ids,
+        {
+          productName: `${this.context.task.product.name}`,
+        },
+        Events.MonitorStatus,
+      );
 
       return States.STOCK;
     } catch (error) {
@@ -175,14 +182,16 @@ export default class MonitorPrimitive extends BaseMonitor {
       return States.ABORT;
     }
 
-    emitEvent(
-      this.context,
-      this.context.ids,
-      {
-        message: 'Fetching stock',
-      },
-      Events.MonitorStatus,
-    );
+    if (!this.context.task.product.styles) {
+      emitEvent(
+        this.context,
+        this.context.ids,
+        {
+          message: 'Fetching stock',
+        },
+        Events.MonitorStatus,
+      );
+    }
 
     try {
       const res = await this._fetch(`/shop/${style}.json`, {
@@ -207,7 +216,10 @@ export default class MonitorPrimitive extends BaseMonitor {
 
       this.context.task.product.styles = styles;
 
-      return States.DONE;
+      this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
+      await this._delayer;
+
+      return States.STOCK;
     } catch (error) {
       return this._handleError(error, States.STOCK);
     }
