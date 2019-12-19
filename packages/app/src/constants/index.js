@@ -278,7 +278,9 @@ export const modalStyles = {
 };
 
 export const statusColorMap = {
+  'No size': 'failed',
   'No variation': 'failed',
+  'Waiting for restock': 'warning',
   'Starting at': 'warning',
   'Waiting for captcha': 'warning',
   'Duplicate order': 'warning',
