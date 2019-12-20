@@ -8,7 +8,7 @@ import { makeSelectedTasks } from '../../state/selectors';
 import { makeDelays } from '../../../settings/state/selectors';
 import { SETTINGS_FIELDS, settingsActions } from '../../../store/actions';
 
-const Delays = ({ selected, monitor, onDelayChange }) => (
+const Delays = ({ tasks, monitor, onDelayChange }) => (
   <div className="col col--end" style={{ marginLeft: 30 }}>
     <NumberFormat
       value={monitor}
@@ -16,7 +16,7 @@ const Delays = ({ selected, monitor, onDelayChange }) => (
       className="row row--start bulk-action__monitor"
       style={buildStyle(false)}
       onChange={e =>
-        onDelayChange({ field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY, value: e.target.value }, selected)
+        onDelayChange({ field: SETTINGS_FIELDS.EDIT_MONITOR_DELAY, value: e.target.value }, tasks)
       }
       required
     />
@@ -31,7 +31,7 @@ Delays.propTypes = {
 
 export const mapStateToProps = state => ({
   monitor: makeDelays(state).monitor,
-  selected: makeSelectedTasks(state) || [],
+  tasks: makeSelectedTasks(state) || [],
 });
 
 export const mapDispatchToProps = dispatch => {

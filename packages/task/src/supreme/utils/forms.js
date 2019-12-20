@@ -131,10 +131,10 @@ export const parseForm = async (form, type, product, task) => {
 
         if (/cookie-sub/i.test(name)) {
           // eslint-disable-next-line prettier/prettier
-        return `${name}=${encodeURIComponent(encodeURIComponent(JSON.stringify({[size]:1})))}&`;
+          return `${encodeURI(name)}=${encodeURIComponent(encodeURIComponent(JSON.stringify({[size]:1})))}&`;
         }
 
-        return `${name}=${value}&`;
+        return `${encodeURI(name)}=${value}&`;
       });
       break;
     }

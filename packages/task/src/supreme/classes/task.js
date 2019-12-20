@@ -261,9 +261,10 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!this._pooky) {
-      await this.generatePooky(this._region);
+      this._pooky = await this.generatePooky(this._region);
     }
 
+    logger.debug('ATC FORM: %j', this._form);
     await this._logCookies(this.context.jar);
 
     try {
@@ -446,13 +447,14 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!this._pooky) {
-      await this.generatePooky(this._region);
+      this._pooky = await this.generatePooky(this._region);
     }
 
     // stop the padding timer...
     this.context.timers.checkout.stop(new Date().getTime());
+    const totalTimeout = checkoutDelay - this.context.timers.checkout.getRunTime(new Date().getTime());
+    this.context.timers.checkout.reset(); // reset the timer just in case...
 
-    const totalTimeout = checkoutDelay - this.context.timers.checkout.getTotalTime(0);
     if (totalTimeout && totalTimeout > 0) {
       emitEvent(
         this.context,
@@ -466,8 +468,6 @@ export default class TaskPrimitive extends BaseTask {
       this._delayer = waitForDelay(totalTimeout, this._aborter.signal);
       await this._delayer;
     }
-
-    logger.info('parsed form: %j', this._form);
 
     emitEvent(
       this.context,
@@ -499,6 +499,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const body = await res.json();
+
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
@@ -556,13 +557,16 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
+        this._pooky = null;
+
         return States.WAIT_FOR_PRODUCT;
       }
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
       if (/invalid json/i.test(error)) {
-        return States.ADD_TO_CART;
+        this._pooky = null;
+        return States.WAIT_FOR_PRODUCT;
       }
       return this._handleError(error, States.SUBMIT_CHECKOUT);
     }
@@ -646,6 +650,7 @@ export default class TaskPrimitive extends BaseTask {
           webhookManager.send();
         }
 
+        this._pooky = null;
         this.context.setCaptchaToken(null);
         return States.WAIT_FOR_PRODUCT;
       }
