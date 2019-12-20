@@ -31,7 +31,7 @@ Delays.propTypes = {
 
 export const mapStateToProps = state => ({
   monitor: makeDelays(state).monitor,
-  selected: makeSelectedTasks(state),
+  selected: makeSelectedTasks(state) || [],
 });
 
 export const mapDispatchToProps = dispatch => {
