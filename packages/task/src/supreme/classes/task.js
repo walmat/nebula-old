@@ -267,8 +267,8 @@ export default class TaskPrimitive extends BaseTask {
       this._pooky = await this.generatePooky(this._region);
     }
 
-    logger.debug('ATC FORM: %j', this._form);
-    await this._logCookies(this.context.jar);
+    // logger.debug('ATC FORM: %j', this._form);
+    // await this._logCookies(this.context.jar);
 
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
@@ -302,10 +302,13 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
+        this._pooky = false;
+
         return States.WAIT_FOR_PRODUCT;
       }
 
       if (body && body.length && !body[0].in_stock) {
+
         emitEvent(
           this.context,
           [this.context.id],
@@ -317,6 +320,7 @@ export default class TaskPrimitive extends BaseTask {
 
         this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
+
         emitEvent(
           this.context,
           [this.context.id],
@@ -325,6 +329,8 @@ export default class TaskPrimitive extends BaseTask {
           },
           Events.TaskStatus,
         );
+
+        this._pooky = false;
 
         if (/random/i.test(size)) {
           return States.WAIT_FOR_PRODUCT;
