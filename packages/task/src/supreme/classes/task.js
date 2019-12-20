@@ -169,6 +169,9 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async generatePooky(region = Regions.US) {
+    const { logger } = this.context;
+
+    logger.info('--------------------------GENERATING POOKY--------------------------');
     const { NEBULA_API_BASE, NEBULA_API_AUTH } = process.env;
 
     const lastid = Date.now();
