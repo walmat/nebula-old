@@ -148,8 +148,8 @@ class TaskManagerAdapter {
     this._taskManager.proxyManager.deregisterAll(proxies);
   }
 
-  _onChangeDelayRequest(_, delay, type) {
-    this._taskManager.changeDelay(delay, type);
+  _onChangeDelayRequest(_, delay, type, tasks) {
+    this._taskManager.changeDelay(delay, type, tasks);
   }
 
   _onRequestWebhookUpdate(_, hook, type) {

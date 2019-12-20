@@ -111,7 +111,7 @@ const selectWebhook = makeActionCreator(WEBHOOK_ACTIONS.SELECT_WEBHOOK, 'webhook
 const editShipping = makeActionCreator(SHIPPING_ACTIONS.EDIT_SHIPPING, 'field', 'value', 'sites');
 const clearShipping = makeActionCreator(SHIPPING_ACTIONS.CLEAR_SHIPPING);
 
-const editDelays = makeActionCreator(DELAYS_ACTIONS.EDIT_DELAYS, 'field', 'value');
+const editDelays = makeActionCreator(DELAYS_ACTIONS.EDIT_DELAYS, 'field', 'value', 'tasks');
 const editProxies = makeActionCreator(PROXIES_ACTIONS.EDIT_PROXIES, 'field', 'value');
 
 const fetchShipping = task => dispatch => {

@@ -1,4 +1,5 @@
 import EventEmitter from 'eventemitter3';
+import { isEmpty } from 'lodash';
 
 // Shared includes
 import { Utils, Classes, Constants, Context } from './common';
@@ -121,12 +122,16 @@ export default class TaskManager {
     }
   }
 
-  changeDelay(delay, type) {
-    this._logger.silly('Changing %s to: %s ms', type, delay);
-    // since monitor/task pairs share the same context, we can just update the tasks' context here..
+  changeDelay(delay, type, tasks = []) {
+    // if we don't have any tasks, don't change the delays..
+    if (isEmpty(this._tasks)) {
+      return;
+    }
+
+    this._logger.silly('Changing %s tasks %s delay to: %s ms', tasks.length, type, delay);
     return Promise.all(
-      Object.values(this._tasks).map(t => {
-        const task = t;
+      tasks.map(t => {
+        const task = Object.values(this._tasks).find(ta => ta.context.id === t.id);
         task.context.task[type] = delay;
 
         const monitor = Object.values(this._monitors).find(m => m.context.hasId(task.context.id));

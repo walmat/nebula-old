@@ -23,7 +23,9 @@ export default function delayReducer(state = Delays, action = {}) {
           return state;
         }
 
-        window.Bridge.changeDelay(num, mapSettingsFieldToKey[field]);
+        const { tasks } = action;
+
+        window.Bridge.changeDelay(num, mapSettingsFieldToKey[field], tasks);
         return { ...state, [mapSettingsFieldToKey[field]]: num };
       }
       default:

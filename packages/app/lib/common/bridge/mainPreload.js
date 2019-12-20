@@ -185,8 +185,8 @@ const _removeProxies = proxies => {
   util.sendEvent(IPCKeys.RequestRemoveProxies, proxies);
 };
 
-const _changeDelay = (delay, type) => {
-  util.sendEvent(IPCKeys.RequestChangeDelay, delay, type);
+const _changeDelay = (delay, type, tasks) => {
+  util.sendEvent(IPCKeys.RequestChangeDelay, delay, type, tasks);
 };
 
 const _updateHook = (hook, type) => {

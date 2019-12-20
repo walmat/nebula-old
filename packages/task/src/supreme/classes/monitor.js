@@ -182,6 +182,7 @@ export default class MonitorPrimitive extends BaseMonitor {
       return States.ABORT;
     }
 
+    // only emit the status update on first fetch
     if (!this.context.task.product.styles) {
       emitEvent(
         this.context,

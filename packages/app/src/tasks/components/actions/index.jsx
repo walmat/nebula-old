@@ -30,11 +30,11 @@ class ActionBar extends Component {
     window.removeEventListener('keydown', this._handleKeyPress);
   }
 
-  async _handleKeyPress({ keyCode, shiftKey }) {
+  async _handleKeyPress({ keyCode, shiftKey, ctrlKey }) {
     if (window.Bridge) {
       switch (keyCode) {
         case 65: {
-          if (!shiftKey) {
+          if (!shiftKey && !ctrlKey) {
             break;
           }
           const { select, tasks } = this.props;

@@ -25,6 +25,18 @@ export default class TaskPrimitive extends BaseTask {
     this._form = null;
   }
 
+  async _logCookies(jar) {
+    const store = jar.Store || jar.store;
+
+    if (!store) {
+      return;
+    }
+
+    store.getAllCookies((_, cookies) => {
+      this.context.logger.info(JSON.stringify(cookies, null, 2));
+    });
+  }
+
   async _handleError(error = {}, state) {
     const { aborted, logger } = this.context;
     if (aborted) {
@@ -212,18 +224,6 @@ export default class TaskPrimitive extends BaseTask {
     }
   }
 
-  async _logCookies(jar) {
-    const store = jar.Store || jar.store;
-
-    if (!store) {
-      return;
-    }
-
-    store.getAllCookies((_, cookies) => {
-      this.context.logger.info(JSON.stringify(cookies, null, 2));
-    });
-  }
-
   async _handleAddToCart() {
     const { aborted, proxy, logger } = this.context;
 
@@ -264,6 +264,8 @@ export default class TaskPrimitive extends BaseTask {
       await this.generatePooky(this._region);
     }
 
+    await this._logCookies(this.context.jar);
+
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
         method: 'POST',
@@ -285,7 +287,21 @@ export default class TaskPrimitive extends BaseTask {
       this.context.timers.checkout.start(new Date().getTime());
 
       const body = await res.json();
-      if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
+
+      if (!body || !body.length) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          {
+            message: `Adding to cart`,
+          },
+          Events.TaskStatus,
+        );
+
+        return States.WAIT_FOR_PRODUCT;
+      }
+
+      if (body && body.length && !body[0].in_stock) {
         emitEvent(
           this.context,
           [this.context.id],
@@ -474,6 +490,8 @@ export default class TaskPrimitive extends BaseTask {
         body: this._form,
       });
 
+      this._form = null;
+
       if (!res.ok) {
         const error = new Error('Failed submitting checkout');
         error.status = res.status || res.errno;
@@ -512,16 +530,7 @@ export default class TaskPrimitive extends BaseTask {
         this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
 
-        emitEvent(
-          this.context,
-          [this.context.id],
-          {
-            message: 'Submitting checkout',
-          },
-          Events.TaskStatus,
-        );
-
-        return States.SUBMIT_CHECKOUT;
+        return States.WAIT_FOR_PRODUCT;
       }
 
       if (body && body.status && /dup/i.test(body.status)) {
@@ -547,7 +556,7 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
-        return States.ADD_TO_CART;
+        return States.WAIT_FOR_PRODUCT;
       }
 
       return States.SUBMIT_CHECKOUT;
@@ -585,6 +594,8 @@ export default class TaskPrimitive extends BaseTask {
           'content-type': 'application/x-www-form-urlencoded',
         },
       });
+
+      this._form = null;
 
       if (!res.ok) {
         const error = new Error('Failed checking order status');
@@ -636,25 +647,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         this.context.setCaptchaToken(null);
-        this.context.task.checkoutDelay = 0;
-
-        if (this._region === Regions.US) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            {
-              message: `Delaying ${this.context.task.monitor}ms`,
-            },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
-          await this._delayer;
-
-          return States.SUBMIT_CHECKOUT;
-        }
-
-        return States.CAPTCHA;
+        return States.WAIT_FOR_PRODUCT;
       }
 
       if (body && body.status && /paid/i.test(body.status)) {
@@ -698,7 +691,7 @@ export default class TaskPrimitive extends BaseTask {
         return States.DONE;
       }
 
-      this._delayer = waitForDelay(1000, this._aborter.signal);
+      this._delayer = waitForDelay(500, this._aborter.signal);
       await this._delayer;
 
       emitEvent(
