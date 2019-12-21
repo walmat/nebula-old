@@ -110,6 +110,7 @@ export default class TaskPrimitive extends BaseTask {
           this.context,
           [this.context.id],
           {
+            productName: `${this.context.task.product.name}`,
             message: 'Waiting for restock',
           },
           Events.TaskStatus,
@@ -148,6 +149,14 @@ export default class TaskPrimitive extends BaseTask {
           this.context,
           [this.context.id],
           {
+            productImage: `${this._product.image}`.startsWith('http')
+              ? this._product.image
+              : `https:${this._product.image}`,
+            productImageHi: `${matchedVariation.image_url}`.startsWith('http')
+              ? matchedVariation.image_url
+              : `https:${matchedVariation.image_url}`,
+            productName: `${this.context.task.product.name} / ${this._product.chosenVariation}`,
+            chosenSize: variant.name,
             message: 'Waiting for restock',
           },
           Events.TaskStatus,
