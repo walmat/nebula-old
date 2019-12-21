@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 import EventEmitter from 'eventemitter3';
 import { isEmpty } from 'lodash';
 
@@ -69,32 +71,24 @@ export default class TaskManager {
     this._events.removeListener('status', callback);
   }
 
-  // TODO: Move this somewhere where it makes more sense?
   async handleSuccess(task) {
-    // eslint-disable-next-line array-callback-return
-    return Object.values(this._tasks).map(r => {
-      // if we are using the same profile, emit the abort event
-      this._logger.debug(
-        'ONE CHECKOUT: Same profile?: %j, Same site?: %j, Same product?: %j',
-        r.task.profile.id === task.profile.id,
-        r.task.store === task.store.url,
-        TaskManager._compareProductInput(task.product, r.task.product),
-      );
-
-      if (
-        r.task.profile.id === task.profile.id &&
-        r.task.store === task.store.url &&
-        TaskManager._compareProductInput(task.product, r.task.product)
-      ) {
-        this._events.emit(
-          'status',
-          task.id,
-          { message: 'Profile already used!', status: 'used' },
-          TaskEvents.TaskStatus,
-        );
-        this.stop(r.task);
-      }
-    });
+    Promise.all(
+      Object.values(this._tasks).map(({ context }) => {
+        if (
+          context.task.profile.id === task.profile.id &&
+          context.task.store === task.store.url &&
+          compareProductData(task.product, context.task.product)
+        ) {
+          this.mergeStatusUpdates(
+            [task.id],
+            { message: 'Already checked out' },
+            TaskEvents.TaskStatus,
+          );
+          this.stop(task);
+        }
+        return task;
+      }),
+    );
   }
 
   /**
@@ -129,7 +123,7 @@ export default class TaskManager {
     }
 
     this._logger.silly('Changing %s tasks %s delay to: %s ms', tasks.length, type, delay);
-    return Promise.all(
+    Promise.all(
       tasks.map(t => {
         const task = Object.values(this._tasks).find(ta => ta.context.id === t.id);
         task.context.task[type] = delay;
@@ -366,12 +360,6 @@ export default class TaskManager {
                 parseType,
               );
 
-              this._logger.debug(
-                'Same product data?: %j Same URL?: %j',
-                isSameProduct,
-                mContext.task.store.url === context.task.store.url,
-              );
-
               if (isSameProduct && mContext.task.store.url === context.task.store.url) {
                 found = m;
                 break;
@@ -419,13 +407,6 @@ export default class TaskManager {
               mContext.task.product,
               context.task.product,
               ParseType.Keywords,
-            );
-
-            this._logger.debug(
-              'Same product?: %j Same category?: %j Same URL?: %j',
-              isSameProduct,
-              mContext.task.category === context.task.category,
-              mContext.task.store.url === context.task.store.url,
             );
 
             if (
