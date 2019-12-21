@@ -55,15 +55,15 @@ export const colourStyles = theme => {
         backgroundColor,
       };
     },
-    Indicator: styles => ({
+    input: styles => ({
+      ...styles,
+      color: theme === THEMES.DARK ? '#efefef' : '#161318',
+    }),
+    indicator: styles => ({
       ...styles,
       padding: '0 8px',
     }),
-    IndicatorsContainer: styles => ({
-      ...styles,
-      padding: '0 8px',
-    }),
-    DropdownIndicator: styles => ({
+    dropdownIndicator: styles => ({
       ...styles,
       padding: '0 8px',
       color: borderColor,

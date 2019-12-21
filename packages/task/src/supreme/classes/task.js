@@ -143,6 +143,22 @@ export default class TaskPrimitive extends BaseTask {
         return States.ERROR;
       }
 
+      if (!variant.stock_level) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          {
+            message: 'Waiting for restock',
+          },
+          Events.TaskStatus,
+        );
+
+        this._delayer = waitForDelay(500, this._aborter.signal);
+        await this._delayer;
+
+        return States.WAIT_FOR_PRODUCT;
+      }
+
       emitEvent(
         this.context,
         [this.context.id],
@@ -267,8 +283,7 @@ export default class TaskPrimitive extends BaseTask {
       this._pooky = await this.generatePooky(this._region);
     }
 
-    // logger.debug('ATC FORM: %j', this._form);
-    // await this._logCookies(this.context.jar);
+    logger.debug('ATC FORM: %j', this._form);
 
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
@@ -289,7 +304,6 @@ export default class TaskPrimitive extends BaseTask {
 
       // start the checkout padding timer...
       this.context.timers.checkout.start(new Date().getTime());
-
       const body = await res.json();
 
       if (!body || !body.length) {

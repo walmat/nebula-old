@@ -4,17 +4,22 @@ import { Utils } from '../../common';
 const { getRandomIntInclusive } = Utils;
 
 export default (product, context) => {
-  const { variants, randomInStock } = product;
+  const { variants } = product;
 
   const {
-    task: { size },
+    task: {
+      size,
+      product: {
+        randomInStock,
+      }
+    },
     logger,
   } = context;
 
   let grouping = variants;
 
   if (randomInStock) {
-    grouping = grouping.filter(v => v.stock_level);
+    grouping = grouping.filter(({ stock_level }) => stock_level > 0);
 
     // if we filtered all the products out, rewind it to all variants...
     if (!grouping || !grouping.length) {
@@ -23,7 +28,9 @@ export default (product, context) => {
   }
 
   if (/random/i.test(size)) {
-    return grouping[getRandomIntInclusive(0, grouping.length - 1)];
+    const rand = getRandomIntInclusive(0, grouping.length - 1);
+    const variant = grouping[rand];
+    return variant;
   }
 
   const variant = grouping.find(v => {
@@ -38,7 +45,6 @@ export default (product, context) => {
     }
 
     if (sizeMatcher(v.name)) {
-      logger.debug('Choosing variant: %j', v);
       return v;
     }
     return null;

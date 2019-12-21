@@ -158,7 +158,6 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
 export const matchVariation = async (variations, variation, logger = { log: () => {} }) => {
   const grouping = variations.filter(({ sizes }) => sizes.some(s => s.stock_level > 0));
 
-  logger.log('debug', 'Variations in stock: %j', grouping);
   // if no variations are in stock, revert..
   if (!grouping || !grouping.length) {
     return null;
@@ -182,7 +181,6 @@ export const matchVariation = async (variations, variation, logger = { log: () =
     }
 
     if (variationMatcher(variation)) {
-      logger.log('debug', 'Choosing variant: %j', v);
       return v;
     }
   });
