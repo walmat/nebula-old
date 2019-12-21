@@ -315,6 +315,7 @@ export default class TaskPrimitive extends BaseTask {
       this.context.timers.checkout.start(new Date().getTime());
       const body = await res.json();
 
+      // this should never be hit... but as a safeguard let's keep it
       if (!body || !body.length) {
         emitEvent(
           this.context,
@@ -325,6 +326,7 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
+        this.context.jar.removeAllCookies();
         this._pooky = false;
 
         return States.WAIT_FOR_PRODUCT;
@@ -341,6 +343,7 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
+        this.context.jar.removeAllCookies();
         this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
 
