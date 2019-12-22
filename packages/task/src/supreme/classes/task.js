@@ -144,29 +144,29 @@ export default class TaskPrimitive extends BaseTask {
         return States.ERROR;
       }
 
-      if (!variant.stock_level) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          {
-            productImage: `${this._product.image}`.startsWith('http')
-              ? this._product.image
-              : `https:${this._product.image}`,
-            productImageHi: `${matchedVariation.image_url}`.startsWith('http')
-              ? matchedVariation.image_url
-              : `https:${matchedVariation.image_url}`,
-            productName: `${this.context.task.product.name} / ${this._product.chosenVariation}`,
-            chosenSize: variant.name,
-            message: 'Waiting for restock',
-          },
-          Events.TaskStatus,
-        );
+      // if (!variant.stock_level && /random/i.test(this.context.task.size)) {
+      //   emitEvent(
+      //     this.context,
+      //     [this.context.id],
+      //     {
+      //       productImage: `${this._product.image}`.startsWith('http')
+      //         ? this._product.image
+      //         : `https:${this._product.image}`,
+      //       productImageHi: `${matchedVariation.image_url}`.startsWith('http')
+      //         ? matchedVariation.image_url
+      //         : `https:${matchedVariation.image_url}`,
+      //       productName: `${this.context.task.product.name} / ${this._product.chosenVariation}`,
+      //       chosenSize: variant.name,
+      //       message: 'Waiting for restock',
+      //     },
+      //     Events.TaskStatus,
+      //   );
 
-        this._delayer = waitForDelay(500, this._aborter.signal);
-        await this._delayer;
+      //   this._delayer = waitForDelay(500, this._aborter.signal);
+      //   await this._delayer;
 
-        return States.WAIT_FOR_PRODUCT;
-      }
+      //   return States.WAIT_FOR_PRODUCT;
+      // }
 
       emitEvent(
         this.context,
@@ -201,11 +201,7 @@ export default class TaskPrimitive extends BaseTask {
 
     const lastid = Date.now();
     try {
-      const res = await this._fetch(NEBULA_API_BASE, {
-        headers: {
-          Authorization: NEBULA_API_AUTH,
-        },
-      });
+      const res = await this._fetch(`${NEBULA_API_BASE}?license=${NEBULA_API_AUTH}&site=${region}`);
 
       if (!res.ok) {
         const error = new Error('Unable to fetch cookies');
@@ -232,10 +228,14 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async generateForm(type) {
-    const { NEBULA_FORM_API } = process.env;
+    const { NEBULA_FORM_API, NEBULA_FORM_AUTH } = process.env;
 
     try {
-      const res = await this._fetch(`${NEBULA_FORM_API}/${this._region}/${type}`);
+      const res = await this._fetch(`${NEBULA_FORM_API}/supreme/${type}?region=${this._region}`, {
+        headers: {
+          Authorization: `Basic ${Buffer.from(`nebula:${NEBULA_FORM_AUTH}`).toString('base64')}`,
+        }
+      });
 
       if (!res.ok) {
         const error = new Error('Unable to fetch form');
@@ -245,7 +245,12 @@ export default class TaskPrimitive extends BaseTask {
 
       const form = await res.json();
 
+      if (!form || (form && !form.length)) {
+        return false;
+      }
+
       this._form = await parseForm(form, type, this._product, this.context.task);
+
       return true;
     } catch (error) {
       return false;
@@ -265,6 +270,7 @@ export default class TaskPrimitive extends BaseTask {
     const {
       product: {
         variant: { id: s },
+        randomInStock,
       },
       size,
       monitor,
@@ -305,6 +311,8 @@ export default class TaskPrimitive extends BaseTask {
         body: this._form,
       });
 
+      this._form = null;
+
       if (!res.ok) {
         const error = new Error('Failed add to cart');
         error.status = res.status || res.errno;
@@ -315,24 +323,7 @@ export default class TaskPrimitive extends BaseTask {
       this.context.timers.checkout.start(new Date().getTime());
       const body = await res.json();
 
-      // this should never be hit... but as a safeguard let's keep it
-      if (!body || !body.length) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          {
-            message: `Adding to cart`,
-          },
-          Events.TaskStatus,
-        );
-
-        this.context.jar.removeAllCookies();
-        this._pooky = false;
-
-        return States.WAIT_FOR_PRODUCT;
-      }
-
-      if (body && body.length && !body[0].in_stock) {
+      if (!body || (body && !body.length) || (body && body.length && !body[0].in_stock)) {
 
         emitEvent(
           this.context,
@@ -343,7 +334,8 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
-        this.context.jar.removeAllCookies();
+        this.context.jar.removeAllCookiesSync();
+
         this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
 
@@ -358,14 +350,13 @@ export default class TaskPrimitive extends BaseTask {
 
         this._pooky = false;
 
-        if (/random/i.test(size)) {
+        if (/random/i.test(size) && randomInStock) {
           return States.WAIT_FOR_PRODUCT;
         }
 
         return States.ADD_TO_CART;
       }
 
-      this._form = null; // reset atc form
       if (captcha && !this.context.captchaToken) {
         return States.CAPTCHA;
       }
@@ -645,11 +636,14 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.json();
 
       if (body && body.status && /failed|out/i.test(body.status)) {
+
+        const message = /failed/.test(body.status) ? 'Checkout failed' : 'Out of stock!';
+
         emitEvent(
           this.context,
           [this.context.id],
           {
-            message: `Checkout failed`,
+            message,
           },
           Events.TaskStatus,
         );
@@ -687,7 +681,15 @@ export default class TaskPrimitive extends BaseTask {
 
         this._pooky = null;
         this.context.setCaptchaToken(null);
-        return States.WAIT_FOR_PRODUCT;
+
+        if (this._region !== Regions.US) {
+          return States.CAPTCHA;
+        }
+
+        this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
+        await this._delayer;
+
+        return States.SUBMIT_CHECKOUT;
       }
 
       if (body && body.status && /paid/i.test(body.status)) {

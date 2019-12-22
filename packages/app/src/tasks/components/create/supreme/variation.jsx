@@ -10,10 +10,10 @@ import { buildStyle } from '../../../../styles';
 import { makeTheme } from '../../../../app/state/selectors';
 
 const VariationField = ({ theme, variation, onChange }) => (
-  <div className="col col--start col--expand" style={{ flexGrow: 0 }}>
+  <div className="col col--start col--expand">
     <p className={`create-tasks__label--${theme}`}>Variation</p>
     <input
-      className={`create-tasks__input--${theme}`}
+      className={`create-tasks__input--${theme} create-tasks__short`}
       type="text"
       placeholder="Color/Style"
       onChange={e => onChange(e.target.value)}

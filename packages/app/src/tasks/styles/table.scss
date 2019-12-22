@@ -157,7 +157,6 @@
 
           &--SAFE {
             @include input-field;
-            color: #e9b14f !important;
             width: 100px;
             white-space: nowrap;
             text-overflow: ellipsis;
@@ -173,7 +172,6 @@
 
           &--FAST {
             @include input-field;
-            color: #6ba6c5 !important;
             width: 100px;
             white-space: nowrap;
             text-overflow: ellipsis;
@@ -184,6 +182,21 @@
 
             & > * {
               color: #6ba6c5 !important;
+            }
+          }
+
+          &--DYNO {
+            @include input-field;
+            width: 100px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            flex-grow: 5;
+            margin-left: 15px !important;
+            overflow: hidden;
+
+            & > * {
+              color: #36623e !important;
             }
           }
         }

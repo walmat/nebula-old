@@ -26,7 +26,7 @@ export default class JsonParser {
     let res;
     try {
       logger.silly('Making request for products.json');
-      res = await this._fetch(`/products.json?limit=100`, {
+      res = await this._fetch(`/products.json?limit=-${getRandomIntInclusive(10000, 500000)}`, {
         method: 'GET',
         compress: true,
         headers: {

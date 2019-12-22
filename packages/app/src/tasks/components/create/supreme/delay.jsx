@@ -10,12 +10,12 @@ import { buildStyle } from '../../../../styles';
 import { makeTheme } from '../../../../app/state/selectors';
 
 const CheckoutDelayField = ({ theme, checkoutDelay, onChange }) => (
-  <div className="col col--start col--expand" style={{ flexGrow: 0, maxWidth: 60 }}>
+  <div className="col col--start col--expand">
     <p className={`create-tasks__label--${theme}`}>Delay</p>
     <input
       type="number"
-      placeholder="0"
-      className={`create-tasks__input--${theme}`}
+      placeholder="3500"
+      className={`create-tasks__input--${theme} create-tasks__shorter`}
       onChange={e => onChange(e.target.value)}
       value={checkoutDelay}
       style={buildStyle(false, null)}

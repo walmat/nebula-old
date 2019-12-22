@@ -90,7 +90,7 @@ export default (state = CurrentTask, action = {}) => {
           return { ...state, size: value };
 
         case TASK_FIELDS.EDIT_TASK_TYPE:
-          return { ...state, type: mapTypeToNextType(state.type) };
+          return { ...state, type: value };
 
         case TASK_FIELDS.EDIT_DATE_TIME: {
           return { ...state, schedule: value };

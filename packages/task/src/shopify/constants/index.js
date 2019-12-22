@@ -35,10 +35,9 @@ const CheckoutStates = {
 };
 
 const Modes = {
-  SAFE: 'SAFE',
   FAST: 'FAST',
-  CART: 'CART',
-  UNKNOWN: 'UNKNOWN',
+  SAFE: 'SAFE',
+  DYNO: 'DYNO',
 };
 
 /**

@@ -19,6 +19,12 @@ export const Platforms = {
   Other: 'Other',
 };
 
+export const Types = {
+  SAFE: 'SAFE',
+  DYNO: 'DYNO',
+  FAST: 'FAST',
+};
+
 export const platformForStore = url => {
   if (/supreme/i.test(url)) {
     return Platforms.Supreme;
@@ -123,6 +129,8 @@ export const buildAccountOptions = accounts =>
     },
   }));
 
+export const buildTaskModeOptions = () => [Types.FAST, Types.SAFE, Types.DYNO].map(type => ({ label: type, value: type }));
+
 export const buildAccountListOptions = accounts => buildOptions(accounts, 'id', 'name');
 
 export const buildCountryOptions = () => buildOptions(getAllCountries(), 'code', 'name');
@@ -150,11 +158,6 @@ export const buildCategoryOptions = () => {
     'Tops/Sweaters',
   ];
   return categories.map(cat => ({ label: cat, value: cat }));
-};
-
-export const Types = {
-  SAFE: 'SAFE',
-  FAST: 'FAST',
 };
 
 export const States = {

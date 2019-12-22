@@ -4,8 +4,8 @@ import phoneFormatter from 'phone-formatter';
 import { Regions } from '../constants';
 
 export const Forms = {
-  Cart: 'Cart',
-  Checkout: 'Checkout',
+  Cart: 'cart',
+  Checkout: 'checkout',
 };
 
 export const cart = (size, style, region) => {
@@ -30,14 +30,14 @@ export const parseForm = async (form, type, product, task) => {
 
       data = await form.map(({ name, friendly, value }) => {
         if (/size/.test(friendly)) {
-          return `${name}=${s}&`;
+          return `${encodeURI(name)}=${s}&`;
         }
 
         if (/style/.test(friendly)) {
-          return `${name}=${st}&`;
+          return `${encodeURI(name)}=${st}&`;
         }
 
-        return `${name}=${value}&`;
+        return `${encodeURI(name)}=${value}&`;
       });
       break;
     }

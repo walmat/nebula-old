@@ -9,8 +9,8 @@ const ShopifyOptions = () => (
   <div className="row row--start row--expand">
     <AccountSelect />
     <TaskMode />
-    <OneCheckout />
-    <RestockMode />
+    {/* <OneCheckout />
+    <RestockMode /> */}
   </div>
 );
 

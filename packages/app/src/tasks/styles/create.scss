@@ -72,6 +72,14 @@
     }
   }
 
+  &__short {
+    width: 95px !important;
+  }
+
+  &__shorter {
+    width: 55px !important;
+  }
+
   &__input {
     &--dark {
       max-width: 185px;

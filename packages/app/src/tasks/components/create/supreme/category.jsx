@@ -33,11 +33,9 @@ const CategorySelect = ({ category, theme, onSelect }) => {
   const categoryValue = category ? { label: category, value: category } : null;
 
   return (
-    <div className="col col--start col--expand" style={{ flexGrow: 5 }}>
+    <div className="col col--start col--expand">
       <p className={`create-tasks__label--${theme}`}>Category</p>
       <Select
-        isClearable
-        backspaceRemovesValue
         required
         placeholder="No Category"
         components={{
@@ -52,7 +50,7 @@ const CategorySelect = ({ category, theme, onSelect }) => {
         onChange={e => onChange(e, onSelect)}
         value={categoryValue}
         options={buildCategoryOptions()}
-        className="create-tasks__input"
+        className="create-tasks__select"
         classNamePrefix="select"
       />
     </div>
