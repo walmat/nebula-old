@@ -1,5 +1,5 @@
 import { parseURL } from 'whatwg-url';
-import { SHIPPING_ACTIONS, GLOBAL_ACTIONS, SETTINGS_FIELDS } from '../../../store/actions';
+import { SHIPPING_ACTIONS, PROFILE_ACTIONS, GLOBAL_ACTIONS, SETTINGS_FIELDS } from '../../../store/actions';
 import { Shipping } from '../initial';
 
 export default function shippingReducer(state = Shipping, action = {}) {
@@ -92,6 +92,16 @@ export default function shippingReducer(state = Shipping, action = {}) {
   if (type === SHIPPING_ACTIONS.CLEANUP_SHIPPING) {
     const { message } = action;
     return { ...state, message, status: 'idle' };
+  }
+
+  if (type === PROFILE_ACTIONS.REMOVE_PROFILE) {
+    const { id } = action;
+
+    if (!id || !state.profile || id !== state.profile.id) {
+      return state;
+    }
+
+    return { ...state, profile: null };
   }
 
   return state;

@@ -8,6 +8,10 @@
   box-shadow: none !important;
 }
 
+.rw-select-bordered {
+  border-left: none !important;
+}
+
 .rw-btn {
   vertical-align: unset !important;
 }
@@ -46,6 +50,7 @@
   border-radius: 5px;
 
   &__label {
+    max-width: 185px;
     @include select-font;
     height: 12px;
     margin-top: 0;
@@ -69,6 +74,8 @@
 
   &__input {
     &--dark {
+      max-width: 185px;
+      width: 185px;
       border-width: 1px;
       border-style: solid;
       background: #2c2f33;
@@ -76,6 +83,8 @@
     }
 
     &--light {
+      max-width: 185px;
+      width: 185px;
       border-width: 1px;
       border-style: solid;
       background: #efefef;
@@ -95,6 +104,21 @@
   }
 
   &__select {
+    max-width: 185px;
+    width: 185px;
+    @include themify($themes) {
+      background: themed('inputBackground') !important;
+    }
+    &:disabled {
+      @include themify($themes) {
+        background: themed('inputBackgroundDisabled');
+      }
+    }
+  }
+
+  &__size {
+    max-width: 185px;
+    width: 120px;
     @include themify($themes) {
       background: themed('inputBackground') !important;
     }

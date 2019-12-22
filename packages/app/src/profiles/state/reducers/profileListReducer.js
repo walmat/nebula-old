@@ -43,6 +43,29 @@ export default (state = Profiles, action = {}) => {
     return [...state, profile];
   }
 
+  if (type === PROFILE_ACTIONS.DUPLICATE_PROFILE) {
+    const { profile } = action;
+
+    if (!profile) {
+      return state;
+    }
+
+    const newProfile = { ...profile };
+
+    // assign new id and check if generated id already exists
+    let newId;
+    const idCheck = p => p.id === newId;
+    do {
+      newId = uuidv4();
+    } while (state.some(idCheck));
+
+    // add new profile
+    newProfile.id = newId;
+    newProfile.name = `${profile.name} copy`;
+
+    return [...state, newProfile];
+  }
+
   if (type === PROFILE_ACTIONS.REMOVE_PROFILE) {
     const { id } = action;
 

@@ -28,5 +28,4 @@ export const Shipping = {
 
 export const Delays = {
   monitor: 1500,
-  error: 5000,
 };

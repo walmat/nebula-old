@@ -1,6 +1,7 @@
 import { parseURL } from 'whatwg-url';
 import {
   PROFILE_ACTIONS,
+  ACCOUNT_ACTIONS,
   TASK_ACTIONS,
   GLOBAL_ACTIONS,
   TASK_FIELDS,
@@ -12,10 +13,12 @@ import { platformForStore, mapTypeToNextType } from '../../../constants';
 export default (state = CurrentTask, action = {}) => {
   const { type } = action;
 
+  // MARK: GLOBAL ACTIONS
   if (type === GLOBAL_ACTIONS.RESET) {
     return CurrentTask;
   }
 
+  // MARK: TASK ACTIONS
   if (type === TASK_ACTIONS.EDIT_TASK) {
     const { id, field, value, sites } = action;
     if (!id) {
@@ -71,7 +74,6 @@ export default (state = CurrentTask, action = {}) => {
             return state;
           }
 
-          // patch back in the defaults..
           if (platformForStore(value.url) !== state.platform) {
             return {
               ...CurrentTask,
@@ -153,13 +155,44 @@ export default (state = CurrentTask, action = {}) => {
     return state;
   }
 
+  // MARK: PROFILE ACTIONS
+  if (type === PROFILE_ACTIONS.UPDATE_PROFILE) {
+    const { profile } = action;
+
+    if (!state.profile || state.profile.id !== profile.id) {
+      return state;
+    }
+
+    return { ...state, profile };
+  }
+
   if (type === PROFILE_ACTIONS.REMOVE_PROFILE) {
     const { id } = action;
+
     if (!id || !state.profile || state.profile.id !== id) {
       return state;
     }
 
     return { ...state, profile: null };
+  }
+
+  // MARK: ACCOUNT ACTIONS
+  if (type === ACCOUNT_ACTIONS.CREATE_ACCOUNT) {
+    const { account } = action;
+    if (!state.account || state.account.id !== account.id) {
+      return state;
+    }
+
+    return { ...state, account };
+  }
+
+  if (type === ACCOUNT_ACTIONS.DELETE_ACCOUNT) {
+    const { account } = action;
+    if (!state.account || state.account.id !== account.id) {
+      return state;
+    }
+
+    return { ...state, account: null };
   }
 
   return state;

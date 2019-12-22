@@ -8,6 +8,7 @@ import { globalActions } from '../../../store/actions';
 const Button = ({ onClick, data, label }) => (
   <button
     type="button"
+    disabled // TODO: temporary...
     className="col col--expand col--no-gutter-left settings--export"
     tabIndex={0}
     onKeyPress={() => {}}

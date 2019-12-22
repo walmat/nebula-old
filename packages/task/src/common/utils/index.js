@@ -8,7 +8,6 @@ import rfrl from './rfrl';
 import { Task, Monitor } from '../constants';
 
 const { ParseType } = Monitor;
-const { Types } = Task;
 
 export const waitForDelay = (time, signal) => delay(time, { signal });
 export const reflect = p =>
@@ -87,7 +86,7 @@ const _emitEvent = (context, ids, event, payload) => {
 
 export const emitEvent = (context, ids, payload = {}, event) => {
   context.setMessage(payload.message);
-  _emitEvent(context, ids, event, { ...payload, type: Types.Normal });
+  _emitEvent(context, ids, event, { ...payload });
 };
 
 export const compareProductData = async (product1, product2, parseType) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import SelectProfile from './select';
-import DeleteButton from './delete';
+import Buttons from './buttons';
 
 export default () => (
   <div className="row row--expand row--no-gutter-left" style={{ marginTop: 19 }}>
@@ -12,7 +12,7 @@ export default () => (
             <div className="row row--start row--gutter">
               <div className="col profiles-load__input-group">
                 <SelectProfile />
-                <DeleteButton className="profiles-load__input-group--delete" label="Delete" />
+                <Buttons className="profiles-load__input-group" />
               </div>
             </div>
           </div>

@@ -60,14 +60,16 @@ export default asyncReducers =>
     ]),
     Proxies: filterActions(Proxies, [...proxiesActionsList, ...globalActionsList]),
     Sites: filterActions(Sites, appActionsList),
-    Shipping: filterActions(Shipping, [...shippingActionsList, ...globalActionsList]),
+    Shipping: filterActions(Shipping, [...shippingActionsList, ...profileActionsList, ...globalActionsList]),
     Tasks: filterActions(Tasks, [
       ...taskListActionsList,
+      ...accountActionsList,
       ...profileActionsNeededForTask,
       ...globalActionsList,
     ]),
     CurrentTask: filterActions(CurrentTask, [
       ...taskActionsList,
+      ...accountActionsList,
       ...profileActionsNeededForTask,
       ...globalActionsList,
     ]),

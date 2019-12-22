@@ -37,6 +37,21 @@
         height: 29px;
       }
 
+      &--duplicate {
+        @include button-font;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary');
+          color: themed('buttonPrimaryText');
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
+        }
+        border-radius: 3px;
+        border: none;
+        width: 83px;
+        height: 29px;
+        cursor: pointer;
+        margin-top: 14px;
+      }
+
       &--delete {
         @include button-font;
         @include themify($themes) {

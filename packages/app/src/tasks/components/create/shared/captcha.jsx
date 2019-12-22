@@ -11,11 +11,11 @@ import { makeCurrentTask } from '../../../state/selectors';
 import { THEMES } from '../../../../constants';
 
 const ForceCaptcha = ({ theme, captcha, onToggle }) => (
-  <div className="col col--start col--expand" style={{ marginTop: 4 }}>
+  <div className="col col--start col--no-gutter col--expand">
     <Switch
       checked={captcha}
       checkedIcon={
-        <svg width="48" height="48" viewBox="-2 -2 24 24" version="1.1">
+        <svg width="48" height="48" viewBox="-5 -5 29 29" version="1.1">
           <g id="surface1">
             <path
               style={{
@@ -54,8 +54,7 @@ const ForceCaptcha = ({ theme, captcha, onToggle }) => (
       uncheckedIcon={false}
       boxShadow="0px 1px 5px rgba(0, 0, 0, 0.6)"
       activeBoxShadow="0px 0px 1px 10px rgba(0, 0, 0, 0.2)"
-      height={24}
-      width={48}
+      height={31}
       className="react-switch"
     />
   </div>

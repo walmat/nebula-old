@@ -40,7 +40,7 @@ const ProfileSelect = ({ theme, profile, profiles, onSelect }) => {
   }
 
   return (
-    <div className="col col--start col--expand" style={{ flexGrow: 5 }}>
+    <div className="col col--start col--expand">
       <p className={`create-tasks__label--${theme}`}>Billing Profile</p>
       <Select
         required

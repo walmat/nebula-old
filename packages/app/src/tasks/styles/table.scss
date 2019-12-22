@@ -157,7 +157,7 @@
 
           &--SAFE {
             @include input-field;
-            color: #a48a47;
+            color: #e9b14f !important;
             width: 100px;
             white-space: nowrap;
             text-overflow: ellipsis;
@@ -165,11 +165,15 @@
             flex-grow: 5;
             margin-left: 15px !important;
             overflow: hidden;
+
+            & > * {
+              color: #e9b14f !important;
+            }
           }
 
           &--FAST {
             @include input-field;
-            color: #f79627;
+            color: #6ba6c5 !important;
             width: 100px;
             white-space: nowrap;
             text-overflow: ellipsis;
@@ -177,6 +181,10 @@
             flex-grow: 5;
             margin-left: 15px !important;
             overflow: hidden;
+
+            & > * {
+              color: #6ba6c5 !important;
+            }
           }
         }
 

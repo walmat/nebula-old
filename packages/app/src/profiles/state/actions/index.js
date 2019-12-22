@@ -4,6 +4,7 @@ import prefixer from '../../../store/reducers/prefixer';
 const prefix = '@@Profile';
 const actionsList = [
   'CREATE_PROFILE',
+  'DUPLICATE_PROFILE',
   'REMOVE_PROFILE',
   'EDIT_PROFILE',
   'SELECT_PROFILE',
@@ -17,6 +18,7 @@ export const profileActionsNeededForTask = ['@@Profile/REMOVE_PROFILE', '@@Profi
 
 export const profileActionsList = [
   '@@Profile/CREATE_PROFILE',
+  '@@Profile/DUPLICATE_PROFILE',
   '@@Profile/REMOVE_PROFILE',
   '@@Profile/EDIT_PROFILE',
   '@@Profile/SELECT_PROFILE',
@@ -29,6 +31,7 @@ export const PROFILE_ACTIONS = prefixer(prefix, actionsList);
 
 // Private Actions
 const createProfile = makeActionCreator(PROFILE_ACTIONS.CREATE_PROFILE, 'profile');
+const duplicateProfile = makeActionCreator(PROFILE_ACTIONS.DUPLICATE_PROFILE, 'profile');
 const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE_PROFILE, 'id');
 const updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE_PROFILE, 'profile');
 
@@ -46,6 +49,7 @@ const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'store', 'rate
 
 export const profileActions = {
   create: createProfile,
+  duplicate: duplicateProfile,
   remove: removeProfile,
   edit: editProfile,
   select: selectProfile,

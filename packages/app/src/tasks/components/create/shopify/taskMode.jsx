@@ -7,7 +7,7 @@ import { TASK_FIELDS, taskActions } from '../../../../store/actions';
 import { makeCurrentTask } from '../../../state/selectors';
 
 const TaskMode = ({ type, onToggle }) => (
-  <div className="col col--start col--expand col--no-gutter-right">
+  <div className="col col--start col--expand col--no-gutter">
     <p
       className={`create-tasks__input--${type}`}
       onKeyPress={() => {}}

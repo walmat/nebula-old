@@ -11,6 +11,7 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
     task.message,
   );
   const messageClassName = match ? statusColorMap[match[0]] : 'normal';
+
   return (
     <div
       onKeyPress={() => {}}
