@@ -38,7 +38,7 @@ RandomInStockToggle.propTypes = {
 };
 
 export const mapStateToProps = state => ({
-  randomInStock: makeCurrentTask(state).product.randomInStock,
+  randomInStock: makeCurrentTask(state).randomInStock,
 });
 
 export const mapDispatchToProps = dispatch => ({

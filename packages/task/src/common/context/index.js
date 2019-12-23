@@ -24,6 +24,7 @@ export default class Context {
     captchaRequest = null,
     captchaQueue = null,
     captchaToken = null,
+    pookyEnabled = true,
   }) {
     this.id = id;
     this.ids = [id];
@@ -47,6 +48,8 @@ export default class Context {
     this.captchaRequest = captchaRequest;
     this.captchaQueue = captchaQueue;
     this.captchaToken = captchaToken;
+
+    this.pookyEnabled = pookyEnabled;
   }
 
   addId(id) {
@@ -126,5 +129,9 @@ export default class Context {
       ...this.task.product,
       variant,
     };
+  }
+
+  setPookyEnabled(pookyEnabled) {
+    this.pookyEnabled = pookyEnabled;
   }
 }
