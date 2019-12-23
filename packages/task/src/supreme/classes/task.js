@@ -101,12 +101,10 @@ export default class TaskPrimitive extends BaseTask {
     if (this.context.task.product.styles) {
       const matchedVariation = await matchVariation(
         this.context.task.product.styles,
-        this.context.task.product.variation,
-        this.context.task.product.randomInStock,
+        this.context.task.variation,
+        this.context.task.randomInStock,
         logger,
       );
-
-      logger.info(matchedVariation);
 
       if (!matchedVariation) {
         emitEvent(
@@ -249,8 +247,8 @@ export default class TaskPrimitive extends BaseTask {
     const {
       product: {
         variant: { id: s },
-        randomInStock,
       },
+      randomInStock,
       size,
       monitor,
       captcha,
@@ -274,6 +272,7 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
+    console.log(this.context.pookyEnabled);
     if (!this._pooky && this.context.pookyEnabled) {
       this._pooky = await this.generatePooky(this._region);
     }

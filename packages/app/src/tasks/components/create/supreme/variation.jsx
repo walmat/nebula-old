@@ -32,7 +32,7 @@ VariationField.propTypes = {
 
 export const mapStateToProps = state => ({
   theme: makeTheme(state),
-  variation: makeCurrentTask(state).product.variation,
+  variation: makeCurrentTask(state).variation,
 });
 
 export const mapDispatchToProps = dispatch => ({

@@ -1,3 +1,5 @@
+import { isEmpty } from 'lodash';
+
 import { Bases, Constants, Utils } from '../../common';
 import getHeaders, { matchKeywords } from '../utils';
 import { Monitor } from '../constants';
@@ -18,7 +20,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     this._prevState = this._state;
 
     this.detectPooky();
-    setInterval(() => this.detectPooky(), 1000);
+    this._pookyInterval = setInterval(() => this.detectPooky(), 1000);
   }
 
   async _handleError(error = {}, state) {
@@ -111,10 +113,11 @@ export default class MonitorPrimitive extends BaseMonitor {
         throw error;
       }
 
-      this.context.setPookyEnabled(!!body.state);
+      this.context.setPookyEnabled(body.state);
 
       return;
     } catch (err) {
+      console.log(err);
       this.context.setPookyEnabled(true);
       return;
     }
@@ -279,5 +282,14 @@ export default class MonitorPrimitive extends BaseMonitor {
 
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);
+  }
+
+  stop(id) {
+    super.stop(id);
+
+    if (this.context.isEmpty()) {
+      clearInterval(this._pookyInterval);
+      this._pookyInterval = null;
+    }
   }
 }

@@ -2,7 +2,7 @@ import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
-import { waitForDelay, emitEvent } from '../utils';
+import { emitEvent } from '../utils';
 import { Monitor, Task } from '../constants';
 
 const { States } = Monitor;
@@ -120,7 +120,7 @@ export default class BaseMonitor {
 
     logger.debug('Amount of ids: %d', this.context.ids.length);
 
-    if (!this.context.isEmpty()) {
+    if (this.context.isEmpty()) {
       this.context.setAborted(true);
       this._aborter.abort();
       if (this._delayer) {

@@ -24,7 +24,7 @@ export default class Context {
     captchaRequest = null,
     captchaQueue = null,
     captchaToken = null,
-    pookyEnabled = false,
+    pookyEnabled = true,
   }) {
     this.id = id;
     this.ids = [id];

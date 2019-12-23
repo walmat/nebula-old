@@ -158,17 +158,17 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
 export const matchVariation = async (variations, variation, inStock = false, logger = { log: () => {} }) => {
   let grouping = variations.filter(({ sizes }) => sizes.some(s => s.stock_level > 0));
 
+  console.log(grouping, variation, variations);
   // if no variations are in stock, revert..
   if (!grouping || !grouping.length) {
+    // if we care about stock level, return null to signify a circle back
+    if (/random/i.test(variation) && inStock) {
+      return null;
+    }
     grouping = variations;
   }
 
   if (/random/i.test(variation)) {
-    // if we care about stock level, return null to signify a circle back
-    if (inStock) {
-      return null;
-    }
-
     // otherwise, choose a random variation and move onward
     const rand = getRandomIntInclusive(0, grouping.length - 1);
     const variant = grouping[rand];

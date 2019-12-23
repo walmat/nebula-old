@@ -102,10 +102,7 @@ export default (state = CurrentTask, action = {}) => {
         case TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK:
           return {
             ...state,
-            product: {
-              ...state.product,
-              randomInStock: !state.product.randomInStock,
-            },
+            randomInStock: !state.randomInStock,
           };
 
         case TASK_FIELDS.TOGGLE_ONE_CHECKOUT:
@@ -125,10 +122,7 @@ export default (state = CurrentTask, action = {}) => {
         case TASK_FIELDS.EDIT_PRODUCT_VARIATION:
           return {
             ...state,
-            product: {
-              ...state.product,
-              variation: value,
-            },
+            variation: value,
           };
 
         case TASK_FIELDS.EDIT_CHECKOUT_DELAY: {
