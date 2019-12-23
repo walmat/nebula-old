@@ -20,7 +20,7 @@ export default class TaskPrimitive extends BaseTask {
     this._sentWebhook = false;
     this._product = null;
     this._region = getRegion(context.task.store.name);
-    this._pooky = false;
+    this._pooky = null;
     this._slug = null;
     this._form = null;
   }
@@ -102,8 +102,11 @@ export default class TaskPrimitive extends BaseTask {
       const matchedVariation = await matchVariation(
         this.context.task.product.styles,
         this.context.task.product.variation,
+        this.context.task.product.randomInStock,
         logger,
       );
+
+      logger.info(matchedVariation);
 
       if (!matchedVariation) {
         emitEvent(
@@ -116,7 +119,7 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
-        this._delayer = waitForDelay(500, this._aborter.signal);
+        this._delayer = waitForDelay(150, this._aborter.signal);
         await this._delayer;
 
         return States.WAIT_FOR_PRODUCT;
@@ -144,30 +147,6 @@ export default class TaskPrimitive extends BaseTask {
         return States.ERROR;
       }
 
-      // if (!variant.stock_level && /random/i.test(this.context.task.size)) {
-      //   emitEvent(
-      //     this.context,
-      //     [this.context.id],
-      //     {
-      //       productImage: `${this._product.image}`.startsWith('http')
-      //         ? this._product.image
-      //         : `https:${this._product.image}`,
-      //       productImageHi: `${matchedVariation.image_url}`.startsWith('http')
-      //         ? matchedVariation.image_url
-      //         : `https:${matchedVariation.image_url}`,
-      //       productName: `${this.context.task.product.name} / ${this._product.chosenVariation}`,
-      //       chosenSize: variant.name,
-      //       message: 'Waiting for restock',
-      //     },
-      //     Events.TaskStatus,
-      //   );
-
-      //   this._delayer = waitForDelay(500, this._aborter.signal);
-      //   await this._delayer;
-
-      //   return States.WAIT_FOR_PRODUCT;
-      // }
-
       emitEvent(
         this.context,
         [this.context.id],
@@ -187,7 +166,7 @@ export default class TaskPrimitive extends BaseTask {
       return States.ADD_TO_CART;
     }
 
-    this._delayer = waitForDelay(500, this._aborter.signal);
+    this._delayer = waitForDelay(150, this._aborter.signal);
     await this._delayer;
 
     return States.WAIT_FOR_PRODUCT;
@@ -289,16 +268,15 @@ export default class TaskPrimitive extends BaseTask {
     if (!this._form) {
       const generated = await this.generateForm(FormTypes.Cart);
 
+      // fallback to hardcoded form...
       if (!generated) {
         this._form = cart(s, st, this._region);
       }
     }
 
-    if (!this._pooky) {
+    if (!this._pooky && this.context.pookyEnabled) {
       this._pooky = await this.generatePooky(this._region);
     }
-
-    logger.debug('ATC FORM: %j', this._form);
 
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
@@ -472,7 +450,7 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    if (!this._pooky) {
+    if (!this._pooky && this.context.pookyEnabled) {
       this._pooky = await this.generatePooky(this._region);
     }
 
@@ -486,7 +464,7 @@ export default class TaskPrimitive extends BaseTask {
         this.context,
         [this.context.id],
         {
-          message: `Delaying ${totalTimeout}ms`,
+          message: `Submitting checkout in ${totalTimeout}ms`,
         },
         Events.TaskStatus,
       );
@@ -525,7 +503,6 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const body = await res.json();
-
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
@@ -557,7 +534,7 @@ export default class TaskPrimitive extends BaseTask {
         this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
 
-        return States.WAIT_FOR_PRODUCT;
+        this._pooky = null;
       }
 
       if (body && body.status && /dup/i.test(body.status)) {
@@ -578,14 +555,12 @@ export default class TaskPrimitive extends BaseTask {
           this.context,
           [this.context.id],
           {
-            message: `Checkout failed!`,
+            message: 'Checkout failed',
           },
           Events.TaskStatus,
         );
 
         this._pooky = null;
-
-        return States.WAIT_FOR_PRODUCT;
       }
 
       return States.SUBMIT_CHECKOUT;
@@ -636,8 +611,7 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.json();
 
       if (body && body.status && /failed|out/i.test(body.status)) {
-
-        const message = /failed/.test(body.status) ? 'Checkout failed' : 'Out of stock!';
+        const message = /out/.test(body.status) ? `Out of stock! Delaying ${monitor}ms` : 'Checkout failed';
 
         emitEvent(
           this.context,

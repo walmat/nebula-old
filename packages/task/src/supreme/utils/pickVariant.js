@@ -13,7 +13,6 @@ export default (product, context) => {
         randomInStock,
       }
     },
-    logger,
   } = context;
 
   let grouping = variants;

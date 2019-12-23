@@ -16,6 +16,9 @@ export default class MonitorPrimitive extends BaseMonitor {
 
     this._state = States.PARSE;
     this._prevState = this._state;
+
+    this.detectPooky();
+    setInterval(() => this.detectPooky(), 1000);
   }
 
   async _handleError(error = {}, state) {
@@ -84,6 +87,37 @@ export default class MonitorPrimitive extends BaseMonitor {
       await this._delayer;
     }
     return state;
+  }
+
+  async detectPooky() {
+    const { logger } = this.context;
+
+    logger.info('--------------------------DETECTING POOKY--------------------------');
+    const { NEBULA_POOKY_ON } = process.env;
+
+    try {
+      const res = await this._fetch(NEBULA_POOKY_ON);
+
+      if (!res.ok) {
+        const error = new Error('Unable to fetch pooky status');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      const body = await res.json();
+      if (!body || isEmpty(body)) {
+        const error = new Error('Invalid response');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      this.context.setPookyEnabled(!!body.state);
+
+      return;
+    } catch (err) {
+      this.context.setPookyEnabled(true);
+      return;
+    }
   }
 
   async _handleParse() {

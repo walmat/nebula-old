@@ -118,7 +118,7 @@ function createLogger({ dir, name, prefix }) {
     }),
   ];
 
-  if (_isDevelopment || process.env.NEBULA_ENABLE_CONSOLE) {
+  if (process.env.NEBULA_ENABLE_CONSOLE) {
     // Add console transport only when in dev mode or if we define the enable flag
     transports.push(
       new winston.transports.Console({
@@ -138,7 +138,7 @@ function createLogger({ dir, name, prefix }) {
   // Add the logger with default format options
   winston.loggers.add(name, {
     levels: winston.config.npm.levels,
-    level: _isDevelopment ? 'silly' : 'error', // Set it to silly in dev mode, but verbose in prod
+    level: _isDevelopment ? 'silly' : 'silly', // Set it to silly in dev mode, but verbose in prod
     transports,
     format: winston.format.combine(
       winston.format.label({ label: name }),
