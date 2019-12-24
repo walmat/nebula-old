@@ -211,7 +211,7 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`${NEBULA_FORM_API}/supreme/${type}?region=${this._region}`, {
         headers: {
           Authorization: `Basic ${Buffer.from(`nebula:${NEBULA_FORM_AUTH}`).toString('base64')}`,
-        }
+        },
       });
 
       if (!res.ok) {
@@ -272,10 +272,13 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    console.log(this.context.pookyEnabled);
     if (!this._pooky && this.context.pookyEnabled) {
       this._pooky = await this.generatePooky(this._region);
     }
+
+    await this._logCookies(this.context.jar);
+    this.context.jar.setCookieSync('lastVisitedFragment=checkout;', this.context.task.store.url);
+    await this._logCookies(this.context.jar);
 
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
@@ -301,7 +304,6 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.json();
 
       if (!body || (body && !body.length) || (body && body.length && !body[0].in_stock)) {
-
         emitEvent(
           this.context,
           [this.context.id],
@@ -455,7 +457,8 @@ export default class TaskPrimitive extends BaseTask {
 
     // stop the padding timer...
     this.context.timers.checkout.stop(new Date().getTime());
-    const totalTimeout = checkoutDelay - this.context.timers.checkout.getRunTime(new Date().getTime());
+    const totalTimeout =
+      checkoutDelay - this.context.timers.checkout.getRunTime(new Date().getTime());
     this.context.timers.checkout.reset(); // reset the timer just in case...
 
     if (totalTimeout && totalTimeout > 0) {
@@ -573,7 +576,12 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleCheckStatus() {
-    const { aborted, logger, proxy } = this.context;
+    const {
+      aborted,
+      logger,
+      proxy,
+      task: { monitor },
+    } = this.context;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -584,7 +592,7 @@ export default class TaskPrimitive extends BaseTask {
       this.context,
       [this.context.id],
       {
-        message: `Checking status`,
+        message: `Checking order`,
       },
       Events.TaskStatus,
     );
@@ -610,7 +618,9 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.json();
 
       if (body && body.status && /failed|out/i.test(body.status)) {
-        const message = /out/.test(body.status) ? `Out of stock! Delaying ${monitor}ms` : 'Checkout failed';
+        const message = /out/.test(body.status)
+          ? `Out of stock! Delaying ${monitor}ms`
+          : 'Checkout failed';
 
         emitEvent(
           this.context,
@@ -713,7 +723,7 @@ export default class TaskPrimitive extends BaseTask {
         this.context,
         [this.context.id],
         {
-          message: 'Checking status',
+          message: `Checking order`,
         },
         Events.TaskStatus,
       );

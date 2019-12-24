@@ -291,7 +291,7 @@ export const statusColorMap = {
   'Starting at': 'warning',
   'Waiting for captcha': 'warning',
   'Duplicate order': 'warning',
-  'Checking status': 'warning',
+  'Checking order': 'warning',
   'Polling queue': 'warning',
   'Payment successful': 'success',
   'Payment failed': 'failed',

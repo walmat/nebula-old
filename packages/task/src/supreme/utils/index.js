@@ -155,10 +155,15 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
   return returnAll ? matches : matches[0];
 };
 
-export const matchVariation = async (variations, variation, inStock = false, logger = { log: () => {} }) => {
+export const matchVariation = async (
+  variations,
+  variation,
+  inStock = false,
+  logger = { log: () => {} },
+) => {
   let grouping = variations.filter(({ sizes }) => sizes.some(s => s.stock_level > 0));
 
-  console.log(grouping, variation, variations);
+  logger.debug('Variations in stock: %j', grouping);
   // if no variations are in stock, revert..
   if (!grouping || !grouping.length) {
     // if we care about stock level, return null to signify a circle back

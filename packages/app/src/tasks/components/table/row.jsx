@@ -7,7 +7,7 @@ import { taskActions } from '../../../store/actions';
 import { statusColorMap } from '../../../constants';
 
 const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
-  const match = /Starting at|No variation|No size|Waiting for restock|Waiting for captcha|Duplicate order|Checking status|Checkout failed|Polling queue|Payment successful|Payment failed/i.exec(
+  const match = /Starting at|No variation|No size|Waiting for restock|Waiting for captcha|Duplicate order|Checking order|Checkout failed|Polling queue|Payment successful|Payment failed/i.exec(
     task.message,
   );
   const messageClassName = match ? statusColorMap[match[0]] : 'normal';

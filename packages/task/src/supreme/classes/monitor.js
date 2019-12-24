@@ -32,8 +32,6 @@ export default class MonitorPrimitive extends BaseMonitor {
 
     const { status } = error;
 
-    logger.error('Handling error with status: %j', status);
-
     if (!status) {
       return state;
     }
@@ -117,9 +115,7 @@ export default class MonitorPrimitive extends BaseMonitor {
 
       return;
     } catch (err) {
-      console.log(err);
       this.context.setPookyEnabled(true);
-      return;
     }
   }
 
@@ -139,6 +135,11 @@ export default class MonitorPrimitive extends BaseMonitor {
         message: 'Parsing products',
       },
       Events.MonitorStatus,
+    );
+
+    this.context.jar.setCookieSync(
+      `lastVisitedFragment=categories/${this.context.task.category};`,
+      this.context.task.store.url,
     );
 
     try {
@@ -165,13 +166,13 @@ export default class MonitorPrimitive extends BaseMonitor {
       const productsInCategory = productsAndCategories[category];
 
       logger.silly(
-        'Supreme Monitor: Parsed %d products in category: %s',
-        productsInCategory ? productsInCategory.length : 0,
+        '%s category has: %s products',
         category,
+        productsInCategory ? productsInCategory.length : 0,
       );
 
       if (!productsInCategory || (productsInCategory && !productsInCategory.length)) {
-        logger.silly('Supreme Monitor: Unable to find matching product!');
+        logger.silly('Unable to pull products in category');
         const error = new Error('Product Not Found');
         error.status = ErrorCodes.ProductNotFound;
         throw error;
@@ -185,7 +186,7 @@ export default class MonitorPrimitive extends BaseMonitor {
       const matchedProduct = await matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter...
 
       if (!matchedProduct) {
-        logger.silly('Supreme Monitor: Unable to find matching product!');
+        logger.silly('Unable to find matching product');
         const error = new Error('Product Not Found');
         error.status = ErrorCodes.ProductNotFound;
         throw error;
@@ -194,6 +195,12 @@ export default class MonitorPrimitive extends BaseMonitor {
       this.context.task.product.name = capitalizeFirstLetter(matchedProduct.name);
       this.context.task.product.price = matchedProduct.price;
       this.context.task.product.style = matchedProduct.id;
+
+      this.context.jar.setCookieSync('hasVisited=1;', this.context.task.store.url);
+      this.context.jar.setCookieSync(
+        `lastVisitedFragment=products/${this.context.task.product.style};`,
+        this.context.task.store.url,
+      );
 
       emitEvent(
         this.context,
@@ -253,6 +260,9 @@ export default class MonitorPrimitive extends BaseMonitor {
       }
 
       this.context.task.product.styles = styles;
+
+      const now = new Date().getTime();
+      this.context.jar.setCookieSync(`shoppingSessionId=${now};`, this.context.task.store.url);
 
       this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
       await this._delayer;
