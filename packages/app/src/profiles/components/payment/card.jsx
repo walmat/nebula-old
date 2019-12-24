@@ -42,7 +42,4 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(CardField);
+export default connect(mapStateToProps, mapDispatchToProps)(CardField);

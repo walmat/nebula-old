@@ -47,7 +47,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(RandomInStockToggle);
+export default connect(mapStateToProps, mapDispatchToProps)(RandomInStockToggle);

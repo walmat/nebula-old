@@ -61,18 +61,20 @@ NavbarIconRow.propTypes = {
 };
 
 const NavbarIconRows = ({ location, history, onRoute }) =>
-  [NAVBAR_ACTIONS.ROUTE_TASKS, NAVBAR_ACTIONS.ROUTE_PROFILES, NAVBAR_ACTIONS.ROUTE_SETTINGS].map(
-    route => (
-      <NavbarIconRow
-        key={route}
-        route={route}
-        onRoute={onRoute}
-        history={history}
-        location={location}
-        render={navbarDefaults[route]}
-      />
-    ),
-  );
+  [
+    NAVBAR_ACTIONS.ROUTE_TASKS,
+    NAVBAR_ACTIONS.ROUTE_PROFILES,
+    NAVBAR_ACTIONS.ROUTE_SETTINGS,
+  ].map(route => (
+    <NavbarIconRow
+      key={route}
+      route={route}
+      onRoute={onRoute}
+      history={history}
+      location={location}
+      render={navbarDefaults[route]}
+    />
+  ));
 
 const mapStateToProps = state => ({
   location: makeLocation(state),
@@ -82,7 +84,4 @@ const mapDispatchToProps = dispatch => ({
   onRoute: (route, history) => dispatch(navbarActions.route(route, history)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withRouter(NavbarIconRows));
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(NavbarIconRows));

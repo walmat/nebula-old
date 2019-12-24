@@ -69,7 +69,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ShippingButtons);
+export default connect(mapStateToProps, mapDispatchToProps)(ShippingButtons);

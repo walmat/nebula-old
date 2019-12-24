@@ -12,6 +12,10 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
   );
   const messageClassName = match ? statusColorMap[match[0]] : 'normal';
 
+  const productValue =
+    task.productName ||
+    (task.variation ? `${task.product.raw} / ${task.variation}` : task.product.raw);
+
   return (
     <div
       onKeyPress={() => {}}
@@ -55,9 +59,7 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
                 : 'col col--no-gutter'
             }
           >
-            {task.productName
-              ? task.productName
-              : task.variation ? `${task.product.raw} / ${task.variation}` : task.product.raw}
+            {productValue}
           </p>
         </div>
         <div className="col col--no-gutter tasks-row__store">

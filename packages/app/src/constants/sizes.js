@@ -1,7 +1,10 @@
 export default [
   {
     label: 'Generic',
-    options: [{ value: 'OS', label: 'One Size' }, { value: 'Random', label: 'Random' }],
+    options: [
+      { value: 'OS', label: 'One Size' },
+      { value: 'Random', label: 'Random' },
+    ],
   },
   {
     label: 'Clothing',

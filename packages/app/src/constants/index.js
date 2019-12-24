@@ -85,7 +85,10 @@ export const getSitesForCategory = (sites, category) =>
 export const getSite = (sites, site) => sites.find(t => t.value === site);
 
 export const getCountry = countryCode =>
-  Object.assign({}, countries.find(country => country.code === countryCode));
+  Object.assign(
+    {},
+    countries.find(country => country.code === countryCode),
+  );
 
 export const getProvinces = countryCode => {
   const country = getCountry(countryCode);
@@ -129,7 +132,8 @@ export const buildAccountOptions = accounts =>
     },
   }));
 
-export const buildTaskModeOptions = () => [Types.FAST, Types.SAFE, Types.DYNO].map(type => ({ label: type, value: type }));
+export const buildTaskModeOptions = () =>
+  [Types.FAST, Types.SAFE, Types.DYNO].map(type => ({ label: type, value: type }));
 
 export const buildAccountListOptions = accounts => buildOptions(accounts, 'id', 'name');
 

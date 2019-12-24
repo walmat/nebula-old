@@ -177,7 +177,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ProxyListPrimitive);
+export default connect(mapStateToProps, mapDispatchToProps)(ProxyListPrimitive);

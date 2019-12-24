@@ -41,7 +41,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(VariationField);
+export default connect(mapStateToProps, mapDispatchToProps)(VariationField);

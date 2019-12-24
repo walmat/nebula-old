@@ -87,7 +87,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(SelectWebhook);
+export default connect(mapStateToProps, mapDispatchToProps)(SelectWebhook);

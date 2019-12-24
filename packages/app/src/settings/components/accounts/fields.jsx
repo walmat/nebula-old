@@ -64,7 +64,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(AccountFields);
+export default connect(mapStateToProps, mapDispatchToProps)(AccountFields);

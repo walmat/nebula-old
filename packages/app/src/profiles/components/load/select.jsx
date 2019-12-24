@@ -79,7 +79,4 @@ const mapDispatchToProps = dispatch => ({
   onSelect: profile => dispatch(profileActions.select(profile)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ProfileSelect);
+export default connect(mapStateToProps, mapDispatchToProps)(ProfileSelect);

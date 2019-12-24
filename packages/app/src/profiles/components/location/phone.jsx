@@ -42,7 +42,4 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(PhoneField);
+export default connect(mapStateToProps, mapDispatchToProps)(PhoneField);

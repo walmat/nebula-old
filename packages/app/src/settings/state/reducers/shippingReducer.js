@@ -1,5 +1,10 @@
 import { parseURL } from 'whatwg-url';
-import { SHIPPING_ACTIONS, PROFILE_ACTIONS, GLOBAL_ACTIONS, SETTINGS_FIELDS } from '../../../store/actions';
+import {
+  SHIPPING_ACTIONS,
+  PROFILE_ACTIONS,
+  GLOBAL_ACTIONS,
+  SETTINGS_FIELDS,
+} from '../../../store/actions';
 import { Shipping } from '../initial';
 
 export default function shippingReducer(state = Shipping, action = {}) {

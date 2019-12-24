@@ -51,7 +51,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = () => ({});
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Harvesters);
+export default connect(mapStateToProps, mapDispatchToProps)(Harvesters);

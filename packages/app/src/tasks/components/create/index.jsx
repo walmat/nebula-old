@@ -30,7 +30,4 @@ export const mapStateToProps = (state, ownProps) => ({
 
 export const mapDispatchToProps = () => ({});
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(CreateTaskPrimitive);
+export default connect(mapStateToProps, mapDispatchToProps)(CreateTaskPrimitive);

@@ -33,7 +33,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(WebhookName);
+export default connect(mapStateToProps, mapDispatchToProps)(WebhookName);

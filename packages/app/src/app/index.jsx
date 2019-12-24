@@ -93,7 +93,9 @@ export class App extends PureComponent {
       return diff <= 0 && diff > -10;
     };
 
-    const tasksToRun = tasks.filter(t => t.schedule && timeChecker(t.schedule) && t.state !== States.Running);
+    const tasksToRun = tasks.filter(
+      t => t.schedule && timeChecker(t.schedule) && t.state !== States.Running,
+    );
     if (tasksToRun && tasksToRun.length) {
       store.dispatch(taskActions.start(tasksToRun, delays, proxies));
     }

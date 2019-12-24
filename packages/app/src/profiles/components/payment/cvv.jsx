@@ -38,7 +38,4 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(CvvField);
+export default connect(mapStateToProps, mapDispatchToProps)(CvvField);

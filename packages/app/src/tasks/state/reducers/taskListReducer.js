@@ -44,7 +44,6 @@ export default (state = Tasks, action = {}) => {
         break;
     }
 
-
     if (newTask.schedule && moment(newTask.schedule).diff(moment(), 'seconds') > 0) {
       newTask.message = `Starting at ${moment(newTask.schedule).format('h:mm:ss A')}`;
     }

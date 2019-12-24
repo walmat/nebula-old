@@ -80,7 +80,4 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(RateSelect);
+export default connect(mapStateToProps, mapDispatchToProps)(RateSelect);

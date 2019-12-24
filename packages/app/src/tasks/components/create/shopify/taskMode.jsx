@@ -83,7 +83,4 @@ export const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(TaskModeSelect);
+export default connect(mapStateToProps, mapDispatchToProps)(TaskModeSelect);

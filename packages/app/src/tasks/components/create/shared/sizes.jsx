@@ -86,7 +86,4 @@ const mapDispatchToProps = dispatch => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(SizeSelect);
+export default connect(mapStateToProps, mapDispatchToProps)(SizeSelect);

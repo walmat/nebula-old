@@ -177,7 +177,7 @@ class ActionBar extends Component {
               Remove
             </button>
           </div>
-          <CreateModal show={show} toggleCreate={this._toggleCreate}/>
+          <CreateModal show={show} toggleCreate={this._toggleCreate} />
           <Delays />
         </div>
       </div>

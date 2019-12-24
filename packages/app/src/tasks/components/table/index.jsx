@@ -63,7 +63,4 @@ export const mapStateToProps = state => ({
 
 export const mapDispatchToProps = () => ({});
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(TaskTablePrimitive);
+export default connect(mapStateToProps, mapDispatchToProps)(TaskTablePrimitive);

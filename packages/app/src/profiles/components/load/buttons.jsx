@@ -7,10 +7,18 @@ import { profileActions } from '../../../store/actions';
 
 const Button = ({ onRemove, onDuplicate, currentProfile, className }) => (
   <div className="row row--gutter row--end row--expand">
-    <button type="button" className={`col ${className}--duplicate`} onClick={() => onDuplicate(currentProfile)}>
+    <button
+      type="button"
+      className={`col ${className}--duplicate`}
+      onClick={() => onDuplicate(currentProfile)}
+    >
       Duplicate
     </button>
-    <button type="button" className={`${className}--delete`} onClick={() => onRemove(currentProfile)}>
+    <button
+      type="button"
+      className={`${className}--delete`}
+      onClick={() => onRemove(currentProfile)}
+    >
       Delete
     </button>
   </div>
@@ -20,12 +28,10 @@ Button.propTypes = {
   className: PropTypes.string.isRequired,
   onDuplicate: PropTypes.func.isRequired,
   onRemove: PropTypes.func.isRequired,
-  label: PropTypes.string.isRequired,
   currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 const mapStateToProps = (state, ownProps) => ({
-  label: ownProps.label,
   className: ownProps.className,
   currentProfile: makeCurrentProfile(state),
 });
@@ -35,7 +41,4 @@ const mapDispatchToProps = dispatch => ({
   onRemove: profile => dispatch(profileActions.remove(profile.id)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Button);
+export default connect(mapStateToProps, mapDispatchToProps)(Button);

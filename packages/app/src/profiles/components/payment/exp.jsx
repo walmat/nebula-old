@@ -39,7 +39,4 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ExpirationField);
+export default connect(mapStateToProps, mapDispatchToProps)(ExpirationField);

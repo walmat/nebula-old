@@ -34,13 +34,9 @@ export const mapStateToProps = state => ({
   tasks: makeSelectedTasks(state) || [],
 });
 
-export const mapDispatchToProps = dispatch => {
-  return {
-    onDelayChange: (changes, tasks) => dispatch(settingsActions.editDelays(changes.field, changes.value, tasks)),
-  }
-};
+export const mapDispatchToProps = dispatch => ({
+  onDelayChange: (changes, tasks) =>
+    dispatch(settingsActions.editDelays(changes.field, changes.value, tasks)),
+});
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Delays);
+export default connect(mapStateToProps, mapDispatchToProps)(Delays);
