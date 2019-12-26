@@ -52,6 +52,15 @@ export default class BaseTask {
     captchaQueue.insert(token);
   }
 
+  _handleSecure(id, token) {
+    const { secureQueue } = this.context;
+    if (id !== this.context.id || !secureQueue) {
+      return;
+    }
+
+    secureQueue.insert(token);
+  }
+
   async swapProxies() {
     const { id, proxy, task, logger, proxyManager } = this.context;
     const proxyId = proxy ? proxy.id : null;

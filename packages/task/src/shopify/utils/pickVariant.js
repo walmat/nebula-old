@@ -1,11 +1,11 @@
 /* eslint-disable consistent-return */
 /* eslint-disable array-callback-return */
 import { Utils } from '../../common';
-import { urlToTitleSegment, urlToVariantOption } from './urlVariantMaps';
 
 const { getRandomIntInclusive } = Utils;
 
-export default async (variants, size, url, logger = { log: () => {} }, randomInStock = false) => {
+// eslint-disable-next-line no-unused-vars
+export default async (variants, size, logger = { log: () => {} }, randomInStock = false) => {
   let variantGroup = variants;
 
   if (randomInStock) {
@@ -20,13 +20,14 @@ export default async (variants, size, url, logger = { log: () => {} }, randomInS
   if (/random/i.test(size)) {
     const rand = getRandomIntInclusive(0, variantGroup.length - 1);
     const variant = variantGroup[rand];
-    const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
+    const option = variant.option1 || variant.option2 || variant.option3;
     return { id: variant.id, option };
   }
 
   let variant = variantGroup.find(v => {
-    const defaultOption = urlToVariantOption[url] ? urlToVariantOption[url] : 'option1';
-    const option = v[defaultOption] || urlToTitleSegment[url](v.title);
+    const { option1, option2, option3 } = v;
+
+    const options = [option1, option2, option3].filter(Boolean);
 
     // Determine if we are checking for shoe sizes or not
     let sizeMatcher;
@@ -38,8 +39,7 @@ export default async (variants, size, url, logger = { log: () => {} }, randomInS
       sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
     }
 
-    if (sizeMatcher(option)) {
-      logger.log('debug', 'Choosing variant: %j', v);
+    if (options.some(option => sizeMatcher(option))) {
       return v;
     }
   });
@@ -48,17 +48,20 @@ export default async (variants, size, url, logger = { log: () => {} }, randomInS
     if (variant) {
       const { available } = variant;
       if (!available) {
-        const rand = getRandomIntInclusive(0, variantGroup.length - 1);
-        variant = variantGroup[rand];
-        const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
-        return { id: variant.id, option };
+        const checkedGroup = variantGroup;
+
+        do {
+          const newVariant = checkedGroup.pop();
+          if (newVariant.available) {
+            return newVariant;
+          }
+        } while (checkedGroup.length);
       }
-    } else {
-      const rand = getRandomIntInclusive(0, variantGroup.length - 1);
-      variant = variantGroup[rand];
-      const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
-      return { id: variant.id, option };
     }
+    const rand = getRandomIntInclusive(0, variantGroup.length - 1);
+    variant = variantGroup[rand];
+    const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
+    return { id: variant.id, option };
   }
 
   if (!variant) {

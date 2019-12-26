@@ -56,8 +56,9 @@ export default class TaskPrimitive extends BaseTask {
     this._checkoutHash = null;
     this._checkoutKey = null;
     this._storeId = null;
-    this._form = null;
     this._product = null;
+
+    this._form = '';
   }
 
   async _handleLogin() {
@@ -69,7 +70,6 @@ export default class TaskPrimitive extends BaseTask {
         monitor,
         type,
       },
-      captchaToken,
       logger,
       proxy,
     } = this.context;
@@ -119,20 +119,9 @@ export default class TaskPrimitive extends BaseTask {
       const redirectUrl = headers.get('location');
 
       if (!redirectUrl) {
-        const message = status ? `Logging in - (${status})` : 'Logging in';
+        const message = status ? `Logging in (${status})` : 'Logging in';
         emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
         return States.LOGIN;
-      }
-
-      if (/checkpoint/i.test(redirectUrl)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Going to checkpoint' },
-          Events.TaskStatus,
-        );
-        this.checkpointUrl = redirectUrl;
-        return States.GO_TO_CHECKPOINT;
       }
 
       if (/password/i.test(redirectUrl)) {
@@ -147,7 +136,7 @@ export default class TaskPrimitive extends BaseTask {
         emitEvent(
           this.context,
           [this.context.id],
-          { message: 'Login capcha needed' },
+          { message: 'Login captcha detected' },
           Events.TaskStatus,
         );
         return States.ERROR;
@@ -157,7 +146,7 @@ export default class TaskPrimitive extends BaseTask {
         emitEvent(
           this.context,
           [this.context.id],
-          { message: 'Invalid credentials' },
+          { message: 'Invalid account credentials' },
           Events.TaskStatus,
         );
         return States.ERROR;
@@ -166,8 +155,8 @@ export default class TaskPrimitive extends BaseTask {
       if (/account/i.test(redirectUrl)) {
         this._needsLogin = false; // update global check for login
 
-        if (type === Modes.SAFE && !captchaToken) {
-          if (this.context.task.product.variants && this.context.task.product.variants.length) {
+        if (type === Modes.SAFE) {
+          if (this.context.task.product.variants) {
             emitEvent(
               this.context,
               [this.context.id],
@@ -195,11 +184,11 @@ export default class TaskPrimitive extends BaseTask {
         return States.CREATE_CHECKOUT;
       }
 
-      const message = status ? `Logging in - (${status})` : 'Logging in';
+      const message = status ? `Logging in (${status})` : 'Logging in';
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.LOGIN;
     } catch (err) {
-      logger.error('Login Error: %s\n %j', err.status || err.errno, err.message);
+      logger.error('%s Error\n %j', err.status || err.errno, err.message);
 
       const nextState = stateForError(err, {
         message: 'Logging in',
@@ -215,7 +204,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno ? `Logging in - (${err.status || err.errno})` : 'Logging in';
+        err.status || err.errno ? `Logging in (${err.status || err.errno})` : 'Logging in';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.LOGIN;
@@ -254,9 +243,9 @@ export default class TaskPrimitive extends BaseTask {
           Origin: 'https://checkout.shopifycs.com',
           'Sec-Fetch-Mode': 'no-cors',
           Referer: `https://checkout.shopifycs.com/number?identifier=${
-            this._checkoutToken
+            this._checkoutHash
           }&location=${encodeURIComponent(
-            `${url}/${this._storeId}/checkouts/${this._checkoutToken}?previous_step=shipping_method&step=payment_method`,
+            `${url}/${this._storeId}/checkouts/${this._checkoutHash}?previous_step=shipping_method&step=payment_method`,
           )}`,
         },
       });
@@ -265,7 +254,7 @@ export default class TaskPrimitive extends BaseTask {
         emitEvent(
           this.context,
           [this.context.id],
-          { message: 'Creating payment token' },
+          { message: 'Creating session' },
           Events.TaskStatus,
         );
         return States.PAYMENT_TOKEN;
@@ -285,9 +274,9 @@ export default class TaskPrimitive extends BaseTask {
           Origin: 'https://checkout.shopifycs.com',
           'Sec-Fetch-Mode': 'no-cors',
           Referer: `https://checkout.shopifycs.com/number?identifier=${
-            this._checkoutToken
+            this._checkoutHash
           }&location=${encodeURIComponent(
-            `${url}/${this._storeId}/checkouts/${this._checkoutToken}?previous_step=shipping_method&step=payment_method`,
+            `${url}/${this._storeId}/checkouts/${this._checkoutHash}?previous_step=shipping_method&step=payment_method`,
           )}`,
         },
         body: JSON.stringify({
@@ -306,7 +295,7 @@ export default class TaskPrimitive extends BaseTask {
       const nextState = stateForError(
         { status },
         {
-          message: 'Creating payment session',
+          message: 'Creating session',
           nextState: States.PAYMENT_TOKEN,
         },
       );
@@ -330,14 +319,14 @@ export default class TaskPrimitive extends BaseTask {
       return States.PAYMENT_TOKEN;
     } catch (err) {
       logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Payment Token.\n\n %j %j',
+        '%s Error\n Step: Payment Token.\n\n %j %j',
         err.status || err.errno,
         err.message,
         err.stack,
       );
 
       const nextState = stateForError(err, {
-        message: 'Creating payment session',
+        message: 'Creating session',
         nextState: States.PAYMENT_TOKEN,
       });
 
@@ -392,7 +381,7 @@ export default class TaskPrimitive extends BaseTask {
       const nextState = stateForError(
         { status },
         {
-          message: 'Getting data',
+          message: 'Gathering data',
           nextState: States.GATHER_DATA,
         },
       );
@@ -432,7 +421,7 @@ export default class TaskPrimitive extends BaseTask {
       }
       if (type === Modes.SAFE) {
         if (!this._needsLogin) {
-          if (this.context.task.product.variants && this.context.task.product.variants.length) {
+          if (this.context.task.product.variants) {
             emitEvent(
               this.context,
               [this.context.id],
@@ -465,15 +454,15 @@ export default class TaskPrimitive extends BaseTask {
       return States.LOGIN;
     } catch (err) {
       logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
+        '%s Error\n Step: Gather Data.\n\n %j %j',
         err.status || err.errno,
         err.message,
         err.stack,
       );
 
       const nextState = stateForError(err, {
-        message: 'Logging in',
-        nextState: States.LOGIN,
+        message: 'Gathering data',
+        nextState: States.GATHER_DATA,
       });
 
       if (nextState) {
@@ -485,10 +474,10 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno ? `Logging in - (${err.status || err.errno})` : 'Logging in';
+        err.status || err.errno ? `Gathering data (${err.status || err.errno})` : 'Gathering data';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.LOGIN;
+      return States.GATHER_DATA;
     }
   }
 
@@ -526,7 +515,7 @@ export default class TaskPrimitive extends BaseTask {
       const nextState = stateForError(
         { status },
         {
-          message: 'Going to checkpoint',
+          message: 'Visiting checkpoint',
           nextState: States.GO_TO_CHECKPOINT,
         },
       );
@@ -547,7 +536,7 @@ export default class TaskPrimitive extends BaseTask {
           emitEvent(
             this.context,
             [this.context.id],
-            { message: 'Going to checkpoint' },
+            { message: 'Visiting checkpoint' },
             Events.TaskStatus,
           );
           this.checkpointUrl = redirectUrl;
@@ -616,7 +605,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
+          [, , , this._storeId, , this._checkoutHash] = redirectUrl.split('/');
           emitEvent(
             this.context,
             [this.context.id],
@@ -645,7 +634,7 @@ export default class TaskPrimitive extends BaseTask {
         logger.info('Checkpoint form value detected: { name: %j, value: %j }', name, value);
 
         if (name) {
-          this._formValues += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+          this._form += `${encodeURI(name)}=${value ? value.replace(/\s/g, '+') : ''}&`;
         }
       });
 
@@ -656,8 +645,8 @@ export default class TaskPrimitive extends BaseTask {
         logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
       }
 
-      if (this._formValues.endsWith('&')) {
-        this._formValues = this._formValues.slice(0, -1);
+      if (this._form.endsWith('&')) {
+        this._form = this._form.slice(0, -1);
       }
 
       emitEvent(
@@ -669,14 +658,14 @@ export default class TaskPrimitive extends BaseTask {
       return States.CAPTCHA;
     } catch (err) {
       logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Going to checkpoint.\n\n %j %j',
+        '%s Error\n Step: Visit Checkpoint.\n\n %j %j',
         err.status || err.errno,
         err.message,
         err.stack,
       );
 
       const nextState = stateForError(err, {
-        message: 'Going to checkpoint',
+        message: 'Visiting checkpoint',
         nextState: States.GO_TO_CHECKPOINT,
       });
 
@@ -722,26 +711,26 @@ export default class TaskPrimitive extends BaseTask {
       Events.TaskStatus,
     );
 
-    if (captchaToken && !/g-recaptcha-response/i.test(this._formValues)) {
-      const parts = this._formValues.split('&');
+    if (captchaToken && !/g-recaptcha-response/i.test(this._form)) {
+      const parts = this._form.split('&');
       if (parts && parts.length) {
-        this._formValues = '';
+        this._form = '';
         // eslint-disable-next-line array-callback-return
         parts.forEach(part => {
           if (/authenticity_token/i.test(part)) {
-            this._formValues += `${part}&g-recaptcha-response=${captchaToken}&`;
+            this._form += `${part}&g-recaptcha-response=${captchaToken}&`;
           } else {
-            this._formValues += `${part}&`;
+            this._form += `${part}&`;
           }
         });
       }
     }
 
-    if (this._formValues.endsWith('&')) {
-      this._formValues = this._formValues.slice(0, -1);
+    if (this._form.endsWith('&')) {
+      this._form = this._form.slice(0, -1);
     }
 
-    logger.debug('CHECKPOINT FORM: %j', this._formValues);
+    logger.debug('CHECKPOINT FORM: %j', this._form);
 
     try {
       const res = await this._fetch(`/checkpoint`, {
@@ -754,7 +743,7 @@ export default class TaskPrimitive extends BaseTask {
           ...getHeaders({ url, apiKey }),
           'content-type': 'application/x-www-form-urlencoded',
         },
-        body: this._formValues,
+        body: this._form,
       });
 
       const { status, headers } = res;
@@ -870,7 +859,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
+          [, , , this._storeId, , this._checkoutHash] = redirectUrl.split('/');
           emitEvent(
             this.context,
             [this.context.id],
@@ -881,20 +870,20 @@ export default class TaskPrimitive extends BaseTask {
         }
       }
 
-      const message = status ? `Submitting checkpoint - (${status})` : 'Submitting checkpoint';
+      const message = status ? `Submitting checkpoint (${status})` : 'Submitting checkpoint';
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.SUBMIT_CHECKPOINT;
     } catch (err) {
       logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Checkpoint.\n\n %j %j',
+        '%s Error\n Step: Submit Checkpoint.\n\n %j %j',
         err.status || err.errno,
         err.message,
         err.stack,
       );
 
       const nextState = stateForError(err, {
-        message: 'Going to checkpoint',
-        nextState: States.GO_TO_CHECKPOINT,
+        message: 'Submitting checkpoint',
+        nextState: States.SUBMIT_CHECKPOINT,
       });
 
       if (nextState) {
@@ -907,11 +896,11 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Going to checkpoint - (${err.status || err.errno})`
-          : 'Going to checkpoint';
+          ? `Submit checkpoint (${err.status || err.errno})`
+          : 'Submit checkpoint';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.GO_TO_CHECKPOINT;
+      return States.SUBMIT_CHECKPOINT;
     }
   }
 
@@ -941,8 +930,8 @@ export default class TaskPrimitive extends BaseTask {
       return this._handleBackupCreateCheckout();
     }
 
-    if (!this._cartForm.includes('checkout')) {
-      this._cartForm += `checkout=Check+out`;
+    if (!this._form.includes('checkout')) {
+      this._form += `checkout=Check+out`;
     }
 
     try {
@@ -958,10 +947,10 @@ export default class TaskPrimitive extends BaseTask {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._cartForm,
+        body: this._form,
       });
 
-      this._cartForm = '';
+      this._form = '';
       const { status, headers } = res;
 
       const nextState = stateForError(
@@ -1056,7 +1045,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
+          [, , , this._storeId, , this._checkoutHash] = redirectUrl.split('/');
           emitEvent(
             this.context,
             [this.context.id],
@@ -1077,12 +1066,12 @@ export default class TaskPrimitive extends BaseTask {
         }
       }
 
-      const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
+      const message = status ? `Creating checkout (${status})` : 'Creating checkout';
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
+        '%s Error\n Step: Create Checkout.\n\n %j %j',
         err.status || err.errno,
         err.message,
         err.stack,
@@ -1243,7 +1232,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
+          [, , , this._storeId, , this._checkoutHash] = redirectUrl.split('/');
 
           if (type === Modes.SAFE) {
             emitEvent(
@@ -1456,7 +1445,7 @@ export default class TaskPrimitive extends BaseTask {
       if (body && body.checkout) {
         const { web_url: checkoutUrl } = body.checkout;
         if (/checkouts/i.test(checkoutUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = checkoutUrl.split('/');
+          [, , , this._storeId, , this._checkoutHash] = checkoutUrl.split('/');
           emitEvent(
             this.context,
             [this.context.id],
@@ -1606,7 +1595,7 @@ export default class TaskPrimitive extends BaseTask {
 
             if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
               const [checkoutNoQs] = checkoutUrl.split('?');
-              [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
+              [, , , this._storeId, , this._checkoutHash] = checkoutNoQs.split('/');
               if (type === Modes.FAST) {
                 monitor.start();
               }
@@ -1659,7 +1648,7 @@ export default class TaskPrimitive extends BaseTask {
               logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
               if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
                 const [checkoutNoQs] = checkoutUrl.split('?');
-                [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
+                [, , , this._storeId, , this._checkoutHash] = checkoutNoQs.split('/');
                 if (type === Modes.FAST) {
                   monitor.start();
                 }
@@ -1699,7 +1688,7 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl && /checkouts/.test(redirectUrl)) {
         const [redirectNoQs] = redirectUrl.split('?');
-        [, , , this._storeId, , this._checkoutToken] = redirectNoQs.split('/');
+        [, , , this._storeId, , this._checkoutHash] = redirectNoQs.split('/');
 
         if (type === Modes.FAST) {
           monitor.start();
@@ -1758,8 +1747,8 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       parseType,
       task: {
-        store: { url },
-        product: { variants, randomInStock },
+        product: { variants },
+        randomInStock,
         size,
       },
     } = this.context;
@@ -1773,7 +1762,7 @@ export default class TaskPrimitive extends BaseTask {
     if (this.context.task.product.variants) {
       let variant;
       if (parseType !== ParseType.Variant) {
-        variant = await pickVariant(variants, size, url, logger, randomInStock);
+        variant = await pickVariant(variants, size, logger, randomInStock);
       } else {
         [variant] = variants;
       }
@@ -1804,11 +1793,11 @@ export default class TaskPrimitive extends BaseTask {
         Events.TaskStatus,
       );
 
-      this.context.updateVariant(variant);
+      this._product = variant;
       return States.ADD_TO_CART;
     }
 
-    this._delayer = waitForDelay(500, this._aborter.signal);
+    this._delayer = waitForDelay(150, this._aborter.signal);
     await this._delayer;
 
     return States.WAIT_FOR_PRODUCT;
@@ -1820,8 +1809,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { name, url },
-        product: { variant, hash, restockUrl },
-        type,
+        product: { hash, restockUrl },
         monitor,
       },
       proxy,
@@ -1831,10 +1819,6 @@ export default class TaskPrimitive extends BaseTask {
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
-    }
-
-    if (this._isRestocking || type === Modes.FAST) {
-      return this._handleBackupAddToCart();
     }
 
     try {
@@ -1854,7 +1838,7 @@ export default class TaskPrimitive extends BaseTask {
             ? 'application/x-www-form-urlencoded; charset=UTF-8'
             : 'application/json',
         },
-        body: addToCart(variant.id, name, hash),
+        body: addToCart(this._product.id, name, hash),
       });
 
       const { status, headers } = res;
@@ -1979,8 +1963,8 @@ export default class TaskPrimitive extends BaseTask {
       return States.GO_TO_CART;
     } catch (err) {
       logger.error(
-        'FRONTEND CHECKOUT: %s Request Error..\n Step: Add to Cart.\n\n %j %j',
-        err.status || err.errno,
+        '%s Error..\n Step: Add to Cart.\n\n %j %j',
+        err.status || err.errno || 'Type',
         err.message,
         err.stack,
       );
@@ -1999,9 +1983,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno
-          ? `Adding to cart - (${err.status || err.errno})`
-          : 'Adding to cart';
+        err.status || err.errno ? `Adding to cart (${err.status || err.errno})` : 'Adding to cart';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.ADD_TO_CART;
@@ -2014,7 +1996,7 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       task: {
         store: { url, name, apiKey },
-        product: { variant, hash },
+        product: { hash },
         monitor,
       },
       proxy,
@@ -2026,12 +2008,14 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
+    const { id } = this._product;
+
     let opts = {};
     const base = {
       checkout: {
         line_items: [
           {
-            variant_id: variant.id,
+            variant_id: id,
             quantity: 1,
             properties: /dsm uk/i.test(name)
               ? {
@@ -2056,7 +2040,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/wallets/checkouts/${this._checkoutToken}.json`, {
+      const res = await this._fetch(`/wallets/checkouts/${this._checkoutHash}.json`, {
         method: 'PATCH',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -2395,18 +2379,20 @@ export default class TaskPrimitive extends BaseTask {
         // Blacklisted values/names
         if (
           name &&
-          !/q|g|gender|\$fields|email|subscribe|updates\[.*:.*]/i.test(name) &&
+          !/undefined|q|g|gender|\$fields|email|subscribe|updates\[.*:.*]/i.test(name) &&
           !/update cart|Update|{{itemQty}}/i.test(value)
         ) {
-          this._cartForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+          this._form += `${encodeURI(name)}=${value || ''}&`;
         }
       });
 
-      if (this._cartForm.endsWith('&')) {
-        this._cartForm = this._cartForm.slice(0, -1);
+      this._form = this._form.replace(/\s/g, '+');
+
+      if (this._form.endsWith('&')) {
+        this._form = this._form.slice(0, -1);
       }
 
-      logger.info('Cart form parsed: %j', this._cartForm);
+      logger.info('Cart form parsed: %j', this._form);
 
       if (this._needsLogin) {
         emitEvent(
@@ -2428,7 +2414,7 @@ export default class TaskPrimitive extends BaseTask {
       return States.CREATE_CHECKOUT;
     } catch (err) {
       logger.error(
-        'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',
+        '%s Error..\n Step: Submit customer .\n\n %j %j',
         err.status || err.errno,
         err.message,
         err.stack,
@@ -2448,7 +2434,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno ? `Going to cart - (${err.status || err.errno})` : 'Going to cart';
+        err.status || err.errno ? `Going to cart (${err.status || err.errno})` : 'Going to cart';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_CART;
@@ -2609,7 +2595,6 @@ export default class TaskPrimitive extends BaseTask {
         store: { url, name, apiKey },
         monitor,
         captcha,
-        restockMode,
         type,
       },
       captchaToken,
@@ -2627,7 +2612,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutHash}`, {
         method: 'GET',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -2766,7 +2751,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/stock_problems/i.test(redirectUrl)) {
-          if (/dsm sg|dsm uk|dsm jp/i.test(name) && restockMode) {
+          if (/dsm sg|dsm uk|dsm jp/i.test(name)) {
             emitEvent(
               this.context,
               [this.context.id],
@@ -2821,10 +2806,10 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       // form parser...
-      this._formValues = await parseForm(
+      this._form = await parseForm(
         $,
         States.GO_TO_CHECKOUT,
-        this._checkoutToken,
+        this._checkoutHash,
         this.context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
@@ -2907,7 +2892,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutHash}`, {
         method: 'GET',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -3061,8 +3046,8 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._storeId && this._checkoutHash && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutHash}?key=${this._checkoutKey}`;
         this._checkoutUrl = checkoutUrl;
       }
 
@@ -3152,22 +3137,22 @@ export default class TaskPrimitive extends BaseTask {
       return this._handleBackupSubmitCustomer();
     }
 
-    if (captchaToken && !/g-recaptcha-response/i.test(this._formValues)) {
-      const parts = this._formValues.split('button=');
+    if (captchaToken && !/g-recaptcha-response/i.test(this._form)) {
+      const parts = this._form.split('button=');
       if (parts && parts.length) {
-        this._formValues = '';
+        this._form = '';
         parts.forEach((part, i) => {
           if (i === 0) {
-            this._formValues += `${part}g-recaptcha-response=${captchaToken}`;
+            this._form += `${part}g-recaptcha-response=${captchaToken}`;
           } else {
-            this._formValues += part;
+            this._form += part;
           }
         });
       }
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutHash}`, {
         method: 'POST',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -3185,7 +3170,7 @@ export default class TaskPrimitive extends BaseTask {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        body: this._form,
       });
 
       const { status, headers } = res;
@@ -3376,7 +3361,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Submitting information - (${err.status || err.errno})`
+          ? `Submitting information (${err.status || err.errno})`
           : 'Submitting information';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -3402,7 +3387,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/wallets/checkouts/${this._checkoutToken}.json`, {
+      const res = await this._fetch(`/wallets/checkouts/${this._checkoutHash}.json`, {
         method: 'PATCH',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -3550,7 +3535,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Submitting information - (${err.status || err.errno})`
+          ? `Submitting information (${err.status || err.errno})`
           : 'Submitting information';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -3584,7 +3569,7 @@ export default class TaskPrimitive extends BaseTask {
 
     try {
       const res = await this._fetch(
-        this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutHash}`,
         {
           method: 'GET',
           compress: true,
@@ -3640,8 +3625,8 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._storeId && this._checkoutHash && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutHash}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
       }
@@ -3780,10 +3765,10 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       // form parser...
-      this._formValues = await parseForm(
+      this._form = await parseForm(
         $,
         States.GO_TO_SHIPPING,
-        this._checkoutToken,
+        this._checkoutHash,
         this.context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
@@ -3837,9 +3822,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno
-          ? `Fetching rates - (${err.status || err.errno})`
-          : 'Fetching rates';
+        err.status || err.errno ? `Fetching rates (${err.status || err.errno})` : 'Fetching rates';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_SHIPPING;
@@ -3866,7 +3849,7 @@ export default class TaskPrimitive extends BaseTask {
 
     try {
       const res = await this._fetch(
-        `/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
+        `/wallets/checkouts/${this._checkoutHash}/shipping_rates.json`,
         {
           method: 'GET',
           compress: true,
@@ -4029,9 +4012,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno
-          ? `Fetching rates - (${err.status || err.errno})`
-          : 'Fetching rates';
+        err.status || err.errno ? `Fetching rates (${err.status || err.errno})` : 'Fetching rates';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_SHIPPING;
@@ -4056,7 +4037,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutHash}`, {
         method: 'POST',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -4074,7 +4055,7 @@ export default class TaskPrimitive extends BaseTask {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        body: this._form,
       });
 
       const { status, headers } = res;
@@ -4307,7 +4288,7 @@ export default class TaskPrimitive extends BaseTask {
 
     try {
       const res = await this._fetch(
-        this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutHash}`,
         {
           method: 'GET',
           compress: true,
@@ -4365,8 +4346,8 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._storeId && this._checkoutHash && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutHash}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
       }
@@ -4491,10 +4472,10 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       // form parser...
-      this._formValues = await parseForm(
+      this._form = await parseForm(
         $,
         States.GO_TO_PAYMENT,
-        this._checkoutToken,
+        this._checkoutHash,
         this.context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
@@ -4593,32 +4574,32 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (this._isFreeCheckout) {
-      const parts = this._formValues.split('&');
+      const parts = this._form.split('&');
 
       if (parts && parts.length) {
-        this._formValues = '';
+        this._form = '';
         parts.forEach(part => {
           if (/authenticity_token/i.test(part)) {
-            this._formValues += `_method=patch&${part}&previous_step=payment_method&step=&s=&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bpayment_gateway%5D=free&checkout%5Btotal_price%5D=0&complete=1&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1721&checkout%5Bclient_details%5D%5Bbrowser_height%5D=927&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
+            this._form += `_method=patch&${part}&previous_step=payment_method&step=&s=&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bpayment_gateway%5D=free&checkout%5Btotal_price%5D=0&complete=1&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1721&checkout%5Bclient_details%5D%5Bbrowser_height%5D=927&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
           }
         });
       }
-    } else if (this._formValues.indexOf(this._paymentToken) === -1) {
-      const parts = this._formValues.split('s=');
+    } else if (this._form.indexOf(this._paymentToken) === -1) {
+      const parts = this._form.split('s=');
       if (parts && parts.length) {
-        this._formValues = '';
+        this._form = '';
         parts.forEach((part, i) => {
           if (i === 0) {
-            this._formValues += `${part}s=${this._paymentToken}`;
+            this._form += `${part}s=${this._paymentToken}`;
           } else {
-            this._formValues += part;
+            this._form += part;
           }
         });
       }
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutHash}`, {
         method: 'POST',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -4638,7 +4619,7 @@ export default class TaskPrimitive extends BaseTask {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        body: this._form,
       });
 
       const { status, headers } = res;
@@ -4948,7 +4929,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutHash}`, {
         method: 'PATCH',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -4998,8 +4979,8 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._storeId && this._checkoutHash && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutHash}?key=${this._checkoutKey}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
       }
@@ -5225,7 +5206,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutHash}`, {
         method: 'POST',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -5243,7 +5224,7 @@ export default class TaskPrimitive extends BaseTask {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        body: this._form,
       });
 
       const { status, headers } = res;
@@ -5615,7 +5596,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutHash}`, {
         method: 'PATCH',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -5662,8 +5643,8 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._storeId && this._checkoutHash && this._checkoutKey) {
+        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutHash}?key=${this._checkoutKey}`;
         this._checkoutUrl = checkoutUrl;
       }
 
@@ -5984,7 +5965,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`${url}/wallets/checkouts/${this._checkoutToken}/payments`, {
+      const res = await this._fetch(`${url}/wallets/checkouts/${this._checkoutHash}/payments`, {
         method: 'GET',
         compress: true,
         agent: proxy ? proxy.proxy : null,

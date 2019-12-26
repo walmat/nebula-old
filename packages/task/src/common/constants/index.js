@@ -3,6 +3,9 @@ const TaskManagerEvents = {
   StartHarvest: 'START_CAPTCHA_HARVEST',
   StopHarvest: 'STOP_CAPTCHA_HARVEST',
   Harvest: 'CAPTCHA_HARVEST',
+  StartSecure: 'START_SECURE',
+  StopSecure: 'STOP_SECURE',
+  Secure: 'SECURE',
   SendProxy: 'SEND_PROXY',
   DeregisterProxy: 'DEREGISTER_PROXY',
   ChangeDelay: 'CHANGE_DELAY',
@@ -55,6 +58,12 @@ const HarvestStates = {
   stop: 'STOP',
 };
 
+const SecureStates = {
+  idle: 'IDLE',
+  start: 'START',
+  stop: 'STOP',
+};
+
 const DelayTypes = {
   checkout: 'checkoutDelay',
   error: 'errorDelay',
@@ -99,6 +108,7 @@ const Monitor = {
 const Task = {
   Events: TaskEvents,
   HarvestStates,
+  SecureStates,
   DelayTypes,
   HookTypes,
   Types: { Normal: 'normal', Rates: 'rates' },

@@ -1,12 +1,5 @@
 import { Utils } from '../../common';
 import pickVariant from './pickVariant';
-import {
-  clothingRegexMap,
-  urlToOptionIndex,
-  urlToTitleSegment,
-  urlToVariantOption,
-  validateVariantSize,
-} from './urlVariantMaps';
 import { addToCart, parseForm, patchCheckoutForm, patchToCart } from './forms';
 import {
   convertToJson,
@@ -57,20 +50,20 @@ export const stateForError = ({ status, name, errno }, { message, nextState }) =
     case 429:
     case 430: {
       return {
-        message: `Swapping proxy - (${status})`,
+        message: `Proxy banned (${status})`,
         nextState: States.SWAP,
       };
     }
     case 303: {
       return {
-        message: 'Polling queue - (303)',
+        message: 'Polling queue (303)',
         nextState: States.QUEUE,
       };
     }
     default: {
       return status >= 500
         ? {
-            message: `${message} - (${status})`,
+            message: `${message} (${status})`,
             nextState,
           }
         : null;
@@ -86,14 +79,6 @@ export const getHeaders = ({ url, apiKey }) => ({
   host: `${url.split('/')[2]}`,
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
 });
-
-const UrlVariantMaps = {
-  clothingRegexMap,
-  urlToOptionIndex,
-  urlToTitleSegment,
-  urlToVariantOption,
-  validateVariantSize,
-};
 
 const Parse = {
   convertToJson,
@@ -112,4 +97,4 @@ const Forms = {
   patchToCart,
 };
 
-export { pickVariant, Parse, UrlVariantMaps, Forms };
+export { pickVariant, Parse, Forms };

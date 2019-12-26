@@ -64,6 +64,13 @@ class TaskManagerAdapter {
       ipcRenderer.send(IPCKeys.RequestStopHarvestCaptcha, ...args),
     );
 
+    this._taskManager.secureManager._events.on(TaskManager.Events.StartSecure, (...args) =>
+      ipcRenderer.send(IPCKeys.RequestStartHarvestSecure, ...args),
+    );
+    this._taskManager.secureManager._events.on(TaskManager.Events.StopSecure, (...args) =>
+      ipcRenderer.send(IPCKeys.RequestStopHarvestSecure, ...args),
+    );
+
     ipcRenderer.on(IPCKeys.RequestAbortAllTasksForClose, async () => {
       await this.abortAllTasks();
       ipcRenderer.send(IPCKeys.RequestAbortAllTasksForClose);

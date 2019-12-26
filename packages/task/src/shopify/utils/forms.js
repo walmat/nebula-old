@@ -205,9 +205,9 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
 
         if (
           /hosted_fields_redirect|field_start|field_end/i.test(name) ||
-          ((/payment_gateway/i.test(name) && /free|3700574/i.test(value)) ||
-            (/payment_gateway/i.test(name) &&
-              data.some(({ name: existing }) => /payment_gateway/i.test(existing))))
+          (/payment_gateway/i.test(name) && /free|3700574/i.test(value)) ||
+          (/payment_gateway/i.test(name) &&
+            data.some(({ name: existing }) => /payment_gateway/i.test(existing)))
         ) {
           // added check for the field_end to patch in the count...
           if (/field_end/i.test(name)) {

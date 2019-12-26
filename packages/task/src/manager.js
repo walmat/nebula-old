@@ -15,7 +15,7 @@ import { Monitor as SupremeMonitor, Task as SupremeTask } from './supreme';
 
 const { getParseType } = Parse;
 const { createLogger, registerForEvent, deregisterForEvent, compareProductData } = Utils;
-const { ProxyManager, WebhookManager, CaptchaManager } = Classes;
+const { ProxyManager, WebhookManager, CaptchaManager, SecureManager } = Classes;
 const { Platforms, Manager, Task, Monitor } = Constants;
 const { ParseType } = Monitor;
 const { Events } = Manager;
@@ -48,6 +48,7 @@ export default class TaskManager {
 
     this.proxyManager = new ProxyManager(this._logger);
     this.captchaManager = new CaptchaManager(this._logger);
+    this.secureManager = new SecureManager(this._logger);
     this.webhookManager = new WebhookManager(this._logger);
 
     this.mergeStatusUpdates = this.mergeStatusUpdates.bind(this);

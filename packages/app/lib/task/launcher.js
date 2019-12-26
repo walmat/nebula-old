@@ -17,6 +17,7 @@ class TaskLauncher {
     this._launcherWindow = null;
     this._eventListeners = [];
     this._captchaRequesters = {};
+    this._secureRequesters = {};
     this._captchaSemaphore = 0;
     this._stopInitiated = false;
 
@@ -31,9 +32,22 @@ class TaskLauncher {
       IPCKeys.RequestDeregisterTaskEventHandler,
       this._onDeregisterEventRequest.bind(this),
     );
-    context.ipc.on(IPCKeys.RequestStartHarvestCaptcha, this._startHarvestEventHandler.bind(this));
-    context.ipc.on(IPCKeys.RequestStopHarvestCaptcha, this._stopHarvestEventHandler.bind(this));
-
+    context.ipc.on(
+      IPCKeys.RequestStartHarvestCaptcha,
+      this._startHarvestCaptchaEventHandler.bind(this),
+    );
+    context.ipc.on(
+      IPCKeys.RequestStopHarvestCaptcha,
+      this._stopHarvestCaptchaEventHandler.bind(this),
+    );
+    context.ipc.on(
+      IPCKeys.RequestStartHarvestSecure,
+      this._startHarvestSecureEventHandler.bind(this),
+    );
+    context.ipc.on(
+      IPCKeys.RequestStopHarvestSecure,
+      this._stopHarvestSecureEventHandler.bind(this),
+    );
     // Forward ipc requests to launcher
     [
       IPCKeys.RequestStartTasks,
@@ -291,7 +305,7 @@ class TaskLauncher {
     this._eventListeners = this._eventListeners.filter(l => l !== listener);
   }
 
-  async _startHarvestEventHandler(
+  async _startHarvestCaptchaEventHandler(
     _,
     id,
     sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
@@ -324,7 +338,7 @@ class TaskLauncher {
     }
   }
 
-  _stopHarvestEventHandler(_, id, sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
+  _stopHarvestCaptchaEventHandler(_, id, sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF') {
     // Decrement the semaphore only if we had previously started harvesting for this task
     if (this._captchaRequesters[id]) {
       let cancelCount = 0;
@@ -345,6 +359,42 @@ class TaskLauncher {
       console.log('[DEBUG]: No more tokens requested, stopping the harvester');
       this._context.windowManager.stopHarvestingCaptcha(id, sitekey);
     }
+  }
+
+  async _startHarvestSecureEventHandler(_, id, url) {
+    await this._context.windowManager.startHarvestingSecure(id, url);
+
+    const request = this._context.windowManager.getNextSecure(id);
+    if (request.value) {
+      // Received a token from the backlog -- send it immediately
+      this._sendToLauncher(IPCKeys.HarvestSecure, id, request.value.token);
+    } else {
+      // Track request so we can handle it
+      request.promise.then(
+        ({ token }) => {
+          this._sendToLauncher(IPCKeys.HarvestSecure, id, token);
+        },
+        () => {}, // Add empty reject handler in case this gets canceled...
+      );
+      this._secureRequesters[id].push(request);
+    }
+  }
+
+  _stopHarvestSecureEventHandler(_, id) {
+    // Decrement the semaphore only if we had previously started harvesting for this task
+    if (this._secureRequesters[id]) {
+      let cancelCount = 0;
+      this._secureRequesters[id].forEach(({ status, cancel }) => {
+        // only cancel unfulfilled requests
+        if (status !== 'fulfilled') {
+          cancel();
+          cancelCount += 1;
+        }
+      });
+      console.log('[DEBUG]: Cancelled %d pending secure requests for task %s', cancelCount, id);
+      delete this._secureRequesters[id];
+    }
+    this._context.windowManager.stopHarvestingSecure(id);
   }
 }
 

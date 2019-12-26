@@ -26,6 +26,10 @@ import {
   BaseMonitor,
   BaseTask,
   Captcha,
+  Secure,
+  Discord,
+  SecureManager,
+  Slack,
   ProxyManager,
   Timer,
   WebhookManager,
@@ -54,11 +58,15 @@ const Utils = {
 
 const Classes = {
   Captcha,
+  Secure,
+  Discord,
+  Slack,
   Timer,
   AsyncQueue,
   ProxyManager,
   WebhookManager,
   CaptchaManager,
+  SecureManager,
 };
 
 const Bases = {

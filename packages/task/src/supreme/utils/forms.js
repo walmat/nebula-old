@@ -17,7 +17,7 @@ export const cart = (size, style, region) => {
   }
 };
 
-export const parseForm = async (form, type, product, task) => {
+export const parseForm = async (form, type, product, task, secure) => {
   let data = [];
   switch (type) {
     case Forms.Cart: {
@@ -69,6 +69,20 @@ export const parseForm = async (form, type, product, task) => {
         }
       }
 
+      const validNumber = validator.number(payment.card);
+      let cardType = validNumber.card ? validNumber.card.type : 'visa';
+      if (/american/i.test(cardType)) {
+        cardType = 'american_express';
+      }
+
+      if (/master/i.test(cardType)) {
+        cardType = 'master';
+      }
+
+      if (/solo/i.test(cardType)) {
+        cardType = 'solo';
+      }
+
       let month = payment.exp.slice(0, 2);
       if (month.length !== 2) {
         month = `0${month}`;
@@ -116,6 +130,10 @@ export const parseForm = async (form, type, product, task) => {
             return `${encodeURI(name)}=${card.match(/.{1,4}/g).join('+')}&`;
           }
 
+          if (/type/i.test(friendly)) {
+            return `${encodeURI(name)}=${cardType}`;
+          }
+
           if (/month/i.test(friendly)) {
             return `${encodeURI(name)}=${month}&`;
           }
@@ -127,6 +145,10 @@ export const parseForm = async (form, type, product, task) => {
           if (/cvv/i.test(friendly)) {
             return `${encodeURI(name)}=${cvv}&`;
           }
+        }
+
+        if (/cardinal/i.test(name)) {
+          return `${encodeURI(name)}=${secure.id}&`;
         }
 
         if (/cookie-sub/i.test(name)) {

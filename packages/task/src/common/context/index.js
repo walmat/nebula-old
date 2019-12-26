@@ -4,7 +4,7 @@ import { CookieJar } from 'tough-cookie';
 import { Timer } from '../classes';
 import { Task as TaskConstants } from '../constants';
 
-const { HarvestStates, Types } = TaskConstants;
+const { HarvestStates, SecureStates, Types } = TaskConstants;
 
 export default class Context {
   constructor({
@@ -21,9 +21,13 @@ export default class Context {
     proxyManager,
     webhookManager,
     harvestState = HarvestStates.idle,
+    secureState = SecureStates.idle,
     captchaRequest = null,
+    secureRequest = null,
     captchaQueue = null,
+    secureQueue = null,
     captchaToken = null,
+    secureToken = null,
     pookyEnabled = true,
   }) {
     this.id = id;
@@ -45,9 +49,13 @@ export default class Context {
     this.proxyManager = proxyManager;
     this.webhookManager = webhookManager;
     this.harvestState = harvestState;
+    this.secureState = secureState;
     this.captchaRequest = captchaRequest;
+    this.secureRequest = secureRequest;
     this.captchaQueue = captchaQueue;
+    this.secureQueue = secureQueue;
     this.captchaToken = captchaToken;
+    this.secureToken = secureToken;
 
     this.pookyEnabled = pookyEnabled;
   }
@@ -112,16 +120,32 @@ export default class Context {
     this.harvestState = harvestState;
   }
 
+  setSecureState(secureState) {
+    this.secureState = secureState;
+  }
+
   setCaptchaRequest(captchaRequest) {
     this.captchaRequest = captchaRequest;
+  }
+
+  setSecureRequest(secureRequest) {
+    this.secureRequest = secureRequest;
   }
 
   setCaptchaQueue(captchaQueue) {
     this.captchaQueue = captchaQueue;
   }
 
+  setSecureQueue(secureQueue) {
+    this.secureQueue = secureQueue;
+  }
+
   setCaptchaToken(captchaToken) {
     this.captchaToken = captchaToken;
+  }
+
+  setSecureToken(secureToken) {
+    this.secureToken = secureToken;
   }
 
   updateVariant(variant) {

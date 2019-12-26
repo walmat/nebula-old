@@ -37,12 +37,18 @@ const IPCKeys = {
   RequestGetAppVersion: 'RequestGetAppVersion',
   RequestStartHarvestCaptcha: 'RequestStartHarvestCaptcha',
   RequestStopHarvestCaptcha: 'RequestStopHarvestCaptcha',
+  RequestStartHarvestSecure: 'RequestStartHarvestSecure',
+  RequestStopHarvestSecure: 'RequestStopHarvestSecure',
   RequestSaveCaptchaProxy: 'RequestSaveCaptchaProxy',
 
   StartHarvestCaptcha: 'StartHarvestCaptcha',
   StopHarvestCaptcha: 'StopHarvestCaptcha',
   HarvestCaptcha: 'HarvestCaptcha',
   RequestRefresh: 'RequestRefresh',
+
+  StartHarvestSecure: 'StartHarvestSecure',
+  StopHarvestSecure: 'StopHarvestSecure',
+  HarvestSecure: 'HarvestSecure',
 
   RequestRegisterTaskEventHandler: 'RequestRegisterTaskEventHandler',
   RegisterTaskEventHandler: 'RegisterTaskEventHander',
