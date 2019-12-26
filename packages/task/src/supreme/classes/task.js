@@ -22,7 +22,7 @@ export default class TaskPrimitive extends BaseTask {
     this._region = getRegion(context.task.store.name);
     this._pooky = null;
     this._slug = null;
-    this._form = null;
+    this._form = '';
   }
 
   async _logCookies(jar) {
@@ -160,7 +160,7 @@ export default class TaskPrimitive extends BaseTask {
         },
         Events.TaskStatus,
       );
-      this.context.updateVariant(variant);
+      this._product.variant = variant;
       return States.ADD_TO_CART;
     }
 
@@ -242,17 +242,12 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
-    const { id: st } = this._product;
-
     const {
-      product: {
-        variant: { id: s },
-      },
-      randomInStock,
-      size,
-      monitor,
-      captcha,
-    } = this.context.task;
+      id: st,
+      variant: { id: s },
+    } = this._product;
+
+    const { randomInStock, size, monitor, captcha } = this.context.task;
 
     emitEvent(
       this.context,
@@ -291,8 +286,6 @@ export default class TaskPrimitive extends BaseTask {
         body: this._form,
       });
 
-      this._form = null;
-
       if (!res.ok) {
         const error = new Error('Failed add to cart');
         error.status = res.status || res.errno;
@@ -308,7 +301,7 @@ export default class TaskPrimitive extends BaseTask {
           this.context,
           [this.context.id],
           {
-            message: `Out of stock, delaying ${monitor}ms`,
+            message: `Out of stock! Delaying ${monitor}ms`,
           },
           Events.TaskStatus,
         );
@@ -327,6 +320,7 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
+        this._form = '';
         this._pooky = false;
 
         if (/random/i.test(size) && randomInStock) {
@@ -336,12 +330,15 @@ export default class TaskPrimitive extends BaseTask {
         return States.ADD_TO_CART;
       }
 
+      this._form = '';
       if (captcha && !this.context.captchaToken) {
         return States.CAPTCHA;
       }
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
+      this._form = '';
+      this._pooky = false;
       return this._handleError(error, States.ADD_TO_CART);
     }
   }
@@ -424,9 +421,6 @@ export default class TaskPrimitive extends BaseTask {
       proxy,
       task: {
         profile: { matches, shipping, billing, payment },
-        product: {
-          variant: { id: size },
-        },
         checkoutDelay,
         monitor,
       },
@@ -442,6 +436,7 @@ export default class TaskPrimitive extends BaseTask {
 
       if (!generated) {
         const profileInfo = matches ? shipping : billing;
+        const { id: size } = this._product.variant;
         this._form = backupForm(this._region, profileInfo, payment, size);
       }
 
@@ -496,7 +491,7 @@ export default class TaskPrimitive extends BaseTask {
         body: this._form,
       });
 
-      this._form = null;
+      this._form = '';
 
       if (!res.ok) {
         const error = new Error('Failed submitting checkout');
@@ -512,7 +507,7 @@ export default class TaskPrimitive extends BaseTask {
             this.context,
             [this.context.id],
             {
-              message: 'Invalid slug',
+              message: 'Invalid checkout slug',
             },
             Events.TaskStatus,
           );
@@ -520,7 +515,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         this._slug = slug;
-        return States.CHECK_STATUS;
+        return States.CHECK_ORDER;
       }
 
       if (body && body.status && /out/i.test(body.status)) {
@@ -567,15 +562,13 @@ export default class TaskPrimitive extends BaseTask {
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
-      if (/invalid json/i.test(error)) {
-        this._pooky = null;
-        return States.WAIT_FOR_PRODUCT;
-      }
+      this._pooky = null;
+      this._form = '';
       return this._handleError(error, States.SUBMIT_CHECKOUT);
     }
   }
 
-  async _handleCheckStatus() {
+  async _handleCheckOrder() {
     const {
       aborted,
       logger,
@@ -601,16 +594,13 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/checkout/${this._slug}/status.json`, {
         method: 'GET',
         agent: proxy ? proxy.proxy : null,
-        headers: {
-          ...getHeaders(),
-          'content-type': 'application/x-www-form-urlencoded',
-        },
+        headers: getHeaders(),
       });
 
-      this._form = null;
+      this._form = '';
 
       if (!res.ok) {
-        const error = new Error('Failed checking order status');
+        const error = new Error('Failed checking order');
         error.status = res.status || res.errno;
         throw error;
       }
@@ -632,19 +622,19 @@ export default class TaskPrimitive extends BaseTask {
         );
 
         const {
+          image,
+          currency,
+          variant: { name: size },
+        } = this._product;
+
+        const {
           task: {
-            product: {
-              name: productName,
-              price,
-              variant: { name: size },
-            },
+            product: { name: productName, price },
             store: { name: storeName, url: storeUrl },
             profile: { name },
           },
           webhookManager,
         } = this.context;
-
-        const { image, currency } = this._product;
 
         if (!this._sentWebhook) {
           this._sentWebhook = true;
@@ -685,15 +675,15 @@ export default class TaskPrimitive extends BaseTask {
           Events.TaskStatus,
         );
 
-        const { image, currency } = this._product;
+        const {
+          image,
+          currency,
+          variant: { name: size },
+        } = this._product;
 
         const {
           task: {
-            product: {
-              name: productName,
-              price,
-              variant: { name: size },
-            },
+            product: { name: productName, price },
             store: { name: storeName, url: storeUrl },
             profile: { name },
           },
@@ -728,9 +718,9 @@ export default class TaskPrimitive extends BaseTask {
         Events.TaskStatus,
       );
 
-      return States.CHECK_STATUS;
+      return States.CHECK_ORDER;
     } catch (error) {
-      return this._handleError(error, States.CHECK_STATUS);
+      return this._handleError(error, States.CHECK_ORDER);
     }
   }
 
@@ -747,9 +737,8 @@ export default class TaskPrimitive extends BaseTask {
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
       [States.CAPTCHA]: this._handleCaptcha,
-      [States.FORM]: this._handleParseForm,
       [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
-      [States.CHECK_STATUS]: this._handleCheckStatus,
+      [States.CHECK_ORDER]: this._handleCheckOrder,
       [States.SWAP]: this._handleSwap,
       [States.DONE]: () => States.DONE,
       [States.ERROR]: () => States.DONE,

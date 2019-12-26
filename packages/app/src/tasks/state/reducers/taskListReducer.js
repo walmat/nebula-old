@@ -1,7 +1,12 @@
 import moment from 'moment';
 import { _getId, States, Platforms } from '../../../constants';
 import parseProductType from '../../../utils/parseProductType';
-import { TASK_LIST_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
+import {
+  TASK_LIST_ACTIONS,
+  PROFILE_ACTIONS,
+  ACCOUNT_ACTIONS,
+  GLOBAL_ACTIONS,
+} from '../../../store/actions';
 import { Tasks } from '../initial';
 
 export default (state = Tasks, action = {}) => {
@@ -185,6 +190,44 @@ export default (state = Tasks, action = {}) => {
 
     // return the found task, or return the existing task..
     return state.map(t => tasks.find(task => task.id === t.id) || t);
+  }
+
+  // MARK: PROFILE ACTIONS
+  if (type === PROFILE_ACTIONS.UPDATE_PROFILE) {
+    const { profile } = action;
+
+    if (!profile) {
+      return state;
+    }
+
+    return state.map(t => {
+      if (t.profile.id === profile.id) {
+        return {
+          ...t,
+          profile,
+        };
+      }
+      return t;
+    });
+  }
+
+  // MARK: ACCOUNT ACTIONS
+  if (type === ACCOUNT_ACTIONS.CREATE_ACCOUNT) {
+    const { account } = action;
+
+    if (!account || (account && !account.id)) {
+      return state;
+    }
+
+    return state.map(t => {
+      if (t.account.id === account.id) {
+        return {
+          ...t,
+          account,
+        };
+      }
+      return t;
+    });
   }
 
   return state;

@@ -21,20 +21,18 @@ export const parseForm = async (form, type, product, task) => {
   let data = [];
   switch (type) {
     case Forms.Cart: {
-      const { id: st } = product;
       const {
-        product: {
-          variant: { id: s },
-        },
-      } = task;
+        id: style,
+        variant: { id: size },
+      } = product;
 
       data = await form.map(({ name, friendly, value }) => {
         if (/size/.test(friendly)) {
-          return `${encodeURI(name)}=${s}&`;
+          return `${encodeURI(name)}=${size}&`;
         }
 
         if (/style/.test(friendly)) {
-          return `${encodeURI(name)}=${st}&`;
+          return `${encodeURI(name)}=${style}&`;
         }
 
         return `${encodeURI(name)}=${value}&`;
@@ -45,10 +43,11 @@ export const parseForm = async (form, type, product, task) => {
     case Forms.Checkout: {
       const {
         profile: { billing, payment },
-        product: {
-          variant: { id: size },
-        },
       } = task;
+
+      const {
+        variant: { id: size },
+      } = product;
 
       const { firstName, lastName, address, apt, city, country, province, zip, phone } = billing;
       const { card, email, exp, cvv } = payment;

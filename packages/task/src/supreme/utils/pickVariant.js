@@ -7,18 +7,13 @@ export default (product, context) => {
   const { variants } = product;
 
   const {
-    task: {
-      size,
-      product: {
-        randomInStock,
-      }
-    },
+    task: { size, randomInStock },
   } = context;
 
   let grouping = variants;
 
   if (randomInStock) {
-    grouping = grouping.filter(({ stock_level }) => stock_level > 0);
+    grouping = grouping.filter(({ stock_level: stockLevel }) => stockLevel > 0);
 
     // if we filtered all the products out, rewind it to all variants...
     if (!grouping || !grouping.length) {

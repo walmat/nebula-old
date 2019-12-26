@@ -111,7 +111,13 @@ export default class MonitorPrimitive extends BaseMonitor {
         throw error;
       }
 
-      this.context.setPookyEnabled(body.state);
+      if (this.context.pookyEnabled !== body.state) {
+        if (!body.state) {
+          // clear the cookie jar..
+          this.context.jar.removeAllCookiesSync();
+        }
+        this.context.setPookyEnabled(body.state);
+      }
 
       return;
     } catch (err) {

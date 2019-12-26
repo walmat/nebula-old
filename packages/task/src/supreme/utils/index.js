@@ -161,19 +161,18 @@ export const matchVariation = async (
   inStock = false,
   logger = { log: () => {} },
 ) => {
-  let grouping = variations.filter(({ sizes }) => sizes.some(s => s.stock_level > 0));
-
-  logger.debug('Variations in stock: %j', grouping);
-  // if no variations are in stock, revert..
-  if (!grouping || !grouping.length) {
-    // if we care about stock level, return null to signify a circle back
-    if (/random/i.test(variation) && inStock) {
-      return null;
-    }
-    grouping = variations;
-  }
+  let grouping = variations;
 
   if (/random/i.test(variation)) {
+    grouping = grouping.filter(({ sizes }) => sizes.some(s => s.stock_level > 0));
+    logger.debug('Variations in stock: %j', grouping);
+
+    // if we care about stock level, return null to signify a circle back
+    if ((!grouping || !grouping.length) && inStock) {
+      return null;
+    }
+
+    grouping = variations;
     // otherwise, choose a random variation and move onward
     const rand = getRandomIntInclusive(0, grouping.length - 1);
     const variant = grouping[rand];
