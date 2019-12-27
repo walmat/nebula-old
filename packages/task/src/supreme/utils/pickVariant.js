@@ -3,36 +3,34 @@ import { Utils } from '../../common';
 
 const { getRandomIntInclusive } = Utils;
 
-export default (product, context) => {
+export default async (product, context) => {
   const { variants } = product;
 
   const {
     task: { size, randomInStock },
   } = context;
 
-  let grouping = variants;
-
-  if (randomInStock) {
-    grouping = grouping.filter(({ stock_level: stockLevel }) => stockLevel > 0);
-
-    // if we filtered all the products out, rewind it to all variants...
-    if (!grouping || !grouping.length) {
-      grouping = variants;
-    }
-  }
+  let grouping = [...variants];
 
   if (/random/i.test(size)) {
+    if (randomInStock) {
+      grouping = grouping.filter(({ stock_level: stockLevel }) => stockLevel > 0);
+      // if we filtered all the products out, rewind it to all variants...
+      if (!grouping || !grouping.length) {
+        grouping = variants;
+      }
+    }
     const rand = getRandomIntInclusive(0, grouping.length - 1);
     const variant = grouping[rand];
     return variant;
   }
 
-  const variant = grouping.find(v => {
+  const variant = await grouping.find(v => {
     // Determine if we are checking for shoe sizes or not
     let sizeMatcher;
     if (/[0-9]+/.test(size)) {
       // We are matching a shoe size
-      sizeMatcher = s => new RegExp(`${size}`, 'i').test(s);
+      sizeMatcher = s => new RegExp(`${size}`, 'i').test(strip(s).trim());
     } else {
       // We are matching a garment size
       sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(strip(s).trim());
@@ -48,7 +46,7 @@ export default (product, context) => {
     if (variant) {
       const { stock_level: stockLevel } = variant;
       if (!stockLevel) {
-        const checkedGroup = grouping;
+        const checkedGroup = [...grouping];
 
         do {
           const newVariant = checkedGroup.pop();
@@ -56,14 +54,11 @@ export default (product, context) => {
             return newVariant;
           }
         } while (checkedGroup.length);
-
-        if (!checkedGroup.length) {
-          return grouping[getRandomIntInclusive(0, grouping.length - 1)];
-        }
       }
-    } else {
-      return grouping[getRandomIntInclusive(0, grouping.length - 1)];
+      return variant;
     }
+
+    return grouping[getRandomIntInclusive(0, grouping.length - 1)];
   }
 
   if (!variant) {

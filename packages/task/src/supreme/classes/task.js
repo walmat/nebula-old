@@ -132,6 +132,7 @@ export default class TaskPrimitive extends BaseTask {
       };
 
       const variant = await pickVariant(this._product, this.context);
+
       if (!variant) {
         emitEvent(
           this.context,

@@ -161,10 +161,13 @@ export const matchVariation = async (
   inStock = false,
   logger = { log: () => {} },
 ) => {
-  let grouping = variations;
+  let grouping = [...variations];
 
   if (/random/i.test(variation)) {
-    grouping = grouping.filter(({ sizes }) => sizes.some(s => s.stock_level > 0));
+    grouping = grouping.filter(({ sizes }) =>
+      sizes.some(({ stock_level: stockLevel }) => stockLevel > 0),
+    );
+
     logger.debug('Variations in stock: %j', grouping);
 
     // if we care about stock level, return null to signify a circle back
@@ -172,7 +175,7 @@ export const matchVariation = async (
       return null;
     }
 
-    grouping = variations;
+    grouping = [...variations];
     // otherwise, choose a random variation and move onward
     const rand = getRandomIntInclusive(0, grouping.length - 1);
     const variant = grouping[rand];
@@ -184,7 +187,7 @@ export const matchVariation = async (
     let variationMatcher;
     if (/[0-9]+/.test(name)) {
       // We are matching a shoe name
-      variationMatcher = s => new RegExp(name, 'i').test(s);
+      variationMatcher = s => new RegExp(s, 'i').test(strip(name));
     } else {
       // We are matching a garment name
       variationMatcher = s => !/[0-9]+/.test(s) && new RegExp(s, 'i').test(strip(name));

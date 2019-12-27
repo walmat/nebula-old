@@ -35,6 +35,10 @@ export const parseForm = async (form, type, product, task) => {
           return `${encodeURI(name)}=${style}&`;
         }
 
+        if (/add/i.test(friendly)) {
+          return `${encodeURI(name)}=${Number(`${style}`) + Number(`${size}`)}&`
+        }
+
         return `${encodeURI(name)}=${value}&`;
       });
       break;
