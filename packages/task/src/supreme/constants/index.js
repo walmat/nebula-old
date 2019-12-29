@@ -1,25 +1,18 @@
+import { Constants } from '../../common';
+
+const { Task: TaskConstants, Monitor: MonitorConstants } = Constants;
+
 const MonitorStates = {
+  ...MonitorConstants.States,
   PARSE: 'PARSE',
   STOCK: 'STOCK',
-  DONE: 'DONE',
-  ERROR: 'ERROR',
-  SWAP: 'SWAP',
-  ABORT: 'ABORT',
 };
 
 const CheckoutStates = {
-  STARTED: 'STARTED',
-  WAIT_FOR_PRODUCT: 'WAIT_FOR_PRODUCT',
+  ...TaskConstants.States,
   ADD_TO_CART: 'ADD_TO_CART',
-  FORM: 'FORM',
   SUBMIT_CHECKOUT: 'SUBMIT_CHECKOUT',
-  CHECK_STATUS: 'CHECK_STATUS',
-  CAPTCHA: 'CAPTCHA',
-  SWAP: 'SWAP',
-  DONE: 'DONE',
-  ERROR: 'ERROR',
-  ABORT: 'ABORT',
-  STOP: 'STOP',
+  CHECK_ORDER: 'CHECK_ORDER',
 };
 
 const Regions = {

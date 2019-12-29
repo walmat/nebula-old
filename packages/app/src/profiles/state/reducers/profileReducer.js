@@ -1,6 +1,7 @@
 import {
   PROFILE_FIELDS,
   PROFILE_ACTIONS,
+  SHIPPING_ACTIONS,
   GLOBAL_ACTIONS,
   mapProfileFieldToKey,
 } from '../../../store/actions';
@@ -131,6 +132,56 @@ export const currentProfileReducer = (state = CurrentProfile, action = {}) => {
     }
 
     return { ...state, selectedStore: null };
+  }
+
+  if (type === SHIPPING_ACTIONS.FETCH_SHIPPING) {
+    if (
+      !action ||
+      !action.response ||
+      !state.id ||
+      !action.response.rates ||
+      !action.response.selectedRate ||
+      action.response.id !== state.id
+    ) {
+      return state;
+    }
+
+    const { store } = action.response;
+    let { rates, selectedRate } = action.response;
+
+    // filter out data we don't need (for now)...
+    rates = rates.map(r => ({ name: r.title, price: r.price, rate: r.id }));
+    selectedRate = { name: selectedRate.title, price: selectedRate.price, rate: selectedRate.id };
+
+    const ratesIdx = state.rates.findIndex(r => r.store.url === store.url);
+
+    if (ratesIdx < 0) {
+      return {
+        ...state,
+        rates: [
+          ...state.rates,
+          {
+            store: {
+              name: store.name,
+              url: store.url,
+            },
+            rates,
+            selectedRate,
+          },
+        ],
+      };
+    }
+
+    const newProfile = { ...state };
+
+    newProfile.rates[ratesIdx].selectedRate = selectedRate;
+    // filter out duplicate rates from the previously stored rates
+    const oldRates = newProfile.rates[ratesIdx].rates.filter(
+      r1 => !rates.find(r2 => r2.name === r1.name),
+    );
+    newProfile.rates[ratesIdx].rates = oldRates.concat(rates);
+
+    return newProfile;
   }
 
   return state;

@@ -305,40 +305,46 @@ export const matchKeywords = (products, keywords, _filter, logger, returnAll) =>
 
     // match every keyword in the positive array
     if (keywords.pos.length > 0) {
-      pos = every(keywords.pos.map(k => k.toUpperCase()), keyword => {
-        if (title) {
-          return title.indexOf(keyword.toUpperCase()) > -1;
-        }
+      pos = every(
+        keywords.pos.map(k => k.toUpperCase()),
+        keyword => {
+          if (title) {
+            return title.indexOf(keyword.toUpperCase()) > -1;
+          }
 
-        if (handle) {
-          return handle.indexOf(keyword.toUpperCase()) > -1;
-        }
+          if (handle) {
+            return handle.indexOf(keyword.toUpperCase()) > -1;
+          }
 
-        if (bodyHtml) {
-          return bodyHtml.toUpperCase().indexOf(keyword.toUpperCase()) > -1;
-        }
+          if (bodyHtml) {
+            return bodyHtml.toUpperCase().indexOf(keyword.toUpperCase()) > -1;
+          }
 
-        return false;
-      });
+          return false;
+        },
+      );
     }
 
     // match none of the keywords in the negative array
     if (keywords.neg.length > 0) {
-      neg = some(keywords.neg.map(k => k.toUpperCase()), keyword => {
-        if (title) {
-          return title.indexOf(keyword.toUpperCase()) > -1;
-        }
+      neg = some(
+        keywords.neg.map(k => k.toUpperCase()),
+        keyword => {
+          if (title) {
+            return title.indexOf(keyword.toUpperCase()) > -1;
+          }
 
-        if (handle) {
-          return handle.indexOf(keyword.toUpperCase()) > -1;
-        }
+          if (handle) {
+            return handle.indexOf(keyword.toUpperCase()) > -1;
+          }
 
-        if (bodyHtml) {
-          return bodyHtml.toUpperCase().indexOf(keyword.toUpperCase()) > -1;
-        }
+          if (bodyHtml) {
+            return bodyHtml.toUpperCase().indexOf(keyword.toUpperCase()) > -1;
+          }
 
-        return false;
-      });
+          return false;
+        },
+      );
     }
     return pos && !neg;
   });
@@ -354,7 +360,11 @@ export const matchKeywords = (products, keywords, _filter, logger, returnAll) =>
       'Searched %d products. %d Products Found',
       products.length,
       matches.length,
-      JSON.stringify(matches.map(({ title }) => title), null, 2),
+      JSON.stringify(
+        matches.map(({ title }) => title),
+        null,
+        2,
+      ),
     );
     if (_filter && _filter.sorter && _filter.limit) {
       _logger.log('silly', 'Using given filtering heuristic on the products...');

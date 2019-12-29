@@ -1,12 +1,5 @@
 import { Utils } from '../../common';
 import pickVariant from './pickVariant';
-import {
-  clothingRegexMap,
-  urlToOptionIndex,
-  urlToTitleSegment,
-  urlToVariantOption,
-  validateVariantSize,
-} from './urlVariantMaps';
 import { addToCart, parseForm, patchCheckoutForm, patchToCart } from './forms';
 import {
   convertToJson,
@@ -87,14 +80,6 @@ export const getHeaders = ({ url, apiKey }) => ({
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
 });
 
-const UrlVariantMaps = {
-  clothingRegexMap,
-  urlToOptionIndex,
-  urlToTitleSegment,
-  urlToVariantOption,
-  validateVariantSize,
-};
-
 const Parse = {
   convertToJson,
   filterAndLimit,
@@ -112,4 +97,4 @@ const Forms = {
   patchToCart,
 };
 
-export { pickVariant, Parse, UrlVariantMaps, Forms };
+export { pickVariant, Parse, Forms };

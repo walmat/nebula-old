@@ -85,7 +85,7 @@ export default (state = Profiles, action = {}) => {
 
     // copy over shipping info if the matches flag is true
     if (profile.matches) {
-      profile.billing = profile.shipping;
+      profile.billing = { ...profile.shipping };
     }
 
     return state.map(p => {
@@ -134,19 +134,16 @@ export default (state = Profiles, action = {}) => {
           };
         }
 
-        const newRates = p.rates.slice();
+        const newProfile = { ...p };
 
-        const oldRates = p.rates[ratesIdx].rates.filter(
+        newProfile.rates[ratesIdx].selectedRate = selectedRate;
+        // filter out duplicate rates from the previously stored rates
+        const oldRates = newProfile.rates[ratesIdx].rates.filter(
           r1 => !rates.find(r2 => r2.name === r1.name),
         );
+        newProfile.rates[ratesIdx].rates = oldRates.concat(rates);
 
-        newRates.splice(ratesIdx, 0, oldRates);
-
-        return {
-          ...p,
-          selectedRate: p.selectedRate || selectedRate,
-          rates: newRates,
-        };
+        return newProfile;
       }
       return p;
     });

@@ -57,13 +57,16 @@ export default class RateFetcher extends BaseTask {
   async keywords() {
     let parsed;
 
-    const { task, proxy, logger, parseType } = this.context;
+    const Parsers = getParsers(this.context.task.store.url);
+    const parsers = Parsers(this.context, new AbortController(), this._fetch);
 
-    const Parsers = getParsers(task.store.url);
-    const parsers = Parsers(this._fetch, parseType, task, proxy, new AbortController(), logger);
+    console.log(parsers.length);
 
     try {
-      parsed = await rfrl(parsers.map(p => p.run()), 'parsers');
+      parsed = await rfrl(
+        parsers.map(p => p.run()),
+        'parsers',
+      );
     } catch (error) {
       if (!/aborterror/i.test(error.name)) {
         return { nextState: this.states.ERROR, message: error.message || 'No product found' };

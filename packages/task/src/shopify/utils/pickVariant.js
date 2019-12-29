@@ -1,33 +1,32 @@
 /* eslint-disable consistent-return */
 /* eslint-disable array-callback-return */
 import { Utils } from '../../common';
-import { urlToTitleSegment, urlToVariantOption } from './urlVariantMaps';
 
 const { getRandomIntInclusive } = Utils;
 
-export default async (variants, size, url, logger = { log: () => {} }, randomInStock = false) => {
-  let variantGroup = variants;
+export default async (variants, size, logger = { log: () => {} }, randomInStock = false) => {
+  let variantGroup = [...variants];
 
   if (randomInStock) {
     variantGroup = variantGroup.filter(v => v.available);
 
     // if we filtered all the products out, undo...
     if (!variantGroup || !variantGroup.length) {
-      variantGroup = variants;
+      variantGroup = [...variants];
     }
   }
 
   if (/random/i.test(size)) {
     const rand = getRandomIntInclusive(0, variantGroup.length - 1);
     const variant = variantGroup[rand];
-    const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
+    const option = variant.option1 || variant.option2 || variant.option3;
     return { id: variant.id, option };
   }
 
   let variant = variantGroup.find(v => {
-    const defaultOption = urlToVariantOption[url] ? urlToVariantOption[url] : 'option1';
-    const option = v[defaultOption] || urlToTitleSegment[url](v.title);
+    const { option1, option2, option3 } = v;
 
+    const options = [option1, option2, option3].filter(Boolean);
     // Determine if we are checking for shoe sizes or not
     let sizeMatcher;
     if (/[0-9]+/.test(size)) {
@@ -38,7 +37,7 @@ export default async (variants, size, url, logger = { log: () => {} }, randomInS
       sizeMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${size}`, 'i').test(s.trim());
     }
 
-    if (sizeMatcher(option)) {
+    if (options.some(option => sizeMatcher(option))) {
       logger.log('debug', 'Choosing variant: %j', v);
       return v;
     }

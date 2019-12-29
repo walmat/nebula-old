@@ -22,6 +22,7 @@ const TaskEvents = {
 };
 
 const SharedStates = {
+  WAIT_FOR_PRODUCT: 'WAIT_FOR_PRODUCT',
   SWAP: 'SWAP',
   DONE: 'DONE',
   ERROR: 'ERROR',
