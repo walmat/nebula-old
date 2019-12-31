@@ -142,7 +142,9 @@ export default class TaskPrimitive extends BaseTask {
                 { message: `Out of stock! Delaying ${monitor}ms` },
                 Events.TaskStatus,
               );
+
               this._delayer = waitForDelay(monitor, this._aborter.signal);
+              // eslint-disable-next-line no-await-in-loop
               await this._delayer;
             }
 
@@ -1015,7 +1017,7 @@ export default class TaskPrimitive extends BaseTask {
       return States.ADD_TO_CART;
     }
 
-    this._delayer = waitForDelay(500, this._aborter.signal);
+    this._delayer = waitForDelay(250, this._aborter.signal);
     await this._delayer;
 
     return States.WAIT_FOR_PRODUCT;
@@ -1029,6 +1031,8 @@ export default class TaskPrimitive extends BaseTask {
         monitor,
       },
     } = this.context;
+
+    const { id } = this._product.variant;
 
     const { nextState, data } = await this._handler(
       '/cart/add.js',
@@ -1891,14 +1895,11 @@ export default class TaskPrimitive extends BaseTask {
 
   async _handleGetShipping() {
     const {
-      logger,
-      task: {
-        captcha,
-      },
+      task: { captcha },
       captchaToken,
     } = this.context;
 
-    const { nextState, data } = await this._handler(
+    const { data } = await this._handler(
       `/${this._store}/checkouts/${this._hash}`,
       {},
       'Fetching rates',
@@ -1925,7 +1926,7 @@ export default class TaskPrimitive extends BaseTask {
           state: States.QUEUE,
         },
       ],
-    )
+    );
 
     const body = await data.text();
     const $ = cheerio.load(body, {
@@ -1940,12 +1941,7 @@ export default class TaskPrimitive extends BaseTask {
       this._delayer = waitForDelay(250, this._aborter.signal);
       await this._delayer;
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Fetching rates' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'Fetching rates' }, Events.TaskStatus);
 
       return States.GO_TO_SHIPPING;
     }
@@ -2318,16 +2314,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleSubmitPayment() {
-    const {
-      aborted,
-      logger,
-      proxy,
-      task: {
-        monitor,
-        store: { url, apiKey },
-        type,
-      },
-    } = this.context;
+    const { monitor } = this.context.task;
 
     if (this._form.indexOf(this._token) === -1) {
       const parts = this._form.split('s=');
@@ -2343,7 +2330,7 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    const { nextState, data } = await this._handler(
+    const { data } = await this._handler(
       `/${this._store}/checkouts/${this._hash}`,
       {
         method: 'POST',
@@ -2380,12 +2367,7 @@ export default class TaskPrimitive extends BaseTask {
 
     const body = await data.text();
     if (/Your payment can’t be processed/i.test(body)) {
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Checkout failed' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'Checkout failed' }, Events.TaskStatus);
 
       this._delayer = waitForDelay(monitor, this._aborter.signal);
       await this._delayer;
@@ -3519,11 +3501,11 @@ export default class TaskPrimitive extends BaseTask {
 
   async _handlePaymentProcess() {
     const {
-      logger,
       task: {
         store: { url, name },
         product: { size, name: productName, image },
         profile: { name: profileName },
+        monitor,
         type,
       },
       webhookManager,
@@ -3545,7 +3527,8 @@ export default class TaskPrimitive extends BaseTask {
 
     const bodyString = JSON.stringify(body);
 
-    if (!checkout) { // TODO: or isEmpty?
+    if (!checkout) {
+      // TODO: or isEmpty?
       return States.PROCESS_PAYMENT;
     }
 
@@ -3613,16 +3596,11 @@ export default class TaskPrimitive extends BaseTask {
         webhookManager.send();
       }
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Payment failed' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'Payment failed' }, Events.TaskStatus);
 
       return States.PAYMENT_TOKEN;
     }
-    
+
     const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
 
     if (!paymentProcessingErrorMessage) {
@@ -3644,12 +3622,7 @@ export default class TaskPrimitive extends BaseTask {
         webhookManager.send();
       }
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Payment failed' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'Payment failed' }, Events.TaskStatus);
 
       return States.PAYMENT_TOKEN;
     }
@@ -3668,9 +3641,7 @@ export default class TaskPrimitive extends BaseTask {
           order: null,
           profile: profileName,
           size,
-          image: `${productImage}`.startsWith('http')
-            ? productImage
-            : `https:${productImage}`,
+          image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
         });
         webhookManager.send();
       }
