@@ -7,7 +7,7 @@ import { isEmpty } from 'lodash';
 import { Utils, Classes, Constants, Context } from './common';
 
 // Shopify includes
-import { Monitor as ShopifyMonitor, Task as ShopifyTask, RateFetcher } from './shopify';
+import { Monitor as ShopifyMonitor, chooseTask, RateFetcher } from './shopify';
 import { Parse } from './shopify/utils';
 
 // Supreme includes
@@ -348,6 +348,7 @@ export default class TaskManager {
         });
 
         if (type === Types.Normal) {
+          const ShopifyTask = chooseTask(task.type);
           newTask = new ShopifyTask(context);
 
           let found = null;

@@ -5,7 +5,7 @@ import { parse } from 'query-string';
 
 import { Bases, Utils, Constants, Classes } from '../../../common';
 import { Task as TaskConstants } from '../../constants';
-import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
+import { Forms, stateForError, getHeaders, pickVariant } from '../../utils';
 
 const { addToCart, parseForm, patchCheckoutForm } = Forms;
 const { Task, Manager, Platforms, Monitor } = Constants;
@@ -23,21 +23,21 @@ export default class FastTaskPrimitive extends BaseTask {
     super(context, States.CREATE_CHECKOUT);
   }
 
-  async _handleLogin() {
-    const nextState = await super._handleLogin();
+//   async _handleLogin() {
+//     const nextState = await super._handleLogin();
 
-    if (nextState === States.DONE) {
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Creating checkout' },
-        Events.TaskStatus,
-      );
-      return States.CREATE_CHECKOUT;
-    }
+//     if (nextState === States.DONE) {
+//       emitEvent(
+//         this.context,
+//         [this.context.id],
+//         { message: 'Creating checkout' },
+//         Events.TaskStatus,
+//       );
+//       return States.CREATE_CHECKOUT;
+//     }
 
-    return nextState;
-  }
+//     return nextState;
+//   }
 
   async _handleStepLogic(currentState) {
     const { logger } = this.context;

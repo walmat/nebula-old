@@ -6,7 +6,7 @@ import { parse } from 'query-string';
 import TaskPrimitive from './base';
 import { Bases, Utils, Constants, Classes } from '../../../common';
 import { Task as TaskConstants } from '../../constants';
-import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
+import { Forms, stateForError, getHeaders, pickVariant } from '../../utils';
 
 const { addToCart, parseForm, patchCheckoutForm } = Forms;
 const { Task, Manager, Platforms, Monitor } = Constants;
@@ -24,30 +24,30 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
     super(context, States.WAIT_FOR_PRODUCT);
   }
 
-  async _handleLogin() {
-    const nextState = await super._handleLogin();
+//   async _handleLogin() {
+//     const nextState = await super._handleLogin();
 
-    if (nextState === States.DONE) {
-      if (this.context.task.product.variants) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Adding to cart' },
-          Events.TaskStatus,
-        );
-        return States.ADD_TO_CART;
-      }
+//     if (nextState === States.DONE) {
+//       if (this.context.task.product.variants) {
+//         emitEvent(
+//           this.context,
+//           [this.context.id],
+//           { message: 'Adding to cart' },
+//           Events.TaskStatus,
+//         );
+//         return States.ADD_TO_CART;
+//       }
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Waiting for product' },
-        Events.TaskStatus,
-      );
-      return States.WAIT_FOR_PRODUCT;
-    }
-    return nextState;
-  }
+//       emitEvent(
+//         this.context,
+//         [this.context.id],
+//         { message: 'Waiting for product' },
+//         Events.TaskStatus,
+//       );
+//       return States.WAIT_FOR_PRODUCT;
+//     }
+//     return nextState;
+//   }
 
   async _handleCreateCheckout() {
     const {

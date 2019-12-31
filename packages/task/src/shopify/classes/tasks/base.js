@@ -1,11 +1,11 @@
 /* eslint-disable no-nested-ternary */
 import cheerio from 'cheerio';
-import { min, isEmpty } from 'lodash';
+import { min } from 'lodash';
 import { parse } from 'query-string';
 
 import { Bases, Utils, Constants, Classes } from '../../../common';
 import { Task as TaskConstants } from '../../constants';
-import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
+import { Forms, stateForError, getHeaders, pickVariant } from '../../utils';
 
 const { addToCart, parseForm, patchCheckoutForm } = Forms;
 const { Task, Manager, Platforms, Monitor } = Constants;
@@ -117,7 +117,8 @@ export default class TaskPrimitive extends BaseTask {
 
       // only handle redirects if we have an output map of where we are going...
       if (redirects.length) {
-        redirects.map(({ url: path, message: newMsg, state }) => {
+        // eslint-disable-next-line no-restricted-syntax
+        for (const { url: path, message: newMsg, state } of redirects) {
           if (new RegExp(path, 'i').test(redirectUrl)) {
             if (/checkouts/i.test(redirectUrl)) {
               [, , , this._store, , this._hash] = redirectUrl.split('/');
@@ -131,11 +132,13 @@ export default class TaskPrimitive extends BaseTask {
                 Events.TaskStatus,
               );
               this._delayer = waitForDelay(monitor, this._aborter.signal);
+              // eslint-disable-next-line no-await-in-loop
               await this._delayer;
             }
 
             if (/throttle/i.test(redirectUrl)) {
               try {
+                // eslint-disable-next-line no-await-in-loop
                 await this._fetch(redirectUrl, {
                   method: 'GET',
                   compress: true,
@@ -148,7 +151,7 @@ export default class TaskPrimitive extends BaseTask {
                     Connection: 'Keep-Alive',
                   },
                 });
-              } catch (error) {
+              } catch (e) {
                 // fail silently...
               }
             }
@@ -158,7 +161,7 @@ export default class TaskPrimitive extends BaseTask {
             }
             return { nextState: state };
           }
-        });
+        }
       }
 
       return { data: res };
@@ -288,75 +291,45 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleGatherData() {
-    const {
-      task: {
-        store: { url },
-      },
-    } = this.context;
+    const { data } = await this._handler(
+      '/payments/config',
+      {},
+      'Gathering data',
+      States.GATHER_DATA,
+    );
 
-    const { data } = await this._handler(url, {}, 'Gathering data', States.GATHER_DATA);
+    const { status } = data;
 
-    const body = await data.text();
-    let match = body.match(/<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/);
+    if (status !== 200) {
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Invalid Shopify store' },
+        Events.TaskStatus,
+      );
 
-    let accessToken;
-    if (match && match.length) {
-      [, accessToken] = match;
-      this.context.task.store.apiKey = accessToken;
+      return States.ERROR;
     }
+
+    const { paymentInstruments } = await data.json();
+
+    const { accessToken } = paymentInstruments;
 
     if (!accessToken) {
-      // check the script location as well
-      match = body.match(/"accessToken":(.*)","betas"/);
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Invalid Shopify store' },
+        Events.TaskStatus,
+      );
 
-      if (!match || !match.length) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Invalid Shopify store' },
-          Events.TaskStatus,
-        );
-        return States.ERROR;
-      }
-      [, accessToken] = match;
-      this.context.task.store.apiKey = accessToken;
+      return States.ERROR;
     }
 
+    this.context.task.store.apiKey = accessToken;
+
+    // TODO: subclass determines next state...
     return States.DONE;
-    // TODO: subclass implementation...
-    // if (type === Modes.SAFE) {
-    //   if (!this._needsLogin) {
-    //     if (this.context.task.product.variants) {
-    //       emitEvent(
-    //         this.context,
-    //         [this.context.id],
-    //         { message: 'Adding to cart' },
-    //         Events.TaskStatus,
-    //       );
-    //       return States.ADD_TO_CART;
-    //     }
-    //     emitEvent(
-    //       this.context,
-    //       [this.context.id],
-    //       { message: 'Waiting for product' },
-    //       Events.TaskStatus,
-    //     );
-    //     return States.WAIT_FOR_PRODUCT;
-    //   }
-    //   emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
-    //   return States.LOGIN;
-    // }
-    // if (!this._needsLogin) {
-    //   emitEvent(
-    //     this.context,
-    //     [this.context.id],
-    //     { message: 'Creating checkout' },
-    //     Events.TaskStatus,
-    //   );
-    //   return States.CREATE_CHECKOUT;
-    // }
-    // emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
-    // return States.LOGIN;
   }
 
   async _handleGetCheckpoint() {
@@ -905,13 +878,20 @@ export default class TaskPrimitive extends BaseTask {
     const { type } = this.context.task;
 
     let message;
-    const { nextState, data } = this._handler('/checkout/poll?js_poll=1', {}, 'Polling queue', States.QUEUE, [
-      {
-        url: 'throttle',
-        message: 'Polling queue',
-        state: States.QUEUE,
-      },
-    ]);
+    let toState;
+    const { nextState, data } = this._handler(
+      '/checkout/poll?js_poll=1',
+      {},
+      'Polling queue',
+      States.QUEUE,
+      [
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+      ],
+    );
 
     if (nextState) {
       return nextState;
@@ -922,7 +902,7 @@ export default class TaskPrimitive extends BaseTask {
     if (status !== 200) {
       const retryAfter = headers.get('Retry-After') || 2500;
 
-      const message = status ? `Not through queue! (${status})` : 'Not through queue!';
+      message = status ? `Not through queue! (${status})` : 'Not through queue!';
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
 
       this._delayer = waitForDelay(retryAfter, this._aborter.signal);
@@ -1039,8 +1019,8 @@ export default class TaskPrimitive extends BaseTask {
       },
     } = this.context;
 
-
-    const { nextState, data } = await this._handler('/cart/add.js',
+    const { nextState, data } = await this._handler(
+      '/cart/add.js',
       {
         method: 'POST',
         headers: {
@@ -1085,12 +1065,7 @@ export default class TaskPrimitive extends BaseTask {
       this._delayer = waitForDelay(monitor, this._aborter.signal);
       await this._delayer;
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Adding to cart' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [this.context.id], { message: 'Adding to cart' }, Events.TaskStatus);
       return States.ADD_TO_CART;
     }
 
@@ -1567,11 +1542,12 @@ export default class TaskPrimitive extends BaseTask {
       captchaToken,
     } = this.context;
 
-    const { nextState, data } = await this._handler(`/${this._store}/checkouts/${this._hash}`,
+    const { nextState, data } = await this._handler(
+      `/${this._store}/checkouts/${this._hash}`,
       {
         headers: {
           'X-Shopify-Storefront-Access-Token': apiKey,
-        }
+        },
       },
       'Going to checkout',
       States.GO_TO_CHECKOUT,
@@ -1689,7 +1665,8 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    const { nextState } = await this._handler(`/${this._store}/checkouts/${this._hash}`,
+    const { nextState } = await this._handler(
+      `/${this._store}/checkouts/${this._hash}`,
       {
         method: 'POST',
         headers: {
@@ -1716,7 +1693,7 @@ export default class TaskPrimitive extends BaseTask {
           message: 'Submitting information',
           state: States.GO_TO_CHECKOUT,
         },
-      ]
+      ],
     );
 
     if (nextState) {

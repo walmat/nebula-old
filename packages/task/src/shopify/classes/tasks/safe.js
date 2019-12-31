@@ -1,22 +1,17 @@
 /* eslint-disable no-nested-ternary */
-import cheerio from 'cheerio';
-import { min, isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
-import { Bases, Utils, Constants, Classes } from '../../../common';
-import { Task as TaskConstants } from '../../constants';
-import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
+import BaseTask from './base';
 
-const { addToCart, parseForm, patchCheckoutForm } = Forms;
-const { Task, Manager, Platforms, Monitor } = Constants;
-const { currencyWithSymbol, userAgent, waitForDelay, emitEvent } = Utils;
-const { BaseTask } = Bases;
+import { Utils, Constants } from '../../../common';
+import { Task as TaskConstants } from '../../constants';
+import { stateForError, getHeaders } from '../../utils';
+
+const { Task } = Constants;
+const { userAgent, waitForDelay, emitEvent } = Utils;
 
 const { Events } = Task;
-const { Events: TaskManagerEvents } = Manager;
-const { States, Modes, StateMap } = TaskConstants;
-const { ParseType } = Monitor;
-const { Captcha } = Classes;
+const { States, Modes } = TaskConstants;
 
 export default class SafeTaskPrimitive extends BaseTask {
   constructor(context) {
