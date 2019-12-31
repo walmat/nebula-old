@@ -50,20 +50,20 @@ export const stateForError = ({ status, name, errno }, { message, nextState }) =
     case 429:
     case 430: {
       return {
-        message: `Swapping proxy - (${status})`,
+        message: `Swapping proxy (${status})`,
         nextState: States.SWAP,
       };
     }
     case 303: {
       return {
-        message: 'Polling queue - (303)',
+        message: 'Polling queue (303)',
         nextState: States.QUEUE,
       };
     }
     default: {
       return status >= 500
         ? {
-            message: `${message} - (${status})`,
+            message: `${message} (${status})`,
             nextState,
           }
         : null;
@@ -76,6 +76,7 @@ export const getHeaders = ({ url, apiKey }) => ({
   'X-Shopify-Access-Token': apiKey,
   connection: 'keep-alive',
   'user-agent': userAgent,
+  origin: url,
   host: `${url.split('/')[2]}`,
   authorization: `Basic ${Buffer.from(`${apiKey}::`).toString('base64')}`,
 });

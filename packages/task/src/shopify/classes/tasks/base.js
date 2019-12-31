@@ -3,8 +3,8 @@ import cheerio from 'cheerio';
 import { min, isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
-import { Bases, Utils, Constants, Classes } from '../../common';
-import { Task as TaskConstants } from '../constants';
+import { Bases, Utils, Constants, Classes } from '../../../common';
+import { Task as TaskConstants } from '../../constants';
 import { Forms, stateForError, getHeaders, pickVariant } from '../utils';
 
 const { addToCart, parseForm, patchCheckoutForm } = Forms;
@@ -19,17 +19,13 @@ const { ParseType } = Monitor;
 const { Captcha } = Classes;
 
 export default class TaskPrimitive extends BaseTask {
-  constructor(context, platform = Platforms.Shopify) {
-    super(context, States.STARTED, platform);
+  constructor(context, initState, platform = Platforms.Shopify) {
+    super(context, initState, platform);
 
     if (!this.context.task.store.apiKey) {
       this._state = States.GATHER_DATA;
     } else if (this.context.task.account) {
       this._state = States.LOGIN;
-    } else if (this.context.task.type === Modes.FAST) {
-      this._state = States.CREATE_CHECKOUT;
-    } else {
-      this._state = States.WAIT_FOR_PRODUCT;
     }
 
     const preFetchedShippingRates = this.context.task.profile.rates.find(
@@ -52,242 +48,186 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     // checkout specific globals
-    this._paymentToken = null;
-    this._checkoutHash = null;
-    this._checkoutKey = null;
-    this._storeId = null;
-    this._form = null;
+    this._token = null;
+    this._hash = null;
+    this._key = null;
+    this._store = null;
+    this._form = '';
     this._product = null;
   }
 
-  async _handleLogin() {
+  async _handler(endpoint, options, message, from, redirects = []) {
     const {
-      aborted,
-      task: {
-        store: { url },
-        account: { username, password },
-        monitor,
-        type,
-      },
-      captchaToken,
       logger,
+      aborted,
       proxy,
+      task: {
+        id,
+        store: { url, apiKey },
+      },
     } = this.context;
 
-    // exit if abort is detected
     if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
+      logger.silly(`Aborted! Stopping task ${id}`);
       return States.ABORT;
     }
 
+    emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+
+    const baseOptions = {
+      compress: true,
+      agent: proxy ? proxy.proxy : null,
+      redirect: 'manual',
+      follow: 0,
+      headers: getHeaders({ url, apiKey }),
+    };
+
     try {
-      const res = await this._fetch(`${url}/account/login`, {
-        method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
+      const res = await this._fetch(endpoint, {
+        ...baseOptions,
+        ...options,
         headers: {
-          'user-agent': userAgent,
-          'content-type': 'application/x-www-form-urlencoded',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-          origin: url,
+          ...baseOptions.headers,
+          ...options.headers,
         },
-        body: `form_type=customer_login&utf8=%E2%9C%93&customer%5Bemail%5D=${encodeURIComponent(
-          username,
-        )}&customer%5Bpassword%5D=${encodeURIComponent(password)}&return_url=%2Faccount`,
       });
 
       const { status, headers } = res;
-      const nextState = stateForError(
+      const error = stateForError(
         { status },
         {
-          message: 'Logging in',
-          nextState: States.LOGIN,
+          message,
+          nextState: from,
         },
       );
 
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+      if (error) {
+        if (error.message) {
+          emitEvent(this.context, [this.context.id], { message: error.message }, Events.TaskStatus);
         }
-        return erroredState;
+        return error.nextState;
       }
 
       const redirectUrl = headers.get('location');
 
       if (!redirectUrl) {
-        const message = status ? `Logging in - (${status})` : 'Logging in';
-        emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        return States.LOGIN;
+        return res;
       }
 
-      if (/checkpoint/i.test(redirectUrl)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Going to checkpoint' },
-          Events.TaskStatus,
-        );
-        this.checkpointUrl = redirectUrl;
-        return States.GO_TO_CHECKPOINT;
-      }
+      if (redirects.length) {
+        redirects.map(({ url: path, message: newMsg, state }) => {
+          if (new RegExp(path, 'i').test(redirectUrl)) {
+            if (/checkouts/i.test(redirectUrl)) {
+              [, , , this._store, , this._hash] = redirectUrl.split('/');
+            }
 
-      if (/password/i.test(redirectUrl)) {
-        emitEvent(this.context, [this.context.id], { message: 'Password page' }, Events.TaskStatus);
-        this._delayer = waitForDelay(monitor, this._aborter.signal);
-        await this._delayer;
-        emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
-        return States.LOGIN;
-      }
+            if (/password/i.test(redirectUrl)) {
+              this._delayer = waitForDelay(monitor);
+            }
 
-      if (/challenge/i.test(redirectUrl)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Login capcha needed' },
-          Events.TaskStatus,
-        );
-        return States.ERROR;
-      }
-
-      if (/login/i.test(redirectUrl)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Invalid credentials' },
-          Events.TaskStatus,
-        );
-        return States.ERROR;
-      }
-
-      if (/account/i.test(redirectUrl)) {
-        this._needsLogin = false; // update global check for login
-
-        if (type === Modes.SAFE && !captchaToken) {
-          if (this.context.task.product.variants && this.context.task.product.variants.length) {
-            emitEvent(
-              this.context,
-              [this.context.id],
-              { message: 'Adding to cart' },
-              Events.TaskStatus,
-            );
-            return States.ADD_TO_CART;
+            if (newMsg) {
+              emitEvent(this.context, [this.context.id], { message: newMsg }, Events.TaskStatus);
+            }
+            return state;
           }
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Waiting for product' },
-            Events.TaskStatus,
-          );
-          return States.WAIT_FOR_PRODUCT;
-        }
-
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Creating checkout' },
-          Events.TaskStatus,
-        );
-
-        return States.CREATE_CHECKOUT;
+        });
       }
 
-      const message = status ? `Logging in - (${status})` : 'Logging in';
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.LOGIN;
-    } catch (err) {
-      logger.error('Login Error: %s\n %j', err.status || err.errno, err.message);
+      return res;
+    } catch (error) {
+      this.context.logger.error('Error: %s\n %j', error.status || error.errno, error.message);
 
-      const nextState = stateForError(err, {
-        message: 'Logging in',
-        nextState: States.LOGIN,
+      const nextState = stateForError(error, {
+        message,
+        nextState: from,
       });
 
       if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+        const { message: erroredMessage, nextState: erroredState } = nextState;
+        if (erroredMessage) {
+          emitEvent(
+            this.context,
+            [this.context.id],
+            { message: erroredMessage },
+            Events.TaskStatus,
+          );
         }
         return erroredState;
       }
 
-      const message =
-        err.status || err.errno ? `Logging in - (${err.status || err.errno})` : 'Logging in';
+      const newMessage =
+        error.status || error.errno ? `${message} (${error.status || error.errno})` : message;
 
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.LOGIN;
+      emitEvent(this.context, [this.context.id], { message: newMessage }, Events.TaskStatus);
+      return from;
     }
+  }
+
+  async _handleLogin() {
+    const { username, password } = this.context.task.account;
+
+    return this._handler(
+      '/account/login',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: `form_type=customer_login&utf8=%E2%9C%93&customer%5Bemail%5D=${encodeURIComponent(
+          username,
+        )}&customer%5Bpassword%5D=${encodeURIComponent(password)}&return_url=%2Faccount`,
+      },
+      'Logging in',
+      States.LOGIN,
+      [
+        {
+          url: 'checkpoint',
+          message: 'Going to checkpoint',
+          state: States.GO_TO_CHECKPOINT,
+        },
+        {
+          url: 'password',
+          message: 'Logging in',
+          state: States.LOGIN,
+        },
+        {
+          url: 'challenge',
+          message: 'Captcha needed',
+          state: States.ERROR,
+        },
+        {
+          url: 'login',
+          message: 'Invalid credentials',
+          state: States.ERROR,
+        },
+        {
+          url: 'account',
+          state: States.DONE,
+        },
+      ],
+    );
   }
 
   async _handlePaymentToken() {
     const {
-      aborted,
       task: {
         profile: { payment, billing },
         store: { url },
       },
-      proxy,
       logger,
     } = this.context;
 
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    try {
-      let res = await this._fetch('https://elb.deposit.shopifycs.com/sessions', {
-        method: 'OPTIONS',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        headers: {
-          'User-Agent': userAgent,
-          'Content-Type': 'application/json',
-          'Access-Control-Request-Headers': 'content-type',
-          'Access-Control-Request-Method': 'POST',
-          DNT: 1,
-          Connection: 'Keep-Alive',
-          Origin: 'https://checkout.shopifycs.com',
-          'Sec-Fetch-Mode': 'no-cors',
-          Referer: `https://checkout.shopifycs.com/number?identifier=${
-            this._checkoutToken
-          }&location=${encodeURIComponent(
-            `${url}/${this._storeId}/checkouts/${this._checkoutToken}?previous_step=shipping_method&step=payment_method`,
-          )}`,
-        },
-      });
-
-      if (!res.ok) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Creating payment token' },
-          Events.TaskStatus,
-        );
-        return States.PAYMENT_TOKEN;
-      }
-
-      res = await this._fetch('https://elb.deposit.shopifycs.com/sessions', {
+    const res = await this._handler(
+      'https://elb.deposit.shopifycs.com/sessions',
+      {
         method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
         headers: {
-          'User-Agent': userAgent,
-          'Content-Type': 'application/json',
-          'Access-Control-Request-Headers': 'content-type',
-          'Access-Control-Request-Method': 'POST',
-          DNT: 1,
-          Connection: 'Keep-Alive',
+          'content-type': 'application/json',
           Origin: 'https://checkout.shopifycs.com',
-          'Sec-Fetch-Mode': 'no-cors',
           Referer: `https://checkout.shopifycs.com/number?identifier=${
-            this._checkoutToken
+            this._hash
           }&location=${encodeURIComponent(
-            `${url}/${this._storeId}/checkouts/${this._checkoutToken}?previous_step=shipping_method&step=payment_method`,
+            `${url}/${this._store}/checkouts/${this._hash}?previous_step=shipping_method&step=payment_method`,
           )}`,
         },
         body: JSON.stringify({
@@ -299,774 +239,61 @@ export default class TaskPrimitive extends BaseTask {
             verification_value: payment.cvv,
           },
         }),
-      });
+      },
+      'Generating session',
+      States.PAYMENT_TOKEN,
+    );
 
-      const { status } = res;
+    const { id } = await res.json();
 
-      const nextState = stateForError(
-        { status },
-        {
-          message: 'Creating payment session',
-          nextState: States.PAYMENT_TOKEN,
-        },
-      );
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const { id } = await res.json();
-
-      if (id) {
-        logger.silly('Payment token: %s', id);
-        this._paymentToken = id;
-        return States.SUBMIT_PAYMENT;
-      }
-
-      return States.PAYMENT_TOKEN;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Payment Token.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Creating payment session',
-        nextState: States.PAYMENT_TOKEN,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Creating payment session - (${err.status || err.errno})`
-          : 'Creating payment session';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.PAYMENT_TOKEN;
+    if (id) {
+      logger.silly('Payment token: %s', id);
+      this._token = id;
+      return States.SUBMIT_PAYMENT;
     }
+
+    return States.PAYMENT_TOKEN;
   }
 
   async _handleGatherData() {
     const {
-      aborted,
-      proxy,
       task: {
         store: { url },
         type,
       },
-      logger,
     } = this.context;
 
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
+    const res = await this._handler(url, {}, 'Gathering data', States.GATHER_DATA);
+
+    const body = await res.text();
+    let match = body.match(/<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/);
+
+    let accessToken;
+    if (match && match.length) {
+      [, accessToken] = match;
+      this.context.task.store.apiKey = accessToken;
     }
 
-    try {
-      const res = await this._fetch(url, {
-        method: 'GET',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        headers: {
-          'User-Agent': userAgent,
-        },
-      });
+    if (!accessToken) {
+      // check the script location as well
+      match = body.match(/"accessToken":(.*)","betas"/);
 
-      const { status } = res;
-
-      const nextState = stateForError(
-        { status },
-        {
-          message: 'Getting data',
-          nextState: States.GATHER_DATA,
-        },
-      );
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const body = await res.text();
-      let match = body.match(/<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/);
-
-      let accessToken;
-      if (match && match.length) {
-        [, accessToken] = match;
-        this.context.task.store.apiKey = accessToken;
-      }
-
-      if (!accessToken) {
-        // check the script location as well
-        match = body.match(/"accessToken":(.*)","betas"/);
-
-        if (!match || !match.length) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Invalid Shopify store' },
-            Events.TaskStatus,
-          );
-          return States.ERROR;
-        }
-        [, accessToken] = match;
-        this.context.task.store.apiKey = accessToken;
-      }
-      if (type === Modes.SAFE) {
-        if (!this._needsLogin) {
-          if (this.context.task.product.variants && this.context.task.product.variants.length) {
-            emitEvent(
-              this.context,
-              [this.context.id],
-              { message: 'Adding to cart' },
-              Events.TaskStatus,
-            );
-            return States.ADD_TO_CART;
-          }
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Waiting for product' },
-            Events.TaskStatus,
-          );
-          return States.WAIT_FOR_PRODUCT;
-        }
-        emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
-        return States.LOGIN;
-      }
-      if (!this._needsLogin) {
+      if (!match || !match.length) {
         emitEvent(
           this.context,
           [this.context.id],
-          { message: 'Creating checkout' },
+          { message: 'Invalid Shopify store' },
           Events.TaskStatus,
         );
-        return States.CREATE_CHECKOUT;
+        return States.ERROR;
       }
-      emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
-      return States.LOGIN;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Login.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Logging in',
-        nextState: States.LOGIN,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno ? `Logging in - (${err.status || err.errno})` : 'Logging in';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.LOGIN;
+      [, accessToken] = match;
+      this.context.task.store.apiKey = accessToken;
     }
-  }
-
-  async _handleGetCheckpoint() {
-    const {
-      aborted,
-      proxy,
-      logger,
-      task: {
-        monitor,
-        store: { url, apiKey },
-      },
-    } = this.context;
-
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    try {
-      const res = await this._fetch(this.checkpointUrl, {
-        method: 'GET',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          referer: `${url}/cart`,
-        },
-      });
-
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
-        {
-          message: 'Going to checkpoint',
-          nextState: States.GO_TO_CHECKPOINT,
-        },
-      );
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const redirectUrl = headers.get('location');
-      logger.debug('Checkpoint redirect url: %j', redirectUrl);
-
-      if (redirectUrl) {
-        if (/checkpoint/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkpoint' },
-            Events.TaskStatus,
-          );
-          this.checkpointUrl = redirectUrl;
-          return States.GO_TO_CHECKPOINT;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Creating checkout' },
-            Events.TaskStatus,
-          );
-          return States.CREATE_CHECKOUT;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                ...getHeaders({ url, apiKey }),
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                connection: 'close',
-                referer: url,
-                accept:
-                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'en-US,en;q=0.9',
-                host: `${url.split('/')[2]}`,
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-          return States.QUEUE;
-        }
-
-        if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkout' },
-            Events.TaskStatus,
-          );
-          return States.GO_TO_CHECKOUT;
-        }
-      }
-
-      const body = await res.text();
-
-      const $ = cheerio.load(body, { normalizeWhitespace: true, xmlMode: false });
-
-      $('form[action="/checkpoint"] input, textarea, select, button').each((_, el) => {
-        const name = $(el).attr('name');
-        let value = $(el).attr('value') || '';
-
-        if (/authenticity_token/i.test(name)) {
-          value = encodeURIComponent(value);
-        }
-
-        if (/g-recaptcha-response/i.test(name)) {
-          return;
-        }
-        logger.info('Checkpoint form value detected: { name: %j, value: %j }', name, value);
-
-        if (name) {
-          this._formValues += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
-        }
-      });
-
-      // recaptcha sitekey parser...
-      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-      if (match && match.length) {
-        [, this.context.task.store.sitekey] = match;
-        logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
-      }
-
-      if (this._formValues.endsWith('&')) {
-        this._formValues = this._formValues.slice(0, -1);
-      }
-
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Waiting for captcha' },
-        Events.TaskStatus,
-      );
-      return States.CAPTCHA;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Going to checkpoint.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Going to checkpoint',
-        nextState: States.GO_TO_CHECKPOINT,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Going to checkpoint - (${err.status || err.errno})`
-          : 'Going to checkpoint';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.GO_TO_CHECKPOINT;
-    }
-  }
-
-  async _handleSubmitCheckpoint() {
-    const {
-      aborted,
-      logger,
-      proxy,
-      task: {
-        monitor,
-        store: { url, apiKey },
-      },
-      captchaToken,
-    } = this.context;
-
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    emitEvent(
-      this.context,
-      [this.context.id],
-      { message: 'Submitting checkpoint' },
-      Events.TaskStatus,
-    );
-
-    if (captchaToken && !/g-recaptcha-response/i.test(this._formValues)) {
-      const parts = this._formValues.split('&');
-      if (parts && parts.length) {
-        this._formValues = '';
-        // eslint-disable-next-line array-callback-return
-        parts.forEach(part => {
-          if (/authenticity_token/i.test(part)) {
-            this._formValues += `${part}&g-recaptcha-response=${captchaToken}&`;
-          } else {
-            this._formValues += `${part}&`;
-          }
-        });
-      }
-    }
-
-    if (this._formValues.endsWith('&')) {
-      this._formValues = this._formValues.slice(0, -1);
-    }
-
-    logger.debug('CHECKPOINT FORM: %j', this._formValues);
-
-    try {
-      const res = await this._fetch(`/checkpoint`, {
-        method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          'content-type': 'application/x-www-form-urlencoded',
-        },
-        body: this._formValues,
-      });
-
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
-        {
-          message: 'Submitting checkpoint',
-          nextState: States.SUBMIT_CHECKPOINT,
-        },
-      );
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const redirectUrl = headers.get('location');
-      logger.debug('Checkpoint redirect url: %j', redirectUrl);
-
-      if (redirectUrl) {
-        if (/checkout/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Creating checkout' },
-            Events.TaskStatus,
-          );
-          return States.CREATE_CHECKOUT;
-        }
-
-        if (/checkpoint/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkpoint' },
-            Events.TaskStatus,
-          );
-          return States.GO_TO_CHECKPOINT;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Creating checkout' },
-            Events.TaskStatus,
-          );
-          return States.CREATE_CHECKOUT;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                ...getHeaders({ url, apiKey }),
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                referer: url,
-                accept:
-                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'en-US,en;q=0.9',
-                host: `${url.split('/')[2]}`,
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-          return States.QUEUE;
-        }
-
-        if (/cart/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Creating checkout' },
-            Events.TaskStatus,
-          );
-          return States.CREATE_CHECKOUT;
-        }
-
-        if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkout' },
-            Events.TaskStatus,
-          );
-          return States.GO_TO_CHECKOUT;
-        }
-      }
-
-      const message = status ? `Submitting checkpoint - (${status})` : 'Submitting checkpoint';
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.SUBMIT_CHECKPOINT;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Checkpoint.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Going to checkpoint',
-        nextState: States.GO_TO_CHECKPOINT,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Going to checkpoint - (${err.status || err.errno})`
-          : 'Going to checkpoint';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.GO_TO_CHECKPOINT;
-    }
-  }
-
-  async _handleCreateCheckout() {
-    const {
-      aborted,
-      logger,
-      proxy,
-      task: {
-        monitor,
-        store: { url, name, apiKey },
-        type,
-      },
-    } = this.context;
-
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    if (/dsm sg|dsm jp|dsm uk/i.test(name) && (this._isRestocking || type === Modes.FAST)) {
-      return this._handleCreateCheckoutWallets();
-    }
-
-    if ((!/dsm us/i.test(name) && type === Modes.FAST) || this._backupCheckout) {
-      return this._handleBackupCreateCheckout();
-    }
-
-    if (!this._cartForm.includes('checkout')) {
-      this._cartForm += `checkout=Check+out`;
-    }
-
-    try {
-      const res = await this._fetch(`${url}/cart`, {
-        method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
-        headers: {
-          ...getHeaders({ url, apiKey }),
-          'content-type': 'application/x-www-form-urlencoded',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-        },
-        body: this._cartForm,
-      });
-
-      this._cartForm = '';
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
-        {
-          message: 'Creating checkout',
-          nextState: States.CREATE_CHECKOUT,
-        },
-      );
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const redirectUrl = headers.get('location');
-      logger.debug('Create checkout redirect url: %j', redirectUrl);
-
-      if (redirectUrl) {
-        if (/checkpoint/i.test(redirectUrl)) {
-          this.checkpointUrl = redirectUrl;
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkpoint' },
-            Events.TaskStatus,
-          );
-          return States.GO_TO_CHECKPOINT;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Creating checkout' },
-            Events.TaskStatus,
-          );
-          return States.CREATE_CHECKOUT;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                connection: 'close',
-                referer: url,
-                accept:
-                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'en-US,en;q=0.9',
-                host: `${url.split('/')[2]}`,
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-          return States.QUEUE;
-        }
-
-        if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkout' },
-            Events.TaskStatus,
-          );
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/cart/i.test(redirectUrl)) {
+    // TODO:
+    if (type === Modes.SAFE) {
+      if (!this._needsLogin) {
+        if (this.context.task.product.variants) {
           emitEvent(
             this.context,
             [this.context.id],
@@ -1075,40 +302,170 @@ export default class TaskPrimitive extends BaseTask {
           );
           return States.ADD_TO_CART;
         }
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Waiting for product' },
+          Events.TaskStatus,
+        );
+        return States.WAIT_FOR_PRODUCT;
       }
-
-      const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.CREATE_CHECKOUT;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
+      emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
+      return States.LOGIN;
+    }
+    if (!this._needsLogin) {
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Creating checkout' },
+        Events.TaskStatus,
       );
-
-      const nextState = stateForError(err, {
-        message: 'Creating checkout',
-        nextState: States.CREATE_CHECKOUT,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Creating checkout - (${err.status || err.errno})`
-          : 'Creating checkout';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     }
+    emitEvent(this.context, [this.context.id], { message: 'Logging in' }, Events.TaskStatus);
+    return States.LOGIN;
+  }
+
+  async _handleGetCheckpoint() {
+    const { url } = this.context.task.store;
+
+    const res = await this._handler(
+      '/checkpoint',
+      {
+        headers: {
+          referer: `${url}/cart`,
+        },
+      },
+      'Going to checkpoint',
+      States.GO_TO_CHECKPOINT,
+      [
+        {
+          url: 'checkpoint',
+          message: 'Going to checkpoint',
+          state: States.GO_TO_CHECKPOINT,
+        },
+        {
+          url: 'password',
+          message: 'Creating checkout',
+          state: States.CREATE_CHECKOUT,
+        },
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+        {
+          url: 'checkouts',
+          message: 'Going to checkout',
+          state: States.GO_TO_CHECKOUT,
+        },
+      ],
+    );
+
+    const body = await res.text();
+    const $ = cheerio.load(body, { normalizeWhitespace: true, xmlMode: false });
+
+    $('form[action="/checkpoint"] input, textarea, select, button').each((_, el) => {
+      const name = $(el).attr('name');
+      let value = $(el).attr('value') || '';
+
+      if (/authenticity_token/i.test(name)) {
+        value = encodeURIComponent(value);
+      }
+
+      if (/g-recaptcha-response/i.test(name)) {
+        return;
+      }
+
+      if (name) {
+        this._form += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+      }
+    });
+
+    // recaptcha sitekey regex...
+    const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+    if (match && match.length) {
+      [, this.context.task.store.sitekey] = match;
+    }
+
+    if (this._form.endsWith('&')) {
+      this._form = this._form.slice(0, -1);
+    }
+
+    emitEvent(
+      this.context,
+      [this.context.id],
+      { message: 'Waiting for captcha' },
+      Events.TaskStatus,
+    );
+    return States.CAPTCHA;
+  }
+
+  async _handleSubmitCheckpoint() {
+    const { captchaToken } = this.context;
+
+    if (captchaToken && !/g-recaptcha-response/i.test(this._form)) {
+      const parts = this._form.split('&');
+      if (parts && parts.length) {
+        this._form = '';
+        // eslint-disable-next-line array-callback-return
+        parts.forEach(part => {
+          if (/authenticity_token/i.test(part)) {
+            this._form += `${part}&g-recaptcha-response=${captchaToken}&`;
+          } else {
+            this._form += `${part}&`;
+          }
+        });
+      }
+    }
+
+    if (this._form.endsWith('&')) {
+      this._form = this._form.slice(0, -1);
+    }
+
+    return this._handler(
+      this.checkpointUrl,
+      {
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: this._form,
+      },
+      'Submitting checkpoint',
+      States.SUBMIT_CHECKPOINT,
+      [
+        {
+          url: 'checkout',
+          message: 'Creating checkout',
+          state: States.CREATE_CHECKOUT,
+        },
+        {
+          url: 'checkpoint',
+          message: 'Going to checkpoint',
+          state: States.GO_TO_CHECKPOINT,
+        },
+        {
+          url: 'password',
+          message: 'Creating checkout',
+          state: States.CREATE_CHECKOUT,
+        },
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+        {
+          url: 'cart',
+          message: 'Creating checkout',
+          state: States.CREATE_CHECKOUT,
+        },
+        {
+          url: 'checkouts',
+          message: 'Going to checkout',
+          state: States.GO_TO_CHECKOUT,
+        },
+      ],
+    );
   }
 
   async _handleBackupCreateCheckout() {
@@ -1243,7 +600,7 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = redirectUrl.split('/');
+          [, , , this._store, , this._hash] = redirectUrl.split('/');
 
           if (type === Modes.SAFE) {
             emitEvent(
@@ -1264,7 +621,7 @@ export default class TaskPrimitive extends BaseTask {
         }
       }
 
-      const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
+      const message = status ? `Creating checkout (${status})` : 'Creating checkout';
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     } catch (err) {
@@ -1290,7 +647,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Creating checkout - (${err.status || err.errno})`
+          ? `Creating checkout (${err.status || err.errno})`
           : 'Creating checkout';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -1456,7 +813,7 @@ export default class TaskPrimitive extends BaseTask {
       if (body && body.checkout) {
         const { web_url: checkoutUrl } = body.checkout;
         if (/checkouts/i.test(checkoutUrl)) {
-          [, , , this._storeId, , this._checkoutToken] = checkoutUrl.split('/');
+          [, , , this._store, , this._hash] = checkoutUrl.split('/');
           emitEvent(
             this.context,
             [this.context.id],
@@ -1467,7 +824,7 @@ export default class TaskPrimitive extends BaseTask {
         }
       }
 
-      const message = status ? `Creating checkout - (${status})` : 'Creating checkout';
+      const message = status ? `Creating checkout (${status})` : 'Creating checkout';
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.CREATE_CHECKOUT;
     } catch (err) {
@@ -1493,7 +850,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Creating checkout - (${err.status || err.errno})`
+          ? `Creating checkout (${err.status || err.errno})`
           : 'Creating checkout';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -1513,11 +870,7 @@ export default class TaskPrimitive extends BaseTask {
       timers: { monitor },
     } = this.context;
 
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
+    const res = this._handler('/checkout/poll?js_poll=1', {}, 'Polling queue', States.QUEUE, [{ url: }]);
 
     let message;
     let nextState;
@@ -1606,7 +959,7 @@ export default class TaskPrimitive extends BaseTask {
 
             if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
               const [checkoutNoQs] = checkoutUrl.split('?');
-              [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
+              [, , , this._store, , this._hash] = checkoutNoQs.split('/');
               if (type === Modes.FAST) {
                 monitor.start();
               }
@@ -1659,7 +1012,7 @@ export default class TaskPrimitive extends BaseTask {
               logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
               if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
                 const [checkoutNoQs] = checkoutUrl.split('?');
-                [, , , this._storeId, , this._checkoutToken] = checkoutNoQs.split('/');
+                [, , , this._store, , this._hash] = checkoutNoQs.split('/');
                 if (type === Modes.FAST) {
                   monitor.start();
                 }
@@ -1699,7 +1052,7 @@ export default class TaskPrimitive extends BaseTask {
 
       if (redirectUrl && /checkouts/.test(redirectUrl)) {
         const [redirectNoQs] = redirectUrl.split('?');
-        [, , , this._storeId, , this._checkoutToken] = redirectNoQs.split('/');
+        [, , , this._store, , this._hash] = redirectNoQs.split('/');
 
         if (type === Modes.FAST) {
           monitor.start();
@@ -1745,7 +1098,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       message =
-        err.status || err.errno ? `Polling queue - (${err.status || err.errno})` : 'Polling queue';
+        err.status || err.errno ? `Polling queue (${err.status || err.errno})` : 'Polling queue';
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
 
       return States.QUEUE;
@@ -1999,9 +1352,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno
-          ? `Adding to cart - (${err.status || err.errno})`
-          : 'Adding to cart';
+        err.status || err.errno ? `Adding to cart (${err.status || err.errno})` : 'Adding to cart';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.ADD_TO_CART;
@@ -2056,7 +1407,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/wallets/checkouts/${this._checkoutToken}.json`, {
+      const res = await this._fetch(`/wallets/checkouts/${this._hash}.json`, {
         method: 'PATCH',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -2242,9 +1593,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno
-          ? `Adding to cart - (${err.status || err.errno})`
-          : 'Adding to cart';
+        err.status || err.errno ? `Adding to cart (${err.status || err.errno})` : 'Adding to cart';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.ADD_TO_CART;
@@ -2395,18 +1744,18 @@ export default class TaskPrimitive extends BaseTask {
         // Blacklisted values/names
         if (
           name &&
-          !/q|g|gender|\$fields|email|subscribe|updates\[.*:.*]/i.test(name) &&
+          !/undefined|null|q|g|gender|\$fields|email|subscribe|updates\[.*:.*]/i.test(name) &&
           !/update cart|Update|{{itemQty}}/i.test(value)
         ) {
-          this._cartForm += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+          this._form += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
         }
       });
 
-      if (this._cartForm.endsWith('&')) {
-        this._cartForm = this._cartForm.slice(0, -1);
+      if (this._form.endsWith('&')) {
+        this._form = this._form.slice(0, -1);
       }
 
-      logger.info('Cart form parsed: %j', this._cartForm);
+      logger.info('Cart form parsed: %j', this._form);
 
       if (this._needsLogin) {
         emitEvent(
@@ -2448,7 +1797,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno ? `Going to cart - (${err.status || err.errno})` : 'Going to cart';
+        err.status || err.errno ? `Going to cart (${err.status || err.errno})` : 'Going to cart';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_CART;
@@ -2627,7 +1976,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
         method: 'GET',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -2669,14 +2018,14 @@ export default class TaskPrimitive extends BaseTask {
       });
 
       // grab the checkoutKey if it's exists and we don't have it yet..
-      if (!this._checkoutKey) {
+      if (!this._key) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
         if (match) {
-          [, this._checkoutKey] = match;
-          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          [, this._key] = match;
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._key);
         }
       }
 
@@ -2821,10 +2170,10 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       // form parser...
-      this._formValues = await parseForm(
+      this._form = await parseForm(
         $,
         States.GO_TO_CHECKOUT,
-        this._checkoutToken,
+        this._hash,
         this.context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
@@ -2879,7 +2228,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Going to checkout - (${err.status || err.errno})`
+          ? `Going to checkout (${err.status || err.errno})`
           : 'Going to checkout';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -2907,7 +2256,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
         method: 'GET',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -3049,20 +2398,20 @@ export default class TaskPrimitive extends BaseTask {
 
       const body = await res.text();
 
-      if (!this._checkoutKey) {
+      if (!this._key) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
         if (match) {
-          [, this._checkoutKey] = match;
-          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          [, this._key] = match;
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._key);
         }
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._store && this._hash && this._key) {
+        checkoutUrl = `${url}/${this._store}/checkouts/${this._hash}?key=${this._key}`;
         this._checkoutUrl = checkoutUrl;
       }
 
@@ -3121,7 +2470,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Going to checkout - (${err.status || err.errno})`
+          ? `Going to checkout (${err.status || err.errno})`
           : 'Going to checkout';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -3152,22 +2501,22 @@ export default class TaskPrimitive extends BaseTask {
       return this._handleBackupSubmitCustomer();
     }
 
-    if (captchaToken && !/g-recaptcha-response/i.test(this._formValues)) {
-      const parts = this._formValues.split('button=');
+    if (captchaToken && !/g-recaptcha-response/i.test(this._form)) {
+      const parts = this._form.split('button=');
       if (parts && parts.length) {
-        this._formValues = '';
+        this._form = '';
         parts.forEach((part, i) => {
           if (i === 0) {
-            this._formValues += `${part}g-recaptcha-response=${captchaToken}`;
+            this._form += `${part}g-recaptcha-response=${captchaToken}`;
           } else {
-            this._formValues += part;
+            this._form += part;
           }
         });
       }
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
         method: 'POST',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -3185,7 +2534,7 @@ export default class TaskPrimitive extends BaseTask {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        body: this._form,
       });
 
       const { status, headers } = res;
@@ -3376,7 +2725,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Submitting information - (${err.status || err.errno})`
+          ? `Submitting information (${err.status || err.errno})`
           : 'Submitting information';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -3402,7 +2751,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/wallets/checkouts/${this._checkoutToken}.json`, {
+      const res = await this._fetch(`/wallets/checkouts/${this._hash}.json`, {
         method: 'PATCH',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -3550,7 +2899,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Submitting information - (${err.status || err.errno})`
+          ? `Submitting information (${err.status || err.errno})`
           : 'Submitting information';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -3584,7 +2933,7 @@ export default class TaskPrimitive extends BaseTask {
 
     try {
       const res = await this._fetch(
-        this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        this._redirectUrl || `/${this._store}/checkouts/${this._hash}`,
         {
           method: 'GET',
           compress: true,
@@ -3628,20 +2977,20 @@ export default class TaskPrimitive extends BaseTask {
       });
 
       // grab the checkoutKey if it's exists and we don't have it yet..
-      if (!this._checkoutKey) {
+      if (!this._key) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
         if (match) {
-          [, this._checkoutKey] = match;
-          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          [, this._key] = match;
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._key);
         }
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._store && this._hash && this._key) {
+        checkoutUrl = `${url}/${this._store}/checkouts/${this._hash}?key=${this._key}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
       }
@@ -3780,10 +3129,10 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       // form parser...
-      this._formValues = await parseForm(
+      this._form = await parseForm(
         $,
         States.GO_TO_SHIPPING,
-        this._checkoutToken,
+        this._hash,
         this.context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
@@ -3837,9 +3186,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno
-          ? `Fetching rates - (${err.status || err.errno})`
-          : 'Fetching rates';
+        err.status || err.errno ? `Fetching rates (${err.status || err.errno})` : 'Fetching rates';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_SHIPPING;
@@ -3865,15 +3212,12 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(
-        `/wallets/checkouts/${this._checkoutToken}/shipping_rates.json`,
-        {
-          method: 'GET',
-          compress: true,
-          agent: proxy ? proxy.proxy : null,
-          headers: getHeaders({ url, apiKey }),
-        },
-      );
+      const res = await this._fetch(`/wallets/checkouts/${this._hash}/shipping_rates.json`, {
+        method: 'GET',
+        compress: true,
+        agent: proxy ? proxy.proxy : null,
+        headers: getHeaders({ url, apiKey }),
+      });
 
       const { status } = res;
 
@@ -4029,9 +3373,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const message =
-        err.status || err.errno
-          ? `Fetching rates - (${err.status || err.errno})`
-          : 'Fetching rates';
+        err.status || err.errno ? `Fetching rates (${err.status || err.errno})` : 'Fetching rates';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_SHIPPING;
@@ -4056,7 +3398,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
         method: 'POST',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -4074,7 +3416,7 @@ export default class TaskPrimitive extends BaseTask {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        body: this._form,
       });
 
       const { status, headers } = res;
@@ -4278,7 +3620,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Submitting shipping - (${err.status || err.errno})`
+          ? `Submitting shipping (${err.status || err.errno})`
           : 'Submitting shipping';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -4307,7 +3649,7 @@ export default class TaskPrimitive extends BaseTask {
 
     try {
       const res = await this._fetch(
-        this._redirectUrl || `/${this._storeId}/checkouts/${this._checkoutToken}`,
+        this._redirectUrl || `/${this._store}/checkouts/${this._hash}`,
         {
           method: 'GET',
           compress: true,
@@ -4353,20 +3695,20 @@ export default class TaskPrimitive extends BaseTask {
       const priceRecap = $('.total-recap__final-price').attr('data-checkout-payment-due-target');
 
       // grab the checkoutKey if it's exists and we don't have it yet..
-      if (!this._checkoutKey) {
+      if (!this._key) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
         if (match) {
-          [, this._checkoutKey] = match;
-          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          [, this._key] = match;
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._key);
         }
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._store && this._hash && this._key) {
+        checkoutUrl = `${url}/${this._store}/checkouts/${this._hash}?key=${this._key}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
       }
@@ -4491,10 +3833,10 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       // form parser...
-      this._formValues = await parseForm(
+      this._form = await parseForm(
         $,
         States.GO_TO_PAYMENT,
-        this._checkoutToken,
+        this._hash,
         this.context.task.profile,
         'form.edit_checkout',
         'input, select, textarea, button',
@@ -4518,7 +3860,7 @@ export default class TaskPrimitive extends BaseTask {
         return States.CAPTCHA;
       }
 
-      if (!this._paymentToken && priceRecap !== '0') {
+      if (!this._token && priceRecap !== '0') {
         emitEvent(
           this.context,
           [this.context.id],
@@ -4562,7 +3904,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Submitting payment - (${err.status || err.errno})`
+          ? `Submitting payment (${err.status || err.errno})`
           : 'Submitting payment';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -4593,32 +3935,32 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (this._isFreeCheckout) {
-      const parts = this._formValues.split('&');
+      const parts = this._form.split('&');
 
       if (parts && parts.length) {
-        this._formValues = '';
+        this._form = '';
         parts.forEach(part => {
           if (/authenticity_token/i.test(part)) {
-            this._formValues += `_method=patch&${part}&previous_step=payment_method&step=&s=&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bpayment_gateway%5D=free&checkout%5Btotal_price%5D=0&complete=1&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1721&checkout%5Bclient_details%5D%5Bbrowser_height%5D=927&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
+            this._form += `_method=patch&${part}&previous_step=payment_method&step=&s=&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bpayment_gateway%5D=free&checkout%5Btotal_price%5D=0&complete=1&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1721&checkout%5Bclient_details%5D%5Bbrowser_height%5D=927&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
           }
         });
       }
-    } else if (this._formValues.indexOf(this._paymentToken) === -1) {
-      const parts = this._formValues.split('s=');
+    } else if (this._form.indexOf(this._token) === -1) {
+      const parts = this._form.split('s=');
       if (parts && parts.length) {
-        this._formValues = '';
+        this._form = '';
         parts.forEach((part, i) => {
           if (i === 0) {
-            this._formValues += `${part}s=${this._paymentToken}`;
+            this._form += `${part}s=${this._token}`;
           } else {
-            this._formValues += part;
+            this._form += part;
           }
         });
       }
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
         method: 'POST',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -4638,7 +3980,7 @@ export default class TaskPrimitive extends BaseTask {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        body: this._form,
       });
 
       const { status, headers } = res;
@@ -4660,7 +4002,7 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       this.needsPaymentToken = true;
-      this._paymentToken = '';
+      this._token = '';
 
       const body = await res.text();
       const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
@@ -4902,7 +4244,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Submitting payment - (${err.status || err.errno})`
+          ? `Submitting payment (${err.status || err.errno})`
           : 'Submitting payment';
 
       return nextState || { message, nextState: States.SUBMIT_PAYMENT };
@@ -4932,7 +4274,7 @@ export default class TaskPrimitive extends BaseTask {
 
     let form = {
       complete: 1,
-      s: this._paymentToken,
+      s: this._token,
       checkout: {
         shipping_rate: {
           id,
@@ -4948,7 +4290,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
         method: 'PATCH',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -4986,20 +4328,20 @@ export default class TaskPrimitive extends BaseTask {
 
       const body = await res.text();
 
-      if (!this._checkoutKey) {
+      if (!this._key) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
         if (match) {
-          [, this._checkoutKey] = match;
-          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          [, this._key] = match;
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._key);
         }
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._store && this._hash && this._key) {
+        checkoutUrl = `${url}/${this._store}/checkouts/${this._hash}?key=${this._key}`;
         // TODO: toggle to send the checkout link to discord
         this._checkoutUrl = checkoutUrl;
       }
@@ -5192,7 +4534,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Submitting payment - (${err.status || err.errno})`
+          ? `Submitting payment (${err.status || err.errno})`
           : 'Submitting payment';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -5225,7 +4567,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
         method: 'POST',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -5243,7 +4585,7 @@ export default class TaskPrimitive extends BaseTask {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
-        body: this._formValues,
+        body: this._form,
       });
 
       const { status, headers } = res;
@@ -5576,7 +4918,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Completing payment - (${err.status || err.errno})`
+          ? `Completing payment (${err.status || err.errno})`
           : 'Completing payment';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -5615,7 +4957,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`/${this._storeId}/checkouts/${this._checkoutToken}`, {
+      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
         method: 'PATCH',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -5650,20 +4992,20 @@ export default class TaskPrimitive extends BaseTask {
 
       const body = await res.text();
 
-      if (!this._checkoutKey) {
+      if (!this._key) {
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
         );
 
         if (match) {
-          [, this._checkoutKey] = match;
-          logger.silly('CHECKOUT: Checkout authorization key: %j', this._checkoutKey);
+          [, this._key] = match;
+          logger.silly('CHECKOUT: Checkout authorization key: %j', this._key);
         }
       }
 
       let checkoutUrl;
-      if (this._storeId && this._checkoutToken && this._checkoutKey) {
-        checkoutUrl = `${url}/${this._storeId}/checkouts/${this._checkoutToken}?key=${this._checkoutKey}`;
+      if (this._store && this._hash && this._key) {
+        checkoutUrl = `${url}/${this._store}/checkouts/${this._hash}?key=${this._key}`;
         this._checkoutUrl = checkoutUrl;
       }
 
@@ -5954,7 +5296,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Completing payment - (${err.status || err.errno})`
+          ? `Completing payment (${err.status || err.errno})`
           : 'Completing payment';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -5984,7 +5326,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     try {
-      const res = await this._fetch(`${url}/wallets/checkouts/${this._checkoutToken}/payments`, {
+      const res = await this._fetch(`${url}/wallets/checkouts/${this._hash}/payments`, {
         method: 'GET',
         compress: true,
         agent: proxy ? proxy.proxy : null,
@@ -6215,7 +5557,7 @@ export default class TaskPrimitive extends BaseTask {
 
       const message =
         err.status || err.errno
-          ? `Processing payment - (${err.status || err.errno})`
+          ? `Processing payment (${err.status || err.errno})`
           : 'Processing payment';
 
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
