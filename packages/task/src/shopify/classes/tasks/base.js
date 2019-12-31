@@ -112,7 +112,7 @@ export default class TaskPrimitive extends BaseTask {
       const redirectUrl = headers.get('location');
 
       if (!redirectUrl) {
-        return res;
+        return { data: res };
       }
 
       // only handle redirects if we have an output map of where we are going...
@@ -156,12 +156,12 @@ export default class TaskPrimitive extends BaseTask {
             if (newMsg) {
               emitEvent(this.context, [this.context.id], { message: newMsg }, Events.TaskStatus);
             }
-            return state;
+            return { nextState: state };
           }
         });
       }
 
-      return res;
+      return { data: res };
     } catch (error) {
       this.context.logger.error('Error: %s\n %j', error.status || error.errno, error.message);
 
@@ -180,21 +180,21 @@ export default class TaskPrimitive extends BaseTask {
             Events.TaskStatus,
           );
         }
-        return erroredState;
+        return { nextState: erroredState };
       }
 
       const newMessage =
         error.status || error.errno ? `${message} (${error.status || error.errno})` : message;
 
       emitEvent(this.context, [this.context.id], { message: newMessage }, Events.TaskStatus);
-      return from;
+      return { nextState: from };
     }
   }
 
   async _handleLogin() {
     const { username, password } = this.context.task.account;
 
-    return this._handler(
+    const { nextState } = await this._handler(
       '/account/login',
       {
         method: 'POST',
@@ -234,6 +234,12 @@ export default class TaskPrimitive extends BaseTask {
         },
       ],
     );
+
+    if (nextState) {
+      return nextState;
+    }
+
+    return States.LOGIN;
   }
 
   async _handlePaymentToken() {
@@ -242,7 +248,6 @@ export default class TaskPrimitive extends BaseTask {
         profile: { payment, billing },
         store: { url },
       },
-      logger,
     } = this.context;
 
     const res = await this._handler(
@@ -275,7 +280,6 @@ export default class TaskPrimitive extends BaseTask {
     const { id } = await res.json();
 
     if (id) {
-      logger.silly('Payment token: %s', id);
       this._token = id;
       return States.SUBMIT_PAYMENT;
     }
@@ -287,13 +291,12 @@ export default class TaskPrimitive extends BaseTask {
     const {
       task: {
         store: { url },
-        type,
       },
     } = this.context;
 
-    const res = await this._handler(url, {}, 'Gathering data', States.GATHER_DATA);
+    const { data } = await this._handler(url, {}, 'Gathering data', States.GATHER_DATA);
 
-    const body = await res.text();
+    const body = await data.text();
     let match = body.match(/<meta\s*name="shopify-checkout-api-token"\s*content="(.*)">/);
 
     let accessToken;
@@ -359,7 +362,7 @@ export default class TaskPrimitive extends BaseTask {
   async _handleGetCheckpoint() {
     const { url } = this.context.task.store;
 
-    const res = await this._handler(
+    const { nextState, data } = await this._handler(
       '/checkpoint',
       {
         headers: {
@@ -392,7 +395,11 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
-    const body = await res.text();
+    if (nextState) {
+      return nextState;
+    }
+
+    const body = await data.text();
     const $ = cheerio.load(body, { normalizeWhitespace: true, xmlMode: false });
 
     $('form[action="/checkpoint"] input, textarea, select, button').each((_, el) => {
@@ -453,7 +460,7 @@ export default class TaskPrimitive extends BaseTask {
       this._form = this._form.slice(0, -1);
     }
 
-    return this._handler(
+    const { nextState } = await this._handler(
       '/checkpoint',
       {
         headers: {
@@ -496,6 +503,12 @@ export default class TaskPrimitive extends BaseTask {
         },
       ],
     );
+
+    if (nextState) {
+      return nextState;
+    }
+
+    return States.GO_TO_CHECKPOINT;
   }
 
   async _handleBackupCreateCheckout() {
@@ -889,13 +902,10 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handlePollQueue() {
-    const {
-      logger,
-      task: { type },
-    } = this.context;
+    const { type } = this.context.task;
 
     let message;
-    const res = this._handler('/checkout/poll?js_poll=1', {}, 'Polling queue', States.QUEUE, [
+    const { nextState, data } = this._handler('/checkout/poll?js_poll=1', {}, 'Polling queue', States.QUEUE, [
       {
         url: 'throttle',
         message: 'Polling queue',
@@ -903,7 +913,11 @@ export default class TaskPrimitive extends BaseTask {
       },
     ]);
 
-    const { status, headers } = res;
+    if (nextState) {
+      return nextState;
+    }
+
+    const { status, headers } = data;
 
     if (status !== 200) {
       const retryAfter = headers.get('Retry-After') || 2500;
@@ -927,18 +941,18 @@ export default class TaskPrimitive extends BaseTask {
 
     if (match && match.length) {
       const [, checkoutUrl] = match;
-      logger.debug('QUEUE: checkoutUrl: %j', checkoutUrl);
+
       if (checkoutUrl && /checkouts/i.test(checkoutUrl)) {
         const [checkoutNoQs] = checkoutUrl.split('?');
         [, , , this._store, , this._hash] = checkoutNoQs.split('/');
-        ({ message, nextState } = StateMap[this._prevState](
+        ({ message, nextState: toState } = StateMap[this._prevState](
           type,
           this.context.task,
           this._selectedShippingRate,
         ));
 
         emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        return nextState;
+        return toState;
       }
     }
 
@@ -1026,37 +1040,45 @@ export default class TaskPrimitive extends BaseTask {
     } = this.context;
 
 
-    const res = await this._handler('/cart/add.js', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: addToCart(variant.id, name, hash),
-    }, 'Adding to cart', States.ADD_TO_CART, [
+    const { nextState, data } = await this._handler('/cart/add.js',
       {
-        url: 'checkpoint',
-        message: 'Going to checkpoint',
-        state: States.GO_TO_CHECKPOINT,
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: addToCart(variant.id, name, hash),
       },
-      {
-        url: 'password',
-        message: 'Adding to cart',
-        state: States.ADD_TO_CART,
-      },
-      {
-        url: 'throttle',
-        message: 'Polling queue',
-        state: States.QUEUE,
-      },
-    ])
+      'Adding to cart',
+      States.ADD_TO_CART,
+      [
+        {
+          url: 'checkpoint',
+          message: 'Going to checkpoint',
+          state: States.GO_TO_CHECKPOINT,
+        },
+        {
+          url: 'password',
+          message: 'Adding to cart',
+          state: States.ADD_TO_CART,
+        },
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+      ],
+    );
 
-    const body = await res.text();
+    if (nextState) {
+      return nextState;
+    }
 
+    const body = await data.text();
     if (/cannot find variant/i.test(body)) {
       emitEvent(
         this.context,
         [this.context.id],
-        { message: 'Variant not found!' },
+        { message: `Variant not live! Delaying ${monitor}ms` },
         Events.TaskStatus,
       );
 
@@ -1318,16 +1340,13 @@ export default class TaskPrimitive extends BaseTask {
 
   async _handleGoToCart() {
     const {
-      aborted,
       logger,
-      proxy,
       task: {
-        monitor,
-        store: { url, apiKey },
+        store: { apiKey },
       },
     } = this.context;
 
-    const res = await this._handler(
+    const { nextState, data } = await this._handler(
       '/cart',
       {
         headers: {
@@ -1355,8 +1374,11 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
-    const body = await res.text();
+    if (nextState) {
+      return nextState;
+    }
 
+    const body = await data.text();
     const $ = cheerio.load(body, {
       normalizeWhitespace: true,
       xmlMode: false,
@@ -1373,10 +1395,14 @@ export default class TaskPrimitive extends BaseTask {
         !/undefined|null|q|g|gender|\$fields|email|subscribe|updates\[.*:.*]/i.test(name) &&
         !/update cart|Update|{{itemQty}}/i.test(value)
       ) {
-        this._form += `${name}=${value ? value.replace(/\s/g, '+') : ''}&`;
+        this._form += `${name}=${value || ''}&`;
       }
     });
 
+    // replace all spaces with `+`
+    this._form.replace(/\s/g, '+');
+
+    // and strip the last character if it's an ampersand
     if (this._form.endsWith('&')) {
       this._form = this._form.slice(0, -1);
     }
@@ -1541,7 +1567,7 @@ export default class TaskPrimitive extends BaseTask {
       captchaToken,
     } = this.context;
 
-    const res = await this._handler(`/${this._store}/checkouts/${this._hash}`,
+    const { nextState, data } = await this._handler(`/${this._store}/checkouts/${this._hash}`,
       {
         headers: {
           'X-Shopify-Storefront-Access-Token': apiKey,
@@ -1578,14 +1604,19 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
+    if (nextState) {
+      return nextState;
+    }
+
+    const body = await data.text();
+
+    const $ = cheerio.load(body, {
+      xmlMode: false,
+      normalizeWhitespace: true,
+    });
+
     if (!this._key) {
       try {
-        const body = await res.text();
-        const $ = cheerio.load(body, {
-          xmlMode: false,
-          normalizeWhitespace: true,
-        });
-
         // grab the checkoutKey if it's exists and we don't have it yet..
         const match = body.match(
           /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
@@ -1638,26 +1669,11 @@ export default class TaskPrimitive extends BaseTask {
 
   async _handleSubmitCustomer() {
     const {
-      aborted,
-      logger,
-      proxy,
       task: {
-        monitor,
-        store: { url, apiKey },
-        type,
+        store: { apiKey },
       },
       captchaToken,
     } = this.context;
-
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    if (this._isRestocking || type === Modes.FAST) {
-      return this._handleBackupSubmitCustomer();
-    }
 
     if (captchaToken && !/g-recaptcha-response/i.test(this._form)) {
       const parts = this._form.split('button=');
@@ -1673,222 +1689,42 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    try {
-      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
+    const { nextState } = await this._handler(`/${this._store}/checkouts/${this._hash}`,
+      {
         method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
         headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'content-type': 'application/x-www-form-urlencoded',
-          'Upgrade-Insecure-Requests': '1',
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
           'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
         body: this._form,
-      });
-
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
+      },
+      'Submitting information',
+      States.SUBMIT_CUSTOMER,
+      [
         {
+          url: 'password',
           message: 'Submitting information',
-          nextState: States.SUBMIT_CUSTOMER,
+          state: States.SUBMIT_CUSTOMER,
         },
-      );
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+        {
+          url: 'stock_problems',
+          message: 'Submitting information',
+          state: States.GO_TO_CHECKOUT,
+        },
+      ]
+    );
 
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      // if we followed a redirect at some point...
-      const redirectUrl = headers.get('location');
-      logger.error('SUBMIT CUSTOMER REDIRECT URL: %s', redirectUrl);
-      if (redirectUrl) {
-        this._redirectUrl = redirectUrl;
-        if (/stock_problems/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: `Out of stock! Delaying ${monitor}ms` },
-            Events.TaskStatus,
-          );
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting information' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting information' },
-            Events.TaskStatus,
-          );
-
-          return States.SUBMIT_CUSTOMER;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-
-          return States.QUEUE;
-        }
-
-        if (/step=stock_problems/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: `Out of stock, delaying ${monitor}ms` },
-            Events.TaskStatus,
-          );
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting information' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/step=shipping_method/i.test(redirectUrl)) {
-          this.context.setCaptchaToken(null);
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Fetching rates' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_SHIPPING;
-        }
-
-        if (/step=contact_information/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting information' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/step=payment_method/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting payment' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_PAYMENT;
-        }
-      }
-
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Submitting information' },
-        Events.TaskStatus,
-      );
-
-      return States.GO_TO_CHECKOUT;
-    } catch (err) {
-      logger.error(
-        'FRONTEND CHECKOUT: %s Request Error..\n Step: Submit customer .\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Submitting information',
-        nextState: States.SUBMIT_CUSTOMER,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Submitting information (${err.status || err.errno})`
-          : 'Submitting information';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.SUBMIT_CUSTOMER;
+    if (nextState) {
+      return nextState;
     }
+
+    // determined by subclasses..
+    return States.DONE;
   }
 
   async _handleBackupSubmitCustomer() {
