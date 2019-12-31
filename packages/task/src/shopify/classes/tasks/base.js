@@ -8,12 +8,11 @@ import { Task as TaskConstants } from '../../constants';
 import { Forms, stateForError, getHeaders, pickVariant } from '../../utils';
 
 const { addToCart, parseForm, patchCheckoutForm } = Forms;
-const { Task, Manager, Platforms, Monitor } = Constants;
+const { Task, Platforms, Monitor } = Constants;
 const { currencyWithSymbol, userAgent, waitForDelay, emitEvent } = Utils;
 const { BaseTask } = Bases;
 
 const { Events } = Task;
-const { Events: TaskManagerEvents } = Manager;
 const { States, Modes, StateMap } = TaskConstants;
 const { ParseType } = Monitor;
 const { Captcha } = Classes;
@@ -106,7 +105,7 @@ export default class TaskPrimitive extends BaseTask {
         if (error.message) {
           emitEvent(this.context, [this.context.id], { message: error.message }, Events.TaskStatus);
         }
-        return error.nextState;
+        return { nextState: error.nextState };
       }
 
       const redirectUrl = headers.get('location');
@@ -136,6 +135,17 @@ export default class TaskPrimitive extends BaseTask {
               await this._delayer;
             }
 
+            if (/stock_problems/i.test(redirectUrl)) {
+              emitEvent(
+                this.context,
+                [this.context.id],
+                { message: `Out of stock! Delaying ${monitor}ms` },
+                Events.TaskStatus,
+              );
+              this._delayer = waitForDelay(monitor, this._aborter.signal);
+              await this._delayer;
+            }
+
             if (/throttle/i.test(redirectUrl)) {
               try {
                 // eslint-disable-next-line no-await-in-loop
@@ -159,7 +169,7 @@ export default class TaskPrimitive extends BaseTask {
             if (newMsg) {
               emitEvent(this.context, [this.context.id], { message: newMsg }, Events.TaskStatus);
             }
-            return { nextState: state };
+            return { nextState: state, data: res };
           }
         }
       }
@@ -253,7 +263,7 @@ export default class TaskPrimitive extends BaseTask {
       },
     } = this.context;
 
-    const res = await this._handler(
+    const { data } = await this._handler(
       'https://elb.deposit.shopifycs.com/sessions',
       {
         method: 'POST',
@@ -280,7 +290,7 @@ export default class TaskPrimitive extends BaseTask {
       States.PAYMENT_TOKEN,
     );
 
-    const { id } = await res.json();
+    const { id } = await data.json();
 
     if (id) {
       this._token = id;
@@ -1000,7 +1010,8 @@ export default class TaskPrimitive extends BaseTask {
         Events.TaskStatus,
       );
 
-      this.context.updateVariant(variant);
+      this._product.variant = variant;
+
       return States.ADD_TO_CART;
     }
 
@@ -1014,7 +1025,7 @@ export default class TaskPrimitive extends BaseTask {
     const {
       task: {
         store: { name },
-        product: { variant, hash },
+        product: { hash },
         monitor,
       },
     } = this.context;
@@ -1026,7 +1037,7 @@ export default class TaskPrimitive extends BaseTask {
         headers: {
           'content-type': 'application/json',
         },
-        body: addToCart(variant.id, name, hash),
+        body: addToCart(id, name, hash),
       },
       'Adding to cart',
       States.ADD_TO_CART,
@@ -1880,288 +1891,100 @@ export default class TaskPrimitive extends BaseTask {
 
   async _handleGetShipping() {
     const {
-      aborted,
       logger,
-      proxy,
       task: {
-        store: { url, apiKey },
-        monitor,
         captcha,
-        type,
       },
       captchaToken,
     } = this.context;
 
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    if (this._isRestocking || type === Modes.FAST) {
-      return this._handleBackupGetShipping();
-    }
-
-    try {
-      const res = await this._fetch(
-        this._redirectUrl || `/${this._store}/checkouts/${this._hash}`,
+    const { nextState, data } = await this._handler(
+      `/${this._store}/checkouts/${this._hash}`,
+      {},
+      'Fetching rates',
+      States.GO_TO_SHIPPING,
+      [
         {
-          method: 'GET',
-          compress: true,
-          agent: proxy ? proxy.proxy : null,
-          redirect: 'manual',
-          follow: 0,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': apiKey,
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-          },
+          url: 'checkpoint',
+          message: 'Going to checkpoint',
+          state: States.GO_TO_CHECKPOINT,
         },
-      );
-
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
         {
+          url: 'password',
           message: 'Fetching rates',
-          nextState: States.GO_TO_SHIPPING,
+          state: States.GO_TO_SHIPPING,
         },
-      );
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+        {
+          url: 'stock_problems',
+          message: 'Fetching rates',
+          state: States.QUEUE,
+        },
+      ],
+    )
 
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
+    const body = await data.text();
+    const $ = cheerio.load(body, {
+      xmlMode: false,
+      normalizeWhitespace: true,
+    });
 
-      const body = await res.text();
-      const $ = cheerio.load(body, {
-        xmlMode: false,
-        normalizeWhitespace: true,
-      });
+    // TODO: do we need this? is there a better way to tell?
+    if (/Getting available shipping rates/i.test(body)) {
+      emitEvent(this.context, [this.context.id], { message: 'Polling rates' }, Events.TaskStatus);
 
-      // grab the checkoutKey if it's exists and we don't have it yet..
-      if (!this._key) {
-        const match = body.match(
-          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
-        );
-
-        if (match) {
-          [, this._key] = match;
-          logger.silly('CHECKOUT: Checkout authorization key: %j', this._key);
-        }
-      }
-
-      let checkoutUrl;
-      if (this._store && this._hash && this._key) {
-        checkoutUrl = `${url}/${this._store}/checkouts/${this._hash}?key=${this._key}`;
-        // TODO: toggle to send the checkout link to discord
-        this._checkoutUrl = checkoutUrl;
-      }
-
-      const redirectUrl = headers.get('location');
-      logger.silly(`CHECKOUT: Get shipping redirect url: %s`, redirectUrl);
-
-      // check if redirected
-      if (redirectUrl) {
-        if (/checkpoint/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkpoint' },
-            Events.TaskStatus,
-          );
-
-          this.checkpointUrl = redirectUrl;
-          return States.GO_TO_CHECKPOINT;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting shipping' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_SHIPPING;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-
-          return States.QUEUE;
-        }
-
-        if (/stock_problems/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: `Out of stock! Delaying ${monitor}ms` },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting shipping' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_SHIPPING;
-        }
-      }
-
-      if (/stock_problems/i.test(body)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: `Out of stock! Delaying ${monitor}ms` },
-          Events.TaskStatus,
-        );
-
-        this._delayer = waitForDelay(monitor, this._aborter.signal);
-        await this._delayer;
-
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Submitting shipping' },
-          Events.TaskStatus,
-        );
-        return States.GO_TO_SHIPPING;
-      }
-
-      if (/Getting available shipping rates/i.test(body)) {
-        emitEvent(this.context, [this.context.id], { message: 'Polling rates' }, Events.TaskStatus);
-
-        this._delayer = waitForDelay(1000, this._aborter.signal);
-        await this._delayer;
-
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Submitting shipping' },
-          Events.TaskStatus,
-        );
-
-        return States.GO_TO_SHIPPING;
-      }
-
-      // form parser...
-      this._form = await parseForm(
-        $,
-        States.GO_TO_SHIPPING,
-        this._hash,
-        this.context.task.profile,
-        'form.edit_checkout',
-        'input, select, textarea, button',
-      );
-
-      // recaptcha sitekey parser...
-      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-      if (match && match.length) {
-        [, this.context.task.store.sitekey] = match;
-        logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
-      }
-
-      if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Waiting for captcha' },
-          Events.TaskStatus,
-        );
-
-        return States.CAPTCHA;
-      }
+      this._delayer = waitForDelay(250, this._aborter.signal);
+      await this._delayer;
 
       emitEvent(
         this.context,
         [this.context.id],
-        { message: 'Submitting shipping' },
+        { message: 'Fetching rates' },
         Events.TaskStatus,
       );
 
-      return States.SUBMIT_SHIPPING;
-    } catch (err) {
-      logger.error(
-        'FRONTEND CHECKOUT: %s Request Error..\n Step: Get shipping .\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Fetching rates',
-        nextState: States.GO_TO_SHIPPING,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno ? `Fetching rates (${err.status || err.errno})` : 'Fetching rates';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_SHIPPING;
     }
+
+    // form parser...
+    this._form = await parseForm(
+      $,
+      States.GO_TO_SHIPPING,
+      this._hash,
+      this.context.task.profile,
+      'form.edit_checkout',
+      'input, select, textarea, button',
+    );
+
+    // recaptcha sitekey parser...
+    const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+    if (match && match.length) {
+      [, this.context.task.store.sitekey] = match;
+    }
+
+    if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Waiting for captcha' },
+        Events.TaskStatus,
+      );
+
+      return States.CAPTCHA;
+    }
+
+    emitEvent(
+      this.context,
+      [this.context.id],
+      { message: 'Submitting shipping' },
+      Events.TaskStatus,
+    );
+
+    return States.SUBMIT_SHIPPING;
   }
 
   async _handleBackupGetShipping() {
@@ -2352,535 +2175,146 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleSubmitShipping() {
-    const {
-      aborted,
-      logger,
-      proxy,
-      task: {
-        monitor,
-        store: { url, apiKey },
-      },
-    } = this.context;
-
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    try {
-      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
+    const { nextState } = await this._handler(
+      `/${this._store}/checkouts/${this._hash}`,
+      {
         method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
         headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'content-type': 'application/x-www-form-urlencoded',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
         body: this._form,
-      });
-
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
+      },
+      'Submitting shipping',
+      States.SUBMIT_SHIPPING,
+      [
         {
-          message: 'Submitting shipping',
-          nextState: States.SUBMIT_SHIPPING,
+          url: 'processing',
+          message: 'Processing payment',
+          state: States.PROCESS_PAYMENT,
         },
-      );
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+        {
+          url: 'password',
+          message: 'Submitting shipping',
+          state: States.SUBMIT_SHIPPING,
+        },
+        {
+          url: 'stock_problems',
+          message: 'Submitting shipping', // TODO
+          state: States.SUBMIT_SHIPPING, // TODO
+        },
+        {
+          url: 'step=payment_method',
+          message: 'Submitting payment', // TODO
+          state: States.GO_TO_PAYMENT, // TODO
+        },
+        {
+          url: 'step=shipping_method',
+          message: 'Submitting shipping', // TODO
+          state: States.GO_TO_SHIPPING, // TODO
+        },
+        {
+          url: 'step=contact_information',
+          message: 'Submitting information', // TODO
+          state: States.GO_TO_CHECKOUT, // TODO
+        },
+      ],
+    );
 
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      // if we followed a redirect at some point...
-      const redirectUrl = headers.get('location');
-      logger.error('SUBMIT SHIPPING REDIRECT URL: %s', redirectUrl);
-      if (redirectUrl) {
-        this._redirectUrl = redirectUrl;
-        if (/processing/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Processing payment' },
-            Events.TaskStatus,
-          );
-
-          return States.PROCESS_PAYMENT;
-        }
-
-        if (/stock_problems/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: `Out of stock! Delaying ${monitor}ms` },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting shipping' },
-            Events.TaskStatus,
-          );
-
-          return States.SUBMIT_SHIPPING;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting shipping' },
-            Events.TaskStatus,
-          );
-
-          return States.SUBMIT_SHIPPING;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-
-          return States.QUEUE;
-        }
-
-        if (/step=stock_problems/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: `Out of stock! Delaying ${monitor}ms` },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting information' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_PAYMENT;
-        }
-
-        if (/step=payment_method/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting payment' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_PAYMENT;
-        }
-
-        if (/step=shipping_method/i.test(redirectUrl)) {
-          this.context.setCaptchaToken(null);
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Fetching rates' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_SHIPPING;
-        }
-
-        if (/step=contact_information/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting information' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_CHECKOUT;
-        }
-      }
-
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Submitting shipping' },
-        Events.TaskStatus,
-      );
-
-      return States.GO_TO_SHIPPING;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Submit shipping .\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Submitting shipping',
-        nextState: States.SUBMIT_SHIPPING,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Submitting shipping (${err.status || err.errno})`
-          : 'Submitting shipping';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.SUBMIT_SHIPPING;
+    if (nextState) {
+      return nextState;
     }
+
+    emitEvent(
+      this.context,
+      [this.context.id],
+      { message: 'Submitting shipping' },
+      Events.TaskStatus,
+    );
+
+    return States.GO_TO_SHIPPING;
   }
 
   async _handleGetPayment() {
-    const {
-      aborted,
-      logger,
-      proxy,
-      task: {
-        monitor,
-        store: { url, apiKey },
-        captcha,
-      },
-      captchaToken,
-    } = this.context;
+    const { nextState, data } = await this._handler(
+      `/${this._store}/checkouts/${this._hash}`,
+      {},
+      'Submitting payment',
+      States.GO_TO_PAYMENT,
+      [
+        {
+          url: 'checkpoint',
+          message: 'Going to checkpoint',
+          state: States.GO_TO_CHECKPOINT,
+        },
+        {
+          url: 'password',
+          message: 'Submitting payment',
+          state: States.GO_TO_PAYMENT,
+        },
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+        {
+          url: 'stock_problems',
+          message: 'Submitting payment',
+          state: States.GO_TO_PAYMENT,
+        },
+      ],
+    );
 
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
+    if (nextState) {
+      return nextState;
     }
 
-    try {
-      const res = await this._fetch(
-        this._redirectUrl || `/${this._store}/checkouts/${this._hash}`,
-        {
-          method: 'GET',
-          compress: true,
-          agent: proxy ? proxy.proxy : null,
-          redirect: 'manual',
-          follow: 0,
-          headers: {
-            ...getHeaders({ url, apiKey }),
-            Connection: 'Keep-Alive',
-            'Upgrade-Insecure-Requests': '1',
-            'X-Shopify-Storefront-Access-Token': apiKey,
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-          },
-        },
-      );
+    const body = await data.text();
+    const $ = cheerio.load(body, {
+      xmlMode: false,
+      normalizeWhitespace: true,
+    });
 
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
-        {
-          message: 'Submitting payment',
-          nextState: States.GO_TO_PAYMENT,
-        },
-      );
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const body = await res.text();
-      const $ = cheerio.load(body, {
-        xmlMode: false,
-        normalizeWhitespace: true,
-      });
-
-      const priceRecap = $('.total-recap__final-price').attr('data-checkout-payment-due-target');
-
-      // grab the checkoutKey if it's exists and we don't have it yet..
-      if (!this._key) {
-        const match = body.match(
-          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
-        );
-
-        if (match) {
-          [, this._key] = match;
-          logger.silly('CHECKOUT: Checkout authorization key: %j', this._key);
-        }
-      }
-
-      let checkoutUrl;
-      if (this._store && this._hash && this._key) {
-        checkoutUrl = `${url}/${this._store}/checkouts/${this._hash}?key=${this._key}`;
-        // TODO: toggle to send the checkout link to discord
-        this._checkoutUrl = checkoutUrl;
-      }
-
-      const redirectUrl = headers.get('location');
-      logger.silly(`CHECKOUT: Get payment redirect url: %s`, redirectUrl);
-
-      // check if redirected
-      if (redirectUrl) {
-        this._redirectUrl = redirectUrl;
-        if (/checkpoint/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkpoint' },
-            Events.TaskStatus,
-          );
-
-          this.checkpointUrl = redirectUrl;
-          return States.GO_TO_CHECKPOINT;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting payment' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_PAYMENT;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-
-          return States.QUEUE;
-        }
-
-        if (/stock_problems/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: `Out of stock! Delaying ${monitor}ms` },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting payment' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_PAYMENT;
-        }
-      }
-
-      if (/calculating taxes/i.test(body) || /polling/i.test(body)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Calculating taxes' },
-          Events.TaskStatus,
-        );
-
-        this._delayer = waitForDelay(1000, this._aborter.signal);
-        await this._delayer;
-
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Submitting payment' },
-          Events.TaskStatus,
-        );
-
-        return States.GO_TO_PAYMENT;
-      }
-
-      // form parser...
-      this._form = await parseForm(
-        $,
-        States.GO_TO_PAYMENT,
-        this._hash,
-        this.context.task.profile,
-        'form.edit_checkout',
-        'input, select, textarea, button',
-      );
-
-      // recaptcha sitekey parser...
-      const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-      if (match && match.length) {
-        [, this.context.task.store.sitekey] = match;
-        logger.debug('PARSED SITEKEY!: %j', this.context.task.store.sitekey);
-      }
-
-      if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Waiting for captcha' },
-          Events.TaskStatus,
-        );
-
-        return States.CAPTCHA;
-      }
-
-      if (!this._token && priceRecap !== '0') {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Submitting payment' },
-          Events.TaskStatus,
-        );
-
-        return States.PAYMENT_TOKEN;
-      }
-
-      this._isFreeCheckout = true;
-
+    if (/calculating taxes/i.test(body)) {
       emitEvent(
         this.context,
         [this.context.id],
-        { message: 'Submitting payment' },
+        { message: 'Calculating taxes' },
         Events.TaskStatus,
       );
 
-      return States.SUBMIT_PAYMENT;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Get payment .\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
+      this._delayer = waitForDelay(250, this._aborter.signal);
+      await this._delayer;
 
-      const nextState = stateForError(err, {
-        message: 'Submitting payment',
-        nextState: States.GO_TO_PAYMENT,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Submitting payment (${err.status || err.errno})`
-          : 'Submitting payment';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
       return States.GO_TO_PAYMENT;
     }
+
+    // form parser...
+    this._form = await parseForm(
+      $,
+      States.GO_TO_PAYMENT,
+      this._hash,
+      this.context.task.profile,
+      'form.edit_checkout',
+      'input, select, textarea, button',
+    );
+
+    if (!this._token) {
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Generating session' },
+        Events.TaskStatus,
+      );
+
+      return States.PAYMENT_TOKEN;
+    }
+
+    return States.SUBMIT_PAYMENT;
   }
 
   async _handleSubmitPayment() {
@@ -2895,28 +2329,7 @@ export default class TaskPrimitive extends BaseTask {
       },
     } = this.context;
 
-    if (type === Modes.FAST) {
-      return this._handleBackupSubmitPayment();
-    }
-
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    if (this._isFreeCheckout) {
-      const parts = this._form.split('&');
-
-      if (parts && parts.length) {
-        this._form = '';
-        parts.forEach(part => {
-          if (/authenticity_token/i.test(part)) {
-            this._form += `_method=patch&${part}&previous_step=payment_method&step=&s=&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bpayment_gateway%5D=free&checkout%5Btotal_price%5D=0&complete=1&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1721&checkout%5Bclient_details%5D%5Bbrowser_height%5D=927&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
-          }
-        });
-      }
-    } else if (this._form.indexOf(this._token) === -1) {
+    if (this._form.indexOf(this._token) === -1) {
       const parts = this._form.split('s=');
       if (parts && parts.length) {
         this._form = '';
@@ -2930,260 +2343,52 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    try {
-      const res = await this._fetch(`/${this._store}/checkouts/${this._hash}`, {
+    const { nextState, data } = await this._handler(
+      `/${this._store}/checkouts/${this._hash}`,
+      {
         method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
         headers: {
-          ...getHeaders({ url, apiKey }),
-          Connection: 'Keep-Alive',
           'content-type': 'application/x-www-form-urlencoded',
-          'accept-encoding': 'gzip, deflate, br',
-          'accept-language': 'en-US,en;q=0.9',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-          'sec-fetch-mode': 'navigate',
-          'sec-fetch-site': 'same-origin',
-          'sec-fetch-user': '?1',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
         body: this._form,
-      });
-
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
+      },
+      'Submitting payment',
+      States.SUBMIT_PAYMENT,
+      [
         {
+          url: 'stock_problems',
           message: 'Submitting payment',
-          nextState: States.GO_TO_PAYMENT,
+          state: States.PAYMENT_TOKEN,
         },
+        {
+          url: 'password',
+          message: 'Submitting payment',
+          state: States.SUBMIT_PAYMENT,
+        },
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+        {
+          url: 'processing',
+          message: 'Processing payment',
+          state: States.PROCESS_PAYMENT,
+        },
+      ],
+    );
+
+    const body = await data.text();
+    if (/Your payment can’t be processed/i.test(body)) {
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Checkout failed' },
+        Events.TaskStatus,
       );
 
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      this.needsPaymentToken = true;
-      this._token = '';
-
-      const body = await res.text();
-      const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
-
-      if (/stock_problems/i.test(body)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: `Out of stock! Delaying ${monitor}ms` },
-          Events.TaskStatus,
-        );
-
-        this._delayer = waitForDelay(monitor, this._aborter.signal);
-        await this._delayer;
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Submitting payment' },
-          Events.TaskStatus,
-        );
-
-        return States.SUBMIT_PAYMENT;
-      }
-
-      if (/Your payment can’t be processed/i.test(body)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Processing error' },
-          Events.TaskStatus,
-        );
-
-        this._delayer = waitForDelay(monitor, this._aborter.signal);
-        await this._delayer;
-
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Submitting payment' },
-          Events.TaskStatus,
-        );
-
-        return States.SUBMIT_PAYMENT;
-      }
-
-      if (/captcha/i.test(body)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Waiting for captcha' },
-          Events.TaskStatus,
-        );
-
-        return States.CAPTCHA;
-      }
-
-      // if we followed a redirect at some point...
-      const redirectUrl = headers.get('location');
-      if (redirectUrl) {
-        this._redirectUrl = redirectUrl;
-        if (/processing/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Processing payment' },
-            Events.TaskStatus,
-          );
-
-          return States.PROCESS_PAYMENT;
-        }
-
-        if (/stock_problems/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: `Out of stock! Delaying ${monitor}ms` },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting payment' },
-            Events.TaskStatus,
-          );
-
-          return States.SUBMIT_PAYMENT;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting payment' },
-            Events.TaskStatus,
-          );
-
-          return States.SUBMIT_PAYMENT;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                Connection: 'Keep-Alive',
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-
-          return States.QUEUE;
-        }
-      }
-
-      // step tests
-      if (match && match.length) {
-        const [, step] = match;
-
-        if (/processing/i.test(step)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Processing payment' },
-            Events.TaskStatus,
-          );
-
-          return States.PROCESS_PAYMENT;
-        }
-
-        if (/contact_information/i.test(step)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting information' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/shipping_method/i.test(step)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Fetching rates' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_SHIPPING;
-        }
-
-        if (/payment_method/i.test(step)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting payment' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_PAYMENT;
-        }
-
-        if (/review/i.test(step)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Completing payment' },
-            Events.TaskStatus,
-          );
-
-          return States.GO_TO_PAYMENT;
-        }
-      }
+      this._delayer = waitForDelay(monitor, this._aborter.signal);
+      await this._delayer;
 
       emitEvent(
         this.context,
@@ -3191,35 +2396,72 @@ export default class TaskPrimitive extends BaseTask {
         { message: 'Submitting payment' },
         Events.TaskStatus,
       );
-      return States.GO_TO_PAYMENT;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Submit shipping information .\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
 
-      const nextState = stateForError(err, {
-        message: 'Submitting payment',
-        nextState: States.SUBMIT_PAYMENT,
-      });
+      return States.PAYMENT_TOKEN;
+    }
 
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
+    const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+
+    if (match && match.length) {
+      const [, step] = match;
+
+      if (/processing/i.test(step)) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Processing payment' },
+          Events.TaskStatus,
+        );
+
+        return States.PROCESS_PAYMENT;
       }
 
-      const message =
-        err.status || err.errno
-          ? `Submitting payment (${err.status || err.errno})`
-          : 'Submitting payment';
+      if (/contact_information/i.test(step)) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting information' },
+          Events.TaskStatus,
+        );
 
-      return nextState || { message, nextState: States.SUBMIT_PAYMENT };
+        return States.GO_TO_CHECKOUT;
+      }
+
+      if (/shipping_method/i.test(step)) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Fetching rates' },
+          Events.TaskStatus,
+        );
+
+        return States.GO_TO_SHIPPING;
+      }
+
+      if (/payment_method/i.test(step)) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Submitting payment' },
+          Events.TaskStatus,
+        );
+
+        return States.GO_TO_PAYMENT;
+      }
+
+      if (/review/i.test(step)) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          { message: 'Completing payment' },
+          Events.TaskStatus,
+        );
+
+        return States.GO_TO_PAYMENT;
+      }
     }
+
+    return States.GO_TO_PAYMENT;
   }
 
   async _handleBackupSubmitPayment() {
@@ -4277,263 +3519,182 @@ export default class TaskPrimitive extends BaseTask {
 
   async _handlePaymentProcess() {
     const {
-      aborted,
       logger,
       task: {
-        store: { url, apiKey, name },
+        store: { url, name },
         product: { size, name: productName, image },
         profile: { name: profileName },
-        oneCheckout,
         type,
       },
-      proxy,
       webhookManager,
     } = this.context;
 
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    try {
-      const res = await this._fetch(`${url}/wallets/checkouts/${this._hash}/payments`, {
-        method: 'GET',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
+    const { data } = await this._handler(
+      `/wallets/checkouts/${this._hash}/payments`,
+      {
         headers: {
-          ...getHeaders({ url, apiKey }),
-          'Content-Type': 'application/json',
-          'Upgrade-Insecure-Requests': '1',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
+          'content-type': 'application/json',
         },
-      });
+      },
+      'Processing payment',
+      States.PROCESS_PAYMENT,
+    );
 
-      const body = await res.json();
+    const body = await data.json();
+    const { checkout } = body;
 
-      const { status } = res;
+    const bodyString = JSON.stringify(body);
 
-      const nextState = stateForError(
-        { status },
-        {
-          message: 'Processing payment',
-          nextState: States.PROCESS_PAYMENT,
-        },
-      );
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const { checkout } = body;
-
-      const bodyString = JSON.stringify(body);
-
-      if (checkout) {
-        const {
-          currency,
-          payment_due: paymentDue,
-          web_url: webUrl,
-          line_items: lineItems,
-          payments,
-        } = checkout;
-
-        let productImage = image;
-        if (!productImage) {
-          productImage = lineItems[0].image_url;
-        }
-
-        if (/thank_you/i.test(bodyString)) {
-          const { order_id: orderName, order_status_url: orderStatusUrl } = checkout;
-
-          webhookManager.insert({
-            success: true,
-            type,
-            checkoutUrl: webUrl,
-            product: productName,
-            price: currencyWithSymbol(paymentDue, currency),
-            store: { name, url },
-            order: {
-              number: orderName,
-              url: orderStatusUrl,
-            },
-            profile: profileName,
-            size,
-            image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
-          });
-
-          webhookManager.send();
-          if (oneCheckout) {
-            this._events.emit(TaskManagerEvents.Success, this.context.task);
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: `Success! Order ${orderName} placed.` },
-            Events.TaskStatus,
-          );
-
-          return States.DONE;
-        }
-
-        if (/issue processing|your card was declined/i.test(bodyString)) {
-          if (!this.webhookSent) {
-            this.webhookSent = true;
-
-            webhookManager.insert({
-              success: false,
-              type,
-              checkoutUrl: webUrl,
-              product: productName,
-              price: currencyWithSymbol(paymentDue, currency),
-              store: { name, url },
-              order: null,
-              profile: profileName,
-              size,
-              image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
-            });
-            webhookManager.send();
-          }
-
-          const rewindToState =
-            type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
-              ? States.PAYMENT_TOKEN
-              : States.GO_TO_PAYMENT;
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Payment failed' },
-            Events.TaskStatus,
-          );
-
-          return rewindToState;
-        }
-
-        const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
-
-        if (paymentProcessingErrorMessage !== null) {
-          if (/no longer available/i.test(paymentProcessingErrorMessage)) {
-            if (!this.webhookSent) {
-              this.webhookSent = true;
-
-              webhookManager.insert({
-                success: false,
-                type,
-                checkoutUrl: webUrl,
-                product: productName,
-                price: currencyWithSymbol(paymentDue, currency),
-                store: { name, url },
-                order: null,
-                profile: profileName,
-                size,
-                image: `${productImage}`.startsWith('http')
-                  ? productImage
-                  : `https:${productImage}`,
-              });
-              webhookManager.send();
-            }
-
-            const rewindToState =
-              type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
-                ? States.PAYMENT_TOKEN
-                : States.GO_TO_PAYMENT;
-
-            emitEvent(
-              this.context,
-              [this.context.id],
-              { message: 'Payment failed' },
-              Events.TaskStatus,
-            );
-
-            return rewindToState;
-          }
-
-          if (!this.webhookSent) {
-            this.webhookSent = true;
-
-            webhookManager.insert({
-              success: false,
-              type,
-              checkoutUrl: webUrl,
-              product: productName,
-              price: currencyWithSymbol(paymentDue, currency),
-              store: { name, url },
-              order: null,
-              profile: profileName,
-              size,
-              image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
-            });
-            webhookManager.send();
-          }
-
-          const rewindToState =
-            type === Modes.FAST || /dsm sg|dsm jp|dsm uk/i.test(name)
-              ? States.PAYMENT_TOKEN
-              : States.GO_TO_PAYMENT;
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Payment failed' },
-            Events.TaskStatus,
-          );
-
-          return rewindToState;
-        }
-      }
-
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Processing payment' },
-        Events.TaskStatus,
-      );
-
-      this._delayer = waitForDelay(1000, this._aborter.signal);
-      await this._delayer;
-
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Processing payment' },
-        Events.TaskStatus,
-      );
-      return States.PROCESS_PAYMENT;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %s Request Error..\n Step: Process Payment.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Processing payment',
-        nextState: States.PROCESS_PAYMENT,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Processing payment (${err.status || err.errno})`
-          : 'Processing payment';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+    if (!checkout) { // TODO: or isEmpty?
       return States.PROCESS_PAYMENT;
     }
+
+    const {
+      currency,
+      payment_due: paymentDue,
+      web_url: webUrl,
+      line_items: lineItems,
+      payments,
+    } = checkout;
+
+    let productImage = image;
+    if (!productImage) {
+      productImage = lineItems[0].image_url;
+    }
+
+    // success..
+    if (/thank_you/i.test(bodyString)) {
+      const { order_id: orderName, order_status_url: orderStatusUrl } = checkout;
+
+      webhookManager.insert({
+        success: true,
+        type,
+        checkoutUrl: webUrl,
+        product: productName,
+        price: currencyWithSymbol(paymentDue, currency),
+        store: { name, url },
+        order: {
+          number: orderName,
+          url: orderStatusUrl,
+        },
+        profile: profileName,
+        size,
+        image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
+      });
+
+      webhookManager.send();
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: `Success! Order ${orderName} placed.` },
+        Events.TaskStatus,
+      );
+
+      return States.DONE;
+    }
+
+    if (/issue processing|your card was declined/i.test(bodyString)) {
+      if (!this.webhookSent) {
+        this.webhookSent = true;
+
+        webhookManager.insert({
+          success: false,
+          type,
+          checkoutUrl: webUrl,
+          product: productName,
+          price: currencyWithSymbol(paymentDue, currency),
+          store: { name, url },
+          order: null,
+          profile: profileName,
+          size,
+          image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
+        });
+        webhookManager.send();
+      }
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Payment failed' },
+        Events.TaskStatus,
+      );
+
+      return States.PAYMENT_TOKEN;
+    }
+    
+    const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
+
+    if (!paymentProcessingErrorMessage) {
+      if (!this.webhookSent) {
+        this.webhookSent = true;
+
+        webhookManager.insert({
+          success: false,
+          type,
+          checkoutUrl: webUrl,
+          product: productName,
+          price: currencyWithSymbol(paymentDue, currency),
+          store: { name, url },
+          order: null,
+          profile: profileName,
+          size,
+          image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
+        });
+        webhookManager.send();
+      }
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Payment failed' },
+        Events.TaskStatus,
+      );
+
+      return States.PAYMENT_TOKEN;
+    }
+
+    if (/no longer available/i.test(paymentProcessingErrorMessage)) {
+      if (!this.webhookSent) {
+        this.webhookSent = true;
+
+        webhookManager.insert({
+          success: false,
+          type,
+          checkoutUrl: webUrl,
+          product: productName,
+          price: currencyWithSymbol(paymentDue, currency),
+          store: { name, url },
+          order: null,
+          profile: profileName,
+          size,
+          image: `${productImage}`.startsWith('http')
+            ? productImage
+            : `https:${productImage}`,
+        });
+        webhookManager.send();
+      }
+
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: `Out of stock! Delaying ${monitor}ms` },
+        Events.TaskStatus,
+      );
+
+      return States.PAYMENT_TOKEN;
+    }
+
+    this._delayer = waitForDelay(1000, this._aborter.signal);
+    await this._delayer;
+
+    emitEvent(
+      this.context,
+      [this.context.id],
+      { message: 'Processing payment' },
+      Events.TaskStatus,
+    );
+    return States.PROCESS_PAYMENT;
   }
 
   async _handleStepLogic(currentState) {
@@ -4562,7 +3723,6 @@ export default class TaskPrimitive extends BaseTask {
       [States.SUBMIT_SHIPPING]: this._handleSubmitShipping,
       [States.GO_TO_PAYMENT]: this._handleGetPayment,
       [States.SUBMIT_PAYMENT]: this._handleSubmitPayment,
-      [States.COMPLETE_PAYMENT]: this._handleCompletePayment,
       [States.PROCESS_PAYMENT]: this._handlePaymentProcess,
       [States.SWAP]: this._handleSwap,
       [States.DONE]: () => States.DONE,
