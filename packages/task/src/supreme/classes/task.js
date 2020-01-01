@@ -25,18 +25,6 @@ export default class TaskPrimitive extends BaseTask {
     this._form = '';
   }
 
-  async _logCookies(jar) {
-    const store = jar.Store || jar.store;
-
-    if (!store) {
-      return;
-    }
-
-    store.getAllCookies((_, cookies) => {
-      this.context.logger.info(JSON.stringify(cookies, null, 2));
-    });
-  }
-
   async _handleError(error = {}, state) {
     const { aborted, logger } = this.context;
     if (aborted) {

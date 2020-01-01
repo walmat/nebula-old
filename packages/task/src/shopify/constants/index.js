@@ -14,7 +14,7 @@ const MonitorStates = {
 const CheckoutStates = {
   ...TaskConstants.States,
   LOGIN: 'LOGIN',
-  PAYMENT_TOKEN: 'PAYMENT_TOKEN',
+  PAYMENT_SESSION: 'PAYMENT_SESSION',
   GATHER_DATA: 'GATHER_DATA',
   ADD_TO_CART: 'ADD_TO_CART',
   GO_TO_CART: 'GO_TO_CART',
@@ -27,10 +27,10 @@ const CheckoutStates = {
   GO_TO_SHIPPING: 'GO_TO_SHIPPING',
   SUBMIT_SHIPPING: 'SUBMIT_SHIPPING',
   GO_TO_PAYMENT: 'GO_TO_PAYMENT',
-  SUBMIT_PAYMENT: 'SUBMIT_PAYMENT',
+  SUBMIT_CHECKOUT: 'SUBMIT_CHECKOUT',
   GO_TO_REVIEW: 'GO_TO_REVIEW',
-  COMPLETE_PAYMENT: 'COMPLETE_PAYMENT',
-  PROCESS_PAYMENT: 'PROCESS_PAYMENT',
+  COMPLETE_CHECKOUT: 'COMPLETE_CHECKOUT',
+  CHECK_ORDER: 'CHECK_ORDER',
 };
 
 const Modes = {
@@ -54,8 +54,8 @@ const QueueNextState = {
     if (type === Modes.SAFE && /dsm sg|dsm jp|dsm uk/i.test(task.store.name)) {
       if (shippingMethod && shippingMethod.id) {
         return {
-          message: 'Submitting payment',
-          nextState: CheckoutStates.SUBMIT_PAYMENT,
+          message: 'Submitting checkout',
+          nextState: CheckoutStates.SUBMIT_CHECKOUT,
         };
       }
       return {
@@ -98,7 +98,7 @@ const QueueNextState = {
         }
         return {
           message: 'Submitting pament',
-          nextState: CheckoutStates.PAYMENT_TOKEN,
+          nextState: CheckoutStates.PAYMENT_SESSION,
         };
       }
       return {
@@ -133,36 +133,36 @@ const QueueNextState = {
   [CheckoutStates.SUBMIT_SHIPPING]: type => {
     if (type === Modes.FAST) {
       return {
-        message: 'Submitting payment',
-        nextState: CheckoutStates.SUBMIT_PAYMENT,
+        message: 'Submitting checkout',
+        nextState: CheckoutStates.SUBMIT_CHECKOUT,
       };
     }
     return {
-      message: 'Submitting payment',
+      message: 'Submitting checkout',
       nextState: CheckoutStates.GO_TO_PAYMENT,
     };
   },
-  [CheckoutStates.SUBMIT_PAYMENT]: type => {
+  [CheckoutStates.SUBMIT_CHECKOUT]: type => {
     if (type === Modes.FAST) {
       return {
         message: 'Completing payment',
-        nextState: CheckoutStates.COMPLETE_PAYMENT,
+        nextState: CheckoutStates.COMPLETE_CHECKOUT,
       };
     }
     return {
-      message: 'Submitting payment',
+      message: 'Submitting checkout',
       nextState: CheckoutStates.GO_TO_PAYMENT,
     };
   },
-  [CheckoutStates.COMPLETE_PAYMENT]: type => {
+  [CheckoutStates.COMPLETE_CHECKOUT]: type => {
     if (type === Modes.FAST) {
       return {
-        message: 'Submitting payment',
-        nextState: CheckoutStates.COMPLETE_PAYMENT,
+        message: 'Submitting checkout',
+        nextState: CheckoutStates.COMPLETE_CHECKOUT,
       };
     }
     return {
-      message: 'Submitting payment',
+      message: 'Submitting checkout',
       nextState: CheckoutStates.GO_TO_PAYMENT,
     };
   },

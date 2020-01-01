@@ -1,13 +1,9 @@
-/* eslint-disable no-nested-ternary */
-import { parse } from 'query-string';
-
 import TaskPrimitive from './base';
 import { Utils, Constants } from '../../../common';
 import { Task as TaskConstants } from '../../constants';
-import { stateForError, getHeaders } from '../../utils';
 
 const { Task } = Constants;
-const { userAgent, waitForDelay, emitEvent } = Utils;
+const { emitEvent } = Utils;
 
 const { Events } = Task;
 const { States } = TaskConstants;
@@ -141,7 +137,7 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
       [States.CREATE_CHECKOUT]: this._handleCreateCheckout,
       [States.GO_TO_CHECKPOINT]: this._handleGetCheckpoint,
       [States.SUBMIT_CHECKPOINT]: this._handleSubmitCheckpoint,
-      [States.QUEUE]: this._handlePollQueue,
+      [States.QUEUE]: this._handleQueue,
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
       [States.GO_TO_CART]: this._handleGoToCart,
@@ -151,10 +147,10 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
       [States.GO_TO_SHIPPING]: this._handleGetShipping,
       [States.SUBMIT_SHIPPING]: this._handleSubmitShipping,
       [States.GO_TO_PAYMENT]: this._handleGetPayment,
-      [States.PAYMENT_TOKEN]: this._handlePaymentToken,
-      [States.SUBMIT_PAYMENT]: this._handleSubmitPayment,
-      [States.COMPLETE_PAYMENT]: this._handleCompletePayment,
-      [States.PROCESS_PAYMENT]: this._handlePaymentProcess,
+      [States.PAYMENT_SESSION]: this._handleGenerateSession,
+      [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
+      [States.COMPLETE_CHECKOUT]: this._handleCompleteCheckout,
+      [States.CHECK_ORDER]: this._handleCheckOrder,
       [States.SWAP]: this._handleSwap,
       [States.DONE]: () => States.DONE,
       [States.ERROR]: () => States.DONE,
