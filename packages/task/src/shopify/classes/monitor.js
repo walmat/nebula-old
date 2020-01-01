@@ -128,7 +128,8 @@ export default class MonitorPrimitive extends BaseMonitor {
 
     logger.debug('Matched product: %s', parsed.title);
     this.context.task.product.restockUrl = parsed.url; // Store restock url in case all variants are out of stock
-    this.context.task.product.image = parsed.featured_image || parsed.images ? parsed.images[0].src : '';
+    this.context.task.product.image =
+      parsed.featured_image || (parsed.images && parsed.images.length) ? parsed.images[0].src : '';
     this.context.task.product.hash = parsed.hash || '';
     this.context.task.product.url = `${store.url}/products/${parsed.handle}`;
     this.context.task.product.name = capitalizeFirstLetter(parsed.title);
@@ -182,7 +183,7 @@ export default class MonitorPrimitive extends BaseMonitor {
       );
       logger.silly('Variants mapped! Updating context...');
       this.context.task.product.name = capitalizeFirstLetter(fullProductInfo.title);
-      
+
       return States.DONE;
     } catch (errors) {
       // handle parsing errors

@@ -1,21 +1,32 @@
 /* eslint-disable no-nested-ternary */
-import { parse } from 'query-string';
-
-import BaseTask from './base';
+import TaskPrimitive from './base';
 
 import { Utils, Constants } from '../../../common';
 import { Task as TaskConstants } from '../../constants';
-import { stateForError, getHeaders } from '../../utils';
 
 const { Task } = Constants;
-const { userAgent, waitForDelay, emitEvent } = Utils;
+const { emitEvent } = Utils;
 
 const { Events } = Task;
-const { States, Modes } = TaskConstants;
+const { States } = TaskConstants;
 
-export default class SafeTaskPrimitive extends BaseTask {
+export default class SafeTaskPrimitive extends TaskPrimitive {
   constructor(context) {
     super(context, States.GATHER_DATA);
+  }
+
+  async _handleGatherData() {
+    const nextState = await super._handleGatherData();
+
+    if (nextState !== States.DONE) {
+      return nextState;
+    }
+
+    if (this.context.task.account) {
+      return States.LOGIN;
+    }
+
+    return States.CREATE_CHECKOUT;
   }
 
   async _handleLogin() {
@@ -38,196 +49,77 @@ export default class SafeTaskPrimitive extends BaseTask {
         { message: 'Waiting for product' },
         Events.TaskStatus,
       );
-      return States.WAIT_FOR_PRODUCT;
+      return States.CREATE_CHECKOUT;
     }
     return nextState;
   }
 
   async _handleCreateCheckout() {
-    const {
-      aborted,
-      logger,
-      task: {
-        store: { url, apiKey },
-        monitor,
-        type,
-      },
-      proxy,
-    } = this.context;
-
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
-    }
-
-    try {
-      const res = await this._fetch(`${url}/checkout`, {
+    const { nextState, data } = await this._handler(
+      '/checkout',
+      {
         method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
-        headers: getHeaders({ url, apiKey }),
         body: JSON.stringify({}),
-      });
-
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
+      },
+      'Creating checkout',
+      States.CREATE_CHECKOUT,
+      [
         {
-          message: 'Creating checkout',
-          nextState: States.CREATE_CHECKOUT,
+          url: 'checkpoint',
+          message: 'Going to checkpoint',
+          state: States.GO_TO_CHECKPOINT,
         },
-      );
+        {
+          url: 'login',
+          message: 'Account needed',
+          state: States.ERROR,
+        },
+        {
+          url: 'password',
+          message: 'Creating checkout',
+          state: States.CREATE_CHECKOUT,
+        },
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+        {
+          url: 'checkouts',
+          message: 'Submitting information',
+          state: States.SUBMIT_CUSTOMER,
+        },
+      ],
+    );
 
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const redirectUrl = headers.get('location');
-      logger.debug('Create checkout redirect url: %j', redirectUrl);
-      if (redirectUrl) {
-        if (/checkpoint/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkpoint' },
-            Events.TaskStatus,
-          );
-          this.checkpointUrl = redirectUrl;
-          return States.GO_TO_CHECKPOINT;
-        }
-
-        if (/login/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Account needed' },
-            Events.TaskStatus,
-          );
-          return States.ERROR;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Creating checkout' },
-            Events.TaskStatus,
-          );
-          return States.CREATE_CHECKOUT;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                connection: 'close',
-                referer: url,
-                accept:
-                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'en-US,en;q=0.9',
-                host: `${url.split('/')[2]}`,
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-          return States.QUEUE;
-        }
-
-        if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._store, , this._hash] = redirectUrl.split('/');
-
-          if (type === Modes.SAFE) {
-            emitEvent(
-              this.context,
-              [this.context.id],
-              { message: 'Going to checkout' },
-              Events.TaskStatus,
-            );
-            return States.GO_TO_CHECKOUT;
-          }
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Submitting information' },
-            Events.TaskStatus,
-          );
-          return States.SUBMIT_CUSTOMER;
-        }
-      }
-
-      const message = status ? `Creating checkout (${status})` : 'Creating checkout';
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.CREATE_CHECKOUT;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Creating checkout',
-        nextState: States.CREATE_CHECKOUT,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Creating checkout (${err.status || err.errno})`
-          : 'Creating checkout';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.CREATE_CHECKOUT;
+    if (nextState) {
+      return nextState;
     }
+
+    const { status } = data;
+
+    const message = status ? `Creating checkout (${status})` : 'Creating checkout';
+    emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+    return States.CREATE_CHECKOUT;
+  }
+
+  async _handleSubmitCustomer() {
+    const nextState = await super._handleSubmitCustomer();
+
+    if (nextState !== States.DONE) {
+      return nextState;
+    }
+
+    if (!this._selectedShippingRate.id) {
+      return States.GO_TO_SHIPPING;
+    }
+
+    const { id } = this._selectedShippingRate;
+
+    this._form = `_method=patch&authenticity_token=&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURIComponent(
+      id,
+    )}&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;
+    return States.SUBMIT_SHIPPING;
   }
 
   async _handleStepLogic(currentState) {

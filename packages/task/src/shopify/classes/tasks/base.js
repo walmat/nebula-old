@@ -21,9 +21,7 @@ export default class TaskPrimitive extends BaseTask {
   constructor(context, initState, platform = Platforms.Shopify) {
     super(context, initState, platform);
 
-    if (!this.context.task.store.apiKey) {
-      this._state = States.GATHER_DATA;
-    } else if (this.context.task.account) {
+    if (this.context.task.account) {
       this._state = States.LOGIN;
     }
 
@@ -93,6 +91,8 @@ export default class TaskPrimitive extends BaseTask {
       });
 
       const { status, headers } = res;
+
+      logger.debug(`${from} STATUS: ${status}`);
       const error = stateForError(
         { status },
         {
@@ -108,8 +108,13 @@ export default class TaskPrimitive extends BaseTask {
         return { nextState: error.nextState };
       }
 
+      if (from === States.SUBMIT_SHIPPING) {
+        console.log(await res.text());
+      }
+
       const redirectUrl = headers.get('location');
 
+      logger.debug(`${from} REDIRECT: ${redirectUrl}`);
       if (!redirectUrl) {
         return { data: res };
       }
@@ -249,6 +254,8 @@ export default class TaskPrimitive extends BaseTask {
         },
       ],
     );
+
+    console.log(nextState);
 
     if (nextState) {
       return nextState;
@@ -448,6 +455,7 @@ export default class TaskPrimitive extends BaseTask {
     const { nextState } = await this._handler(
       '/checkpoint',
       {
+        method: 'POST',
         headers: {
           'content-type': 'application/x-www-form-urlencoded',
         },
@@ -981,7 +989,7 @@ export default class TaskPrimitive extends BaseTask {
     if (this.context.task.product.variants) {
       let variant;
       if (parseType !== ParseType.Variant) {
-        variant = await pickVariant(variants, size, url, logger, randomInStock);
+        variant = await pickVariant(variants, size, logger, randomInStock);
       } else {
         [variant] = variants;
       }
@@ -1012,7 +1020,7 @@ export default class TaskPrimitive extends BaseTask {
         Events.TaskStatus,
       );
 
-      this._product.variant = variant;
+      this._product = variant;
 
       return States.ADD_TO_CART;
     }
@@ -1032,7 +1040,7 @@ export default class TaskPrimitive extends BaseTask {
       },
     } = this.context;
 
-    const { id } = this._product.variant;
+    const { id } = this._product;
 
     const { nextState, data } = await this._handler(
       '/cart/add.js',
@@ -1934,14 +1942,11 @@ export default class TaskPrimitive extends BaseTask {
       normalizeWhitespace: true,
     });
 
-    // TODO: do we need this? is there a better way to tell?
+    // TODO: is there a better way to tell?
     if (/Getting available shipping rates/i.test(body)) {
-      emitEvent(this.context, [this.context.id], { message: 'Polling rates' }, Events.TaskStatus);
 
-      this._delayer = waitForDelay(250, this._aborter.signal);
+      this._delayer = waitForDelay(100, this._aborter.signal);
       await this._delayer;
-
-      emitEvent(this.context, [this.context.id], { message: 'Fetching rates' }, Events.TaskStatus);
 
       return States.GO_TO_SHIPPING;
     }
@@ -2171,6 +2176,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleSubmitShipping() {
+
     const { nextState } = await this._handler(
       `/${this._store}/checkouts/${this._hash}`,
       {
@@ -2232,7 +2238,7 @@ export default class TaskPrimitive extends BaseTask {
       Events.TaskStatus,
     );
 
-    return States.GO_TO_SHIPPING;
+    return States.SUBMIT_SHIPPING;
   }
 
   async _handleGetPayment() {
@@ -2330,7 +2336,7 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    const { data } = await this._handler(
+    const { nextState, data } = await this._handler(
       `/${this._store}/checkouts/${this._hash}`,
       {
         method: 'POST',
@@ -2364,6 +2370,10 @@ export default class TaskPrimitive extends BaseTask {
         },
       ],
     );
+
+    if (nextState) {
+      return nextState;
+    }
 
     const body = await data.text();
     if (/Your payment can’t be processed/i.test(body)) {
@@ -3503,7 +3513,7 @@ export default class TaskPrimitive extends BaseTask {
     const {
       task: {
         store: { url, name },
-        product: { size, name: productName, image },
+        product: { name: productName, image },
         profile: { name: profileName },
         monitor,
         type,
@@ -3512,7 +3522,7 @@ export default class TaskPrimitive extends BaseTask {
     } = this.context;
 
     const { data } = await this._handler(
-      `/wallets/checkouts/${this._hash}/payments`,
+      `/wallets/checkouts/${this._hash}/payments.json`,
       {
         headers: {
           'content-type': 'application/json',
@@ -3523,23 +3533,32 @@ export default class TaskPrimitive extends BaseTask {
     );
 
     const body = await data.json();
-    const { checkout } = body;
+
+    console.log(body);
+    const { payments } = body;
 
     const bodyString = JSON.stringify(body);
 
-    if (!checkout) {
+    if (!payments || (payments && !payments.length)) {
       // TODO: or isEmpty?
       return States.PROCESS_PAYMENT;
     }
+
+    const [payment] = payments;
+
+    const {
+      payment_processing_error_message: paymentProcessingErrorMessage,
+      checkout,
+    } = payment;
 
     const {
       currency,
       payment_due: paymentDue,
       web_url: webUrl,
       line_items: lineItems,
-      payments,
     } = checkout;
 
+    const size = lineItems[0].variant_title;
     let productImage = image;
     if (!productImage) {
       productImage = lineItems[0].image_url;
@@ -3577,7 +3596,7 @@ export default class TaskPrimitive extends BaseTask {
       return States.DONE;
     }
 
-    if (/issue processing|your card was declined/i.test(bodyString)) {
+    if (/issue processing|was declined|no longer available/i.test(bodyString)) {
       if (!this.webhookSent) {
         this.webhookSent = true;
 
@@ -3601,70 +3620,9 @@ export default class TaskPrimitive extends BaseTask {
       return States.PAYMENT_TOKEN;
     }
 
-    const { payment_processing_error_message: paymentProcessingErrorMessage } = payments[0];
-
-    if (!paymentProcessingErrorMessage) {
-      if (!this.webhookSent) {
-        this.webhookSent = true;
-
-        webhookManager.insert({
-          success: false,
-          type,
-          checkoutUrl: webUrl,
-          product: productName,
-          price: currencyWithSymbol(paymentDue, currency),
-          store: { name, url },
-          order: null,
-          profile: profileName,
-          size,
-          image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
-        });
-        webhookManager.send();
-      }
-
-      emitEvent(this.context, [this.context.id], { message: 'Payment failed' }, Events.TaskStatus);
-
-      return States.PAYMENT_TOKEN;
-    }
-
-    if (/no longer available/i.test(paymentProcessingErrorMessage)) {
-      if (!this.webhookSent) {
-        this.webhookSent = true;
-
-        webhookManager.insert({
-          success: false,
-          type,
-          checkoutUrl: webUrl,
-          product: productName,
-          price: currencyWithSymbol(paymentDue, currency),
-          store: { name, url },
-          order: null,
-          profile: profileName,
-          size,
-          image: `${productImage}`.startsWith('http') ? productImage : `https:${productImage}`,
-        });
-        webhookManager.send();
-      }
-
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: `Out of stock! Delaying ${monitor}ms` },
-        Events.TaskStatus,
-      );
-
-      return States.PAYMENT_TOKEN;
-    }
-
-    this._delayer = waitForDelay(1000, this._aborter.signal);
+    this._delayer = waitForDelay(500, this._aborter.signal);
     await this._delayer;
 
-    emitEvent(
-      this.context,
-      [this.context.id],
-      { message: 'Processing payment' },
-      Events.TaskStatus,
-    );
     return States.PROCESS_PAYMENT;
   }
 

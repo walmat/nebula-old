@@ -5,7 +5,7 @@ import { isEqual } from 'lodash';
 import { createLogger, setLevels } from './logger';
 import rfrl from './rfrl';
 
-import { Task, Monitor } from '../constants';
+import { Monitor } from '../constants';
 
 const { ParseType } = Monitor;
 
@@ -79,9 +79,8 @@ export const deregisterForEvent = (event, context, cb) => {
 
 // don't expose this..
 const _emitEvent = (context, ids, event, payload) => {
-  const { logger, events } = context;
+  const { events } = context;
   events.emit(event, ids, payload, event);
-  logger.silly('Event %s emitted: %j', event, payload);
 };
 
 export const emitEvent = (context, ids, payload = {}, event) => {

@@ -1,239 +1,130 @@
 /* eslint-disable no-nested-ternary */
-import cheerio from 'cheerio';
-import { min, isEmpty } from 'lodash';
 import { parse } from 'query-string';
 
 import TaskPrimitive from './base';
-import { Bases, Utils, Constants, Classes } from '../../../common';
+import { Utils, Constants } from '../../../common';
 import { Task as TaskConstants } from '../../constants';
-import { Forms, stateForError, getHeaders, pickVariant } from '../../utils';
+import { stateForError, getHeaders } from '../../utils';
 
-const { addToCart, parseForm, patchCheckoutForm } = Forms;
-const { Task, Manager, Platforms, Monitor } = Constants;
-const { currencyWithSymbol, userAgent, waitForDelay, emitEvent } = Utils;
-const { BaseTask } = Bases;
+const { Task } = Constants;
+const { userAgent, waitForDelay, emitEvent } = Utils;
 
 const { Events } = Task;
-const { Events: TaskManagerEvents } = Manager;
-const { States, Modes, StateMap } = TaskConstants;
-const { ParseType } = Monitor;
-const { Captcha } = Classes;
+const { States } = TaskConstants;
 
 export default class DynoTaskPrimitive extends TaskPrimitive {
   constructor(context) {
-    super(context, States.WAIT_FOR_PRODUCT);
+    super(context, States.GATHER_DATA);
   }
 
-//   async _handleLogin() {
-//     const nextState = await super._handleLogin();
+  async _handleGatherData() {
+    const nextState = await super._handleGatherData();
 
-//     if (nextState === States.DONE) {
-//       if (this.context.task.product.variants) {
-//         emitEvent(
-//           this.context,
-//           [this.context.id],
-//           { message: 'Adding to cart' },
-//           Events.TaskStatus,
-//         );
-//         return States.ADD_TO_CART;
-//       }
-
-//       emitEvent(
-//         this.context,
-//         [this.context.id],
-//         { message: 'Waiting for product' },
-//         Events.TaskStatus,
-//       );
-//       return States.WAIT_FOR_PRODUCT;
-//     }
-//     return nextState;
-//   }
-
-  async _handleCreateCheckout() {
-    const {
-      aborted,
-      logger,
-      proxy,
-      task: {
-        monitor,
-        store: { url, apiKey },
-      },
-    } = this.context;
-
-    // exit if abort is detected
-    if (aborted) {
-      logger.silly('Abort Detected, Stopping...');
-      return States.ABORT;
+    if (nextState !== States.DONE) {
+      return nextState;
     }
 
+    if (this.context.task.account) {
+      return States.LOGIN;
+    }
+
+    return States.WAIT_FOR_PRODUCT;
+  }
+
+  async _handleLogin() {
+    const nextState = await super._handleLogin();
+
+    if (nextState === States.DONE) {
+      return States.WAIT_FOR_PRODUCT;
+    }
+    return nextState;
+  }
+
+  async _handleAddToCart() {
+    const nextState = await super._handleAddToCart();
+
+    if (nextState === States.DONE) {
+      return States.CREATE_CHECKOUT;
+    }
+
+    return nextState;
+  }
+
+  async _handleCreateCheckout() {
     if (!this._form.includes('checkout')) {
       this._form += `checkout=Check+out`;
     }
 
-    try {
-      const res = await this._fetch(`${url}/cart`, {
+    const { nextState, data } = await this._handler(
+      '/cart',
+      {
         method: 'POST',
-        compress: true,
-        agent: proxy ? proxy.proxy : null,
-        redirect: 'manual',
-        follow: 0,
         headers: {
-          ...getHeaders({ url, apiKey }),
           'content-type': 'application/x-www-form-urlencoded',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
         },
         body: this._form,
-      });
-
-      this._form = '';
-      const { status, headers } = res;
-
-      const nextState = stateForError(
-        { status },
+      },
+      'Creating checkout',
+      States.CREATE_CHECKOUT,
+      [
         {
-          message: 'Creating checkout',
-          nextState: States.CREATE_CHECKOUT,
+          url: 'checkpoint',
+          message: 'Going to checkpoint',
+          state: States.GO_TO_CHECKPOINT,
         },
-      );
+        {
+          url: 'password',
+          message: 'Creating checkout',
+          state: States.CREATE_CHECKOUT,
+        },
+        {
+          url: 'throttle',
+          message: 'Polling queue',
+          state: States.QUEUE,
+        },
+        {
+          url: 'checkouts',
+          message: 'Going to checkout',
+          state: States.GO_TO_CHECKOUT,
+        },
+        {
+          url: 'cart',
+          message: 'Adding to cart',
+          state: States.ADD_TO_CART,
+        },
+      ],
+    );
 
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
+    this._form = '';
 
-      const redirectUrl = headers.get('location');
-      logger.debug('Create checkout redirect url: %j', redirectUrl);
-
-      if (redirectUrl) {
-        if (/checkpoint/i.test(redirectUrl)) {
-          this.checkpointUrl = redirectUrl;
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkpoint' },
-            Events.TaskStatus,
-          );
-          return States.GO_TO_CHECKPOINT;
-        }
-
-        if (/password/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Password page' },
-            Events.TaskStatus,
-          );
-          this._delayer = waitForDelay(monitor, this._aborter.signal);
-          await this._delayer;
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Creating checkout' },
-            Events.TaskStatus,
-          );
-          return States.CREATE_CHECKOUT;
-        }
-
-        if (/throttle/i.test(redirectUrl)) {
-          const queryStrings = new URL(redirectUrl).search;
-          const parsed = parse(queryStrings);
-
-          if (parsed && parsed._ctd) {
-            this.queueReferer = redirectUrl;
-            logger.info('FIRST _CTD: %j', parsed._ctd);
-            this._ctd = parsed._ctd;
-          }
-
-          try {
-            await this._fetch(redirectUrl, {
-              method: 'GET',
-              compress: true,
-              agent: proxy ? proxy.proxy : null,
-              redirect: 'manual',
-              follow: 0,
-              headers: {
-                'Upgrade-Insecure-Requests': 1,
-                'User-Agent': userAgent,
-                connection: 'close',
-                referer: url,
-                accept:
-                  'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
-                'accept-encoding': 'gzip, deflate, br',
-                'accept-language': 'en-US,en;q=0.9',
-                host: `${url.split('/')[2]}`,
-              },
-            });
-          } catch (error) {
-            // fail silently...
-          }
-
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Polling queue' },
-            Events.TaskStatus,
-          );
-          return States.QUEUE;
-        }
-
-        if (/checkouts/i.test(redirectUrl)) {
-          [, , , this._store, , this._hash] = redirectUrl.split('/');
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Going to checkout' },
-            Events.TaskStatus,
-          );
-          return States.GO_TO_CHECKOUT;
-        }
-
-        if (/cart/i.test(redirectUrl)) {
-          emitEvent(
-            this.context,
-            [this.context.id],
-            { message: 'Adding to cart' },
-            Events.TaskStatus,
-          );
-          return States.ADD_TO_CART;
-        }
-      }
-
-      const message = status ? `Creating checkout (${status})` : 'Creating checkout';
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.CREATE_CHECKOUT;
-    } catch (err) {
-      logger.error(
-        'CHECKOUT: %d Request Error..\n Step: Create Checkout.\n\n %j %j',
-        err.status || err.errno,
-        err.message,
-        err.stack,
-      );
-
-      const nextState = stateForError(err, {
-        message: 'Creating checkout',
-        nextState: States.CREATE_CHECKOUT,
-      });
-
-      if (nextState) {
-        const { message, nextState: erroredState } = nextState;
-        if (message) {
-          emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-        }
-        return erroredState;
-      }
-
-      const message =
-        err.status || err.errno
-          ? `Creating checkout (${err.status || err.errno})`
-          : 'Creating checkout';
-
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.CREATE_CHECKOUT;
+    if (nextState) {
+      return nextState;
     }
+
+    const { status } = data;
+
+    const message = status ? `Creating checkout (${status})` : 'Creating checkout';
+    emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+    return States.CREATE_CHECKOUT;
+  }
+
+  async _handleSubmitCustomer() {
+    const nextState = await super._handleSubmitCustomer();
+
+    if (nextState !== States.DONE) {
+      return nextState;
+    }
+
+    if (!this._selectedShippingRate.id) {
+      return States.GO_TO_SHIPPING;
+    }
+
+    const { id } = this._selectedShippingRate;
+
+    this._form = `_method=patch&authenticity_token=&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURIComponent(
+      id,
+    )}&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;
+    return States.SUBMIT_SHIPPING;
   }
 
   async _handleStepLogic(currentState) {

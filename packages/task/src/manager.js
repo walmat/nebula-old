@@ -103,15 +103,12 @@ export default class TaskManager {
    * @param {Task.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(taskIds, message, event) {
-    this._logger.silly('Tasks: %j posted new event %s - %j', taskIds, event, message);
     // For now only re emit Task Status Events
     if (event === TaskEvents.TaskStatus) {
-      this._logger.silly('Reemitting this task update...');
       this._events.emit('status', taskIds, message, event);
     }
 
     if (event === TaskEvents.MonitorStatus) {
-      this._logger.silly('Reemitting this monitor update...');
       this._events.emit('status', taskIds, message, event);
     }
   }

@@ -220,7 +220,7 @@ export default (state = Tasks, action = {}) => {
     }
 
     return state.map(t => {
-      if (t.account.id === account.id) {
+      if (t.account && t.account.id === account.id) {
         return {
           ...t,
           account,
