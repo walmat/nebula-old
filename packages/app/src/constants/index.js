@@ -286,14 +286,15 @@ export const modalStyles = {
 
 export const statusColorMap = {
   'No size': 'failed',
+  'Unsupported country': 'failed',
   'No variation': 'failed',
+  'Payment failed': 'failed',
+  'Checkout failed': 'failed',
   'Waiting for restock': 'warning',
   'Starting at': 'warning',
   'Waiting for captcha': 'warning',
   'Duplicate order': 'warning',
   'Checking order': 'warning',
   'Polling queue': 'warning',
-  'Payment successful': 'success',
-  'Payment failed': 'failed',
-  'Checkout failed': 'failed',
+  'Check email!': 'success',
 };

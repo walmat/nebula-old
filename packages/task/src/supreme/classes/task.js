@@ -659,7 +659,7 @@ export default class TaskPrimitive extends BaseTask {
           this.context,
           [this.context.id],
           {
-            message: 'Payment successful',
+            message: 'Check email!',
           },
           Events.TaskStatus,
         );

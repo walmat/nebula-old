@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import cheerio from 'cheerio';
 
 import { Bases, Utils, Constants, Classes } from '../../../common';
@@ -42,12 +43,67 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     // checkout specific globals
+    this._tokens = [];
     this._token = null;
     this._hash = null;
     this._key = null;
     this._store = null;
     this._form = '';
     this._product = null;
+    this._checkpointCookies = null;
+  }
+
+  async generateSessions() {
+    const {
+      task: {
+        profile: { payment, billing },
+        store: { url },
+      },
+    } = this.context;
+
+    if (this._tokens.length >= 2) {
+      this._delayer = waitForDelay(150, this._aborter.signal);
+      await this._delayer;
+
+      return this.generateSessions();
+    }
+
+    const { data } = await this._handler(
+      'https://elb.deposit.shopifycs.com/sessions',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          Origin: 'https://checkout.shopifycs.com',
+          Referer: `https://checkout.shopifycs.com/number?identifier=${
+            this._hash
+          }&location=${encodeURIComponent(
+            `${url}/${this._store}/checkouts/${this._hash}?previous_step=shipping_method&step=payment_method`,
+          )}`,
+        },
+        body: JSON.stringify({
+          credit_card: {
+            number: payment.card,
+            name: `${billing.firstName} ${billing.lastName}`,
+            month: parseInt(payment.exp.slice(0, 2), 10),
+            year: `20${parseInt(payment.exp.slice(3, 5), 10)}`,
+            verification_value: payment.cvv,
+          },
+        }),
+      },
+      null,
+      States.PAYMENT_SESSION,
+    );
+
+    const { id } = await data.json();
+
+    if (id) {
+      this._tokens.push(id);
+    }
+
+    this.context.logger.error(this._tokens);
+
+    return this.generateSessions();
   }
 
   async _handler(endpoint, options, message, from, redirects = []) {
@@ -67,7 +123,9 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
-    emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+    if (message) {
+      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+    }
 
     if (this._checkpointCookies) {
       // TODO: set cookies here
@@ -133,8 +191,8 @@ export default class TaskPrimitive extends BaseTask {
                 { message: 'Password page' },
                 Events.TaskStatus,
               );
+
               this._delayer = waitForDelay(monitor, this._aborter.signal);
-              // eslint-disable-next-line no-await-in-loop
               await this._delayer;
             }
 
@@ -147,13 +205,11 @@ export default class TaskPrimitive extends BaseTask {
               );
 
               this._delayer = waitForDelay(monitor, this._aborter.signal);
-              // eslint-disable-next-line no-await-in-loop
               await this._delayer;
             }
 
             if (/throttle/i.test(redirectUrl)) {
               try {
-                // eslint-disable-next-line no-await-in-loop
                 await this._fetch(redirectUrl, {
                   method: 'GET',
                   compress: true,
@@ -172,6 +228,7 @@ export default class TaskPrimitive extends BaseTask {
             }
 
             if (/processing/i.test(redirectUrl)) {
+              this._token = null;
               this.context.setCaptchaToken(null);
             }
 
@@ -257,58 +314,11 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
-    console.log(nextState);
-
     if (nextState) {
       return nextState;
     }
 
     return States.LOGIN;
-  }
-
-  async _handleGenerateSession() {
-    const {
-      task: {
-        profile: { payment, billing },
-        store: { url },
-      },
-    } = this.context;
-
-    const { data } = await this._handler(
-      'https://elb.deposit.shopifycs.com/sessions',
-      {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          Origin: 'https://checkout.shopifycs.com',
-          Referer: `https://checkout.shopifycs.com/number?identifier=${
-            this._hash
-          }&location=${encodeURIComponent(
-            `${url}/${this._store}/checkouts/${this._hash}?previous_step=shipping_method&step=payment_method`,
-          )}`,
-        },
-        body: JSON.stringify({
-          credit_card: {
-            number: payment.card,
-            name: `${billing.firstName} ${billing.lastName}`,
-            month: parseInt(payment.exp.slice(0, 2), 10),
-            year: `20${parseInt(payment.exp.slice(3, 5), 10)}`,
-            verification_value: payment.cvv,
-          },
-        }),
-      },
-      'Generating session',
-      States.PAYMENT_SESSION,
-    );
-
-    const { id } = await data.json();
-
-    if (id) {
-      this._token = id;
-      return States.SUBMIT_CHECKOUT;
-    }
-
-    return States.PAYMENT_SESSION;
   }
 
   async _handleGatherData() {
@@ -503,7 +513,7 @@ export default class TaskPrimitive extends BaseTask {
       return nextState;
     }
 
-    return States.GO_TO_CHECKPOINT;
+    return States.SUBMIT_CHECKPOINT;
   }
 
   async _handleQueue() {
@@ -532,7 +542,7 @@ export default class TaskPrimitive extends BaseTask {
     const { status, headers } = data;
 
     if (status !== 200) {
-      const retryAfter = headers.get('Retry-After') || 2500;
+      const retryAfter = headers.get('retry-after') || 2500;
 
       message = status ? `Not through queue! (${status})` : 'Not through queue!';
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
@@ -839,7 +849,7 @@ export default class TaskPrimitive extends BaseTask {
               { message: 'Submitting checkout' },
               Events.TaskStatus,
             );
-            return States.PAYMENT_SESSION;
+            return States.SUBMIT_CHECKOUT;
           }
           emitEvent(
             this.context,
@@ -878,7 +888,7 @@ export default class TaskPrimitive extends BaseTask {
                 { message: 'Submitting checkout' },
                 Events.TaskStatus,
               );
-              return States.PAYMENT_SESSION;
+              return States.SUBMIT_CHECKOUT;
             }
             emitEvent(
               this.context,
@@ -1044,6 +1054,9 @@ export default class TaskPrimitive extends BaseTask {
       captchaToken,
     } = this.context;
 
+    // NOTE: kick off the payment session generator
+    this.generateSessions();
+
     if (captchaToken && !/g-recaptcha-response/i.test(this._form)) {
       const parts = this._form.split('button=');
       if (parts && parts.length) {
@@ -1198,7 +1211,7 @@ export default class TaskPrimitive extends BaseTask {
       [
         {
           url: 'processing',
-          message: 'Checking Order',
+          message: 'Checking order',
           state: States.CHECK_ORDER,
         },
         {
@@ -1312,22 +1325,17 @@ export default class TaskPrimitive extends BaseTask {
       'input, select, textarea, button',
     );
 
-    if (!this._token) {
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Generating session' },
-        Events.TaskStatus,
-      );
-
-      return States.PAYMENT_SESSION;
-    }
-
     return States.SUBMIT_CHECKOUT;
   }
 
   async _handleSubmitCheckout() {
     const { monitor } = this.context.task;
+
+    if (!this._token) {
+      this._token = this._tokens.shift();
+    }
+
+    this.context.logger.debug(this._token, this._tokens);
 
     if (this._form.indexOf(this._token) === -1) {
       const parts = this._form.split('s=');
@@ -1358,7 +1366,7 @@ export default class TaskPrimitive extends BaseTask {
         {
           url: 'stock_problems',
           message: 'Submitting checkout',
-          state: States.PAYMENT_SESSION,
+          state: States.SUBMIT_CHECKOUT,
         },
         {
           url: 'password',
@@ -1372,11 +1380,13 @@ export default class TaskPrimitive extends BaseTask {
         },
         {
           url: 'processing',
-          message: 'Checking Order',
+          message: 'Checking order',
           state: States.CHECK_ORDER,
         },
       ],
     );
+
+    console.log(nextState);
 
     if (nextState) {
       return nextState;
@@ -1396,7 +1406,7 @@ export default class TaskPrimitive extends BaseTask {
         Events.TaskStatus,
       );
 
-      return States.PAYMENT_SESSION;
+      return States.SUBMIT_CHECKOUT;
     }
 
     const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
@@ -1560,8 +1570,6 @@ export default class TaskPrimitive extends BaseTask {
       webhookManager,
     } = this.context;
 
-    console.log(this._product);
-
     const { data } = await this._handler(
       `/wallets/checkouts/${this._hash}/payments.json`,
       {
@@ -1569,7 +1577,7 @@ export default class TaskPrimitive extends BaseTask {
           'content-type': 'application/json',
         },
       },
-      'Checking Order',
+      'Checking order',
       States.CHECK_ORDER,
     );
 
@@ -1616,7 +1624,7 @@ export default class TaskPrimitive extends BaseTask {
       emitEvent(
         this.context,
         [this.context.id],
-        { message: `Success! Order ${orderName} placed.` },
+        { message: `Check email! (#${orderName})` },
         Events.TaskStatus,
       );
 
@@ -1644,7 +1652,7 @@ export default class TaskPrimitive extends BaseTask {
 
       emitEvent(this.context, [this.context.id], { message: 'Checkout failed' }, Events.TaskStatus);
 
-      return States.PAYMENT_SESSION;
+      return States.SUBMIT_CHECKOUT;
     }
 
     this._delayer = waitForDelay(500, this._aborter.signal);
