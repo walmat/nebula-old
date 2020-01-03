@@ -50,7 +50,26 @@ export default class TaskPrimitive extends BaseTask {
     this._store = null;
     this._form = '';
     this._product = null;
-    this._checkpointCookies = null;
+  }
+
+  async getCheckpointCookies(jar) {
+    const store = jar.Store || jar.store;
+
+    if (!store) {
+      return [];
+    }
+
+    const found = [];
+    store.getAllCookies((_, cookies) => {
+      for (let i = 0; i < cookies.length; i += 1) {
+        const cookie = cookies[i];
+        if (/_shopify_checkpoint|_shopify_y/i.test(cookie.key)) {
+          this.context.logger.debug(`Found cookie %s=%s;`, cookie.key, cookie.value);
+          found.push(cookie);
+        }
+      }
+    });
+    return found;
   }
 
   async generateSessions() {
@@ -127,8 +146,11 @@ export default class TaskPrimitive extends BaseTask {
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
     }
 
-    if (this._checkpointCookies) {
-      // TODO: set cookies here
+    // we need to do this before every request..
+    if (this.context.shared.cookies && this.context.shared.cookies.length) {
+      this.context.shared.cookies.map(cookie =>
+        this.context.jar.setCookieSync(cookie, this.context.task.store.url),
+      );
     }
 
     await this._logCookies(this.context.jar);
@@ -509,6 +531,13 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
+    const cookies = await this.getCheckpointCookies(this.context.jar);
+    this.context.logger.info(cookies);
+
+    if (cookies.length) {
+      this.context.setShared(cookies);
+    }
+
     if (nextState) {
       return nextState;
     }
@@ -830,6 +859,19 @@ export default class TaskPrimitive extends BaseTask {
         // waiting for token, sleep for delay and then return same state to check again
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        this.context.logger.error(this.context.shared);
+        // we harvested on another task, let's use it..
+        // NOTE: we don't have to worry about site checking, since sharing is already based on site
+        if (
+          this._prevState === States.GO_TO_CHECKPOINT &&
+          this.context.shared.cookies &&
+          this.context.shared.cookies.length
+        ) {
+          this.context.setCaptchaRequest(null);
+          Captcha.suspendHarvestCaptcha(this.context, this._platform);
+
+          return States.CREATE_CHECKOUT;
+        }
         // TODO: check cookies to see if it's been updated...
         return States.CAPTCHA;
       }
@@ -1385,8 +1427,6 @@ export default class TaskPrimitive extends BaseTask {
         },
       ],
     );
-
-    console.log(nextState);
 
     if (nextState) {
       return nextState;

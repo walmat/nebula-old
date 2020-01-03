@@ -345,9 +345,6 @@ export default class TaskManager {
         });
 
         if (type === Types.Normal) {
-          const ShopifyTask = chooseTask(task.type);
-          newTask = new ShopifyTask(context);
-
           let found = null;
           for (const m of Object.values(this._monitors)) {
             if (m.platform === platform) {
@@ -357,16 +354,19 @@ export default class TaskManager {
                 context.task.product,
                 parseType,
               );
+              const isSameStore = mContext.task.store.url === context.task.store.url;
 
-              if (isSameProduct && mContext.task.store.url === context.task.store.url) {
+              if (isSameProduct && isSameStore) {
                 found = m;
                 break;
               }
             }
           }
 
-          this._logger.debug('Existing monitor? %j', found || false);
+          const ShopifyTask = chooseTask(task.type);
+          newTask = new ShopifyTask(context);
 
+          this._logger.debug('Existing monitor? %j', found || false);
           if (found) {
             this._logger.debug('Existing monitor found! Just adding id');
             found.context.addId(id);
@@ -395,8 +395,6 @@ export default class TaskManager {
           webhookManager: this.webhookManager,
         });
 
-        newTask = new SupremeTask(context);
-
         let found = null;
         for (const m of Object.values(this._monitors)) {
           if (m.platform === platform) {
@@ -418,8 +416,9 @@ export default class TaskManager {
           }
         }
 
-        this._logger.debug('Existing monitor? %j', found || false);
+        newTask = new SupremeTask(context);
 
+        this._logger.debug('Existing monitor? %j', found || false);
         if (found) {
           this._logger.debug('Existing monitor found! Just adding ids');
           found.context.addId(id);
@@ -443,6 +442,13 @@ export default class TaskManager {
     if (monitor) {
       this._monitors[id] = monitor;
     }
+
+    // patch in the shared context between same store tasks..
+    const pair = Object.values(this._tasks).find(t => t.context.task.store.url === task.store.url);
+    if (pair) {
+      newTask.context.shared = pair.context.shared;
+    }
+
     this._tasks[id] = newTask;
 
     this._logger.silly('Attaching events...');

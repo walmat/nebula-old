@@ -16,6 +16,7 @@ export default class Context {
     message = '',
     events = new EventEmitter(),
     jar = new CookieJar(),
+    shared = {},
     logger,
     aborted = false,
     proxyManager,
@@ -40,6 +41,7 @@ export default class Context {
       monitor: new Timer(),
     };
     this.jar = jar;
+    this.shared = shared;
     this.logger = logger;
     this.aborted = aborted;
     this.proxyManager = proxyManager;
@@ -90,6 +92,10 @@ export default class Context {
 
   setJar(jar) {
     this.jar = jar;
+  }
+
+  setShared(datum) {
+    this.shared.cookies = datum;
   }
 
   setLogger(logger) {

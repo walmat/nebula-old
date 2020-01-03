@@ -19,6 +19,7 @@ const TaskEvents = {
   SwapTaskProxy: 'SWAP_TASK_PROXY',
   SwapMonitorProxy: 'SWAP_MONITOR_PROXY',
   ReceiveProxy: 'RECEIVE_PROXY',
+  CheckpointCookies: 'CHECKPOINT_COOKIES',
 };
 
 const SharedStates = {
