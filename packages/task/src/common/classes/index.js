@@ -1,4 +1,5 @@
 import AsyncQueue from './asyncQueue';
+import CapacityQueue from './capacityQueue';
 import { getCaptcha, stopHarvestCaptcha, suspendHarvestCaptcha } from './captcha';
 import ProxyManager from './proxyManager';
 import CaptchaManager from './captchaManager';
@@ -17,6 +18,7 @@ const Captcha = {
 
 export {
   AsyncQueue,
+  CapacityQueue,
   Captcha,
   BaseTask,
   BaseMonitor,

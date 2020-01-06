@@ -40,6 +40,8 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
     const nextState = await super._handleAddToCart();
 
     if (nextState === States.DONE) {
+      // NOTE: kick off the payment session generator
+      this.generateSessions();
       return States.CREATE_CHECKOUT;
     }
 

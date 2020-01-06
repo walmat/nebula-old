@@ -98,7 +98,7 @@ export const addToCart = (variant, name, hash, props = {}) => {
       return `id=${variant}&quantity=1&properties%5B_HASH%5D=${hash}`;
     }
     case 'DSM UK': {
-      return `id=${variant}&quantity=1&properties%5B_hash%5D=${hash ||
+      return `id=${variant}&add=&properties%5B_hash%5D=${hash ||
         'ee3e8f7a9322eaa382e04f8539a7474c11555'}`;
     }
     case 'Funko Shop': {

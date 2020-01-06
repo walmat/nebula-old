@@ -1,7 +1,7 @@
 import { isEmpty } from 'lodash';
 
 import { Bases, Constants, Utils } from '../../common';
-import getHeaders, { matchKeywords } from '../utils';
+import getHeaders, { getRegion, matchKeywords } from '../utils';
 import { Monitor } from '../constants';
 
 const { BaseMonitor } = Bases;
@@ -18,6 +18,8 @@ export default class MonitorPrimitive extends BaseMonitor {
 
     this._state = States.PARSE;
     this._prevState = this._state;
+
+    this._region = getRegion(context.task.store.name);
 
     this.detectPooky();
     this._pookyInterval = setInterval(() => this.detectPooky(), 1000);
@@ -105,23 +107,29 @@ export default class MonitorPrimitive extends BaseMonitor {
       }
 
       const body = await res.json();
-      if (!body || isEmpty(body)) {
+
+      if (!body || isEmpty(body) || (body && !body[this._region.toLowerCase()])) {
         const error = new Error('Invalid response');
         error.status = res.status || res.errno;
         throw error;
       }
 
-      if (this.context.pookyEnabled !== body.state) {
-        if (!body.state) {
-          // clear the cookie jar..
-          this.context.jar.removeAllCookiesSync();
-        }
-        this.context.setPookyEnabled(body.state);
+      const { state } = body[this._region.toLowerCase()];
+
+      if (this.context.pookyEnabled !== state) {
+        // if (!state) {
+        //   // clear the cookie jar..
+        //   this.context.jar.removeAllCookiesSync();
+        // }
+        this.context.setPookyEnabled(state);
       }
 
       return;
     } catch (err) {
-      this.context.setPookyEnabled(true);
+      // default back to true just in case...
+      if (!this.context.pookyEnabled) {
+        this.context.setPookyEnabled(true);
+      }
     }
   }
 

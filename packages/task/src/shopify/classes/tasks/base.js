@@ -203,7 +203,8 @@ export default class TaskPrimitive extends BaseTask {
         for (const { url: path, message: newMsg, state } of redirects) {
           if (new RegExp(path, 'i').test(redirectUrl)) {
             if (/checkouts/i.test(redirectUrl)) {
-              [, , , this._store, , this._hash] = redirectUrl.split('/');
+              const [noQs] = redirectUrl.split('?');
+              [, , , this._store, , this._hash] = noQs.split('/');
             }
 
             if (/password/i.test(redirectUrl)) {
@@ -216,6 +217,16 @@ export default class TaskPrimitive extends BaseTask {
 
               this._delayer = waitForDelay(monitor, this._aborter.signal);
               await this._delayer;
+            }
+
+            if (/checkpoint/i.test(redirectUrl)) {
+              const requester = await Captcha.getCaptcha(
+                this.context,
+                this._handleHarvest,
+                this._platform,
+                this._prevState === States.GO_TO_CHECKPOINT ? 1 : 0,
+              );
+              this.context.setCaptchaRequest(requester);
             }
 
             if (/stock_problems/i.test(redirectUrl)) {
@@ -344,7 +355,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleGatherData() {
-    const { data } = await this._handler(
+    const { data = {} } = await this._handler(
       '/payments/config',
       {},
       'Gathering data',
@@ -353,7 +364,7 @@ export default class TaskPrimitive extends BaseTask {
 
     const { status } = data;
 
-    if (status !== 200) {
+    if (!status || status !== 200) {
       emitEvent(
         this.context,
         [this.context.id],
@@ -366,7 +377,7 @@ export default class TaskPrimitive extends BaseTask {
 
     const { paymentInstruments } = await data.json();
 
-    const { accessToken } = paymentInstruments;
+    const { accessToken, checkoutConfig: { shopId } = {} } = paymentInstruments;
 
     if (!accessToken) {
       emitEvent(
@@ -377,6 +388,10 @@ export default class TaskPrimitive extends BaseTask {
       );
 
       return States.ERROR;
+    }
+
+    if (shopId) {
+      this._store = shopId;
     }
 
     this.context.task.store.apiKey = accessToken;
@@ -532,13 +547,13 @@ export default class TaskPrimitive extends BaseTask {
     );
 
     const cookies = await this.getCheckpointCookies(this.context.jar);
-    this.context.logger.info(cookies);
 
     if (cookies.length) {
       this.context.setShared(cookies);
     }
 
     if (nextState) {
+      this.context.setCaptchaToken(null);
       return nextState;
     }
 
@@ -625,7 +640,8 @@ export default class TaskPrimitive extends BaseTask {
       logger,
       parseType,
       task: {
-        product: { variants, randomInStock },
+        randomInStock,
+        product: { variants },
         size,
       },
     } = this.context;
@@ -692,12 +708,17 @@ export default class TaskPrimitive extends BaseTask {
 
     const { id } = this._product;
 
+    let contentType = 'application/json';
+    if (/dsm uk/i.test(name)) {
+      contentType = 'application/x-www-form-urlencoded';
+    }
+
     const { nextState, data } = await this._handler(
       '/cart/add.js',
       {
         method: 'POST',
         headers: {
-          'content-type': 'application/json',
+          'content-type': contentType,
         },
         body: addToCart(id, name, hash),
       },
@@ -1096,9 +1117,6 @@ export default class TaskPrimitive extends BaseTask {
       captchaToken,
     } = this.context;
 
-    // NOTE: kick off the payment session generator
-    this.generateSessions();
-
     if (captchaToken && !/g-recaptcha-response/i.test(this._form)) {
       const parts = this._form.split('button=');
       if (parts && parts.length) {
@@ -1148,7 +1166,9 @@ export default class TaskPrimitive extends BaseTask {
       return nextState;
     }
 
-    // determined by subclasses..
+    // NOTE: kick off the payment session generator
+    this.generateSessions();
+    // NOTE: determined by subclasses..
     return States.DONE;
   }
 

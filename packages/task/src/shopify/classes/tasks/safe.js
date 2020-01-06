@@ -86,8 +86,8 @@ export default class SafeTaskPrimitive extends TaskPrimitive {
         },
         {
           url: 'checkouts',
-          message: 'Submitting information',
-          state: States.SUBMIT_CUSTOMER,
+          message: 'Going to checkout',
+          state: States.GO_TO_CHECKOUT,
         },
       ],
     );
@@ -140,6 +140,7 @@ export default class SafeTaskPrimitive extends TaskPrimitive {
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
       [States.CAPTCHA]: this._handleCaptcha,
+      [States.GO_TO_CHECKOUT]: this._handleGetCheckout,
       [States.SUBMIT_CUSTOMER]: this._handleSubmitCustomer,
       [States.GO_TO_SHIPPING]: this._handleGetShipping,
       [States.SUBMIT_SHIPPING]: this._handleSubmitShipping,

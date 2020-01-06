@@ -15,19 +15,27 @@ const { States } = TaskConstants;
 
 export default class FastTaskPrimitive extends TaskPrimitive {
   constructor(context) {
-    super(context, States.CREATE_CHECKOUT);
+    super(context, States.GATHER_DATA);
+  }
+
+  async _handleGatherData() {
+    const nextState = await super._handleGatherData();
+
+    if (nextState !== States.DONE) {
+      return nextState;
+    }
+
+    if (this.context.task.account) {
+      return States.LOGIN;
+    }
+
+    return States.CREATE_CHECKOUT;
   }
 
   async _handleLogin() {
     const nextState = await super._handleLogin();
 
     if (nextState === States.DONE) {
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Creating checkout' },
-        Events.TaskStatus,
-      );
       return States.CREATE_CHECKOUT;
     }
 
@@ -100,17 +108,21 @@ export default class FastTaskPrimitive extends TaskPrimitive {
     }
 
     if (body && body.checkout) {
-      const { web_url: checkoutUrl } = body.checkout;
-      if (/checkouts/i.test(checkoutUrl)) {
-        [, , , this._store, , this._hash] = checkoutUrl.split('/');
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Submitting information' },
-          Events.TaskStatus,
-        );
+      const { token } = body.checkout;
+      if (token) {
+        this._hash = token;
         return States.SUBMIT_CUSTOMER;
       }
+
+      const { web_url: checkoutUrl } = body.checkout;
+
+      if (/checkouts/i.test(checkoutUrl)) {
+        const noQs = checkoutUrl.split('?');
+        [, , , this._store, , this._hash] = noQs.split('/');
+        return States.SUBMIT_CUSTOMER;
+      }
+
+      return States.CREATE_CHECKOUT;
     }
 
     const { status } = data;
@@ -286,10 +298,7 @@ export default class FastTaskPrimitive extends TaskPrimitive {
         ? body.checkout.line_items[0].image_url
         : `http:${body.checkout.line_items[0].image_url}`;
 
-      if (shippingId) {
-        return States.PAYMENT_SESSION;
-      }
-      return States.GO_TO_CHECKOUT;
+      return States.GO_TO_SHIPPING;
     }
     const { status } = data;
     const message = status ? `Adding to cart (${status})` : 'Adding to cart';
@@ -312,7 +321,6 @@ export default class FastTaskPrimitive extends TaskPrimitive {
 
     const { status } = data;
 
-    console.log(status);
     if (status === 422) {
       emitEvent(
         this.context,
@@ -348,7 +356,7 @@ export default class FastTaskPrimitive extends TaskPrimitive {
       if (captcha && !captchaToken) {
         return States.CAPTCHA;
       }
-      return States.PAYMENT_SESSION;
+      return States.SUBMIT_CHECKOUT;
     }
 
     this._delayer = waitForDelay(150, this._aborter.signal);

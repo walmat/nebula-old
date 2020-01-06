@@ -2,6 +2,7 @@ import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
+import CapacityQueue from './capacityQueue';
 import { emitEvent } from '../utils';
 import { stopHarvestCaptcha } from './captcha';
 import { Task } from '../constants';
@@ -38,6 +39,8 @@ export default class BaseTask {
       timeout: 10000, // can be overridden as necessary per request
       signal: this._aborter.signal,
     });
+
+    this._history = new CapacityQueue();
 
     this._state = state;
     this._prevState = this._state;
@@ -122,6 +125,8 @@ export default class BaseTask {
     if (this._state !== nextState) {
       this._prevState = this._state;
       this._state = nextState;
+
+      this._history.insert(nextState);
     }
 
     if (nextState === States.ABORT) {
@@ -161,6 +166,7 @@ export default class BaseTask {
   }
 
   _cleanup() {
+    this.context.logger.info(this._history.stack);
     stopHarvestCaptcha(this.context, this._handleHarvest, this._platform);
   }
 }
