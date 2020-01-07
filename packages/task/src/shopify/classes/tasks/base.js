@@ -355,12 +355,16 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleGatherData() {
-    const { data = {} } = await this._handler(
+    const { nextState, data = {} } = await this._handler(
       '/payments/config',
       {},
       'Gathering data',
       States.GATHER_DATA,
     );
+
+    if (nextState) {
+      return nextState;
+    }
 
     const { status } = data;
 
@@ -396,7 +400,7 @@ export default class TaskPrimitive extends BaseTask {
 
     this.context.task.store.apiKey = accessToken;
 
-    // TODO: subclass determines next state...
+    // NOTE: subclass determines next state...
     return States.DONE;
   }
 
@@ -470,12 +474,14 @@ export default class TaskPrimitive extends BaseTask {
       this._form = this._form.slice(0, -1);
     }
 
-    emitEvent(
+    const requester = await Captcha.getCaptcha(
       this.context,
-      [this.context.id],
-      { message: 'Waiting for captcha' },
-      Events.TaskStatus,
+      this._handleHarvest,
+      this._platform,
+      1,
     );
+    this.context.setCaptchaRequest(requester);
+
     return States.CAPTCHA;
   }
 
@@ -600,7 +606,7 @@ export default class TaskPrimitive extends BaseTask {
 
     const referer = headers.get('referer');
 
-    const response = await this._handler(referer, {});
+    const { data: response } = await this._handler(referer, {});
 
     const respBody = await response.text();
     const match = respBody.match(/href="(.*)"/);
@@ -624,13 +630,9 @@ export default class TaskPrimitive extends BaseTask {
 
     const retryAfter = headers.get('Retry-After') || 2500;
 
-    message = status ? `Not through queue! (${status})` : 'Not through queue!';
-    emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-
     this._delayer = waitForDelay(retryAfter, this._aborter.signal);
     await this._delayer;
 
-    emitEvent(this.context, [this.context.id], { message: 'Polling queue' }, Events.TaskStatus);
     return States.QUEUE;
   }
 
@@ -852,17 +854,17 @@ export default class TaskPrimitive extends BaseTask {
       return States.ABORT;
     }
 
+    emitEvent(
+      this.context,
+      [this.context.id],
+      {
+        message: 'Waiting for captcha',
+      },
+      Events.TaskStatus,
+    );
+
     // start request if it hasn't started already
     if (!this.context.captchaRequest) {
-      emitEvent(
-        this.context,
-        [this.context.id],
-        {
-          message: 'Waiting for captcha',
-        },
-        Events.TaskStatus,
-      );
-
       const requester = await Captcha.getCaptcha(
         this.context,
         this._handleHarvest,
@@ -879,7 +881,7 @@ export default class TaskPrimitive extends BaseTask {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         this.context.logger.error(this.context.shared);
-        // we harvested on another task, let's use it..
+        // we harvested checkpoint on another task, let's use those..
         // NOTE: we don't have to worry about site checking, since sharing is already based on site
         if (
           this._prevState === States.GO_TO_CHECKPOINT &&
@@ -891,7 +893,6 @@ export default class TaskPrimitive extends BaseTask {
 
           return States.CREATE_CHECKOUT;
         }
-        // TODO: check cookies to see if it's been updated...
         return States.CAPTCHA;
       }
       case 'fulfilled': {
@@ -902,6 +903,8 @@ export default class TaskPrimitive extends BaseTask {
         // We have the token, so suspend harvesting for now
         Captcha.suspendHarvestCaptcha(this.context, this._platform);
 
+        // return States.DONE;
+        // TODO: handle next state in sub classes
         if (this._prevState === States.GO_TO_SHIPPING) {
           if (type === Modes.FAST) {
             emitEvent(
@@ -1176,7 +1179,7 @@ export default class TaskPrimitive extends BaseTask {
       captchaToken,
     } = this.context;
 
-    const { data } = await this._handler(
+    const { nextState, data } = await this._handler(
       `/${this._store}/checkouts/${this._hash}`,
       {},
       'Fetching rates',
@@ -1200,10 +1203,14 @@ export default class TaskPrimitive extends BaseTask {
         {
           url: 'stock_problems',
           message: 'Fetching rates',
-          state: States.QUEUE,
+          state: States.GO_TO_SHIPPING,
         },
       ],
     );
+
+    if (nextState) {
+      return nextState;
+    }
 
     const body = await data.text();
     const $ = cheerio.load(body, {
@@ -1628,7 +1635,7 @@ export default class TaskPrimitive extends BaseTask {
       webhookManager,
     } = this.context;
 
-    const { data } = await this._handler(
+    const { nextState, data } = await this._handler(
       `/wallets/checkouts/${this._hash}/payments.json`,
       {
         headers: {
@@ -1638,6 +1645,10 @@ export default class TaskPrimitive extends BaseTask {
       'Checking order',
       States.CHECK_ORDER,
     );
+
+    if (nextState) {
+      return nextState;
+    }
 
     const body = await data.json();
     const { payments } = body;

@@ -68,23 +68,29 @@ export default class BaseTask {
   }
 
   async swapProxies() {
-    const { id, proxy, task, logger, proxyManager } = this.context;
+    const { id, proxy, task, proxyManager } = this.context;
     const proxyId = proxy ? proxy.id : null;
-    logger.debug('Swapping proxy: %j', proxy ? proxy.raw : null);
     const newProxy = await proxyManager.swap(id, proxyId, task.store.url, this._platform);
-    logger.debug('Received new proxy: %j', newProxy ? newProxy.raw : null);
     return newProxy;
   }
 
   async _handleSwap() {
     const { logger } = this.context;
     try {
-      logger.silly('Waiting for new proxy...');
       const proxy = await this.swapProxies();
 
-      logger.debug('Proxy in _handleSwap: %j', proxy);
+      logger.debug('Using new proxy: %j', proxy ? proxy.raw : 'none');
       this.context.setLastProxy(this.context.proxy);
       this.context.setProxy(proxy);
+
+      emitEvent(
+        this.context,
+        this.context.ids,
+        {
+          chosenProxy: proxy ? proxy.raw : null,
+        },
+        Events.TaskStatus,
+      );
 
       logger.debug('Rewinding to state: %s', this._prevState);
       return this._prevState;
@@ -121,7 +127,6 @@ export default class BaseTask {
       }
     }
 
-    logger.silly('Task state transitioned to: %s', nextState);
     if (this._state !== nextState) {
       this._prevState = this._state;
       this._state = nextState;

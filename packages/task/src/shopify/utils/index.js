@@ -28,15 +28,15 @@ export const stateForError = ({ status, name, errno }, { message, nextState }) =
     switch (errorMatch[1]) {
       // connection reset
       case 'ENOTFOUND':
+      case 'ECONNREFUSED':
       case 'ECONNRESET': {
         return {
-          message: 'Swapping proxy',
+          message: 'Connection issues',
           nextState: States.SWAP,
         };
       }
       // request timeout or socket freeze timeout
       case 'ETIMEDOUT':
-      case 'ECONNREFUSED':
       case 'ESOCKETTIMEDOUT': {
         return { message, nextState };
       }
@@ -50,13 +50,13 @@ export const stateForError = ({ status, name, errno }, { message, nextState }) =
     case 429:
     case 430: {
       return {
-        message: `Swapping proxy (${status})`,
+        message: `Connection issues`,
         nextState: States.SWAP,
       };
     }
     case 303: {
       return {
-        message: 'Polling queue (303)',
+        message: 'Polling queue',
         nextState: States.QUEUE,
       };
     }

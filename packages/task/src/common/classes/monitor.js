@@ -69,7 +69,7 @@ export default class BaseMonitor {
         this.context,
         this.context.ids,
         {
-          message: 'Error swapping proxies! Retrying',
+          message: 'Proxy error! Retrying...',
         },
         Events.MonitorStatus,
       );
