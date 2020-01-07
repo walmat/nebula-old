@@ -554,6 +554,7 @@ export default class TaskPrimitive extends BaseTask {
 
     if (nextState) {
       this.context.setCaptchaToken(null);
+      this.form = '';
       return nextState;
     }
 
@@ -1313,13 +1314,6 @@ export default class TaskPrimitive extends BaseTask {
       return nextState;
     }
 
-    emitEvent(
-      this.context,
-      [this.context.id],
-      { message: 'Submitting shipping' },
-      Events.TaskStatus,
-    );
-
     return States.SUBMIT_SHIPPING;
   }
 
@@ -1397,8 +1391,6 @@ export default class TaskPrimitive extends BaseTask {
       this._token = this._tokens.shift();
     }
 
-    this.context.logger.debug(this._token, this._tokens);
-
     if (this._form.indexOf(this._token) === -1) {
       const parts = this._form.split('s=');
       if (parts && parts.length) {
@@ -1447,6 +1439,8 @@ export default class TaskPrimitive extends BaseTask {
         },
       ],
     );
+
+    this._token = null;
 
     if (nextState) {
       return nextState;

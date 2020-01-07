@@ -1,6 +1,13 @@
 import { Utils } from '../../common';
 import pickVariant from './pickVariant';
-import { addToCart, parseForm, patchCheckoutForm, patchToCart } from './forms';
+import {
+  addToCart,
+  parseForm,
+  patchCheckoutForm,
+  patchToCart,
+  paymentForm,
+  shippingForm,
+} from './forms';
 import {
   convertToJson,
   filterAndLimit,
@@ -97,6 +104,8 @@ const Forms = {
   parseForm,
   patchCheckoutForm,
   patchToCart,
+  shippingForm,
+  paymentForm,
 };
 
 export { pickVariant, Parse, Forms };

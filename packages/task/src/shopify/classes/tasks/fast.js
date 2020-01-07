@@ -7,7 +7,7 @@ import { Forms } from '../../utils';
 import TaskPrimitive from './base';
 
 const { Task } = Constants;
-const { patchCheckoutForm } = Forms;
+const { patchCheckoutForm, shippingForm, paymentForm } = Forms;
 const { emitEvent, waitForDelay } = Utils;
 
 const { Events } = Task;
@@ -25,10 +25,6 @@ export default class FastTaskPrimitive extends TaskPrimitive {
       return nextState;
     }
 
-    if (this.context.task.account) {
-      return States.LOGIN;
-    }
-
     return States.CREATE_CHECKOUT;
   }
 
@@ -36,30 +32,18 @@ export default class FastTaskPrimitive extends TaskPrimitive {
     const nextState = await super._handleLogin();
 
     if (nextState === States.DONE) {
-      return States.CREATE_CHECKOUT;
+      return States.GATHER_DATA;
     }
 
     return nextState;
   }
 
   async _handleCreateCheckout() {
-    const { monitor } = this.context.task;
-
     const { nextState, data } = await this._handler(
-      '/wallets/checkouts',
+      '/checkout',
       {
         method: 'POST',
-        body: JSON.stringify({
-          card_source: 'vault',
-          pollingOptions: {
-            poll: false,
-          },
-          complete: '1',
-          checkout: {
-            secret: true,
-            wallet_name: 'default',
-          },
-        }),
+        body: JSON.stringify({}),
       },
       'Creating checkout',
       States.CREATE_CHECKOUT,
@@ -70,8 +54,13 @@ export default class FastTaskPrimitive extends TaskPrimitive {
           state: States.GO_TO_CHECKPOINT,
         },
         {
+          url: 'login',
+          message: 'Account needed',
+          state: States.ERROR,
+        },
+        {
           url: 'password',
-          message: 'Create checkout',
+          message: 'Creating checkout',
           state: States.CREATE_CHECKOUT,
         },
         {
@@ -79,50 +68,16 @@ export default class FastTaskPrimitive extends TaskPrimitive {
           message: 'Polling queue',
           state: States.QUEUE,
         },
+        {
+          url: 'checkouts',
+          message: 'Submitting information',
+          state: States.SUBMIT_CUSTOMER,
+        },
       ],
     );
 
     if (nextState) {
       return nextState;
-    }
-
-    const body = await data.json();
-
-    if (body && body.error) {
-      if (/channel is locked/i.test(body.error)) {
-        emitEvent(this.context, [this.context.id], { message: 'Password page' }, Events.TaskStatus);
-
-        this._delayer = waitForDelay(monitor, this._aborter.signal);
-        await this._delayer;
-
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Creating checkout' },
-          Events.TaskStatus,
-        );
-        return States.CREATE_CHECKOUT;
-      }
-
-      return States.CREATE_CHECKOUT;
-    }
-
-    if (body && body.checkout) {
-      const { token } = body.checkout;
-      if (token) {
-        this._hash = token;
-        return States.SUBMIT_CUSTOMER;
-      }
-
-      const { web_url: checkoutUrl } = body.checkout;
-
-      if (/checkouts/i.test(checkoutUrl)) {
-        const noQs = checkoutUrl.split('?');
-        [, , , this._store, , this._hash] = noQs.split('/');
-        return States.SUBMIT_CUSTOMER;
-      }
-
-      return States.CREATE_CHECKOUT;
     }
 
     const { status } = data;
@@ -184,6 +139,8 @@ export default class FastTaskPrimitive extends TaskPrimitive {
         monitor,
       },
     } = this.context;
+
+    this.generateSessions();
 
     const { id: variantId } = this._product;
     const { id: shippingId } = this._selectedShippingRate;
@@ -365,11 +322,41 @@ export default class FastTaskPrimitive extends TaskPrimitive {
     return States.GO_TO_SHIPPING;
   }
 
+  async _handleSubmitShipping() {
+    const { id } = this._selectedShippingRate;
+
+    this._form = shippingForm(id);
+    const nextState = await super._handleSubmitShipping();
+
+    if (
+      nextState === States.GO_TO_PAYMENT ||
+      nextState === States.GO_TO_SHIPPING ||
+      nextState === States.GO_TO_CHECKOUT
+    ) {
+      return States.SUBMIT_CHECKOUT;
+    }
+
+    return nextState;
+  }
+
   async _handleSubmitCheckout() {
     const {
-      task: { captcha },
+      task: {
+        captcha,
+        store: { url },
+        profile,
+      },
       captchaToken,
     } = this.context;
+
+    if (!/eflash-sg|eflash-jp/i.test(url)) {
+      if (!this._token) {
+        this._token = this._tokens.shift();
+      }
+
+      this._form = paymentForm(profile, this._token);
+      return super._handleSubmitCheckout();
+    }
 
     const { id } = this._selectedShippingRate;
     const form = {
@@ -420,8 +407,96 @@ export default class FastTaskPrimitive extends TaskPrimitive {
         },
         {
           url: 'stock_problems',
-          message: 'Completing checkout',
+          message: 'Submitting checkout',
+          state: States.COMPLETE_CHECKOUT,
+        },
+      ],
+    );
+
+    if (nextState) {
+      return nextState;
+    }
+
+    const body = await data.text();
+
+    if ((/captcha/i.test(body) || captcha) && !captchaToken) {
+      return States.CAPTCHA;
+    }
+
+    const match = body.match(/Shopify.Checkout.step\s*=\s*"(.*)"/);
+
+    if (!match || (match && !match.length)) {
+      return States.SUBMIT_CHECKOUT;
+    }
+
+    const [, step] = match;
+    if (/review/i.test(step)) {
+      return States.COMPLETE_CHECKOUT;
+    }
+
+    if (/payment|stock_problems/i.test(step)) {
+      return States.SUBMIT_CHECKOUT;
+    }
+
+    if (/shipping/i.test(step)) {
+      return States.SUBMIT_SHIPPING;
+    }
+
+    if (/process/i.test(step)) {
+      return States.CHECK_ORDER;
+    }
+
+    return States.SUBMIT_CHECKOUT;
+  }
+
+  async _handleCompleteCheckout() {
+    const {
+      task: { captcha },
+      captchaToken,
+    } = this.context;
+
+    const form = { complete: 1 };
+
+    if (captchaToken) {
+      form['g-recaptcha-response'] = captchaToken;
+    }
+
+    const { nextState, data } = await this._handler(
+      `/${this._store}/checkouts/${this._hash}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'applcation/json',
+        },
+        body: JSON.stringify(form),
+      },
+      'Submitting checkout',
+      States.COMPLETE_CHECKOUT,
+      [
+        {
+          url: 'processing',
+          message: 'Checking order',
+          state: States.CHECK_ORDER,
+        },
+        {
+          url: 'checkpoint',
+          message: 'Going to checkpoint',
+          state: States.GO_TO_CHECKPOINT,
+        },
+        {
+          url: 'password',
+          message: 'Submitting checkout',
+          state: States.COMPLETE_CHECKOUT,
+        },
+        {
+          url: 'throttle',
+          message: 'Polling queue',
           state: States.QUEUE,
+        },
+        {
+          url: 'stock_problems',
+          message: 'Submitting checkout',
+          state: States.COMPLETE_CHECKOUT,
         },
       ],
     );
