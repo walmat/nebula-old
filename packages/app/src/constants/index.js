@@ -287,6 +287,7 @@ export const modalStyles = {
 export const statusColorMap = {
   'No size': 'failed',
   'Unsupported country': 'failed',
+  'Captcha needed': 'failed',
   'No variation': 'failed',
   'Payment failed': 'failed',
   'Checkout failed': 'failed',

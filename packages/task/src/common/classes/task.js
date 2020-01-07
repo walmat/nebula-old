@@ -55,7 +55,7 @@ export default class BaseTask {
     captchaQueue.insert(token);
   }
 
-  async _logCookies(jar) {
+  async _logCookies(jar = this.context.jar) {
     const store = jar.Store || jar.store;
 
     if (!store) {

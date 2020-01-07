@@ -461,6 +461,16 @@ export default class FastTaskPrimitive extends TaskPrimitive {
     return States.SUBMIT_CHECKOUT;
   }
 
+  async _handleSubmitCheckpoint() {
+    const nextState = await super._handleSubmitCheckpoint();
+
+    if (nextState === States.CREATE_CHECKOUT) {
+      return States.SUBMIT_CHECKOUT;
+    }
+
+    return nextState;
+  }
+
   async _handleStepLogic(currentState) {
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');

@@ -80,7 +80,7 @@ export default class TaskPrimitive extends BaseTask {
       },
     } = this.context;
 
-    if (this._tokens.length >= 2) {
+    if (this._tokens.length >= 1) {
       this._delayer = waitForDelay(150, this._aborter.signal);
       await this._delayer;
 
@@ -120,8 +120,6 @@ export default class TaskPrimitive extends BaseTask {
       this._tokens.push(id);
     }
 
-    this.context.logger.error(this._tokens);
-
     return this.generateSessions();
   }
 
@@ -153,7 +151,9 @@ export default class TaskPrimitive extends BaseTask {
       );
     }
 
-    await this._logCookies(this.context.jar);
+    if (process.env.NODE_ENV === 'development') {
+      await this._logCookies();
+    }
 
     const baseOptions = {
       compress: true,
@@ -202,7 +202,7 @@ export default class TaskPrimitive extends BaseTask {
         // eslint-disable-next-line no-restricted-syntax
         for (const { url: path, message: newMsg, state } of redirects) {
           if (new RegExp(path, 'i').test(redirectUrl)) {
-            if (/checkouts/i.test(redirectUrl)) {
+            if (/checkouts/i.test(redirectUrl) && !/checkpoint/i.test(redirectUrl)) {
               const [noQs] = redirectUrl.split('?');
               [, , , this._store, , this._hash] = noQs.split('/');
             }
@@ -766,9 +766,8 @@ export default class TaskPrimitive extends BaseTask {
     return States.DONE;
   }
 
-  async _handleGoToCart() {
+  async _handleGetCart() {
     const {
-      logger,
       task: {
         store: { apiKey },
       },
@@ -816,7 +815,6 @@ export default class TaskPrimitive extends BaseTask {
       const name = $(el).attr('name');
       const value = $(el).attr('value') || '';
 
-      logger.info('Cart form value detected: { name: %j, value: %j }', name, value);
       // Blacklisted values/names
       if (
         name &&

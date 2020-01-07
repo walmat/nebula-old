@@ -186,8 +186,12 @@ export default class MonitorPrimitive extends BaseMonitor {
 
       return States.DONE;
     } catch (errors) {
-      // handle parsing errors
       logger.error('MONITOR: All request errored out! %j', errors);
+
+      if (!Array.isArray(errors)) {
+        return this._handleErrors([errors]);
+      }
+      // handle parsing errors
       return this._handleErrors(errors);
     }
   }
