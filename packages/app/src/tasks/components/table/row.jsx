@@ -7,7 +7,7 @@ import { taskActions } from '../../../store/actions';
 import { statusColorMap } from '../../../constants';
 
 const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
-  const match = /Starting at|No variation|No size|Unsupported|Waiting for captcha|Waiting for restock|Duplicate order|Checking order|Checkout failed|Polling queue|Check email/i.exec(
+  const match = /Starting at|No variation|No size|Captcha needed|Unsupported|Waiting for captcha|Waiting for restock|Duplicate order|Checking order|Checkout failed|Polling queue|Check email/i.exec(
     task.message,
   );
   const messageClassName = match ? statusColorMap[match[0]] : 'normal';
@@ -69,7 +69,9 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
           {task.profile ? task.profile.name : 'None'}
         </div>
         <div className="col col--no-gutter tasks-row__sizes">{task.chosenSize || task.size}</div>
-        <div className="col col--no-gutter tasks-row__proxy">{task.chosenProxy || 'None'}</div>
+        <div className="col col--no-gutter tasks-row__proxy">
+          {task.chosenProxy !== null ? task.chosenProxy : 'None'}
+        </div>
         <div className={`col col--no-gutter tasks-row__status--${messageClassName}`}>
           {task.message}
         </div>

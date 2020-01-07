@@ -1,3 +1,4 @@
+import cheerio from 'cheerio';
 import { sortBy, map, find, flatten, filter, every, some } from 'lodash';
 import { parseString } from 'xml2js';
 
@@ -35,6 +36,113 @@ export function getParseType(product) {
   return ParseType.Unknown;
 }
 
+export const parseProductInfoPageForHash = ($, logger) => {
+  const regex = /\$\(\s*atob\(\s*'PGlucHV0IHR5cGU9ImhpZGRlbiIgbmFtZT0icHJvcGVydGllc1tfSEFTSF0iIC8\+'\s*\)\s*\)\s*\.val\(\s*'(.+)'\s*\)/;
+
+  try {
+    const hashes = [];
+    $('#MainContent > script').each((i, e) => {
+      // should match only one, but just in case, let's loop over all possibilities
+      logger.silly('parsing script element %d for hash...', i);
+      if (e.children) {
+        // check to see if we can find the hash property
+        const elements = regex.exec(e.children[0].data);
+        if (elements) {
+          logger.silly('Found match %s', elements[0]);
+          hashes.push(elements[1]);
+        } else {
+          logger.silly('No match found %s', e.children[0].data);
+        }
+      }
+    });
+
+    switch (hashes.length) {
+      case 0: {
+        logger.silly('No Hash Found, returning null...');
+        return null;
+      }
+      case 1: {
+        const [hash] = hashes;
+        logger.silly('Found 1 Hash: %s, returning...', hash);
+        return hash;
+      }
+      default: {
+        const [hash] = hashes;
+        logger.silly('Found %d Hashes! using the first one: %s', hashes.length, hash);
+        return hash;
+      }
+    }
+  } catch (err) {
+    logger.error('ERROR parsing hash property: %s %s', err.statusCode || err.status, err.message);
+    return null;
+  }
+};
+
+export const getProductInfoPage = async (fetch, url, proxy, logger) => {
+  logger.debug('Requesting product page for info');
+  try {
+    const res = await fetch(url, {
+      redirect: 'follow',
+      follow: 5,
+      agent: proxy ? proxy.proxy : null,
+      headers: {
+        'user-agent': userAgent,
+      },
+    });
+
+    const { url: redirectUrl } = res;
+
+    if (redirectUrl) {
+      if (/password/i.test(redirectUrl)) {
+        const error = new Error('Password Page');
+        error.status = ErrorCodes.PasswordPage;
+        throw error;
+      }
+    }
+
+    const body = await res.text();
+
+    const $ = cheerio.load(body, {
+      normalizeWhitespace: true,
+      xmlMode: false,
+    });
+
+    const product = $('script#ProductJson-product-template');
+    if (!product || product.attr('type') !== 'application/json') {
+      logger.silly('No products found on product page');
+      // If no products are found, throw an error, but specify a special status to stop the task
+      // TODO: Maybe replace with a custom error object?
+      const error = new Error('No Items Found');
+      error.status = ErrorCodes.ProductNotFound;
+      throw error;
+    }
+
+    const parsedProduct = JSON.parse(product.html());
+
+    logger.debug('Parsed product: %j', parsedProduct);
+
+    if (/eflash-us/i.test(url)) {
+      const hash = await parseProductInfoPageForHash($, logger);
+
+      return {
+        ...parsedProduct,
+        hash,
+      };
+    }
+
+    if (/eflash/i.test(url) && !/sg|jp/i.test(url)) {
+      return {
+        ...parsedProduct,
+        hash: 'ee3e8f7a9322eaa382e04f8539a7474c11555',
+      };
+    }
+
+    return parsedProduct;
+  } catch (err) {
+    throw err;
+  }
+};
+
 /**
  * Retrieve the full product info for a given product
  *
@@ -53,6 +161,11 @@ export function getParseType(product) {
 export const getFullProductInfo = (fetch, url, proxy, logger) => {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Parser: Getting Full Product Info...');
+
+  if (/eflash/i.test(url)) {
+    return getProductInfoPage(fetch, url, proxy, logger);
+  }
+
   _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', url);
   const genRequestPromise = productUrl =>
     fetch(productUrl, {

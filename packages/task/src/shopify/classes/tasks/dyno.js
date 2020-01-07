@@ -20,10 +20,6 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
       return nextState;
     }
 
-    if (this.context.task.account) {
-      return States.LOGIN;
-    }
-
     return States.WAIT_FOR_PRODUCT;
   }
 
@@ -31,7 +27,7 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
     const nextState = await super._handleLogin();
 
     if (nextState === States.DONE) {
-      return States.WAIT_FOR_PRODUCT;
+      return States.GATHER_DATA;
     }
     return nextState;
   }
@@ -42,6 +38,11 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
     if (nextState === States.DONE) {
       // NOTE: kick off the payment session generator
       this.generateSessions();
+
+      // for sites that require certain post params from cart...
+      if (/palace/i.test(this.context.task.store.name)) {
+        return States.GO_TO_CART;
+      }
       return States.CREATE_CHECKOUT;
     }
 
@@ -142,7 +143,7 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
       [States.QUEUE]: this._handleQueue,
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
-      [States.GO_TO_CART]: this._handleGoToCart,
+      [States.GO_TO_CART]: this._handleGetCart,
       [States.GO_TO_CHECKOUT]: this._handleGetCheckout,
       [States.CAPTCHA]: this._handleCaptcha,
       [States.SUBMIT_CUSTOMER]: this._handleSubmitCustomer,

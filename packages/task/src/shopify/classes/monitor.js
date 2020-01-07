@@ -33,12 +33,13 @@ export default class MonitorPrimitive extends BaseMonitor {
     const { monitor } = this.context.task;
     let delayStatus;
     let ban = false; // assume we don't have a softban
-    errors.forEach(({ status }) => {
-      if (!status) {
+    errors.forEach(({ status, errno }) => {
+      console.log(status, errno);
+      if (!status && !errno) {
         return;
       }
 
-      if (/429|430|ECONNRESET|ENOTFOUND/.test(status)) {
+      if (/429|430/.test(status) || /ECONNREFUSED|ECONNRESET|ENOTFOUND/i.test(errno)) {
         // status is 429, 430, or a connection error so set ban to true
         ban = true;
       }
@@ -60,7 +61,7 @@ export default class MonitorPrimitive extends BaseMonitor {
         this.context,
         this.context.ids,
         {
-          message: 'Proxy banned!',
+          message: 'Connection issues',
         },
         Events.MonitorStatus,
       );
@@ -186,8 +187,12 @@ export default class MonitorPrimitive extends BaseMonitor {
 
       return States.DONE;
     } catch (errors) {
-      // handle parsing errors
       logger.error('MONITOR: All request errored out! %j', errors);
+
+      if (!Array.isArray(errors)) {
+        return this._handleErrors([errors]);
+      }
+      // handle parsing errors
       return this._handleErrors(errors);
     }
   }

@@ -60,8 +60,6 @@ export default class RateFetcher extends BaseTask {
     const Parsers = getParsers(this.context.task.store.url);
     const parsers = Parsers(this.context, new AbortController(), this._fetch);
 
-    console.log(parsers.length);
-
     try {
       parsed = await rfrl(
         parsers.map(p => p.run()),
@@ -109,6 +107,8 @@ export default class RateFetcher extends BaseTask {
         return { nextState: this.states.ERROR, message: error.message || 'No product found' };
       }
     }
+
+    this.context.task.product.hash = fullProductInfo.hash;
     this.context.task.product.restockUrl = fullProductInfo.url;
     this.context.task.product.variants = fullProductInfo.variants.map(v =>
       pick(
@@ -180,6 +180,11 @@ export default class RateFetcher extends BaseTask {
       };
     }
 
+    let contentType = 'application/json';
+    if (/dsm uk/i.test(name)) {
+      contentType = 'application/x-www-form-urlencoded';
+    }
+
     const { option, id } = variant;
 
     this.context.task.product.size = option;
@@ -194,7 +199,7 @@ export default class RateFetcher extends BaseTask {
           host: `${url.split('/')[2]}`,
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
-          'content-type': 'application/json',
+          'content-type': contentType,
         },
         body: addToCart(id, name, hash),
       });
