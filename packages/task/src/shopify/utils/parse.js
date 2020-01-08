@@ -122,6 +122,7 @@ export const getProductInfoPage = async (fetch, url, proxy, logger) => {
     logger.debug('Parsed product: %j', parsedProduct);
 
     if (/eflash-us/i.test(url)) {
+      logger.debug('Parsing DSM US hash...');
       const hash = await parseProductInfoPageForHash($, logger);
 
       return {
@@ -131,6 +132,7 @@ export const getProductInfoPage = async (fetch, url, proxy, logger) => {
     }
 
     if (/eflash/i.test(url) && !/sg|jp/i.test(url)) {
+      logger.debug('Parsing DSM UK hash...');
       return {
         ...parsedProduct,
         hash: 'ee3e8f7a9322eaa382e04f8539a7474c11555',

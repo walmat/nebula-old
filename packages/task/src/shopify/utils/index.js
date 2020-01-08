@@ -5,8 +5,10 @@ import {
   parseForm,
   patchCheckoutForm,
   patchToCart,
-  paymentForm,
+  contactForm,
   shippingForm,
+  paymentForm,
+  completeForm,
 } from './forms';
 import {
   convertToJson,
@@ -104,8 +106,10 @@ const Forms = {
   parseForm,
   patchCheckoutForm,
   patchToCart,
+  contactForm,
   shippingForm,
   paymentForm,
+  completeForm,
 };
 
 export { pickVariant, Parse, Forms };

@@ -166,6 +166,7 @@ export default class MonitorPrimitive extends BaseMonitor {
 
       // Generate Variants
       logger.silly('Retrieved product %s', fullProductInfo.title);
+      this.context.task.product.hash = fullProductInfo.hash || '';
       this.context.task.product.image = fullProductInfo.featured_image;
       this.context.task.product.restockUrl = url; // Store restock url in case all variants are out of stock
       this.context.task.product.variants = fullProductInfo.variants.map(v =>

@@ -22,35 +22,33 @@ export default class SafeTaskPrimitive extends TaskPrimitive {
       return nextState;
     }
 
-    if (this.context.task.account) {
-      return States.LOGIN;
-    }
-
-    return States.CREATE_CHECKOUT;
+    return States.WAIT_FOR_PRODUCT;
   }
 
   async _handleLogin() {
     const nextState = await super._handleLogin();
 
     if (nextState === States.DONE) {
-      if (this.context.task.product.variants) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Adding to cart' },
-          Events.TaskStatus,
-        );
-        return States.ADD_TO_CART;
-      }
+      return States.GATHER_DATA;
+    }
 
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Waiting for product' },
-        Events.TaskStatus,
-      );
+    return nextState;
+  }
+
+  async _handleAddToCart() {
+    const nextState = await super._handleAddToCart();
+
+    if (nextState === States.DONE) {
+      // NOTE: kick off the payment session generator
+      this.generateSessions();
+
+      // for sites that require certain post params from cart...
+      if (/palace/i.test(this.context.task.store.name)) {
+        return States.GO_TO_CART;
+      }
       return States.CREATE_CHECKOUT;
     }
+
     return nextState;
   }
 
@@ -103,6 +101,16 @@ export default class SafeTaskPrimitive extends TaskPrimitive {
     return States.CREATE_CHECKOUT;
   }
 
+  async _handleSubmitCheckpoint() {
+    const nextState = await super._handleSubmitCheckpoint();
+
+    if (nextState === States.GO_TO_CART) {
+      return States.CREATE_CHECKOUT;
+    }
+
+    return nextState;
+  }
+
   async _handleSubmitCustomer() {
     const nextState = await super._handleSubmitCustomer();
 
@@ -110,16 +118,7 @@ export default class SafeTaskPrimitive extends TaskPrimitive {
       return nextState;
     }
 
-    if (!this._selectedShippingRate.id) {
-      return States.GO_TO_SHIPPING;
-    }
-
-    const { id } = this._selectedShippingRate;
-
-    this._form = `_method=patch&authenticity_token=&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURIComponent(
-      id,
-    )}&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;
-    return States.SUBMIT_SHIPPING;
+    return States.GO_TO_SHIPPING;
   }
 
   async _handleStepLogic(currentState) {
@@ -139,12 +138,13 @@ export default class SafeTaskPrimitive extends TaskPrimitive {
       [States.QUEUE]: this._handleQueue,
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
-      [States.CAPTCHA]: this._handleCaptcha,
+      [States.GO_TO_CART]: this._handleGetCart,
       [States.GO_TO_CHECKOUT]: this._handleGetCheckout,
+      [States.CAPTCHA]: this._handleCaptcha,
       [States.SUBMIT_CUSTOMER]: this._handleSubmitCustomer,
       [States.GO_TO_SHIPPING]: this._handleGetShipping,
       [States.SUBMIT_SHIPPING]: this._handleSubmitShipping,
-      [States.PAYMENT_SESSION]: this._handleGenerateSession,
+      [States.GO_TO_PAYMENT]: this._handleGetPayment,
       [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
       [States.COMPLETE_CHECKOUT]: this._handleCompleteCheckout,
       [States.CHECK_ORDER]: this._handleCheckOrder,

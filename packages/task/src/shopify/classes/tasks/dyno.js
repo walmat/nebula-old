@@ -72,6 +72,11 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
           state: States.GO_TO_CHECKPOINT,
         },
         {
+          url: 'login',
+          message: 'Account needed',
+          state: States.ERROR,
+        },
+        {
           url: 'password',
           message: 'Creating checkout',
           state: States.CREATE_CHECKOUT,
@@ -114,16 +119,7 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
       return nextState;
     }
 
-    if (!this._selectedShippingRate.id) {
-      return States.GO_TO_SHIPPING;
-    }
-
-    const { id } = this._selectedShippingRate;
-
-    this._form = `_method=patch&authenticity_token=&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURIComponent(
-      id,
-    )}&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;
-    return States.SUBMIT_SHIPPING;
+    return States.GO_TO_SHIPPING;
   }
 
   async _handleStepLogic(currentState) {
@@ -150,7 +146,6 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
       [States.GO_TO_SHIPPING]: this._handleGetShipping,
       [States.SUBMIT_SHIPPING]: this._handleSubmitShipping,
       [States.GO_TO_PAYMENT]: this._handleGetPayment,
-      [States.PAYMENT_SESSION]: this._handleGenerateSession,
       [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
       [States.COMPLETE_CHECKOUT]: this._handleCompleteCheckout,
       [States.CHECK_ORDER]: this._handleCheckOrder,

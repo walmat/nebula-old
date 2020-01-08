@@ -7,7 +7,7 @@ import { Forms } from '../../utils';
 import TaskPrimitive from './base';
 
 const { Task } = Constants;
-const { patchCheckoutForm, shippingForm, paymentForm } = Forms;
+const { patchCheckoutForm } = Forms;
 const { emitEvent, waitForDelay } = Utils;
 
 const { Events } = Task;
@@ -70,7 +70,6 @@ export default class FastTaskPrimitive extends TaskPrimitive {
         },
         {
           url: 'checkouts',
-          message: 'Submitting information',
           state: States.SUBMIT_CUSTOMER,
         },
       ],
@@ -132,142 +131,39 @@ export default class FastTaskPrimitive extends TaskPrimitive {
   }
 
   async _handleAddToCart() {
-    const {
-      task: {
-        store: { name },
-        product: { hash },
-        monitor,
-      },
-    } = this.context;
+    const nextState = await super._handleAddToCart();
 
-    this.generateSessions();
-
-    const { id: variantId } = this._product;
-    const { id: shippingId } = this._selectedShippingRate;
-
-    let opts = {};
-    const base = {
-      checkout: {
-        line_items: [
-          {
-            variant_id: variantId,
-            quantity: 1,
-            // eslint-disable-next-line no-nested-ternary
-            properties: /dsm uk/i.test(name)
-              ? {
-                  _hash: hash,
-                }
-              : /dsm us/i.test(name)
-              ? {
-                  _HASH: hash,
-                }
-              : {},
-          },
-        ],
-      },
-    };
-
-    if (shippingId) {
-      opts = {
-        shipping_rate: {
-          id: shippingId,
-        },
-      };
-    }
-
-    const { nextState, data } = await this._handler(
-      `/wallets/checkouts/${this._hash}.json`,
-      {
-        method: 'PATCH',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...base,
-          checkout: {
-            ...base.checkout,
-            ...opts,
-          },
-        }),
-      },
-      'Adding to cart',
-      States.ADD_TO_CART,
-      [
-        {
-          url: 'password',
-          message: 'Adding to cart',
-          state: States.ADD_TO_CART,
-        },
-        {
-          url: 'throttle',
-          message: 'Polling queue',
-          state: States.QUEUE,
-        },
-      ],
-    );
-
-    if (nextState) {
+    if (nextState !== States.DONE) {
       return nextState;
     }
 
-    const body = await data.json();
+    this.generateSessions();
 
-    if (body && body.errors && body.errors.line_items) {
-      const [error] = body.errors.line_items;
+    return States.GO_TO_CHECKOUT;
+  }
 
-      if (error && error.quantity) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: `Out of stock! Delaying ${monitor}ms` },
-          Events.TaskStatus,
-        );
+  async _handleGetCheckout() {
+    const nextState = await super._handleGetCheckout();
 
-        this._delayer = waitForDelay(monitor, this._aborter.signal);
-        await this._delayer;
-
-        return States.ADD_TO_CART;
-      }
-
-      if (error && error.variant_id && error.variant_id.length) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: `Variant not live! Delaying ${monitor}ms` },
-          Events.TaskStatus,
-        );
-
-        this._delayer = waitForDelay(monitor, this._aborter.signal);
-        await this._delayer;
-
-        return States.ADD_TO_CART;
-      }
-
-      const { status } = data;
-      const message = status ? `Adding to cart (${status})` : 'Adding to cart';
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-      return States.ADD_TO_CART;
-    }
-
-    if (body.checkout && body.checkout.line_items && body.checkout.line_items.length) {
-      this.context.task.product.name = body.checkout.line_items[0].title;
-      this.context.task.product.image = body.checkout.line_items[0].image_url.startsWith('http')
-        ? body.checkout.line_items[0].image_url
-        : `http:${body.checkout.line_items[0].image_url}`;
-
+    if (nextState === States.SUBMIT_CUSTOMER) {
       return States.GO_TO_SHIPPING;
     }
-    const { status } = data;
-    const message = status ? `Adding to cart (${status})` : 'Adding to cart';
-    emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
-    return States.ADD_TO_CART;
+
+    return nextState;
   }
 
   async _handleGetShipping() {
     const {
-      task: { captcha },
+      task: {
+        captcha,
+        store: { url },
+      },
       captchaToken,
     } = this.context;
+
+    if (!/eflash-sg|eflash-jp/i.test(url)) {
+      return super._handleGetShipping();
+    }
 
     const { data } = await this._handler(
       `/wallets/checkouts/${this._hash}/shipping_rates.json`,
@@ -313,6 +209,10 @@ export default class FastTaskPrimitive extends TaskPrimitive {
       if (captcha && !captchaToken) {
         return States.CAPTCHA;
       }
+
+      if (!/eflash-sg|eflash-jp/i.test(url)) {
+        return States.SUBMIT_SHIPPING;
+      }
       return States.SUBMIT_CHECKOUT;
     }
 
@@ -322,29 +222,11 @@ export default class FastTaskPrimitive extends TaskPrimitive {
     return States.GO_TO_SHIPPING;
   }
 
-  async _handleSubmitShipping() {
-    const { id } = this._selectedShippingRate;
-
-    this._form = shippingForm(id);
-    const nextState = await super._handleSubmitShipping();
-
-    if (
-      nextState === States.GO_TO_PAYMENT ||
-      nextState === States.GO_TO_SHIPPING ||
-      nextState === States.GO_TO_CHECKOUT
-    ) {
-      return States.SUBMIT_CHECKOUT;
-    }
-
-    return nextState;
-  }
-
   async _handleSubmitCheckout() {
     const {
       task: {
         captcha,
         store: { url },
-        profile,
       },
       captchaToken,
     } = this.context;
@@ -354,7 +236,6 @@ export default class FastTaskPrimitive extends TaskPrimitive {
         this._token = this._tokens.shift();
       }
 
-      this._form = paymentForm(profile, this._token);
       return super._handleSubmitCheckout();
     }
 
@@ -533,17 +414,7 @@ export default class FastTaskPrimitive extends TaskPrimitive {
       return States.CHECK_ORDER;
     }
 
-    return States.SUBMIT_CHECKOUT;
-  }
-
-  async _handleSubmitCheckpoint() {
-    const nextState = await super._handleSubmitCheckpoint();
-
-    if (nextState === States.CREATE_CHECKOUT) {
-      return States.SUBMIT_CHECKOUT;
-    }
-
-    return nextState;
+    return States.COMPLETE_CHECKOUT;
   }
 
   async _handleStepLogic(currentState) {
@@ -560,11 +431,13 @@ export default class FastTaskPrimitive extends TaskPrimitive {
       [States.QUEUE]: this._handleQueue,
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
       [States.ADD_TO_CART]: this._handleAddToCart,
+      [States.GO_TO_CART]: this._handleGetCart,
+      [States.GO_TO_CHECKOUT]: this._handleGetCheckout,
       [States.CAPTCHA]: this._handleCaptcha,
       [States.SUBMIT_CUSTOMER]: this._handleSubmitCustomer,
       [States.GO_TO_SHIPPING]: this._handleGetShipping,
       [States.SUBMIT_SHIPPING]: this._handleSubmitShipping,
-      [States.PAYMENT_SESSION]: this._handleGenerateSession,
+      [States.GO_TO_PAYMENT]: this._handleGetPayment,
       [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
       [States.COMPLETE_CHECKOUT]: this._handleCompleteCheckout,
       [States.CHECK_ORDER]: this._handleCheckOrder,

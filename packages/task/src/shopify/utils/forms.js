@@ -283,6 +283,20 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
 };
 
 export const contactForm = (profile, captchaToken) => {
+  const { email } = profile.payment;
+  const {
+    firstName,
+    lastName,
+    address,
+    province,
+    country,
+    city,
+    apt,
+    zip,
+    phone,
+  } = profile.shipping;
+
+  const provinceValue = province ? province.value : '';
   let form = `_method=patch&authenticity_token=&previous_step=contact_information&step=shipping_method&checkout%5Bemail%5D=${email}&checkout%5Bshipping_address%5D%5Bfirst_name%5D=${firstName}&checkout%5Bshipping_address%5D%5Blast_name%5D=${lastName}&checkout%5Bshipping_address%5D%5Bcompany%5D=&checkout%5Bshipping_address%5D%5Baddress1%5D=${address}&checkout%5Bshipping_address%5D%5Baddress2%5D=${apt}&checkout%5Bshipping_address%5D%5Bcity%5D=${city}&checkout%5Bshipping_address%5D%5Bcountry%5D=${country.label}&checkout%5Bshipping_address%5D%5Bprovince%5D=${provinceValue}&checkout%5Bshipping_address%5D%5Bzip%5D=${zip}&checkout%5Bshipping_address%5D%5Bphone%5D=${phone}&checkout%5Bshipping_address%5D%5Bfirst_name%5D=${firstName}&checkout%5Bshipping_address%5D%5Blast_name%5D=${lastName}&checkout%5Bshipping_address%5D%5Bcompany%5D=&checkout%5Bshipping_address%5D%5Baddress1%5D=${address}&checkout%5Bshipping_address%5D%5Baddress2%5D=${apt}&checkout%5Bshipping_address%5D%5Bcity%5D=${city}&checkout%5Bshipping_address%5D%5Bcountry%5D=${country.label}&checkout%5Bshipping_address%5D%5Bprovince%5D=${provinceValue}&checkout%5Bshipping_address%5D%5Bzip%5D=${zip}&checkout%5Bshipping_address%5D%5Bphone%5D=${phone}&checkout%5Bremember_me%5D=&checkout%5Bremember_me%5D=0&checkout%5Bremember_me%5D=1`;
 
   if (captchaToken) {
@@ -295,17 +309,19 @@ export const contactForm = (profile, captchaToken) => {
 };
 
 export const shippingForm = rate =>
-  `__method=patch&authenticity_token=&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURIComponent(
+  `_method=patch&authenticity_token=&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURIComponent(
     rate,
-  )}&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;
+  )}&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29');
 
-export const paymentForm = (profile, s) => {
+export const paymentForm = (profile, gateway = '', s) => {
   const { matches, billing } = profile;
   const { firstName, lastName, address, province, country, city, apt, zip, phone } = billing;
 
   const provinceValue = province ? province.value : '';
 
-  const form = `_method=patch&authenticity_token=&previous_step=payment_method&step=&s=${s}&checkout%5Bpayment_gateway%5D=&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bdifferent_billing_address%5D=${!matches}&checkout%5Bbilling_address%5D%5Bfirst_name%5D=${firstName}&checkout%5Bbilling_address%5D%5Blast_name%5D=${lastName}&checkout%5Bbilling_address%5D%5Bcompany%5D=&checkout%5Bbilling_address%5D%5Baddress1%5D=${address}&checkout%5Bbilling_address%5D%5Baddress2%5D=${apt}&checkout%5Bbilling_address%5D%5Bcity%5D=${city}&checkout%5Bbilling_address%5D%5Bcountry%5D=${
+  const form = `_method=patch&authenticity_token=&previous_step=payment_method&step=&s=${s}&checkout%5Bpayment_gateway%5D=${gateway}&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bdifferent_billing_address%5D=${!matches}&checkout%5Bbilling_address%5D%5Bfirst_name%5D=${firstName}&checkout%5Bbilling_address%5D%5Blast_name%5D=${lastName}&checkout%5Bbilling_address%5D%5Bcompany%5D=&checkout%5Bbilling_address%5D%5Baddress1%5D=${address}&checkout%5Bbilling_address%5D%5Baddress2%5D=${apt}&checkout%5Bbilling_address%5D%5Bcity%5D=${city}&checkout%5Bbilling_address%5D%5Bcountry%5D=${
     country.label
   }&checkout%5Bbilling_address%5D%5Bprovince%5D=${provinceValue}&checkout%5Bbilling_address%5D%5Bzip%5D=${zip}&checkout%5Bbilling_address%5D%5Bphone%5D=${phone}&checkout%5Bbilling_address%5D%5Bfirst_name%5D=${firstName}&checkout%5Bbilling_address%5D%5Blast_name%5D=${lastName}&checkout%5Bbilling_address%5D%5Bcompany%5D=&checkout%5Bbilling_address%5D%5Baddress1%5D=${address}&checkout%5Bbilling_address%5D%5Baddress2%5D=${apt}&checkout%5Bbilling_address%5D%5Bcity%5D=${city}&checkout%5Bbilling_address%5D%5Bcountry%5D=${
     country.label
@@ -313,3 +329,6 @@ export const paymentForm = (profile, s) => {
 
   return form.replace(/\s/g, '+');
 };
+
+export const completeForm = price =>
+  `_method=patch&authenticity_token=&checkout%5Btotal_price%5D=${price}&complete=1&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=910&checkout%5Bclient_details%5D%5Bbrowser_height%5D=528&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;
