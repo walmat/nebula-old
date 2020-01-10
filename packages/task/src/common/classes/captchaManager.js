@@ -7,6 +7,7 @@ const { Events } = Manager;
 export default class CaptchaManager {
   constructor(logger) {
     this._logger = logger;
+
     // Captcha Map
     this._requesters = new Map();
     this._tokens = new Map();

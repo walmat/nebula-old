@@ -46,7 +46,7 @@ export default class BaseMonitor {
     const { id, proxy, task, logger, proxyManager } = this.context;
     const proxyId = proxy ? proxy.id : null;
     logger.debug('Swapping proxy with id: %j', proxyId);
-    const newProxy = await proxyManager.swap(id, proxyId, task.store.url, this._platform);
+    const newProxy = await proxyManager.swap(id, proxyId, task.store.url);
     logger.debug('Received new proxy: %j', newProxy ? newProxy.proxy : null);
     return newProxy;
   }

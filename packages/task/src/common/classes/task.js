@@ -70,7 +70,7 @@ export default class BaseTask {
   async swapProxies() {
     const { id, proxy, task, proxyManager } = this.context;
     const proxyId = proxy ? proxy.id : null;
-    const newProxy = await proxyManager.swap(id, proxyId, task.store.url, this._platform);
+    const newProxy = await proxyManager.swap(id, proxyId, task.store.url);
     return newProxy;
   }
 

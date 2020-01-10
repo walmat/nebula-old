@@ -153,6 +153,22 @@
           background: #ef415e;
       }
 
+      .captcha-btn {
+        position: absolute;
+        top: 60%;
+        left: 40%;
+        margin-left: 10%;
+        transform: translate3d(-50%, -50%, 0);
+        border: none;
+        border-radius: 3px;
+        height: 31px;
+        padding: 0px 7.5px;
+        width: 130px;
+        background: #6d6e70;
+        cursor: pointer;
+        color: #161318;
+      }
+
       @-webkit-keyframes slide {
           0% {
               transform: scale(1);
@@ -203,7 +219,7 @@
                 challengeButton.click();
               }
             }
-          }, rand(500, 1000));
+          }, rand(100, 500));
         }
       }
 
@@ -316,6 +332,7 @@
           value: false,
         });
 
+        document.getElementById('request-captcha-btn').onclick = window.Bridge.startHarvest;
         document.getElementById('close-btn').onclick = window.Bridge.close;
         document.getElementById('launch-youtube').onclick = window.Bridge.launchYoutube;
         document.getElementById('end-session').onclick = window.Bridge.endCaptchaSession;
@@ -375,6 +392,8 @@
         <div class="dot"></div>
         <div class="dot"></div>
       </div>
+
+      <button id="request-captcha-btn" class="captcha-btn">Request Captcha</button>
     </div>
     <div id="captcha">
       <form id="captchaForm" action="/submit" method="post" style="visibility: hidden;">

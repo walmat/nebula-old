@@ -10,8 +10,9 @@ export default class ProxyManager {
     return this._proxies;
   }
 
-  constructor(logger) {
+  constructor(logger, tasks) {
     this._logger = logger;
+    this._tasks = tasks;
     this._proxies = new Map();
     this._events = new EventEmitter();
     this.retry = 1000; // retry delay for swapping
@@ -79,9 +80,7 @@ export default class ProxyManager {
       hash: proxyHash,
       raw: proxy,
       proxy: new HttpsProxyAgent(formattedProxy),
-      platforms: {},
       use: {},
-      tasks: {},
     });
     this._logger.debug('Proxy Added with id %s', id);
   }
@@ -128,7 +127,7 @@ export default class ProxyManager {
    * @param {String} wait whether or not this method should wait for an open proxy
    * @param {Number} timeout the recursive call limit on proxy reservations
    */
-  async reserve(id, store, platform, wait = false, timeout = 5) {
+  async reserve(id, store, wait = false, timeout = 5) {
     let newTimeout = timeout;
     if (!timeout || Number.isNaN(timeout) || timeout < 0) {
       // Force wait limit to be 0 if we have an invalid parameter value passed in
@@ -149,20 +148,13 @@ export default class ProxyManager {
     let proxy = null;
 
     for (const p of this._proxies.values()) {
-      this._logger.debug(
-        '%s:\n\n Platform predicate: %j, Used predicate: %j',
-        p.proxy,
-        p.platforms[platform],
-        p.use[store],
-      );
-      if (!p.use[store] && !p.platforms[platform]) {
+      this._logger.debug('%s: in use?: %j', p.proxy, p.use[store]);
+      if (!p.use[store]) {
         proxy = p;
         // immediately remove the proxy from the list
         this._proxies.delete(proxy.id);
         // set it to in use
         proxy.use[store] = true;
-        proxy.tasks[id] = id;
-        proxy.platforms[platform] = true;
         // push the proxy back onto the end of the stack
         this._proxies.set(proxy.id, proxy);
         this._logger.debug('Returning proxy: %s', proxy.raw);
@@ -176,7 +168,7 @@ export default class ProxyManager {
     this._logger.debug('All proxies are reserved, waiting for open proxy...');
     return new Promise(resolve => {
       setTimeout(
-        async () => resolve(await this.reserve(id, store, platform, wait, newTimeout - 1)),
+        async () => resolve(await this.reserve(id, store, wait, newTimeout - 1)),
         this.retry,
       ); // wait 1s then try again (should we change this timeout to something smaller?)
     });
@@ -188,7 +180,7 @@ export default class ProxyManager {
    * @param {String} id the id of the task this proxy is being released from
    * @param {String} proxyId the id of the proxy to release
    */
-  async release(id, store, platform, proxyId) {
+  async release(id, store, proxyId) {
     this._logger.debug('Releasing proxy %s for task %s on store %s...', proxyId, id, store);
     const proxy = this._proxies.get(proxyId);
     if (!proxy) {
@@ -197,8 +189,6 @@ export default class ProxyManager {
     }
     // otherwise, just free up the use list
     delete proxy.use[store];
-    delete proxy.tasks[id];
-    delete proxy.platforms[platform];
     this._logger.debug('Released Proxy %s', proxyId);
   }
 
@@ -214,7 +204,7 @@ export default class ProxyManager {
    * @param {String} store the store the proxy is banned
    * @param {bool} shouldBan whether the old proxy should be banned
    */
-  async swap(id, proxyId, store, platform) {
+  async swap(id, proxyId, store) {
     let shouldRelease = true;
 
     const oldProxy = this._proxies.get(proxyId);
@@ -227,7 +217,7 @@ export default class ProxyManager {
     this._logger.debug('Attempting to swap: %j', oldProxy ? oldProxy.raw : null);
 
     // Attempt to reserve a proxy first before releasing the old one
-    const newProxy = await this.reserve(id, store, platform);
+    const newProxy = await this.reserve(id, store);
 
     this._logger.debug(
       'Swapped old proxy: %s \n Returned new proxy: %s',
@@ -238,7 +228,7 @@ export default class ProxyManager {
     // Check if we need to release the old proxy
     if (shouldRelease) {
       this._logger.debug('Releasing old proxy... %s', oldProxy.raw);
-      await this.release(id, store, platform, proxyId);
+      await this.release(id, store, proxyId);
     }
 
     if (!newProxy) {

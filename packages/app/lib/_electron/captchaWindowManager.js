@@ -70,6 +70,10 @@ class CaptchaWindowManager {
       IPCKeys.RequestSaveCaptchaProxy,
       this.validateSender(this._onRequestSaveCaptchaProxy),
     );
+    context.ipc.on(
+      IPCKeys.RequestStartHarvestCaptcha,
+      this.validateSender(this._onRequestStartHarvest),
+    );
     context.ipc.on(IPCKeys.HarvestCaptcha, this.validateSender(this._onHarvestToken));
     context.ipc.on(
       IPCKeys.RequestRefresh,
@@ -320,14 +324,14 @@ class CaptchaWindowManager {
     let session = {};
     // eslint-disable-next-line no-restricted-syntax
     for (const s of Object.values(this._sessions)) {
-      if (s && !s.inUse) {
+      if (s && !s.inUse[host]) {
         session = s;
         break;
       }
     }
 
     if (session) {
-      session.inUse = true;
+      session.inUse[host] = true;
     }
 
     // Store background color if it is passed so we get the latest background color passed
@@ -418,14 +422,8 @@ class CaptchaWindowManager {
 
       if (sessionId !== undefined && sessionId !== null) {
         console.log(`[DEBUG]: Removing window ${winId} from session`);
-        const s = this._sessions[sessionId];
-        this._sessions[sessionId] = {
-          id: s.id,
-          proxy: s.proxy,
-          window: '',
-          session: s.session,
-          inUse: false,
-        };
+        delete this._sessions[sessionId].window;
+        delete this._sessions[sessionId].inUse[host];
         this._store.set('captchaSessions', JSON.stringify(this._sessions));
       }
 
@@ -453,11 +451,7 @@ class CaptchaWindowManager {
     console.log('Freeing sessions');
     // eslint-disable-next-line no-restricted-syntax
     for (const key of Object.keys(this._sessions)) {
-      const session = this._sessions[key];
-      this._sessions[key] = {
-        ...session,
-        inUse: false,
-      };
+      this._sessions[key].inUse = {};
     }
 
     this._store.set('captchaSessions', JSON.stringify(this._sessions));
@@ -478,7 +472,7 @@ class CaptchaWindowManager {
             proxy: '',
             window: '',
             session: persist ? `persist:${i}` : i,
-            inUse: false,
+            inUse: {},
           };
         }
 
@@ -497,7 +491,7 @@ class CaptchaWindowManager {
             proxy: '',
             window: '',
             session: persist ? `persist:${i}` : i,
-            inUse: false,
+            inUse: {},
           };
         }
 
@@ -510,7 +504,7 @@ class CaptchaWindowManager {
           proxy: '',
           window: '',
           session: persist ? `persist:${i}` : i,
-          inUse: false,
+          inUse: {},
         };
       }
 
@@ -648,10 +642,14 @@ class CaptchaWindowManager {
     });
 
     if (this._tokenQueue[sitekey].backlogLength >= MAX_HARVEST_CAPTCHA_COUNT) {
-      console.log('[DEBUG]: Token Queue is greater than max, backing off...');
+      console.log(
+        `[DEBUG]: Token backlog is greater than ${MAX_HARVEST_CAPTCHA_COUNT}, suspending...`,
+      );
       this.suspendHarvesting(id, sitekey, host);
     }
   }
+
+  _onRequestStartHarvest(ev, id, host, sitekey) {}
 
   /**
    * Launch Youtube Window
@@ -683,14 +681,7 @@ class CaptchaWindowManager {
 
       if (sessionId !== undefined && sessionId !== null) {
         console.log('[DEBUG]: Found session %s Updating proxy...', sessionId);
-        const s = this._sessions[sessionId];
-        this._sessions[sessionId] = {
-          id: s.id,
-          window: winId,
-          proxy, // save raw proxy, format it later...
-          session: s.session,
-          inUse: true,
-        };
+        this._sessions[sessionId].proxy = proxy;
 
         this._store.set('captchaSessions', JSON.stringify(this._sessions));
       }

@@ -46,7 +46,7 @@ export default class TaskManager {
       prefix: 'manager',
     });
 
-    this.proxyManager = new ProxyManager(this._logger);
+    this.proxyManager = new ProxyManager(this._logger, this._tasks);
     this.captchaManager = new CaptchaManager(this._logger);
     this.webhookManager = new WebhookManager(this._logger);
 
@@ -151,7 +151,7 @@ export default class TaskManager {
    *   - type - The task type to start
    */
   async start(task, { type = Types.Normal }) {
-    const proxy = await this.proxyManager.reserve(task.id, task.store.url, task.platform);
+    const proxy = await this.proxyManager.reserve(task.id, task.store.url);
 
     this._logger.silly('Starting task for %s with proxy %j', task.id, proxy);
     return this._start([task, proxy, type]);
@@ -308,12 +308,7 @@ export default class TaskManager {
 
     // If we have a proxy, make sure to free that up
     if (taskContext.proxy) {
-      this.proxyManager.release(
-        taskContext.id,
-        taskContext.task.store.url,
-        task.platform,
-        taskContext.proxy.id,
-      );
+      this.proxyManager.release(taskContext.id, taskContext.task.store.url, taskContext.proxy.id);
     }
 
     return taskContext.id;
