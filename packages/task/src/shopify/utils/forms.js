@@ -3,7 +3,7 @@ import { Task as TaskConstants } from '../constants';
 
 const { States } = TaskConstants;
 
-export const patchCheckoutForm = (matches, shipping, billing, payment, variant, name, hash) => {
+export const patchCheckoutForm = (matches, shipping, billing, payment, token) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   let data = {
     complete: '1',
@@ -65,28 +65,8 @@ export const patchCheckoutForm = (matches, shipping, billing, payment, variant, 
     };
   }
 
-  if (variant) {
-    data = {
-      ...data,
-      checkout: {
-        ...data.checkout,
-        line_items: [
-          {
-            variant_id: variant,
-            quantity: 1,
-            properties: /dsm uk/i.test(name)
-              ? {
-                  _hash: hash,
-                }
-              : /dsm us/i.test(name)
-              ? {
-                  _HASH: hash,
-                }
-              : {},
-          },
-        ],
-      },
-    };
+  if (token) {
+    data['g-recaptcha-response'] = token;
   }
 
   return data;

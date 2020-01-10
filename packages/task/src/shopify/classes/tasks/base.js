@@ -115,6 +115,8 @@ export default class TaskPrimitive extends BaseTask {
       States.PAYMENT_SESSION,
     );
 
+    console.log(data);
+
     const { id } = await data.json();
 
     if (id) {
@@ -978,11 +980,6 @@ export default class TaskPrimitive extends BaseTask {
           message: 'Submitting information',
           state: States.SUBMIT_CUSTOMER,
         },
-        {
-          url: 'stock_problems',
-          message: 'Submitting information',
-          state: States.SUBMIT_CUSTOMER,
-        },
       ],
     );
 
@@ -996,22 +993,23 @@ export default class TaskPrimitive extends BaseTask {
       normalizeWhitespace: true,
     });
 
-    // recaptcha sitekey parser...
-    const sitekey = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-    if (sitekey && sitekey.length) {
-      [, this.context.task.store.sitekey] = sitekey;
-    }
-
-    if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
-      return States.CAPTCHA;
-    }
-
     if (/Getting available shipping rates/i.test(body)) {
-      this._delayer = waitForDelay(100, this._aborter.signal);
-      await this._delayer;
-
       return States.GO_TO_SHIPPING;
     }
+
+    if (/stock_problems/i.test(body)) {
+      return States.SUBMIT_CUSTOMER;
+    }
+
+    // form parser...
+    this._form = await parseForm(
+      $,
+      States.GO_TO_CHECKOUT,
+      this._hash,
+      this.context.task.profile,
+      'form.edit_checkout',
+      'input, select, textarea, button',
+    );
 
     if (!this._key) {
       try {
@@ -1030,15 +1028,15 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    // form parser...
-    this._form = await parseForm(
-      $,
-      States.GO_TO_CHECKOUT,
-      this._hash,
-      this.context.task.profile,
-      'form.edit_checkout',
-      'input, select, textarea, button',
-    );
+    // recaptcha sitekey parser...
+    const sitekey = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+    if (sitekey && sitekey.length) {
+      [, this.context.task.store.sitekey] = sitekey;
+    }
+
+    if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
+      return States.CAPTCHA;
+    }
 
     return States.SUBMIT_CUSTOMER;
   }
@@ -1196,16 +1194,20 @@ export default class TaskPrimitive extends BaseTask {
       normalizeWhitespace: true,
     });
 
-    if (/stock_problems/i.test(body) && !this._selectedShippingRate.id) {
-      const sideState = await this._handleAlternativeRates();
+    if (/stock_problems/i.test(body)) {
+      if (!this._selectedShippingRate.id) {
+        const sideState = await this._handleAlternativeRates();
 
-      if (sideState === States.DONE) {
-        // build the shipping form, and proceed to submit shipping
-        this._form = shippingForm(this._selectedShippingRate.id);
-        return States.SUBMIT_SHIPPING;
+        if (sideState === States.DONE) {
+          // build the shipping form, and proceed to submit shipping
+          this._form = shippingForm(this._selectedShippingRate.id);
+          return States.SUBMIT_SHIPPING;
+        }
+
+        return States.GO_TO_SHIPPING;
       }
 
-      return States.GO_TO_SHIPPING;
+      return States.SUBMIT_SHIPPING;
     }
 
     if (/Getting available shipping rates/i.test(body)) {
@@ -1297,6 +1299,8 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
+    this._form = '';
+
     if (nextState) {
       return nextState;
     }
@@ -1306,6 +1310,10 @@ export default class TaskPrimitive extends BaseTask {
     if (/Getting available shipping rates/i.test(body)) {
       this._delayer = waitForDelay(500, this._aborter.signal);
       await this._delayer;
+    }
+
+    if (/stock_problems/i.test(body)) {
+      return States.GO_TO_PAYMENT;
     }
 
     return States.SUBMIT_SHIPPING;
@@ -1367,6 +1375,10 @@ export default class TaskPrimitive extends BaseTask {
       return States.GO_TO_PAYMENT;
     }
 
+    if (/stock_problems/i.test(body)) {
+      return States.SUBMIT_CHECKOUT;
+    }
+
     // form parser...
     this._form = await parseForm(
       $,
@@ -1383,7 +1395,17 @@ export default class TaskPrimitive extends BaseTask {
   async _handleSubmitCheckout() {
     const { monitor } = this.context.task;
 
+    if (this.context.aborted) {
+      return States.ABORT;
+    }
+
     if (!this._token) {
+      if (!this._tokens.length) {
+        this._delayer = waitForDelay(250, this._aborter.signal);
+        await this._delayer;
+
+        return States.SUBMIT_CHECKOUT;
+      }
       this._token = this._tokens.shift();
     }
 
@@ -1454,6 +1476,11 @@ export default class TaskPrimitive extends BaseTask {
         this._gateway = gatewayInput.attr('value');
         this._form = paymentForm(this.context.task.profile, this._gateway, this._token);
       }
+    }
+
+    if (/validation failed/i.test(body)) {
+      this.context.setCaptchaToken(null);
+      return States.CAPTCHA;
     }
 
     if (/recaptcha/i.test(body) && !this.context.captchaToken) {

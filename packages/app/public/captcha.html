@@ -203,7 +203,7 @@
                 challengeButton.click();
               }
             }
-          }, rand(1000, 1500));
+          }, rand(500, 1000));
         }
       }
 
@@ -245,7 +245,7 @@
             window.Bridge.harvestCaptchaToken(_runnerId, token, _sitekey, _host);
           }
         }
-        await waitFor(rand(200, 500)); // wait a little bit before resetting
+        // await waitFor(rand(200, 500)); // wait a little bit before resetting
         resetChallenge();
         _submitting = false;
       }

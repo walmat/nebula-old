@@ -16,6 +16,8 @@ const { States } = TaskConstants;
 export default class FastTaskPrimitive extends TaskPrimitive {
   constructor(context) {
     super(context, States.GATHER_DATA);
+
+    this._setup = false;
   }
 
   async _handleGatherData() {
@@ -85,7 +87,21 @@ export default class FastTaskPrimitive extends TaskPrimitive {
     return States.CREATE_CHECKOUT;
   }
 
+  async _handleSubmitCheckpoint() {
+    const nextState = await super._handleSubmitCheckpoint();
+
+    if (nextState === States.GO_TO_CART) {
+      return States.CREATE_CHECKOUT;
+    }
+
+    return nextState;
+  }
+
   async _handleSubmitCustomer() {
+    if (this._setup) {
+      return super._handleSubmitCustomer();
+    }
+
     const { shipping, billing, payment, matches } = this.context.task.profile;
 
     const { nextState, data } = await this._handler(
@@ -95,7 +111,9 @@ export default class FastTaskPrimitive extends TaskPrimitive {
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify(patchCheckoutForm(matches, shipping, billing, payment)),
+        body: JSON.stringify(
+          patchCheckoutForm(matches, shipping, billing, payment, this.context.captchaToken),
+        ),
       },
       'Submitting information',
       States.SUBMIT_CUSTOMER,
@@ -127,6 +145,7 @@ export default class FastTaskPrimitive extends TaskPrimitive {
       return States.SUBMIT_CUSTOMER;
     }
 
+    this._setup = true;
     return States.WAIT_FOR_PRODUCT;
   }
 
@@ -142,15 +161,15 @@ export default class FastTaskPrimitive extends TaskPrimitive {
     return States.GO_TO_CHECKOUT;
   }
 
-  async _handleGetCheckout() {
-    const nextState = await super._handleGetCheckout();
+  // async _handleGetCheckout() {
+  //   const nextState = await super._handleGetCheckout();
 
-    if (nextState === States.SUBMIT_CUSTOMER) {
-      return States.GO_TO_SHIPPING;
-    }
+  //   if (nextState === States.SUBMIT_CUSTOMER && !this._setup) {
+  //     return States.GO_TO_SHIPPING;
+  //   }
 
-    return nextState;
-  }
+  //   return nextState;
+  // }
 
   async _handleGetShipping() {
     const {

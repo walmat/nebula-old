@@ -2,7 +2,7 @@ import AbortController from 'abort-controller';
 import { pick } from 'lodash';
 
 import { Constants, Utils, Bases } from '../../common';
-import { getParsers } from '../parsers';
+import { getParsers, JsonParser } from '../parsers';
 import { Parse } from '../utils';
 import { Monitor as MonitorConstants } from '../constants';
 
@@ -34,7 +34,6 @@ export default class MonitorPrimitive extends BaseMonitor {
     let delayStatus;
     let ban = false; // assume we don't have a softban
     errors.forEach(({ status, errno }) => {
-      console.log(status, errno);
       if (!status && !errno) {
         return;
       }
