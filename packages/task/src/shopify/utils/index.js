@@ -24,9 +24,13 @@ import { Task as TaskConstants } from '../constants';
 const { States } = TaskConstants;
 const { userAgent } = Utils;
 
-export const stateForError = ({ status, name, errno }, { message, nextState }) => {
+export const stateForError = ({ status, type, name, errno }, { message, nextState }) => {
   // Look for errors in cause
   const errorMatch = /(ECONNRESET|ETIMEDOUT|ESOCKETTIMEDOUT|ENOTFOUND|ECONNREFUSED)/.exec(errno);
+
+  if (/timeout/i.test(type)) {
+    return { nextState, message };
+  }
 
   if (/aborterror/i.test(name)) {
     return { nextState: States.ABORT };

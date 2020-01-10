@@ -222,7 +222,7 @@ class CaptchaWindowManager {
    * harvest state to 'idle'
    */
   stopHarvesting(id, sitekey, host) {
-    this._harvestStatus = {
+    this._harvestStatus[sitekey] = {
       state: HARVEST_STATES.IDLE,
       id,
       sitekey,

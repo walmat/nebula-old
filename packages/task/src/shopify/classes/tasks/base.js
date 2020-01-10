@@ -81,6 +81,10 @@ export default class TaskPrimitive extends BaseTask {
       },
     } = this.context;
 
+    if (this.context.aborted) {
+      return States.DONE;
+    }
+
     if (this._tokens.length >= 1) {
       this._delayer = waitForDelay(150, this._aborter.signal);
       await this._delayer;
@@ -115,7 +119,9 @@ export default class TaskPrimitive extends BaseTask {
       States.PAYMENT_SESSION,
     );
 
-    console.log(data);
+    if (!data) {
+      return this.generateSessions();
+    }
 
     const { id } = await data.json();
 
