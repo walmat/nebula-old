@@ -79,7 +79,7 @@ export default class BaseTask {
     try {
       const proxy = await this.swapProxies();
 
-      logger.debug('Using new proxy: %j', proxy ? proxy.raw : 'none');
+      logger.debug('Using new proxy: %j', proxy ? proxy.raw : 'localhost');
       this.context.setLastProxy(this.context.proxy);
       this.context.setProxy(proxy);
 
