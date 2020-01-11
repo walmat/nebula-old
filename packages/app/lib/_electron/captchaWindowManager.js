@@ -346,10 +346,8 @@ class CaptchaWindowManager {
 
     CaptchaWindowManager.setupIntercept(win);
 
-    win.webContents.session.setUserAgent(
-      'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0',
-      '*/*',
-    );
+    console.log(`[DEBUG]: Detected UA: %j`, win.webContents.session.getUserAgent());
+
     const winId = win.id;
     const webContentsId = win.webContents.id;
 
@@ -516,6 +514,14 @@ class CaptchaWindowManager {
     // Use parent session to link the two windows together
     // TODO: Do we use the same proxy?
     const win = createYouTubeWindow(null, { session: parentSession });
+
+    win.webContents.setUserAgent(
+      'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:70.0) Gecko/20100101 Firefox/70.0',
+      '*/*',
+    );
+
+    console.log(`[DEBUG]: UA set to: `, win.webContents.getUserAgent());
+
     const winId = win.id;
     this._youtubeWindows[parentId] = win;
     win.on('ready-to-show', () => {
