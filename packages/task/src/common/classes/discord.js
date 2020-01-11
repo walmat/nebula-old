@@ -24,7 +24,7 @@ export default class Discord {
       const embed = new RichEmbed()
         .setColor(success ? 4631988 : 15679838)
         .setTimestamp(new Date())
-        .setFooter('Nebula © 2019', 'https://i.ibb.co/1dqVb6k/logo.png');
+        .setFooter('Nebula © 2020', 'https://i.ibb.co/1dqVb6k/logo.png');
 
       if (type) {
         embed.setTitle(success ? `Successful checkout (${type})` : `Payment failed! (${type})`);

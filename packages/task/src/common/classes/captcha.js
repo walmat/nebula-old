@@ -45,6 +45,7 @@ export const suspendHarvestCaptcha = (context, platform) => {
 
 export const stopHarvestCaptcha = (context, eventFn, platform) => {
   const { id, harvestState, captchaQueue, logger, events } = context;
+
   if (harvestState === HarvestStates.start || harvestState === HarvestStates.suspend) {
     captchaQueue.destroy();
     context.setCaptchaQueue(null);

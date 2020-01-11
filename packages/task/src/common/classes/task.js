@@ -157,8 +157,6 @@ export default class BaseTask {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.loop();
     } while (this._state !== States.DONE && !shouldStop);
-
-    this._cleanup();
   }
 
   stop() {
@@ -168,10 +166,5 @@ export default class BaseTask {
       this._delayer.clear();
     }
     return this.context.setAborted(true);
-  }
-
-  _cleanup() {
-    this.context.logger.info(this._history.stack);
-    stopHarvestCaptcha(this.context, this._handleHarvest, this._platform);
   }
 }

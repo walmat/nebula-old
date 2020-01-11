@@ -131,7 +131,7 @@ export default class CaptchaManager {
   }
 
   // handle stop harvest
-  stop(id, sitekey) {
+  stop(id, sitekey, platform, host) {
     const container = this._requesters.get(id);
 
     // If this container was never started, there's no need to do anything further
@@ -142,13 +142,12 @@ export default class CaptchaManager {
     // this will reject all calls currently waiting for a token
     this._requesters.delete(id);
 
-    const tokens = this._tokens.get(sitekey);
+    let tokens = this._tokens.get(sitekey);
 
     // if we have any tokens for that task, remove them
     if (tokens) {
-      tokens.filter(({ id: tId }) => tId !== id);
+      tokens = tokens.filter(({ id: tId }) => tId !== id);
     }
-
     // Emit an event to stop harvesting
     this._events.emit(Events.StopHarvest, id, sitekey);
   }

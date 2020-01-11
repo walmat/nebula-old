@@ -46,7 +46,7 @@ export default class Slack {
             title,
             color: success ? '#46ADB4' : '#EF415E',
             fields: [],
-            footer: 'Nebula @ 2019',
+            footer: 'Nebula @ 2020',
             footer_icon: 'https://i.ibb.co/1dqVb6k/logo.png',
             ts: Math.floor(new Date().getTime() / 1000),
           },

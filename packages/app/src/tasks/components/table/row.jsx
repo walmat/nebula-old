@@ -4,7 +4,7 @@ import ModalImage from 'react-modal-image';
 import PropTypes from 'prop-types';
 
 import { taskActions } from '../../../store/actions';
-import { statusColorMap } from '../../../constants';
+import { statusColorMap, Platforms } from '../../../constants';
 
 const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
   const match = /Starting at|No variation|No size|Captcha needed|Unsupported|Waiting for captcha|Waiting for restock|Duplicate order|Checking order|Checkout failed|Polling queue|Check email/i.exec(
@@ -12,9 +12,19 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
   );
   const messageClassName = match ? statusColorMap[match[0]] : 'normal';
 
-  const productValue =
-    task.productName ||
-    (task.variation ? `${task.product.raw} / ${task.variation}` : task.product.raw);
+  let productValue = task.productName;
+
+  if (!productValue) {
+    const { platform } = task;
+
+    switch (platform) {
+      case Platforms.Supreme:
+        productValue = `${task.product.raw} / ${task.variation}`;
+        break;
+      default:
+        productValue = task.product.raw;
+    }
+  }
 
   return (
     <div

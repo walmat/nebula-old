@@ -15,7 +15,7 @@ import { Monitor as SupremeMonitor, Task as SupremeTask } from './supreme';
 
 const { getParseType } = Parse;
 const { createLogger, registerForEvent, deregisterForEvent, compareProductData } = Utils;
-const { ProxyManager, WebhookManager, CaptchaManager } = Classes;
+const { ProxyManager, WebhookManager, CaptchaManager, Captcha } = Classes;
 const { Platforms, Manager, Task, Monitor } = Constants;
 const { ParseType } = Monitor;
 const { Events } = Manager;
@@ -229,6 +229,9 @@ export default class TaskManager {
       this._logger.warn('This task was not previously running or has already been stopped!');
       return null;
     }
+
+    // remove captcha handler
+    Captcha.stopHarvestCaptcha(task.context, task._handleHarvest, task.platform);
 
     this._logger.info('Stopping task: %s', task.context.id);
     task.stop();

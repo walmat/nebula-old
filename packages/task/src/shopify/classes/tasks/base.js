@@ -885,7 +885,6 @@ export default class TaskPrimitive extends BaseTask {
         // waiting for token, sleep for delay and then return same state to check again
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        this.context.logger.error(this.context.shared);
         // we harvested checkpoint on another task, let's use those..
         // NOTE: we don't have to worry about site checking, since sharing is already based on site
         if (

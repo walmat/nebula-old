@@ -169,7 +169,7 @@
         color: #161318;
       }
 
-      @-webkit-keyframes slide {
+      @keyframes slide {
           0% {
               transform: scale(1);
           }
@@ -392,8 +392,6 @@
         <div class="dot"></div>
         <div class="dot"></div>
       </div>
-
-      <button id="request-captcha-btn" class="captcha-btn">Request Captcha</button>
     </div>
     <div id="captcha">
       <form id="captchaForm" action="/submit" method="post" style="visibility: hidden;">
