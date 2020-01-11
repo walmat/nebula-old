@@ -8,21 +8,23 @@ const { Events } = Manager;
 export const getCaptcha = async (context, eventFn, platform, priority) => {
   const { id, events, logger } = context;
   if (context.harvestState === HarvestStates.idle) {
+    logger.error('IDLE state for: %s', id);
     context.setCaptchaQueue(new AsyncQueue());
     events.on(Events.Harvest, eventFn);
     context.setHarvestState(HarvestStates.start);
   }
 
   if (context.harvestState === HarvestStates.suspend) {
+    logger.error('SUSPEND state for: %s', id);
     context.setHarvestState(HarvestStates.start);
   }
 
   if (context.harvestState === HarvestStates.start) {
-    logger.silly('[DEBUG]: Starting harvest...');
+    logger.error('START state for: %s', id);
     events.emit(
       Events.StartHarvest,
       id,
-      SiteKeyForPlatform[platform],
+      context.task.store.sitekey || SiteKeyForPlatform[platform],
       HostForPlatform[platform],
       priority,
     );
@@ -38,19 +40,30 @@ export const suspendHarvestCaptcha = (context, platform) => {
     return null;
   }
 
-  logger.silly('[DEBUG]: Suspending harvest...');
-  events.emit(Events.StopHarvest, id, SiteKeyForPlatform[platform], HostForPlatform[platform]);
+  logger.error('Suspending harvest for: %s', id);
+  events.emit(
+    Events.StopHarvest,
+    id,
+    context.task.store.sitekey || SiteKeyForPlatform[platform],
+    HostForPlatform[platform],
+  );
   return context.setHarvestState(HarvestStates.suspend);
 };
 
 export const stopHarvestCaptcha = (context, eventFn, platform) => {
   const { id, harvestState, captchaQueue, logger, events } = context;
 
+  logger.error('Stopping harvest for: %s', id);
   if (harvestState === HarvestStates.start || harvestState === HarvestStates.suspend) {
     captchaQueue.destroy();
     context.setCaptchaQueue(null);
     logger.silly('[DEBUG]: Stopping harvest...');
-    events.emit(Events.StopHarvest, id, SiteKeyForPlatform[platform], HostForPlatform[platform]);
+    events.emit(
+      Events.StopHarvest,
+      id,
+      context.task.store.sitekey || SiteKeyForPlatform[platform],
+      HostForPlatform[platform],
+    );
     events.removeListener(Events.Harvest, eventFn);
     context.setHarvestState(HarvestStates.stop);
   }

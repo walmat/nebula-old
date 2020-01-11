@@ -240,16 +240,6 @@ export default class TaskPrimitive extends BaseTask {
               await this._delayer;
             }
 
-            if (/checkpoint/i.test(redirectUrl)) {
-              const requester = await Captcha.getCaptcha(
-                this.context,
-                this._handleHarvest,
-                this._platform,
-                this._prevState === States.GO_TO_CHECKPOINT ? 1 : 0,
-              );
-              this.context.setCaptchaRequest(requester);
-            }
-
             if (/throttle/i.test(redirectUrl)) {
               try {
                 await this._fetch(redirectUrl, {
@@ -1015,23 +1005,6 @@ export default class TaskPrimitive extends BaseTask {
       'form.edit_checkout',
       'input, select, textarea, button',
     );
-
-    if (!this._key) {
-      try {
-        // grab the checkoutKey if it's exists and we don't have it yet..
-        const key = body.match(
-          /<meta\s*name="shopify-checkout-authorization-token"\s*content="(.*)"/,
-        );
-
-        if (key) {
-          [, this._key] = key;
-
-          // emitEvent(this.context, [this.context.id], { checkoutKey: key }, Events.TaskStatus);
-        }
-      } catch (e) {
-        // fail silently..
-      }
-    }
 
     // recaptcha sitekey parser...
     const sitekey = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
