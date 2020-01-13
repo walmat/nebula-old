@@ -160,10 +160,6 @@ export default class TaskPrimitive extends BaseTask {
       );
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      // await this._logCookies();
-    }
-
     const baseOptions = {
       compress: true,
       agent: proxy ? proxy.proxy : null,
