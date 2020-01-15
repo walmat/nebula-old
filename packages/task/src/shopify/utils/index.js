@@ -86,7 +86,7 @@ export const stateForError = ({ status, type, name, errno }, { message, nextStat
 
 export const getHeaders = ({ url, apiKey }) => ({
   'X-Shopify-Storefront-Access-Token': apiKey,
-  'X-Shopify-Checkout-Version': '2019-10-06',
+  'X-Shopify-Checkout-Version': '2018-03-05',
   'X-Shopify-Access-Token': apiKey,
   connection: 'keep-alive',
   'user-agent': userAgent,
