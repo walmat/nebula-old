@@ -42,6 +42,7 @@ export default class TaskPrimitive extends BaseTask {
       };
     }
 
+    this.generating = false;
     // checkout specific globals
     this._tokens = [];
     this._token = null;
@@ -1012,6 +1013,32 @@ export default class TaskPrimitive extends BaseTask {
       return States.CAPTCHA;
     }
 
+    const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
+
+    if (match && match.length) {
+      const [, step] = match;
+
+      if (/processing/i.test(step)) {
+        return States.CHECK_ORDER;
+      }
+
+      if (/review/i.test(step)) {
+        return States.COMPLETE_CHECKOUT;
+      }
+
+      if (/contact/i.test(step)) {
+        return States.SUBMIT_CUSTOMER;
+      }
+
+      if (/shipping/i.test(step)) {
+        return States.SUBMIT_SHIPPING;
+      }
+
+      if (/payment/i.test(step)) {
+        return States.SUBMIT_CHECKOUT;
+      }
+    }
+
     return States.SUBMIT_CUSTOMER;
   }
 
@@ -1082,7 +1109,9 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     // NOTE: kick off the payment session generator
-    this.generateSessions();
+    if (!this.generating) {
+      this.generateSessions();
+    }
     // NOTE: determined by subclasses..
     return States.DONE;
   }
@@ -1168,6 +1197,17 @@ export default class TaskPrimitive extends BaseTask {
       normalizeWhitespace: true,
     });
 
+    if (/no shipping methods available/i.test(body)) {
+      emitEvent(
+        this.context,
+        [this.context.id],
+        { message: 'Unsupported country' },
+        Events.TaskStatus,
+      );
+
+      return States.ERROR;
+    }
+
     if (/stock_problems/i.test(body)) {
       if (!this._selectedShippingRate.id) {
         const sideState = await this._handleAlternativeRates();
@@ -1208,13 +1248,6 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Waiting for captcha' },
-        Events.TaskStatus,
-      );
-
       return States.CAPTCHA;
     }
 
@@ -1261,14 +1294,19 @@ export default class TaskPrimitive extends BaseTask {
           state: States.SUBMIT_SHIPPING,
         },
         {
-          url: 'previous_step=shipping_method',
+          url: 'step=payment_method',
           message: 'Submitting checkout',
           state: States.GO_TO_PAYMENT,
         },
         {
-          url: 'previous_step=contact_information',
-          message: 'Submitting shipping', // TODO
-          state: States.GO_TO_SHIPPING, // TODO
+          url: 'step=shipping_method',
+          message: 'Fetching rates',
+          state: States.GO_TO_SHIPPING,
+        },
+        {
+          url: 'step=contact_information',
+          message: 'Going to checkout',
+          state: States.GO_TO_CHECKOUT,
         },
       ],
     );

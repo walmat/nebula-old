@@ -156,20 +156,12 @@ export default class FastTaskPrimitive extends TaskPrimitive {
       return nextState;
     }
 
-    this.generateSessions();
+    if (!this.generating) {
+      this.generateSessions();
+    }
 
     return States.GO_TO_CHECKOUT;
   }
-
-  // async _handleGetCheckout() {
-  //   const nextState = await super._handleGetCheckout();
-
-  //   if (nextState === States.SUBMIT_CUSTOMER && !this._setup) {
-  //     return States.GO_TO_SHIPPING;
-  //   }
-
-  //   return nextState;
-  // }
 
   async _handleGetShipping() {
     const {
