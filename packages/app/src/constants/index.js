@@ -297,5 +297,5 @@ export const statusColorMap = {
   'Duplicate order': 'warning',
   'Checking order': 'warning',
   'Polling queue': 'warning',
-  'Check email!': 'success',
+  'Check email': 'success',
 };

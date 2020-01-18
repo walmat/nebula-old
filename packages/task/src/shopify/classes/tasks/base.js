@@ -1065,13 +1065,13 @@ export default class TaskPrimitive extends BaseTask {
           state: States.QUEUE,
         },
         {
-          url: 'previous_step=contact_information',
+          url: 'step=shipping_method',
           message: 'Fetching rates',
           state: States.GO_TO_SHIPPING,
         },
         {
-          url: 'previous_step=shipping_method',
-          message: 'Fetching rates',
+          url: 'step=payment_method',
+          message: 'Submitting checkout',
           state: States.GO_TO_PAYMENT,
         },
       ],
@@ -1401,6 +1401,8 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
+    this.context.logger.debug(this._form);
+
     const { nextState, data } = await this._handler(
       `/${this._store}/checkouts/${this._hash}`,
       {
@@ -1722,7 +1724,7 @@ export default class TaskPrimitive extends BaseTask {
       emitEvent(
         this.context,
         [this.context.id],
-        { message: `Check email! (#${orderName})` },
+        { message: `Check email! Order #${orderName}` },
         Events.TaskStatus,
       );
 
