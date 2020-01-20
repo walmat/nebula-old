@@ -44,6 +44,7 @@ export default class TaskPrimitive extends BaseTask {
 
     this.protection = false;
     this.generating = false;
+    this._ctdCookie = '';
     // checkout specific globals
     this._tokens = [];
     this._token = null;
@@ -264,8 +265,8 @@ export default class TaskPrimitive extends BaseTask {
             if (/throttle/i.test(redirectUrl)) {
               let queueUrl = redirectUrl;
               if (!/_ctd/i.test(redirectUrl)) {
-                const _ctd = await this.getCtdCookie(this.context.jar);
-                queueUrl = `${this.context.task.store.url}/throttle/queue?_ctd=${_ctd}`;
+                this._ctdCookie = await this.getCtdCookie(this.context.jar);
+                queueUrl = `${this.context.task.store.url}/throttle/queue?_ctd=${this._ctdCookie}`;
               }
 
               try {
@@ -600,7 +601,7 @@ export default class TaskPrimitive extends BaseTask {
 
     let message;
     let toState;
-    const { nextState, data } = this._handler(
+    const { nextState, data } = await this._handler(
       '/checkout/poll?js_poll=1',
       {},
       'Polling queue',
@@ -614,22 +615,16 @@ export default class TaskPrimitive extends BaseTask {
     const { status, headers } = data;
 
     if (status !== 200) {
-      const retryAfter = headers.get('retry-after') || 2500;
-
-      message = status ? `Not through queue! (${status})` : 'Not through queue!';
-      emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
+      const retryAfter = headers.get('retry-after') * 1000 || 2500;
 
       this._delayer = waitForDelay(retryAfter, this._aborter.signal);
       await this._delayer;
 
-      emitEvent(this.context, [this.context.id], { message: 'Polling queue' }, Events.TaskStatus);
       return States.QUEUE;
     }
 
-    const ctd = await this.getCtdCookie(this.context.jar);
-
     const { data: response } = await this._handler(
-      `${this.context.task.store.url}/throttle/queue?_ctd=${ctd}`,
+      `${this.context.task.store.url}/throttle/queue?_ctd=${this._ctdCookie}&_ctd_update=`,
       {},
     );
 

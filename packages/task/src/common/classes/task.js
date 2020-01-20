@@ -4,7 +4,6 @@ import defaults from 'fetch-defaults';
 
 import CapacityQueue from './capacityQueue';
 import { emitEvent } from '../utils';
-import { stopHarvestCaptcha } from './captcha';
 import { Task } from '../constants';
 
 const { States, Events } = Task;
@@ -36,7 +35,7 @@ export default class BaseTask {
     // eslint-disable-next-line global-require
     const _fetch = require('fetch-cookie/node-fetch')(fetch, context.jar);
     this._fetch = defaults(_fetch, context.task.store.url, {
-      timeout: 10000, // can be overridden as necessary per request
+      timeout: 60000, // can be overridden as necessary per request
       signal: this._aborter.signal,
     });
 
@@ -157,6 +156,8 @@ export default class BaseTask {
       // eslint-disable-next-line no-await-in-loop
       shouldStop = await this.loop();
     } while (this._state !== States.DONE && !shouldStop);
+
+    console.log(this._history.stack.toString());
   }
 
   stop() {
