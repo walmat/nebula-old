@@ -60,6 +60,7 @@ $randomNumber: random(5);
     margin-top: 15px !important;
 
     &--image {
+      -webkit-user-drag: none;
       @include themify($themes) {
         filter: drop-shadow(8px 8px 1px themed('liveLogtableRowSelected'));
       }

@@ -5,7 +5,7 @@ const { HarvestStates } = Task;
 const { Events } = Manager;
 
 // eslint-disable-next-line import/prefer-default-export
-export const getCaptcha = async (context, eventFn, platform, priority) => {
+export const getCaptcha = async (context, eventFn, platform, checkpoint) => {
   const { id, events, logger } = context;
   if (context.harvestState === HarvestStates.idle) {
     logger.error('IDLE state for: %s', id);
@@ -21,12 +21,13 @@ export const getCaptcha = async (context, eventFn, platform, priority) => {
 
   if (context.harvestState === HarvestStates.start) {
     logger.error('START state for: %s', id);
+    logger.debug(checkpoint);
     events.emit(
       Events.StartHarvest,
       id,
       context.task.store.sitekey || SiteKeyForPlatform[platform],
       HostForPlatform[platform],
-      priority,
+      checkpoint,
     );
   }
 

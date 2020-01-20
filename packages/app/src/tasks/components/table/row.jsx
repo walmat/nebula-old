@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React from 'react';
 import { connect } from 'react-redux';
 import ModalImage from 'react-modal-image';
@@ -53,14 +55,16 @@ const TaskRowPrimitive = ({ style, index, task, onSelectTask }) => {
           title={task.productName || task.product.raw}
         >
           {task.productImage ? (
-            <ModalImage
-              className="col col--no-gutter tasks-row__product--image"
-              small={task.productImage}
-              large={task.productImageHi}
-              hideDownload
-              hideZoom
-              alt=""
-            />
+            <div onClick={e => e.stopPropagation()}>
+              <ModalImage
+                className="col col--no-gutter tasks-row__product--image"
+                small={task.productImage}
+                large={task.productImageHi}
+                hideDownload
+                hideZoom
+                alt=""
+              />
+            </div>
           ) : null}
           <p
             className={

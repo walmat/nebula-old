@@ -441,12 +441,6 @@ export default class TaskManager {
       this._monitors[id] = monitor;
     }
 
-    // patch in the shared context between same store tasks..
-    const pair = Object.values(this._tasks).find(t => t.context.task.store.url === task.store.url);
-    if (pair) {
-      newTask.context.shared = pair.context.shared;
-    }
-
     this._tasks[id] = newTask;
 
     this._logger.silly('Attaching events...');

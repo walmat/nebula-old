@@ -134,6 +134,8 @@
           &--image {
             width: auto;
             height: 24px;
+            z-index: 9999;
+            -webkit-user-drag: none;
             position: absolute;
             @include themify($themes) {
               border-color: themed('tableBorderColor');

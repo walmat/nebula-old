@@ -2,7 +2,7 @@ import AbortController from 'abort-controller';
 import { pick } from 'lodash';
 
 import { Constants, Utils, Bases } from '../../common';
-import { getParsers, JsonParser } from '../parsers';
+import { getParsers } from '../parsers';
 import { Parse } from '../utils';
 import { Monitor as MonitorConstants } from '../constants';
 
@@ -32,27 +32,10 @@ export default class MonitorPrimitive extends BaseMonitor {
 
     const { monitor } = this.context.task;
     let delayStatus;
-    let ban = false; // assume we don't have a softban
-    errors.forEach(({ status, errno }) => {
-      if (!status && !errno) {
-        return;
-      }
-
-      if (/429|430/.test(status) || /ECONNREFUSED|ECONNRESET|ENOTFOUND/i.test(errno)) {
-        // status is 429, 430, or a connection error so set ban to true
-        ban = true;
-      }
-
-      if (
-        !delayStatus &&
-        (status === ErrorCodes.ProductNotFound ||
-          status === ErrorCodes.ProductNotLive ||
-          status === ErrorCodes.PasswordPage ||
-          status >= 400)
-      ) {
-        delayStatus = status; // find the first error that is either a product not found or 4xx response
-      }
-    });
+    const ban = errors.some(
+      ({ status, errno }) =>
+        /429|430/.test(status) || /ECONNREFUSED|ECONNRESET|ENOTFOUND/i.test(errno),
+    );
 
     if (ban) {
       logger.silly('Proxy was banned, swapping proxies...');
@@ -67,11 +50,27 @@ export default class MonitorPrimitive extends BaseMonitor {
       return States.SWAP;
     }
 
+    errors.forEach(({ status, errno }) => {
+      if (!status && !errno) {
+        return;
+      }
+
+      if (
+        !delayStatus &&
+        (status === ErrorCodes.ProductNotFound ||
+          status === ErrorCodes.ProductNotLive ||
+          status === ErrorCodes.PasswordPage ||
+          status >= 400)
+      ) {
+        delayStatus = status; // find the first error that is either a product not found or 4xx response
+      }
+    });
+
     let message = 'No product found.';
 
     switch (delayStatus) {
       case ErrorCodes.ProductNotLive:
-        message = 'Placeholder found!';
+        message = 'Placeholder.';
         break;
       case ErrorCodes.PasswordPage:
       case 601:

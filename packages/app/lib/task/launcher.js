@@ -296,6 +296,7 @@ class TaskLauncher {
     id,
     sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
     host = 'http://checkout.shopify.com',
+    checkpoint = false,
   ) {
     // Bump the semaphore only if we don't already have it tracked
     if (!this._captchaRequesters[id]) {
@@ -304,7 +305,7 @@ class TaskLauncher {
 
       // If this is the first harvest event, start harvesting
       if (this._captchaSemaphore === 1) {
-        await this._context.windowManager.startHarvestingCaptcha(id, sitekey, host);
+        await this._context.windowManager.startHarvestingCaptcha(id, sitekey, host, checkpoint);
       }
     }
 

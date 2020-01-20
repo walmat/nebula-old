@@ -45,12 +45,13 @@ export const deactivate = async store => {
   return false;
 };
 
-export const openCaptchaWindow = ({ host, sitekey, theme }) =>
+export const openCaptchaWindow = ({ host, sitekey, theme, checkpoint = false }) =>
   window.Bridge
     ? window.Bridge.launchCaptchaHarvester({
         backgroundColor: mapBackgroundThemeToColor[theme],
         host,
         sitekey,
+        checkpoint,
       })
     : {};
 export const closeWindows = () => (window.Bridge ? window.Bridge.closeAllCaptchaWindows() : {});

@@ -12,6 +12,7 @@ import { ReactComponent as SettingsIcon } from '../styles/images/navbar/settings
 
 export const Platforms = {
   Shopify: 'Shopify',
+  ShopifyCheckpoint: 'ShopifyCheckpoint',
   Footsites: 'Footsites',
   Supreme: 'Supreme',
   Mesh: 'Mesh',
@@ -50,6 +51,10 @@ export const harvesterDefaults = {
   [Platforms.Shopify]: {
     sitekey: '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
     host: 'http://checkout.shopify.com',
+  },
+  [Platforms.ShopifyCheckpoint]: {
+    sitekey: '',
+    host: 'http://checkouot.shopify.com',
   },
 };
 

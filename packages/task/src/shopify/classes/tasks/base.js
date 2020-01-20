@@ -42,6 +42,7 @@ export default class TaskPrimitive extends BaseTask {
       };
     }
 
+    this.protection = false;
     this.generating = false;
     // checkout specific globals
     this._tokens = [];
@@ -72,6 +73,26 @@ export default class TaskPrimitive extends BaseTask {
       }
     });
     return found;
+  }
+
+  async getCtdCookie(jar) {
+    const store = jar.Store || jar.store;
+
+    if (!store) {
+      return [];
+    }
+
+    let value = null;
+    store.getAllCookies((_, cookies) => {
+      for (let i = 0; i < cookies.length; i += 1) {
+        const cookie = cookies[i];
+        if (/_ctd/i.test(cookie.key)) {
+          this.context.logger.debug(`Found cookie %s=%s;`, cookie.key, cookie.value);
+          ({ value } = cookie);
+        }
+      }
+    });
+    return value;
   }
 
   async generateSessions() {
@@ -155,11 +176,11 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     // we need to do this before every request..
-    if (this.context.shared.cookies && this.context.shared.cookies.length) {
-      this.context.shared.cookies.map(cookie =>
-        this.context.jar.setCookieSync(cookie, this.context.task.store.url),
-      );
-    }
+    // if (this.context.shared.cookies && this.context.shared.cookies.length) {
+    //   this.context.shared.cookies.map(cookie =>
+    //     this.context.jar.setCookieSync(cookie, this.context.task.store.url),
+    //   );
+    // }
 
     const baseOptions = {
       compress: true,
@@ -225,7 +246,10 @@ export default class TaskPrimitive extends BaseTask {
               await this._delayer;
             }
 
-            if (/stock_problems/i.test(redirectUrl) && from === States.COMPLETE_CHECKOUT) {
+            if (
+              /stock_problems/i.test(redirectUrl) &&
+              (from === States.COMPLETE_CHECKOUT || from === States.GO_TO_PAYMENT)
+            ) {
               emitEvent(
                 this.context,
                 [this.context.id],
@@ -238,8 +262,14 @@ export default class TaskPrimitive extends BaseTask {
             }
 
             if (/throttle/i.test(redirectUrl)) {
+              let queueUrl = redirectUrl;
+              if (!/_ctd/i.test(redirectUrl)) {
+                const _ctd = await this.getCtdCookie(this.context.jar);
+                queueUrl = `${this.context.task.store.url}/throttle/queue?_ctd=${_ctd}`;
+              }
+
               try {
-                await this._fetch(redirectUrl, {
+                await this._fetch(queueUrl, {
                   method: 'GET',
                   compress: true,
                   agent: proxy ? proxy.proxy : null,
@@ -474,7 +504,7 @@ export default class TaskPrimitive extends BaseTask {
       this.context,
       this._handleHarvest,
       this._platform,
-      1,
+      true,
     );
     this.context.setCaptchaRequest(requester);
 
@@ -538,7 +568,9 @@ export default class TaskPrimitive extends BaseTask {
         {
           url: 'cart',
           message: 'Creating checkout',
-          state: States.GO_TO_CART,
+          state: /palace/i.test(this.context.task.store.url)
+            ? States.GO_TO_CART
+            : States.CREATE_CHECKOUT,
         },
         {
           url: 'checkouts',
@@ -548,11 +580,11 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
-    const cookies = await this.getCheckpointCookies(this.context.jar);
+    // const cookies = await this.getCheckpointCookies(this.context.jar);
 
-    if (cookies.length) {
-      this.context.setShared(cookies);
-    }
+    // if (cookies.length) {
+    //   this.context.setShared(cookies);
+    // }
 
     if (nextState) {
       this.context.setCaptchaToken(null);
@@ -573,13 +605,6 @@ export default class TaskPrimitive extends BaseTask {
       {},
       'Polling queue',
       States.QUEUE,
-      [
-        {
-          url: 'throttle',
-          message: 'Polling queue',
-          state: States.QUEUE,
-        },
-      ],
     );
 
     if (nextState) {
@@ -601,9 +626,12 @@ export default class TaskPrimitive extends BaseTask {
       return States.QUEUE;
     }
 
-    const referer = headers.get('referer');
+    const ctd = await this.getCtdCookie(this.context.jar);
 
-    const { data: response } = await this._handler(referer, {});
+    const { data: response } = await this._handler(
+      `${this.context.task.store.url}/throttle/queue?_ctd=${ctd}`,
+      {},
+    );
 
     const respBody = await response.text();
     const match = respBody.match(/href="(.*)"/);
@@ -861,7 +889,7 @@ export default class TaskPrimitive extends BaseTask {
         this.context,
         this._handleHarvest,
         this._platform,
-        this._prevState === States.GO_TO_CHECKPOINT ? 1 : 0,
+        this._prevState === States.GO_TO_CHECKPOINT || false,
       );
       this.context.setCaptchaRequest(requester);
     }
@@ -870,20 +898,20 @@ export default class TaskPrimitive extends BaseTask {
     switch (this.context.captchaRequest.status) {
       case 'pending': {
         // waiting for token, sleep for delay and then return same state to check again
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 150));
 
         // we harvested checkpoint on another task, let's use those..
         // NOTE: we don't have to worry about site checking, since sharing is already based on site
-        if (
-          this._prevState === States.GO_TO_CHECKPOINT &&
-          this.context.shared.cookies &&
-          this.context.shared.cookies.length
-        ) {
-          this.context.setCaptchaRequest(null);
-          Captcha.suspendHarvestCaptcha(this.context, this._platform);
+        // if (
+        //   this._prevState === States.GO_TO_CHECKPOINT &&
+        //   this.context.shared.cookies &&
+        //   this.context.shared.cookies.length
+        // ) {
+        //   this.context.setCaptchaRequest(null);
+        //   Captcha.suspendHarvestCaptcha(this.context, this._platform);
 
-          return States.CREATE_CHECKOUT;
-        }
+        //   return States.CREATE_CHECKOUT;
+        // }
         return States.CAPTCHA;
       }
       case 'fulfilled': {
@@ -989,7 +1017,7 @@ export default class TaskPrimitive extends BaseTask {
       return States.GO_TO_SHIPPING;
     }
 
-    if (/stock_problems/i.test(body)) {
+    if (new RegExp(`${this._hash}/stock_problems`, 'i').test(body)) {
       return States.SUBMIT_CUSTOMER;
     }
 
@@ -1002,6 +1030,10 @@ export default class TaskPrimitive extends BaseTask {
       'form.edit_checkout',
       'input, select, textarea, button',
     );
+
+    if (this._form.includes('fs_count')) {
+      this.protection = true;
+    }
 
     // recaptcha sitekey parser...
     const sitekey = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
@@ -1068,7 +1100,7 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    const { nextState } = await this._handler(
+    const { nextState, data } = await this._handler(
       `/${this._store}/checkouts/${this._hash}`,
       {
         method: 'POST',
@@ -1104,8 +1136,23 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
+    this._form = '';
+
     if (nextState) {
+      if (
+        nextState === States.GO_TO_SHIPPING &&
+        !this.protection &&
+        this._selectedShippingRate.id
+      ) {
+        return States.SUBMIT_SHIPPING;
+      }
       return nextState;
+    }
+
+    const body = await data.text();
+    if (/Captcha validation fail/i.test(body)) {
+      this.context.setCaptchaToken(null);
+      return States.GO_TO_CHECKOUT;
     }
 
     // NOTE: kick off the payment session generator
@@ -1208,7 +1255,7 @@ export default class TaskPrimitive extends BaseTask {
       return States.ERROR;
     }
 
-    if (/stock_problems/i.test(body)) {
+    if (new RegExp(`${this._hash}/stock_problems`, 'i').test(body)) {
       if (!this._selectedShippingRate.id) {
         const sideState = await this._handleAlternativeRates();
 
@@ -1250,13 +1297,6 @@ export default class TaskPrimitive extends BaseTask {
     if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
       return States.CAPTCHA;
     }
-
-    emitEvent(
-      this.context,
-      [this.context.id],
-      { message: 'Submitting shipping' },
-      Events.TaskStatus,
-    );
 
     return States.SUBMIT_SHIPPING;
   }
@@ -1322,9 +1362,11 @@ export default class TaskPrimitive extends BaseTask {
     if (/Getting available shipping rates/i.test(body)) {
       this._delayer = waitForDelay(500, this._aborter.signal);
       await this._delayer;
+
+      return States.SUBMIT_SHIPPING;
     }
 
-    if (/stock_problems/i.test(body)) {
+    if (new RegExp(`${this._hash}/stock_problems`, 'i').test(body)) {
       return States.GO_TO_PAYMENT;
     }
 
@@ -1355,8 +1397,8 @@ export default class TaskPrimitive extends BaseTask {
         },
         {
           url: 'stock_problems',
-          message: 'Submitting checkout',
-          state: States.SUBMIT_CHECKOUT,
+          message: `Submitting checkout`,
+          state: States.GO_TO_PAYMENT,
         },
       ],
     );
@@ -1387,8 +1429,12 @@ export default class TaskPrimitive extends BaseTask {
       return States.GO_TO_PAYMENT;
     }
 
-    if (/stock_problems/i.test(body)) {
-      return States.SUBMIT_CHECKOUT;
+    if (new RegExp(`${this._hash}/processing`, 'i').test(body)) {
+      return States.CHECK_ORDER;
+    }
+
+    if (new RegExp(`${this._hash}/stock_problems`, 'i').test(body)) {
+      return States.GO_TO_PAYMENT;
     }
 
     // form parser...
@@ -1405,8 +1451,6 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleSubmitCheckout() {
-    const { monitor } = this.context.task;
-
     if (this.context.aborted) {
       return States.ABORT;
     }
@@ -1439,8 +1483,6 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    this.context.logger.debug(this._form);
-
     const { nextState, data } = await this._handler(
       `/${this._store}/checkouts/${this._hash}`,
       {
@@ -1472,6 +1514,7 @@ export default class TaskPrimitive extends BaseTask {
     );
 
     this._token = null;
+    this._form = '';
 
     if (nextState) {
       return nextState;
@@ -1503,23 +1546,11 @@ export default class TaskPrimitive extends BaseTask {
 
     if (/Your payment can’t be processed/i.test(body)) {
       emitEvent(this.context, [this.context.id], { message: 'Checkout failed' }, Events.TaskStatus);
-
-      this._delayer = waitForDelay(monitor, this._aborter.signal);
-      await this._delayer;
-
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Submitting checkout' },
-        Events.TaskStatus,
-      );
-
-      return States.SUBMIT_CHECKOUT;
+      return States.GO_TO_PAYMENT;
     }
 
-    if (/stock_problems/i.test(body)) {
-      this._form = '';
-      return States.COMPLETE_CHECKOUT;
+    if (new RegExp(`${this._hash}/stock_problems`, 'i').test(body)) {
+      return States.GO_TO_PAYMENT;
     }
 
     if (/Calculating taxes/i.test(body)) {
@@ -1530,10 +1561,8 @@ export default class TaskPrimitive extends BaseTask {
         Events.TaskStatus,
       );
 
-      this._delayer = waitForDelay(1000, this._aborter.signal);
+      this._delayer = waitForDelay(250, this._aborter.signal);
       await this._delayer;
-
-      this._form = '';
 
       return States.SUBMIT_CHECKOUT;
     }
@@ -1543,59 +1572,22 @@ export default class TaskPrimitive extends BaseTask {
       const [, step] = match;
 
       if (/processing/i.test(step)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Checking order' },
-          Events.TaskStatus,
-        );
-
         return States.CHECK_ORDER;
       }
 
       if (/contact_information/i.test(step)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Submitting information' },
-          Events.TaskStatus,
-        );
-
         return States.GO_TO_CHECKOUT;
       }
 
       if (/shipping_method/i.test(step)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Fetching rates' },
-          Events.TaskStatus,
-        );
-
         return States.GO_TO_SHIPPING;
       }
 
       if (/payment_method/i.test(step)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Submitting checkout' },
-          Events.TaskStatus,
-        );
-
         return States.GO_TO_PAYMENT;
       }
 
       if (/review/i.test(step)) {
-        emitEvent(
-          this.context,
-          [this.context.id],
-          { message: 'Completing checkout' },
-          Events.TaskStatus,
-        );
-
-        this._form = '';
-
         return States.COMPLETE_CHECKOUT;
       }
     }
@@ -1632,8 +1624,8 @@ export default class TaskPrimitive extends BaseTask {
         },
         {
           url: 'stock_problems',
-          message: 'Completing checkout',
-          state: States.COMPLETE_CHECKOUT,
+          message: `Submitting checkout`,
+          state: States.GO_TO_PAYMENT,
         },
         {
           url: 'checkpoint',
@@ -1642,8 +1634,8 @@ export default class TaskPrimitive extends BaseTask {
         },
         {
           url: 'password',
-          message: 'Completing checkout',
-          state: States.COMPLETE_CHECKOUT,
+          message: 'Submitting checkout',
+          state: States.GO_TO_PAYMENT,
         },
         {
           url: 'throttle',
@@ -1661,7 +1653,7 @@ export default class TaskPrimitive extends BaseTask {
     const match = body.match(/Shopify\.Checkout\.step\s*=\s*"(.*)"/);
 
     if (!match || (match && !match.length)) {
-      return States.COMPLETE_CHECKOUT;
+      return States.GO_TO_PAYMENT;
     }
 
     const [, step] = match;
@@ -1670,7 +1662,7 @@ export default class TaskPrimitive extends BaseTask {
       return States.CHECK_ORDER;
     }
 
-    if (/stock_problems|password|review/i.test(step)) {
+    if (/password|review/i.test(step)) {
       return States.COMPLETE_CHECKOUT;
     }
 
@@ -1680,6 +1672,10 @@ export default class TaskPrimitive extends BaseTask {
 
     if (/shipping_method/i.test(step)) {
       return States.SUBMIT_SHIPPING;
+    }
+
+    if (/stock_problems/i.test(step)) {
+      return States.GO_TO_PAYMENT;
     }
 
     if (/payment_method/i.test(step)) {
@@ -1728,6 +1724,7 @@ export default class TaskPrimitive extends BaseTask {
     const [payment] = payments;
 
     const bodyString = JSON.stringify(payment);
+    const { payment_processing_error_message: processingError } = payment;
     const { checkout } = payment;
     const { currency, payment_due: paymentDue, web_url: webUrl, line_items: lineItems } = checkout;
 
@@ -1769,11 +1766,7 @@ export default class TaskPrimitive extends BaseTask {
       return States.DONE;
     }
 
-    if (
-      /issue processing|was declined|no longer available|no match|do not match|cannot be processed/i.test(
-        bodyString,
-      )
-    ) {
+    if (processingError !== null) {
       if (!this.webhookSent) {
         this.webhookSent = true;
 

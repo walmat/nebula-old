@@ -120,7 +120,7 @@ export const patchToCart = variant => ({
   },
 });
 
-export const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => {
+export const parseForm = async ($, state, hash, profile, formName, wanted) => {
   let count = 0;
   const data = [];
   await $(formName).each((i, form) => {
@@ -192,7 +192,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
           // added check for the field_end to patch in the count...
           if (/field_end/i.test(name)) {
             data.push({
-              name: `${checkoutToken}-count`,
+              name: `${hash}-count`,
               value: count,
             });
           }

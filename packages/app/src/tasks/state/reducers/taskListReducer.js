@@ -127,6 +127,89 @@ export default (state = Tasks, action = {}) => {
       return state;
     }
 
+    console.log(state);
+
+    const lastSelected = state.findIndex(t => t.selected);
+
+    console.log(lastSelected);
+    if (!ctrl || (ctrl && !lastSelected)) {
+      return state.map(t => {
+        if (task.id === t.id) {
+          return {
+            ...t,
+            selected: !t.selected,
+            lastSelected: t.lastSelected ? null : t.id,
+          };
+        }
+        if (t.selected && t.id !== task.id) {
+          return {
+            ...t,
+            selected: !t.selected,
+            lastSelected: t.lastSelected ? null : t.id,
+          };
+        }
+        return t;
+      });
+    }
+
+    if (lastSelected >= 0) {
+      const to = state.findIndex(t => t.id === task.id);
+
+      // if the incoming task is earlier on in the table than the last selected task
+      if (to === lastSelected) {
+        return state.map((t, idx) => {
+          if (idx === to) {
+            return {
+              ...t,
+              selected: !t.selected,
+              lastSelected: t.lastSelected ? null : t.id,
+            };
+          }
+          return t;
+        });
+      }
+
+      if (to < lastSelected) {
+        return state.map((t, idx) => {
+          if (idx === lastSelected) {
+            return {
+              ...t,
+              selected: !t.selected,
+              lastSelected: t.id,
+            };
+          }
+
+          if (idx >= to && idx < lastSelected) {
+            return {
+              ...t,
+              selected: !t.selected,
+            };
+          }
+          return t;
+        });
+      }
+
+      if (to > lastSelected) {
+        return state.map((t, idx) => {
+          if (idx === to) {
+            return {
+              ...t,
+              selected: !t.selected,
+              lastSelected: t.id,
+            };
+          }
+
+          if (idx >= lastSelected && idx < to) {
+            return {
+              ...t,
+              selected: !t.selected,
+            };
+          }
+          return t;
+        });
+      }
+    }
+
     // todo.. perfect this a bit more
     if (ctrl) {
       const from = state.findIndex(t => t.lastSelected);

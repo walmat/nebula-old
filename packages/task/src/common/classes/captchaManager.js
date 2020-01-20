@@ -84,10 +84,12 @@ export default class CaptchaManager {
   }
 
   // handle start harvest
-  start(id, sitekey, host, priority = 1) {
-    this._logger.debug('Inserting requester %s with %s priority', id, priority);
+  start(id, sitekey, host, checkpoint = true) {
+    this._logger.debug('Inserting requester %s with %s priority', id, checkpoint ? 1 : 0);
     let container = this._requesters.get(id);
 
+    console.log(id, sitekey, host, checkpoint);
+    const priority = checkpoint ? 1 : 0;
     this._logger.error('%s container: %j', id, container);
     if (!container) {
       // We haven't started harvesting for this task yet, create a queue and start harvesting
@@ -112,7 +114,6 @@ export default class CaptchaManager {
       // priority check...
       this._logger.debug('Token queue length: %s', tokens.length);
       for (let i = 0; i < tokens.length; i += 1) {
-        // if the new items priority is less than, splice it in place.
         if (tokens[i].priority > priority) {
           this._logger.debug('Inserting %s as: %s place in line', id, i);
           tokens.splice(i, 0, { id, host, priority });
@@ -128,7 +129,7 @@ export default class CaptchaManager {
       }
 
       // Emit an event to start harvesting
-      this._events.emit(Events.StartHarvest, id, sitekey, host);
+      this._events.emit(Events.StartHarvest, id, sitekey, host, priority);
     }
   }
 
@@ -145,12 +146,13 @@ export default class CaptchaManager {
     // this will reject all calls currently waiting for a token
     this._requesters.delete(id);
 
-    let tokens = this._tokens.get(sitekey);
+    const tokens = this._tokens.get(sitekey);
     this._logger.error('Tokens for %s: %j', sitekey, this._tokens.get(sitekey));
 
     // if we have any tokens for that task, remove them
     if (tokens) {
-      tokens = tokens.filter(({ id: tId }) => tId !== id);
+      const newTokens = tokens.filter(({ id: tId }) => tId !== id);
+      this._tokens.set(sitekey, newTokens);
     }
 
     this._logger.error('Tokens after filter %s: %j', sitekey, this._tokens.get(sitekey));

@@ -45,7 +45,7 @@ export const stateForError = ({ status, type, name, errno }, { message, nextStat
       case 'ECONNRESET': {
         return {
           message: 'Connection issues',
-          nextState: States.SWAP,
+          nextState,
         };
       }
       // request timeout or socket freeze timeout
@@ -64,7 +64,7 @@ export const stateForError = ({ status, type, name, errno }, { message, nextStat
     case 430: {
       return {
         message: `Connection issues`,
-        nextState: States.SWAP,
+        nextState,
       };
     }
     case 303: {

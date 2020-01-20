@@ -80,7 +80,7 @@ export default class ProxyManager {
       hash: proxyHash,
       raw: proxy,
       proxy: new HttpsProxyAgent(formattedProxy),
-      use: {},
+      uses: {},
     });
     this._logger.debug('Proxy Added with id %s', id);
   }
@@ -148,13 +148,17 @@ export default class ProxyManager {
     let proxy = null;
 
     for (const p of this._proxies.values()) {
-      this._logger.debug('%s: in use?: %j', p.proxy, p.use[store]);
-      if (!p.use[store]) {
+      this._logger.debug('%s: in use?: %j', p.proxy, p.uses[store]);
+      if (!p.uses[store] || (p.uses[store] && p.uses[store] < 3)) {
         proxy = p;
         // immediately remove the proxy from the list
         this._proxies.delete(proxy.id);
+
+        if (!proxy.uses[store]) {
+          proxy.uses[store] = 0;
+        }
         // set it to in use
-        proxy.use[store] = true;
+        proxy.uses[store] += 1;
         // push the proxy back onto the end of the stack
         this._proxies.set(proxy.id, proxy);
         this._logger.debug('Returning proxy: %s', proxy.raw);
@@ -188,7 +192,7 @@ export default class ProxyManager {
       return;
     }
     // otherwise, just free up the use list
-    delete proxy.use[store];
+    proxy.uses[store] -= 1;
     this._logger.debug('Released Proxy %s', proxyId);
   }
 
