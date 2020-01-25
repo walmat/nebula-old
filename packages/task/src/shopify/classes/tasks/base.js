@@ -731,7 +731,7 @@ export default class TaskPrimitive extends BaseTask {
     const { id } = this._product;
 
     let contentType = 'application/json';
-    if (/dsm uk/i.test(name)) {
+    if (/dsm uk|dsm us|funko/i.test(name)) {
       contentType = 'application/x-www-form-urlencoded';
     }
 

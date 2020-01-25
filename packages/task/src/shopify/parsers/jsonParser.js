@@ -91,7 +91,7 @@ export default class JsonParser {
         const found = body.match(regex);
 
         if (found && found.length) {
-          [, hash] = match;
+          [, hash] = found;
         }
       } catch (error) {
         if (error && error.type && /system/i.test(error.type)) {
