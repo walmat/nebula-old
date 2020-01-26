@@ -84,11 +84,10 @@ export default class CaptchaManager {
   }
 
   // handle start harvest
-  start(id, sitekey, host, checkpoint = true) {
+  start(id, sitekey, host, checkpoint = false) {
     this._logger.debug('Inserting requester %s with %s priority', id, checkpoint ? 1 : 0);
     let container = this._requesters.get(id);
 
-    console.log(id, sitekey, host, checkpoint);
     const priority = checkpoint ? 1 : 0;
     this._logger.error('%s container: %j', id, container);
     if (!container) {
@@ -106,7 +105,7 @@ export default class CaptchaManager {
         tokens = this._tokens.get(sitekey);
         tokens.push({ id, host, priority });
 
-        this._events.emit(Events.StartHarvest, id, sitekey, host);
+        this._events.emit(Events.StartHarvest, id, sitekey, host, checkpoint);
         return;
       }
 
@@ -129,7 +128,7 @@ export default class CaptchaManager {
       }
 
       // Emit an event to start harvesting
-      this._events.emit(Events.StartHarvest, id, sitekey, host, priority);
+      this._events.emit(Events.StartHarvest, id, sitekey, host, checkpoint);
     }
   }
 

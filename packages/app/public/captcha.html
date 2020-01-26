@@ -261,8 +261,7 @@
             window.Bridge.harvestCaptchaToken(_runnerId, token, _sitekey, _host);
           }
         }
-        await waitFor(rand(0, 25)); // wait a little bit before resetting
-        console.log('DONE SUBMITTING, IS STARTED?: ', _started);
+        await waitFor(rand(0, 50)); // wait a little bit before resetting
         if (_started) {
           resetChallenge();
         }

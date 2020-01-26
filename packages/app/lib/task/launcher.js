@@ -298,6 +298,7 @@ class TaskLauncher {
     host = 'http://checkout.shopify.com',
     checkpoint = false,
   ) {
+    console.log(checkpoint);
     // Bump the semaphore only if we don't already have it tracked
     if (!this._captchaRequesters[id]) {
       this._captchaRequesters[id] = [];

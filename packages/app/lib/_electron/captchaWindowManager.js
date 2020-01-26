@@ -1,8 +1,12 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-return-assign */
 /* eslint-disable no-param-reassign */
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { session: Session, Notification, net } = require('electron');
+const {
+  session: Session,
+  Notification,
+  net: { request },
+  // eslint-disable-next-line import/no-extraneous-dependencies
+} = require('electron');
 const fs = require('fs');
 const Store = require('electron-store');
 const Path = require('path');
@@ -15,6 +19,7 @@ const AsyncQueue = require('../common/classes/asyncQueue');
 
 nebulaEnv.setUpEnvironment();
 
+const MAX_HARVEST_WINDOW_COUNT = 5;
 const MAX_HARVEST_CAPTCHA_COUNT = 5;
 
 class CaptchaWindowManager {
@@ -35,6 +40,7 @@ class CaptchaWindowManager {
      * Array of created captcha windows
      */
     this._captchaWindows = {};
+    this._checkpointWindows = {};
     this._sessions = {};
 
     /**
@@ -86,9 +92,20 @@ class CaptchaWindowManager {
       IPCKeys.RequestCloseWindow,
       this.validateSender(ev => {
         // No need to check for `undefined` because `validateSender` has done that for us...
-        const winToClose = Object.values(this._captchaWindows) // Array of captcha window arrays: [[win, ...], [win, ...]]
+        let winToClose = Object.values(this._captchaWindows) // Array of captcha window arrays: [[win, ...], [win, ...]]
           .flat() // Flatten to a single array of captcha windows: [win, win, ...]
           .find(win => win.webContents.id === ev.sender.id); // Find the first window that matches the sender (should only be 1 max)
+
+        // Close window if it is found
+        if (winToClose) {
+          winToClose.close();
+          return;
+        }
+
+        winToClose = Object.values(this._checkpointWindows) // Array of captcha window arrays: [[win, ...], [win, ...]]
+          .flat() // Flatten to a single array of captcha windows: [win, win, ...]
+          .find(win => win.webContents.id === ev.sender.id); // Find the first window that matches the sender (should only be 1 max)
+
         // Close window if it is found
         if (winToClose) {
           winToClose.close();
@@ -163,10 +180,15 @@ class CaptchaWindowManager {
   validateSender(handler) {
     return (ev, ...params) => {
       // Check for window to be a captcha windows
-      const check = Object.values(this._captchaWindows)
+      const check = Object.values(this._checkpointWindows)
         .flat()
         .find(win => win.webContents.id === ev.sender.id);
-      if (check && !check.isDestroyed()) {
+
+      const cap = Object.values(this._captchaWindows)
+        .flat()
+        .find(win => win.webContents.id === ev.sender.id);
+
+      if ((check || cap) && !(check || cap).isDestroyed()) {
         handler.apply(this, [ev, ...params]);
       }
     };
@@ -175,28 +197,82 @@ class CaptchaWindowManager {
   /**
    * Start Harvesting
    *
-   * Tell all captcha windows to start harvesting and set the
+   * Tell all `captcha windows` to start harvesting and set the
    * harvest state to 'active'.
    *
    * If no captcha windows are present, one is created
    */
-  async startHarvesting(id, sitekey, host) {
-    if (!this._captchaWindows[sitekey]) {
-      this._captchaWindows[sitekey] = [];
-    }
+  async startHarvesting(id, sitekey, host, checkpoint) {
+    if (checkpoint) {
+      if (!this._checkpointWindows[sitekey]) {
+        this._checkpointWindows[sitekey] = [];
+      }
 
+      this._harvestStatus[sitekey] = {
+        state: HARVEST_STATES.ACTIVE,
+        id,
+        sitekey,
+        host,
+      };
+
+      if (!this._checkpointWindows[sitekey].length) {
+        await this.spawnCaptchaWindow({ id, sitekey, host, checkpoint });
+      } else {
+        Promise.all(
+          this._checkpointWindows[sitekey].map(win =>
+            win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host),
+          ),
+        );
+      }
+    } else {
+      if (!this._captchaWindows[sitekey]) {
+        this._captchaWindows[sitekey] = [];
+      }
+
+      this._harvestStatus[sitekey] = {
+        state: HARVEST_STATES.ACTIVE,
+        id,
+        sitekey,
+        host,
+      };
+
+      if (this._captchaWindows[sitekey].length === 0) {
+        await this.spawnCaptchaWindow({ id, sitekey, host });
+      } else {
+        Promise.all(
+          this._captchaWindows[sitekey].map(win =>
+            win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host),
+          ),
+        );
+      }
+    }
+  }
+
+  /**
+   * Stop Harvesting
+   *
+   * Tell all captcha windows to stop harvesting and set the
+   * harvest state to 'idle'
+   */
+  suspendHarvesting(id, sitekey, host, checkpoint) {
     this._harvestStatus[sitekey] = {
-      state: HARVEST_STATES.ACTIVE,
+      state: HARVEST_STATES.SUSPEND,
       id,
       sitekey,
       host,
     };
 
-    if (this._captchaWindows[sitekey].length === 0) {
-      await this.spawnCaptchaWindow({ id, sitekey, host });
+    if (checkpoint) {
+      Promise.all(
+        (this._checkpointWindows[sitekey] || []).map(win =>
+          win.webContents.send(IPCKeys.StopHarvestCaptcha, id, sitekey, host),
+        ),
+      );
     } else {
-      this._captchaWindows[sitekey].forEach(win =>
-        win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host),
+      Promise.all(
+        (this._captchaWindows[sitekey] || []).map(win =>
+          win.webContents.send(IPCKeys.StopHarvestCaptcha, id, sitekey, host),
+        ),
       );
     }
   }
@@ -207,34 +283,27 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
-  suspendHarvesting(id, sitekey, host) {
-    this._harvestStatus[sitekey] = {
-      state: HARVEST_STATES.SUSPEND,
-      id,
-      sitekey,
-      host,
-    };
-    (this._captchaWindows[sitekey] || []).forEach(win => {
-      win.webContents.send(IPCKeys.StopHarvestCaptcha, id, sitekey, host);
-    });
-  }
-
-  /**
-   * Stop Harvesting
-   *
-   * Tell all captcha windows to stop harvesting and set the
-   * harvest state to 'idle'
-   */
-  stopHarvesting(id, sitekey, host) {
+  stopHarvesting(id, sitekey, host, checkpoint) {
     this._harvestStatus[sitekey] = {
       state: HARVEST_STATES.IDLE,
       id,
       sitekey,
       host,
     };
-    (this._captchaWindows[sitekey] || []).forEach(win => {
-      win.webContents.send(IPCKeys.StopHarvestCaptcha, id, sitekey, host);
-    });
+
+    if (checkpoint) {
+      Promise.all(
+        (this._checkpointWindows[sitekey] || []).map(win =>
+          win.webContents.send(IPCKeys.StopHarvestCaptcha, id, sitekey, host),
+        ),
+      );
+    } else {
+      Promise.all(
+        (this._captchaWindows[sitekey] || []).map(win =>
+          win.webContents.send(IPCKeys.StopHarvestCaptcha, id, sitekey, host),
+        ),
+      );
+    }
   }
 
   /**
@@ -266,8 +335,8 @@ class CaptchaWindowManager {
           data: Buffer.from(html),
         });
       } else {
-        const request = net.request(req);
-        request.on('response', res => {
+        const _request = request(req);
+        _request.on('response', res => {
           const chunks = [];
 
           res.on('data', chunk => {
@@ -283,14 +352,14 @@ class CaptchaWindowManager {
         if (req.uploadData) {
           req.uploadData.forEach(part => {
             if (part.bytes) {
-              request.write(part.bytes);
+              _request.write(part.bytes);
             } else if (part.file) {
-              request.write(fs.readFileSync(part.file));
+              _request.write(fs.readFileSync(part.file));
             }
           });
         }
 
-        request.end();
+        _request.end();
       }
     });
   }
@@ -299,7 +368,7 @@ class CaptchaWindowManager {
    * Create a captcha window and show it
    */
   spawnCaptchaWindow(options = {}) {
-    const { host, sitekey, id } = options;
+    const { id, host, sitekey, checkpoint } = options;
 
     if (!this._harvestStatus[sitekey]) {
       this._harvestStatus[sitekey] = {
@@ -310,16 +379,25 @@ class CaptchaWindowManager {
       };
     }
 
-    if (!this._captchaWindows[sitekey]) {
+    if (checkpoint) {
+      if (!this._checkpointWindows[sitekey]) {
+        this._checkpointWindows[sitekey] = [];
+      }
+
+      // Prevent more than 5 windows from spawning
+      if (this._checkpointWindows[sitekey].length >= MAX_HARVEST_WINDOW_COUNT) {
+        return null;
+      }
+    } else if (!this._captchaWindows[sitekey]) {
       this._captchaWindows[sitekey] = [];
+
+      // Prevent more than 5 windows from spawning for a sitekey
+      if (this._captchaWindows[sitekey].length >= MAX_HARVEST_WINDOW_COUNT) {
+        return null;
+      }
     }
 
     const { state } = this._harvestStatus[sitekey];
-
-    // Prevent more than 5 windows from spawning
-    if (this._captchaWindows[sitekey].length >= 5) {
-      return null;
-    }
 
     let session = {};
     // eslint-disable-next-line no-restricted-syntax
@@ -338,6 +416,11 @@ class CaptchaWindowManager {
     if (options.backgroundColor) {
       this._captchaThemeOpts.backgroundColor = options.backgroundColor;
     }
+
+    if (checkpoint) {
+      this._captchaThemeOpts.backgroundColor = '#000';
+    }
+
     console.log(`[DEBUG]: Session for captcha window: %j`, session);
     const win = createCaptchaWindow(
       { ...options, ...this._captchaThemeOpts },
@@ -359,7 +442,11 @@ class CaptchaWindowManager {
 
     win.loadURL(host);
 
-    this._captchaWindows[sitekey].push(win);
+    if (checkpoint) {
+      this._checkpointWindows[sitekey].push(win);
+    } else {
+      this._captchaWindows[sitekey].push(win);
+    }
     win.on('ready-to-show', () => {
       if (nebulaEnv.isDevelopment() || process.env.NEBULA_ENV_SHOW_DEVTOOLS) {
         console.log(`[DEBUG]: Window was opened, id = ${winId}`);
@@ -391,6 +478,7 @@ class CaptchaWindowManager {
       // If we are actively harvesting, start harvesting on the new window as well
       if (state === HARVEST_STATES.ACTIVE) {
         win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host);
+
         if (Notification.isSupported()) {
           const sound = nebulaEnv.isDevelopment()
             ? Path.join(__dirname, '../../public/assets/sounds/notification.mp3')
@@ -410,9 +498,16 @@ class CaptchaWindowManager {
       if (nebulaEnv.isDevelopment()) {
         console.log(`[DEBUG]: Window was closed, id = ${winId}`);
       }
-      this._captchaWindows[sitekey] = (this._captchaWindows[sitekey] || []).filter(
-        w => w.id !== winId,
-      );
+
+      if (checkpoint) {
+        this._checkpointWindows[sitekey] = (this._checkpointWindows[sitekey] || []).filter(
+          w => w.id !== winId,
+        );
+      } else {
+        this._captchaWindows[sitekey] = (this._captchaWindows[sitekey] || []).filter(
+          w => w.id !== winId,
+        );
+      }
 
       const { id: sessionId } = Object.values(this._sessions).find(s => s.window === winId);
 
@@ -559,12 +654,16 @@ class CaptchaWindowManager {
    */
   closeAllCaptchaWindows() {
     // Do nothing if we don't have any captcha windows
-    if (Object.keys(this._captchaWindows).length === 0) {
+    if (!Object.keys(this._captchaWindows).length && !Object.keys(this._checkpointWindows).length) {
       return;
     }
 
-    console.log('[DEBUG]: Closing all captcha windows...');
+    console.log('[DEBUG]: Closing all windows...');
     Object.values(this._captchaWindows)
+      .flat()
+      .forEach(win => win.close());
+
+    Object.values(this._checkpointWindows)
       .flat()
       .forEach(win => win.close());
   }
@@ -655,8 +754,6 @@ class CaptchaWindowManager {
     }
   }
 
-  _onRequestStartHarvest(ev, id, host, sitekey) {}
-
   /**
    * Launch Youtube Window
    *
@@ -677,9 +774,15 @@ class CaptchaWindowManager {
   }
 
   _onRequestSaveCaptchaProxy(_, winId, proxy) {
-    const win = Object.values(this._captchaWindows)
+    let win = Object.values(this._captchaWindows)
       .flat()
       .find(w => w.id === winId);
+
+    if (!win) {
+      win = Object.values(this._checkpointWindows)
+        .flat()
+        .find(w => w.id === winId);
+    }
 
     if (win) {
       const { id: sessionId } = Object.values(this._sessions).find(s => s.window === winId);

@@ -30,6 +30,13 @@ const Harvesters = ({ theme }) => (
     />
     <HarvestersRow
       className="navbar__button--open-captcha"
+      onClick={() =>
+        openCaptchaWindow({ ...harvesterDefaults[Platforms.Shopify], checkpoint: true, theme })
+      }
+      label="Checkpoint"
+    />
+    <HarvestersRow
+      className="navbar__button--open-captcha"
       onClick={() => openCaptchaWindow({ ...harvesterDefaults[Platforms.Shopify], theme })}
       label="Shopify"
     />

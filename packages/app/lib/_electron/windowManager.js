@@ -392,8 +392,8 @@ class WindowManager {
    *
    * Forward call to Captcha Window Manager
    */
-  startHarvestingCaptcha(id, sitekey, host) {
-    this._captchaWindowManager.startHarvesting(id, sitekey, host);
+  startHarvestingCaptcha(id, sitekey, host, checkpoint) {
+    this._captchaWindowManager.startHarvesting(id, sitekey, host, checkpoint);
   }
 
   /**
