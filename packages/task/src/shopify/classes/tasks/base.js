@@ -42,6 +42,9 @@ export default class TaskPrimitive extends BaseTask {
       };
     }
 
+    this._fromWaitForProduct = false;
+    this._solvedCheckpoint = false;
+
     this.protection = false;
     this.generating = false;
     this._ctdCookie = '';
@@ -293,6 +296,9 @@ export default class TaskPrimitive extends BaseTask {
             }
 
             if (newMsg) {
+              if (from === States.SUBMIT_CHECKPOINT && this._fromWaitForProduct) {
+                return { nextState: state, data: res };
+              }
               emitEvent(this.context, [this.context.id], { message: newMsg }, Events.TaskStatus);
             }
             return { nextState: state, data: res };
@@ -467,6 +473,15 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
+    const { status } = data;
+
+    if (status !== 200) {
+      if (this._fromWaitForProduct) {
+        return States.WAIT_FOR_PRODUCT;
+      }
+      return States.CREATE_CHECKOUT;
+    }
+
     if (nextState) {
       return nextState;
     }
@@ -581,6 +596,17 @@ export default class TaskPrimitive extends BaseTask {
       ],
     );
 
+    this.context.setCaptchaToken(null);
+    this._form = '';
+
+    if (
+      this._fromWaitForProduct &&
+      (nextState === States.GO_TO_CART || nextState === States.CREATE_CHECKOUT)
+    ) {
+      this._solvedCheckpoint = true;
+      return States.WAIT_FOR_PRODUCT;
+    }
+
     // const cookies = await this.getCheckpointCookies(this.context.jar);
 
     // if (cookies.length) {
@@ -588,12 +614,10 @@ export default class TaskPrimitive extends BaseTask {
     // }
 
     if (nextState) {
-      this.context.setCaptchaToken(null);
-      this._form = '';
       return nextState;
     }
 
-    return States.SUBMIT_CHECKPOINT;
+    return States.GO_TO_CHECKPOINT;
   }
 
   async _handleQueue() {
@@ -648,7 +672,7 @@ export default class TaskPrimitive extends BaseTask {
       }
     }
 
-    const retryAfter = headers.get('Retry-After') || 2500;
+    const retryAfter = headers.get('Retry-After') * 1000 || 2500;
 
     this._delayer = waitForDelay(retryAfter, this._aborter.signal);
     await this._delayer;
@@ -713,7 +737,12 @@ export default class TaskPrimitive extends BaseTask {
       return States.ADD_TO_CART;
     }
 
-    this._delayer = waitForDelay(250, this._aborter.signal);
+    if (!this._solvedCheckpoint) {
+      this._fromWaitForProduct = true;
+      return States.GO_TO_CHECKPOINT;
+    }
+
+    this._delayer = waitForDelay(150, this._aborter.signal);
     await this._delayer;
 
     return States.WAIT_FOR_PRODUCT;

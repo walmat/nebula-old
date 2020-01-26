@@ -347,16 +347,19 @@ export default class TaskManager {
           for (const m of Object.values(this._monitors)) {
             if (m.platform === platform) {
               const { context: mContext } = m;
-              const isSameProduct = await compareProductData(
-                mContext.task.product,
-                context.task.product,
-                parseType,
-              );
               const isSameStore = mContext.task.store.url === context.task.store.url;
 
-              if (isSameProduct && isSameStore) {
-                found = m;
-                break;
+              if (isSameStore) {
+                const isSameProduct = await compareProductData(
+                  mContext.task.product,
+                  context.task.product,
+                  parseType,
+                );
+
+                if (isSameProduct) {
+                  found = m;
+                  break;
+                }
               }
             }
           }

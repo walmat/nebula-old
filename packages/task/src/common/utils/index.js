@@ -99,6 +99,10 @@ export const compareProductData = async (product1, product2, parseType) => {
     }
     case ParseType.Url: {
       const { url } = product1;
+      if (!url) {
+        return false;
+      }
+
       return product2.url.toUpperCase() === url.toUpperCase();
     }
     case ParseType.Variant: {

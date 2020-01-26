@@ -213,6 +213,7 @@ class CaptchaWindowManager {
         id,
         sitekey,
         host,
+        checkpoint,
       };
 
       if (!this._checkpointWindows[sitekey].length) {
@@ -234,6 +235,7 @@ class CaptchaWindowManager {
         id,
         sitekey,
         host,
+        checkpoint,
       };
 
       if (this._captchaWindows[sitekey].length === 0) {
@@ -254,14 +256,10 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
-  suspendHarvesting(id, sitekey, host, checkpoint) {
-    this._harvestStatus[sitekey] = {
-      state: HARVEST_STATES.SUSPEND,
-      id,
-      sitekey,
-      host,
-    };
+  suspendHarvesting(id, sitekey, host) {
+    this._harvestStatus[sitekey].state = HARVEST_STATES.SUSPEND;
 
+    const { checkpoint } = this._harvestStatus[sitekey];
     if (checkpoint) {
       Promise.all(
         (this._checkpointWindows[sitekey] || []).map(win =>
@@ -283,14 +281,10 @@ class CaptchaWindowManager {
    * Tell all captcha windows to stop harvesting and set the
    * harvest state to 'idle'
    */
-  stopHarvesting(id, sitekey, host, checkpoint) {
-    this._harvestStatus[sitekey] = {
-      state: HARVEST_STATES.IDLE,
-      id,
-      sitekey,
-      host,
-    };
+  stopHarvesting(id, sitekey, host) {
+    this._harvestStatus[sitekey].state = HARVEST_STATES.IDLE;
 
+    const { checkpoint } = this._harvestStatus[sitekey];
     if (checkpoint) {
       Promise.all(
         (this._checkpointWindows[sitekey] || []).map(win =>
@@ -708,13 +702,13 @@ class CaptchaWindowManager {
    */
   _generateTokenExpirationUpdateCallback(key) {
     return () => {
-      const { state, id, sitekey, host } = this._harvestStatus[key];
+      const { id, sitekey, host, state, checkpoint } = this._harvestStatus[key];
       if (
         this._tokenQueue[key].backlogLength < MAX_HARVEST_CAPTCHA_COUNT &&
         state === HARVEST_STATES.SUSPEND
       ) {
         console.log('[DEBUG]: Resuming harvesters...');
-        this.startHarvesting(id, sitekey, host);
+        this.startHarvesting(id, sitekey, host, checkpoint);
       }
     };
   }
