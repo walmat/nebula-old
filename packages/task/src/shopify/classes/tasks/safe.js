@@ -39,6 +39,10 @@ export default class SafeTaskPrimitive extends TaskPrimitive {
     const nextState = await super._handleAddToCart();
 
     if (nextState === States.DONE) {
+      if (this._fromWaitForProduct) {
+        return States.CAPTCHA;
+      }
+
       // NOTE: kick off the payment session generator
       this.generateSessions();
 

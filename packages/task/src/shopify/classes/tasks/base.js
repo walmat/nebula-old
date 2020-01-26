@@ -42,6 +42,7 @@ export default class TaskPrimitive extends BaseTask {
       };
     }
 
+    this._addedToCart = false;
     this._fromWaitForProduct = false;
     this._solvedCheckpoint = false;
 
@@ -317,6 +318,7 @@ export default class TaskPrimitive extends BaseTask {
 
       if (nextState) {
         const { message: erroredMessage, nextState: erroredState } = nextState;
+
         if (erroredMessage) {
           emitEvent(
             this.context,
@@ -324,6 +326,11 @@ export default class TaskPrimitive extends BaseTask {
             { message: erroredMessage },
             Events.TaskStatus,
           );
+
+          if (/connection/i.test(erroredMessage)) {
+            this._delayer = waitForDelay(monitor, this._aborter.signal);
+            await this._delayer;
+          }
         }
         return { nextState: erroredState };
       }
@@ -601,6 +608,7 @@ export default class TaskPrimitive extends BaseTask {
 
     if (
       this._fromWaitForProduct &&
+      !this._addedToCart &&
       (nextState === States.GO_TO_CART || nextState === States.CREATE_CHECKOUT)
     ) {
       this._solvedCheckpoint = true;
@@ -813,6 +821,8 @@ export default class TaskPrimitive extends BaseTask {
       return States.ADD_TO_CART;
     }
 
+    this._addedToCart = true;
+
     return States.DONE;
   }
 
@@ -936,6 +946,17 @@ export default class TaskPrimitive extends BaseTask {
 
         //   return States.CREATE_CHECKOUT;
         // }
+
+        console.log(
+          this._fromWaitForProduct,
+          this.context.task.product.variants,
+          this._addedToCart,
+        );
+
+        if (this._fromWaitForProduct && this.context.task.product.variants && !this._addedToCart) {
+          return States.WAIT_FOR_PRODUCT;
+        }
+
         return States.CAPTCHA;
       }
       case 'fulfilled': {
@@ -950,7 +971,10 @@ export default class TaskPrimitive extends BaseTask {
           return States.SUBMIT_SHIPPING;
         }
 
-        if (this._prevState === States.GO_TO_CHECKPOINT) {
+        if (
+          this._prevState === States.GO_TO_CHECKPOINT ||
+          (this._fromWaitForProduct && this._prevState === States.ADD_TO_CART)
+        ) {
           return States.SUBMIT_CHECKPOINT;
         }
 
