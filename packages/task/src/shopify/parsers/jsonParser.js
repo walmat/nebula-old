@@ -29,14 +29,15 @@ export default class JsonParser {
       res = await this._fetch(
         `/products.json?limit=-${getRandomIntInclusive(10000, 500000)}&type=${Date.now()}`,
         {
-        method: 'GET',
-        compress: true,
-        headers: {
-          'X-Shopify-Api-Features': Math.random() * Number.MAX_SAFE_INTEGER,
-          'user-agent': userAgent,
+          method: 'GET',
+          compress: true,
+          headers: {
+            'X-Shopify-Api-Features': Math.random() * Number.MAX_SAFE_INTEGER,
+            'user-agent': userAgent,
+          },
+          agent: proxy ? proxy.proxy : null,
         },
-        agent: proxy ? proxy.proxy : null,
-      });
+      );
 
       if (/429|430/.test(res.status)) {
         const error = new Error('Proxy banned!');
