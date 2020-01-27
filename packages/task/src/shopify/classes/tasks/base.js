@@ -43,6 +43,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     this._addedToCart = false;
+    this._checker = 0;
     this._fromWaitForProduct = false;
     this._solvedCheckpoint = false;
 
@@ -319,7 +320,7 @@ export default class TaskPrimitive extends BaseTask {
       if (nextState) {
         const { message: erroredMessage, nextState: erroredState } = nextState;
 
-        if (erroredMessage) {
+        if (erroredMessage && !/null|undefined/i.test(erroredMessage)) {
           emitEvent(
             this.context,
             [this.context.id],
@@ -747,11 +748,13 @@ export default class TaskPrimitive extends BaseTask {
       return States.ADD_TO_CART;
     }
 
-    if (!this._solvedCheckpoint) {
+    if (!this._solvedCheckpoint && this._checker % 10 === 0) {
+      this._checker = 0;
       this._fromWaitForProduct = true;
       return States.GO_TO_CHECKPOINT;
     }
 
+    this._checker += 1;
     this._delayer = waitForDelay(150, this._aborter.signal);
     await this._delayer;
 
@@ -809,7 +812,6 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     const body = await data.text();
-    console.log(body);
 
     if (/cannot find variant/i.test(body)) {
       emitEvent(
@@ -951,12 +953,6 @@ export default class TaskPrimitive extends BaseTask {
         //   return States.CREATE_CHECKOUT;
         // }
 
-        console.log(
-          this._fromWaitForProduct,
-          this.context.task.product.variants,
-          this._addedToCart,
-        );
-
         if (this._fromWaitForProduct && this.context.task.product.variants && !this._addedToCart) {
           return States.WAIT_FOR_PRODUCT;
         }
@@ -982,7 +978,10 @@ export default class TaskPrimitive extends BaseTask {
           return States.SUBMIT_CHECKPOINT;
         }
 
-        if (this._prevState === States.GO_TO_CHECKOUT) {
+        if (
+          this._prevState === States.GO_TO_CHECKOUT ||
+          this._prevState === States.SUBMIT_SHIPPING
+        ) {
           return States.SUBMIT_CUSTOMER;
         }
 
@@ -1354,6 +1353,11 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleSubmitShipping() {
+    const {
+      task: { captcha },
+      captchaToken,
+    } = this.context;
+
     if (!this._form) {
       this._form = shippingForm(this._selectedShippingRate.id);
     }
@@ -1418,6 +1422,16 @@ export default class TaskPrimitive extends BaseTask {
       return States.SUBMIT_SHIPPING;
     }
 
+    // recaptcha sitekey parser...
+    const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+    if (match && match.length) {
+      [, this.context.task.store.sitekey] = match;
+    }
+
+    if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
+      return States.CAPTCHA;
+    }
+
     if (new RegExp(`${this._hash}/stock_problems`, 'i').test(body)) {
       return States.GO_TO_PAYMENT;
     }
@@ -1466,6 +1480,13 @@ export default class TaskPrimitive extends BaseTask {
       xmlMode: false,
       normalizeWhitespace: true,
     });
+
+    if (/payments aren't available right now/i.test(body)) {
+      this._delayer = waitForDelay(250, this._aborter.signal);
+      await this._delayer;
+
+      return States.GO_TO_PAYMENT;
+    }
 
     if (/calculating taxes/i.test(body)) {
       emitEvent(

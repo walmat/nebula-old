@@ -59,42 +59,95 @@ export default class SafeTaskPrimitive extends TaskPrimitive {
   }
 
   async _handleCreateCheckout() {
-    const { nextState, data } = await this._handler(
-      '/checkout',
-      {
-        method: 'POST',
-        body: JSON.stringify({}),
-      },
-      'Creating checkout',
-      States.CREATE_CHECKOUT,
-      [
+    let nextState;
+    let data;
+    if (/palace/i.test(this.context.task.store.url)) {
+      if (!this._form.includes('checkout')) {
+        this._form += `checkout=Check+out`;
+      }
+
+      ({ nextState, data } = await this._handler(
+        '/cart',
         {
-          url: 'checkpoint',
-          message: 'Going to checkpoint',
-          state: States.GO_TO_CHECKPOINT,
+          method: 'POST',
+          headers: {
+            'content-type': 'application/x-www-form-urlencoded',
+          },
+          body: this._form,
         },
+        'Creating checkout',
+        States.CREATE_CHECKOUT,
+        [
+          {
+            url: 'checkpoint',
+            message: 'Going to checkpoint',
+            state: States.GO_TO_CHECKPOINT,
+          },
+          {
+            url: 'login',
+            message: 'Account needed',
+            state: States.ERROR,
+          },
+          {
+            url: 'password',
+            message: 'Creating checkout',
+            state: States.CREATE_CHECKOUT,
+          },
+          {
+            url: 'throttle',
+            message: 'Polling queue',
+            state: States.QUEUE,
+          },
+          {
+            url: 'checkouts',
+            message: 'Going to checkout',
+            state: States.GO_TO_CHECKOUT,
+          },
+          {
+            url: 'cart',
+            message: 'Adding to cart',
+            state: States.ADD_TO_CART,
+          },
+        ],
+      ));
+    } else {
+      ({ nextState, data } = await this._handler(
+        '/checkout',
         {
-          url: 'login',
-          message: 'Account needed',
-          state: States.ERROR,
+          method: 'POST',
+          body: JSON.stringify({}),
         },
-        {
-          url: 'password',
-          message: 'Creating checkout',
-          state: States.CREATE_CHECKOUT,
-        },
-        {
-          url: 'throttle',
-          message: 'Polling queue',
-          state: States.QUEUE,
-        },
-        {
-          url: 'checkouts',
-          message: 'Going to checkout',
-          state: States.GO_TO_CHECKOUT,
-        },
-      ],
-    );
+        'Creating checkout',
+        States.CREATE_CHECKOUT,
+        [
+          {
+            url: 'checkpoint',
+            message: 'Going to checkpoint',
+            state: States.GO_TO_CHECKPOINT,
+          },
+          {
+            url: 'login',
+            message: 'Account needed',
+            state: States.ERROR,
+          },
+          {
+            url: 'password',
+            message: 'Creating checkout',
+            state: States.CREATE_CHECKOUT,
+          },
+          {
+            url: 'throttle',
+            message: 'Polling queue',
+            state: States.QUEUE,
+          },
+          {
+            url: 'checkouts',
+            message: 'Going to checkout',
+            state: States.GO_TO_CHECKOUT,
+          },
+        ],
+      ));
+    }
 
     if (nextState) {
       return nextState;
