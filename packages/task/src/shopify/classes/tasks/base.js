@@ -1000,10 +1000,7 @@ export default class TaskPrimitive extends BaseTask {
 
   async _handleGetCheckout() {
     const {
-      task: {
-        store: { apiKey },
-        captcha,
-      },
+      task: { captcha },
       captchaToken,
     } = this.context;
 
@@ -1113,12 +1110,7 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleSubmitCustomer() {
-    const {
-      task: {
-        store: { apiKey },
-      },
-      captchaToken,
-    } = this.context;
+    const { captchaToken } = this.context;
 
     if (!this._form) {
       this._form = contactForm(this.context.task.profile, captchaToken);
@@ -1187,7 +1179,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     const body = await data.text();
-    if (/Captcha validation fail/i.test(body)) {
+    if (/Captcha validation failed/i.test(body)) {
       this.context.setCaptchaToken(null);
       return States.GO_TO_CHECKOUT;
     }
