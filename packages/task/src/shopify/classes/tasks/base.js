@@ -218,7 +218,7 @@ export default class TaskPrimitive extends BaseTask {
       );
 
       if (error) {
-        if (error.message) {
+        if (error.message && !/null|undefined/i.test(error.message)) {
           emitEvent(this.context, [this.context.id], { message: error.message }, Events.TaskStatus);
         }
         return { nextState: error.nextState };
@@ -301,7 +301,9 @@ export default class TaskPrimitive extends BaseTask {
               if (from === States.SUBMIT_CHECKPOINT && this._fromWaitForProduct) {
                 return { nextState: state, data: res };
               }
-              emitEvent(this.context, [this.context.id], { message: newMsg }, Events.TaskStatus);
+              if (!/null|undefined/i.test(newMsg)) {
+                emitEvent(this.context, [this.context.id], { message: newMsg }, Events.TaskStatus);
+              }
             }
             return { nextState: state, data: res };
           }
@@ -339,7 +341,10 @@ export default class TaskPrimitive extends BaseTask {
       const newMessage =
         error.status || error.errno ? `${message} (${error.status || error.errno})` : message;
 
-      emitEvent(this.context, [this.context.id], { message: newMessage }, Events.TaskStatus);
+      if (!/null|undefined/i.test(newMessage)) {
+        emitEvent(this.context, [this.context.id], { message: newMessage }, Events.TaskStatus);
+      }
+
       return { nextState: from };
     }
   }
