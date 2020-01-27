@@ -364,7 +364,7 @@ export default class TaskManager {
             }
           }
 
-          const ShopifyTask = chooseTask(task.type);
+          const ShopifyTask = chooseTask(task.type, task.store.url);
           newTask = new ShopifyTask(context);
 
           this._logger.debug('Existing monitor? %j', found || false);

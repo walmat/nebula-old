@@ -484,6 +484,8 @@ export default class TaskPrimitive extends BaseTask {
 
     if (status !== 200) {
       if (this._fromWaitForProduct) {
+        // reset this toggle so we don't proceed to captcha after ATC if we don't need to...
+        this._fromWaitForProduct = false;
         return States.WAIT_FOR_PRODUCT;
       }
       return States.CREATE_CHECKOUT;
