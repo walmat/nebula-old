@@ -923,8 +923,6 @@ export default class TaskPrimitive extends BaseTask {
       Events.TaskStatus,
     );
 
-    console.log(this._prevState);
-
     // start request if it hasn't started already
     if (!this.context.captchaRequest) {
       const requester = await Captcha.getCaptcha(
