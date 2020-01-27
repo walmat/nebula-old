@@ -41,7 +41,9 @@ export default class DynoTaskPrimitive extends TaskPrimitive {
       }
 
       // NOTE: kick off the payment session generator
-      this.generateSessions();
+      if (!this.generating) {
+        this.generateSessions();
+      }
 
       // for sites that require certain post params from cart...
       if (/palace/i.test(this.context.task.store.name)) {
