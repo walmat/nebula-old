@@ -21,13 +21,13 @@ export default class ProxyManager {
   format(rawData) {
     this._logger.debug('Formatting proxy data %s...', rawData);
 
-    // if (process.env.NODE_ENV === 'development' && /^127/i.test(rawData)) {
-    //   return 'http://127.0.0.1:8888';
-    // }
+    if (process.env.NODE_ENV === 'development' && /^127/i.test(rawData)) {
+      return 'http://127.0.0.1:8888';
+    }
 
-    // if (!rawData || /^(127.*|localhost)/.test(rawData)) {
-    //   return null;
-    // }
+    if (!rawData || /^(127.*|localhost)/.test(rawData)) {
+      return null;
+    }
 
     // subnet proxies
     if (/^http/.test(rawData)) {

@@ -141,15 +141,15 @@ class App {
     }
 
     // Security check for http loggers
-    // if (!nebulaEnv.isDevelopment()) {
-    //   // attach an interval to check for any logging applications
-    //   this._loggerInterval = setInterval(async () => {
-    //     const isRunning = await this._securityManager.isHTTPLoggerRunning();
-    //     if (isRunning) {
-    //       await this.onWindowAllClosed();
-    //     }
-    //   }, 1500);
-    // }
+    if (!nebulaEnv.isDevelopment()) {
+      // attach an interval to check for any logging applications
+      this._loggerInterval = setInterval(async () => {
+        const isRunning = await this._securityManager.isHTTPLoggerRunning();
+        if (isRunning) {
+          await this.onWindowAllClosed();
+        }
+      }, 1500);
+    }
 
     // Create the main window
     await this._windowManager.createNewWindow('main');
