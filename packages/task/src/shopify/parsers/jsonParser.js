@@ -30,7 +30,7 @@ export default class JsonParser {
         method: 'GET',
         compress: true,
         headers: {
-          'X-Shopify-Api-Features': getRandomIntInclusive(30000, 90000),
+          'X-Shopify-Api-Features': Math.random() * Number.MAX_SAFE_INTEGER,
           'user-agent': userAgent,
         },
         agent: proxy ? proxy.proxy : null,

@@ -31,6 +31,7 @@ export default class XmlParser {
         method: 'GET',
         compress: true,
         headers: {
+          'X-Shopify-Api-Features': Math.random() * Number.MAX_SAFE_INTEGER,
           'user-agent': userAgent,
         },
         agent: proxy ? proxy.proxy : null,

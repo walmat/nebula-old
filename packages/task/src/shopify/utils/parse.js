@@ -86,6 +86,7 @@ export const getProductInfoPage = async (fetch, url, proxy, logger) => {
       follow: 5,
       agent: proxy ? proxy.proxy : null,
       headers: {
+        'X-Shopify-Api-Features': Math.random() * Number.MAX_SAFE_INTEGER,
         'user-agent': userAgent,
       },
     });
@@ -177,6 +178,7 @@ export const getFullProductInfo = (fetch, url, proxy, logger) => {
       compress: true,
       agent: proxy ? proxy.proxy : null,
       headers: {
+        'X-Shopify-Api-Features': Math.random() * Number.MAX_SAFE_INTEGER,
         'user-agent': userAgent,
       },
     });

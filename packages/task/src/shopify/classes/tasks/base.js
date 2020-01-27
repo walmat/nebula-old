@@ -809,6 +809,8 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     const body = await data.text();
+    console.log(body);
+
     if (/cannot find variant/i.test(body)) {
       emitEvent(
         this.context,
