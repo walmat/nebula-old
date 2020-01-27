@@ -489,7 +489,8 @@ export default class TaskPrimitive extends BaseTask {
         this._fromWaitForProduct = false;
         return States.WAIT_FOR_PRODUCT;
       }
-      return States.CREATE_CHECKOUT;
+      // TODO: should this return to the previous state?
+      return this._prevState;
     }
 
     if (nextState) {
@@ -748,7 +749,7 @@ export default class TaskPrimitive extends BaseTask {
       return States.ADD_TO_CART;
     }
 
-    if (!this._solvedCheckpoint && this._checker % 10 === 0) {
+    if (!this._solvedCheckpoint && this._checker === 10) {
       this._checker = 0;
       this._fromWaitForProduct = true;
       return States.GO_TO_CHECKPOINT;
@@ -833,19 +834,9 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleGetCart() {
-    const {
-      task: {
-        store: { apiKey },
-      },
-    } = this.context;
-
     const { nextState, data } = await this._handler(
       '/cart',
-      {
-        headers: {
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
-        },
-      },
+      {},
       'Going to cart',
       States.GO_TO_CART,
       [
@@ -1018,11 +1009,7 @@ export default class TaskPrimitive extends BaseTask {
 
     const { nextState, data } = await this._handler(
       `/${this._store}/checkouts/${this._hash}`,
-      {
-        headers: {
-          'X-Shopify-Storefront-Access-Token': apiKey,
-        },
-      },
+      {},
       'Going to checkout',
       States.GO_TO_CHECKOUT,
       [
@@ -1157,7 +1144,6 @@ export default class TaskPrimitive extends BaseTask {
         method: 'POST',
         headers: {
           'content-type': 'application/x-www-form-urlencoded',
-          'X-Shopify-Storefront-Access-Token': `${apiKey}`,
         },
         body: this._form,
       },

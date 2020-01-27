@@ -270,7 +270,7 @@ export default class FastTaskPrimitive extends TaskPrimitive {
       {
         method: 'PATCH',
         headers: {
-          'content-type': 'applcation/json',
+          'content-type': 'application/json',
         },
         body: JSON.stringify(form),
       },
@@ -358,7 +358,7 @@ export default class FastTaskPrimitive extends TaskPrimitive {
       {
         method: 'PATCH',
         headers: {
-          'content-type': 'applcation/json',
+          'content-type': 'application/json',
         },
         body: JSON.stringify(form),
       },
