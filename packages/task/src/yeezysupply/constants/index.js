@@ -12,6 +12,7 @@ const MonitorStates = {
  */
 const CheckoutStates = {
   ...TaskConstants.States,
+  IN_SPLASH: 'IN_SPLASH',
   // ... todo!
 };
 

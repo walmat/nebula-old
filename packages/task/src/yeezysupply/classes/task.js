@@ -1,5 +1,7 @@
 import { Task } from '../constants';
 import { Bases, Constants, Utils } from '../../common';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 const { States } = Task;
 const { Platforms, Task: TaskConstants } = Constants;
@@ -75,21 +77,31 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     logger.silly("Test 1");
-    if (typeof this._context.task.product.b !== 'undefined') {
+    // if (this._context.task.product.b) {
       logger.debug('Chose variant: %j', this._context.task.product);
       this._context.setProductFound(true);
-      return States.DONE;
-    }
+      //TODO check if sale is live
+      return States.IN_SPLASH;
+    // }
     // return States.ADD_TO_CART;
 
     this._delayer = waitForDelay(500, this._aborter.signal);
     logger.silly('have not found product');
     await this._delayer;
 
-    return States.WAIT_FOR_PRODUCT;
+    // return States.WAIT_FOR_PRODUCT;
   }
 
-  async _handleWaitInSplash() {}
+  async _handleWaitInSplash() {
+    const browser = await puppeteer.launch({ headless: false });
+    const page = await browser.newPage();
+    await page.goto(`https://www.yeezysupply.com/product/${this._context.task.product.variant}`);
+    // add handling for akamai
+    let sizes = await page.waitForSelector('.gl-native-dropdown__select-element', { timeout: 0 });
+    sizes.click();
+
+    return States.DONE;
+  }
 
   async _handleStepLogic(currentState) {
     const { logger } = this._context;
@@ -103,6 +115,7 @@ export default class TaskPrimitive extends BaseTask {
 
     const stepMap = {
       [States.WAIT_FOR_PRODUCT]: this._handleWaitForProduct,
+      [States.IN_SPLASH]: this._handleWaitInSplash,
       [States.SWAP]: this._handleSwapProxies,
       [States.DONE]: () => States.DONE,
       [States.ERROR]: () => States.DONE,

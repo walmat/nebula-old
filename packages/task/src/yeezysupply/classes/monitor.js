@@ -1,5 +1,3 @@
-import cloudscraper from 'cloudscraper';
-
 import { Monitor } from '../constants';
 import { Bases, Constants, Utils } from '../../common';
 
@@ -103,19 +101,26 @@ export default class MonitorPrimitive extends BaseMonitor {
     );
 
     try {
-      const res = await cloudscraper(`https://yeezysupply.com/api/products/${product.variant}`, {
+      const res = await this._fetch(`https://yeezysupply.com/api/products/${product.variant}`, {
         method: 'GET',
+        // agent: proxy ? proxy.proxy : null,
         headers: {
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Accept': 'application/json',
+          'Accept-encoding': 'gzip, deflate, br',
+          'Accept-language': 'en-US,en;q=0.9',
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36',
         },
       });
 
-      const body = await JSON.parse(res);
+      // const body = await JSON.parse(res);
+      logger.silly('1');
+      logger.silly(res);
 
-      logger.silly(body);
-
-      return States.STOCK;
+      logger.silly(product)
+      return States.DONE;
     } catch (error) {
       logger.silly(error);
       return this._handleError(error, States.STOCK);
@@ -141,43 +146,51 @@ export default class MonitorPrimitive extends BaseMonitor {
     );
 
     try {
-      const res = await cloudscraper(
+      const res = await this._fetch(
         // `https://jsonplaceholder.typicode.com/todos/1`,
-        `https://yeezysupply.com/api/products/${product.variant}/availability`,
+        `https://yeezysupply.com/api/products/${product.variant}`,
         {
           method: 'GET',
-          // agent: proxy ? proxy.proxy : null,
+          agent: proxy ? proxy.proxy : null,
           headers: {
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Accept': 'application/json',
+            'Accept-encoding': 'gzip, deflate, br',
+            'Accept-language': 'en-US,en;q=0.9',
             'User-Agent':
               'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36',
           },
         },
       );
 
-      // if (!res.ok) {
-      //   const error = new Error('Error getting stock');
-      //   error.status = res.status || res.errno;
-      //   throw error;
-      // }
+      logger.silly(res);
 
-      // task.product.b = body;
+      // // if (!res.ok) {
+      // //   const error = new Error('Error getting stock');
+      // //   error.status = res.status || res.errno;
+      // //   throw error;
+      // // }
 
-      // if (!body) {
-      //   const error = new Error('No product data');
-      //   error.status = res.status || res.errno;
-      //   throw error;
-      // }
-      let b = await JSON.parse(res);
+      // // if (!body) {
+      // //   const error = new Error('No product data');
+      // //   error.status = res.status || res.errno;
+      // //   throw error;
+      // // }
+      // let b = await JSON.parse(res);
+      // task.product.b = b;
 
-      logger.silly(b);
+      // logger.silly(b);
 
       // if (body.availability_status === 'PREVIEW') {
       //   // do something when not avaliable yet
       // }
 
-      // if (body.availability_status === 'IN_STOCK') {
-      //   logger.silly(body);
+      // if (b.availability_status === 'IN_STOCK') {
+        // logger.silly(b);
       // }
+
+      // console.log(product);
 
       return States.DONE;
     } catch (error) {
@@ -196,7 +209,7 @@ export default class MonitorPrimitive extends BaseMonitor {
     logger.silly('Handling state: %s', currentState);
 
     const stepMap = {
-      [States.PARSE]: this._handleParse,
+      // [States.PARSE]: this._handleParse,
       [States.STOCK]: this._handleStock,
       [States.SWAP]: this._handleSwapProxies,
       [States.DONE]: () => States.ABORT,
