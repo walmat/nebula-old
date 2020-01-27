@@ -203,6 +203,7 @@ class CaptchaWindowManager {
    * If no captcha windows are present, one is created
    */
   async startHarvesting(id, sitekey, host, checkpoint) {
+    console.log(checkpoint);
     if (checkpoint) {
       if (!this._checkpointWindows[sitekey]) {
         this._checkpointWindows[sitekey] = [];
@@ -411,15 +412,20 @@ class CaptchaWindowManager {
       this._captchaThemeOpts.backgroundColor = options.backgroundColor;
     }
 
+    let win;
     if (checkpoint) {
-      this._captchaThemeOpts.backgroundColor = '#000';
+      console.log(`[DEBUG]: Session for captcha window: %j`, session);
+      win = createCaptchaWindow(
+        { ...options, ...this._captchaThemeOpts, backgroundColor: '#000' },
+        { session: session ? Session.fromPartition(session.session) : {} },
+      );
+    } else {
+      console.log(`[DEBUG]: Session for captcha window: %j`, session);
+      win = createCaptchaWindow(
+        { ...options, ...this._captchaThemeOpts },
+        { session: session ? Session.fromPartition(session.session) : {} },
+      );
     }
-
-    console.log(`[DEBUG]: Session for captcha window: %j`, session);
-    const win = createCaptchaWindow(
-      { ...options, ...this._captchaThemeOpts },
-      { session: session ? Session.fromPartition(session.session) : {} },
-    );
 
     CaptchaWindowManager.setupIntercept(win);
 
