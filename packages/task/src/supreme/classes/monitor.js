@@ -1,5 +1,7 @@
+import { isEmpty } from 'lodash';
+
 import { Bases, Constants, Utils } from '../../common';
-import getHeaders, { matchKeywords, matchVariation } from '../utils';
+import getHeaders, { getRegion, matchKeywords } from '../utils';
 import { Monitor } from '../constants';
 
 const { BaseMonitor } = Bases;
@@ -16,6 +18,11 @@ export default class MonitorPrimitive extends BaseMonitor {
 
     this._state = States.PARSE;
     this._prevState = this._state;
+
+    this._region = getRegion(context.task.store.name);
+
+    this.detectPooky();
+    this._pookyInterval = setInterval(() => this.detectPooky(), 1000);
   }
 
   async _handleError(error = {}, state) {
@@ -26,8 +33,6 @@ export default class MonitorPrimitive extends BaseMonitor {
     }
 
     const { status } = error;
-
-    logger.error('Handling error with status: %j', status);
 
     if (!status) {
       return state;
@@ -61,11 +66,11 @@ export default class MonitorPrimitive extends BaseMonitor {
         this.context,
         this.context.ids,
         {
-          message: `${status}! Delaying ${this.context.task.error}ms (${status})`,
+          message: `Delaying ${this.context.task.monitor}ms (${status})`,
         },
         Events.MonitorStatus,
       );
-      this._delayer = waitForDelay(this.context.task.error, this._aborter.signal);
+      this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
       await this._delayer;
     } else if (
       status === ErrorCodes.ProductNotFound ||
@@ -86,6 +91,48 @@ export default class MonitorPrimitive extends BaseMonitor {
     return state;
   }
 
+  async detectPooky() {
+    const { logger } = this.context;
+
+    logger.info('--------------------------DETECTING POOKY--------------------------');
+    const { NEBULA_POOKY_ON } = process.env;
+
+    try {
+      const res = await this._fetch(NEBULA_POOKY_ON);
+
+      if (!res.ok) {
+        const error = new Error('Unable to fetch pooky status');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      const body = await res.json();
+
+      if (!body || isEmpty(body) || (body && !body[this._region.toLowerCase()])) {
+        const error = new Error('Invalid response');
+        error.status = res.status || res.errno;
+        throw error;
+      }
+
+      const { state } = body[this._region.toLowerCase()];
+
+      if (this.context.pookyEnabled !== state) {
+        // if (!state) {
+        //   // clear the cookie jar..
+        //   this.context.jar.removeAllCookiesSync();
+        // }
+        this.context.setPookyEnabled(state);
+      }
+
+      return;
+    } catch (err) {
+      // default back to true just in case...
+      if (!this.context.pookyEnabled) {
+        this.context.setPookyEnabled(true);
+      }
+    }
+  }
+
   async _handleParse() {
     const { aborted, task, proxy, logger } = this.context;
     const { product, category } = task;
@@ -102,6 +149,11 @@ export default class MonitorPrimitive extends BaseMonitor {
         message: 'Parsing products',
       },
       Events.MonitorStatus,
+    );
+
+    this.context.jar.setCookieSync(
+      `lastVisitedFragment=categories/${this.context.task.category};`,
+      this.context.task.store.url,
     );
 
     try {
@@ -128,13 +180,13 @@ export default class MonitorPrimitive extends BaseMonitor {
       const productsInCategory = productsAndCategories[category];
 
       logger.silly(
-        'Supreme Monitor: Parsed %d products in category: %s',
-        productsInCategory ? productsInCategory.length : 0,
+        '%s category has: %s products',
         category,
+        productsInCategory ? productsInCategory.length : 0,
       );
 
       if (!productsInCategory || (productsInCategory && !productsInCategory.length)) {
-        logger.silly('Supreme Monitor: Unable to find matching product!');
+        logger.silly('Unable to pull products in category');
         const error = new Error('Product Not Found');
         error.status = ErrorCodes.ProductNotFound;
         throw error;
@@ -148,7 +200,7 @@ export default class MonitorPrimitive extends BaseMonitor {
       const matchedProduct = await matchKeywords(productsInCategory, keywords, null, logger); // no need to use a custom filter...
 
       if (!matchedProduct) {
-        logger.silly('Supreme Monitor: Unable to find matching product!');
+        logger.silly('Unable to find matching product');
         const error = new Error('Product Not Found');
         error.status = ErrorCodes.ProductNotFound;
         throw error;
@@ -158,7 +210,20 @@ export default class MonitorPrimitive extends BaseMonitor {
       this.context.task.product.price = matchedProduct.price;
       this.context.task.product.style = matchedProduct.id;
 
-      logger.silly('Supreme Monitor: Product found: %j', matchedProduct.name);
+      this.context.jar.setCookieSync('hasVisited=1;', this.context.task.store.url);
+      this.context.jar.setCookieSync(
+        `lastVisitedFragment=products/${this.context.task.product.style};`,
+        this.context.task.store.url,
+      );
+
+      emitEvent(
+        this.context,
+        this.context.ids,
+        {
+          productName: `${this.context.task.product.name}`,
+        },
+        Events.MonitorStatus,
+      );
 
       return States.STOCK;
     } catch (error) {
@@ -168,23 +233,24 @@ export default class MonitorPrimitive extends BaseMonitor {
 
   async _handleStock() {
     const { task, aborted, proxy, logger } = this.context;
-    const {
-      product: { variation, style },
-    } = task;
+    const { style } = task.product;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    emitEvent(
-      this.context,
-      this.context.ids,
-      {
-        message: 'Fetching stock',
-      },
-      Events.MonitorStatus,
-    );
+    // only emit the status update on first fetch
+    if (!this.context.task.product.styles) {
+      emitEvent(
+        this.context,
+        this.context.ids,
+        {
+          message: 'Fetching stock',
+        },
+        Events.MonitorStatus,
+      );
+    }
 
     try {
       const res = await this._fetch(`/shop/${style}.json`, {
@@ -207,36 +273,15 @@ export default class MonitorPrimitive extends BaseMonitor {
         throw error;
       }
 
-      const matchedVariation = await matchVariation(styles, variation, logger);
+      this.context.task.product.styles = styles;
 
-      if (!matchedVariation) {
-        emitEvent(
-          this.context,
-          this.context.ids,
-          {
-            message: 'No variation matched!',
-          },
-          Events.MonitorStatus,
-        );
-        return States.ABORT;
-      }
+      const now = new Date().getTime();
+      this.context.jar.setCookieSync(`shoppingSessionId=${now};`, this.context.task.store.url);
 
-      task.product.id = matchedVariation.id;
-      task.product.variants = matchedVariation.sizes;
-      task.product.currency = matchedVariation.currency;
-      task.product.image = matchedVariation.image_url;
-      task.product.chosenVariation = matchedVariation.name;
+      this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
+      await this._delayer;
 
-      const { name } = task.product;
-      emitEvent(
-        this.context,
-        this.context.ids,
-        {
-          message: `Product found: ${name}`,
-        },
-        Events.MonitorStatus,
-      );
-      return States.DONE;
+      return States.STOCK;
     } catch (error) {
       return this._handleError(error, States.STOCK);
     }
@@ -261,5 +306,14 @@ export default class MonitorPrimitive extends BaseMonitor {
 
     const handler = stepMap[currentState] || defaultHandler;
     return handler.call(this);
+  }
+
+  stop(id) {
+    super.stop(id);
+
+    if (this.context.isEmpty()) {
+      clearInterval(this._pookyInterval);
+      this._pookyInterval = null;
+    }
   }
 }

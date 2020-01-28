@@ -2,221 +2,208 @@
 @import '../../styles/themes';
 @import '../../styles/mixins';
 
-.tasks {
-  .tasks-create {
-    max-height: 285px;
-    min-height: 225px;
-    min-width: 280px;
-    @include themify($themes) {
-      border-color: themed('tableBorderColor');
-      box-shadow: 5px 5px 15px themed('liveLogTableBorderTop');
-    }
-    flex-grow: 0.5;
-    border-width: 0;
-    border-style: solid;
-    border-radius: 5px;
+.rw-state-focus>.rw-widget-container, .rw-state-focus>.rw-widget-container:hover {
+  outline: none !important;
+  border-color: unset !important;
+  box-shadow: none !important;
+}
 
-    &__section-header {
-      padding-bottom: 1px;
-    }
+.rw-select-bordered {
+  border-left: none !important;
+}
 
-    &__label {
+.rw-btn {
+  vertical-align: unset !important;
+}
+
+.rw--light {
+  * {
+    background-color: unset !important;
+    color: unset !important;
+  }
+  border: 1px solid black !important;
+  background-color: #efefef !important;
+  color: #161318 !important;
+}
+
+.rw--dark {
+  * {
+    background-color: unset !important;
+    color: unset !important;
+  }
+  border: 1px solid #efefef !important;
+  background-color: #2c2f33 !important;
+  color: #efefef !important;
+}
+
+.create-tasks {
+  height: 300px;
+  width: 400px;
+
+  @include themify($themes) {
+    border-color: themed('tableBorderColor');
+    box-shadow: 0 0 10px themed('liveLogTableBorderTop');
+  }
+  margin-top: 20px !important;
+  border-width: 0;
+  border-style: solid;
+  border-radius: 5px;
+
+  &__label {
+    max-width: 185px;
+    @include select-font;
+    height: 12px;
+    margin-top: 0;
+    margin-bottom: 3px;
+
+    &--light {
       @include select-font;
-      @include themify($themes) {
-        color: themed('tableHeaderColor');
-      }
       height: 12px;
+      margin-top: 0;
       margin-bottom: 3px;
-      margin-top: 9px;
-      padding-left: 0.5px;
+      color: #161318;
     }
-
-    &__input-group {
-      margin: 0 11.5px !important;
-      padding-bottom: 2px;
-
-      &--first {
-        margin: 0 11.5px !important;
-        padding-bottom: 2px;
-        margin-top: 1.5px !important;
-      }
-
-      &--middle {
-        margin: 0 11.5px !important;
-        padding-bottom: 2px;
-        margin-bottom: 11px !important;
-      }
-
-      &--last {
-        margin: 0 11.5px !important;
-        padding-bottom: 2px;
-        margin-bottom: 10.5px !important;
-      }
-
-      &--filter {
-        padding-left: 14px;
-        margin-bottom: 2px;
-      }
-
-      &--store {
-        padding-left: 14px;
-      }
-
-      &--size {
-        padding-left: 14px;
-        margin-right: 0 !important;
-      }
+    &--dark {
+      @include select-font;
+      height: 12px;
+      margin-top: 0;
+      margin-bottom: 3px;
+      color: #efefef;
     }
+  }
 
-    &__input {
-      &--bordered {
-        border-width: 1px;
-        border-style: solid;
-      }
+  &__short {
+    width: 95px !important;
+  }
 
-      &--variation {
-        height: 29px;
-        max-width: 60px;
-        @media screen and (min-width: 1250px) and (min-height: 745px) {
-          height: 35px !important;
-          transition: ease all 0.5s;
-        }
+  &__shorter {
+    width: 55px !important;
+  }
 
-        @include themify($themes) {
-          background: themed('inputBackground');
-        }
-        &:disabled {
-          @include themify($themes) {
-            background: themed('inputBackgroundDisabled');
-          }
-        }
-        &__short {
-          height: 29px;
-
-          @media screen and (min-width: 1250px) and (min-height: 745px) {
-            transition: ease all 0.5s;
-            height: 35px;
-          }
-
-          @include themify($themes) {
-            background: themed('inputBackground');
-          }
-          &:disabled {
-            @include themify($themes) {
-              background: themed('inputBackgroundDisabled');
-            }
-          }
-        }
-      }
-
-      &--checkout-delay {
-        height: 29px;
-        max-width: 50px;
-        @media screen and (min-width: 1250px) and (min-height: 745px) {
-          height: 35px !important;
-          transition: ease all 0.5s;
-        }
-
-        @include themify($themes) {
-          background: themed('inputBackground');
-        }
-        &:disabled {
-          @include themify($themes) {
-            background: themed('inputBackgroundDisabled');
-          }
-        }
-        &__short {
-          height: 29px;
-
-          @media screen and (min-width: 1250px) and (min-height: 745px) {
-            transition: ease all 0.5s;
-            height: 35px;
-          }
-
-          @include themify($themes) {
-            background: themed('inputBackground');
-          }
-          &:disabled {
-            @include themify($themes) {
-              background: themed('inputBackgroundDisabled');
-            }
-          }
-        }
-      }
-
-      &--field {
-        height: 29px;
-        @media screen and (min-width: 1250px) and (min-height: 745px) {
-          height: 35px !important;
-          transition: ease all 0.5s;
-        }
-
-        @include themify($themes) {
-          background: themed('inputBackground');
-        }
-        &:disabled {
-          @include themify($themes) {
-            background: themed('inputBackgroundDisabled');
-          }
-        }
-        &__short {
-          height: 29px;
-
-          @media screen and (min-width: 1250px) and (min-height: 745px) {
-            transition: ease all 0.5s;
-            height: 35px;
-          }
-
-          @include themify($themes) {
-            background: themed('inputBackground');
-          }
-          &:disabled {
-            @include themify($themes) {
-              background: themed('inputBackgroundDisabled');
-            }
-          }
-        }
-      }
-
-      &--type-FAST {
-        color: #858dbb;
-      }
-
-      &--type-SAFE {
-        color: #8aa27d;
-      }
-
-      &--type-CART {
-        color: #c7b8ea;
-      }
-    }
-
-    &__submit-row {
-      align-self: flex-end;
-    }
-
-    &__amount {
-      width: 44px;
-      height: 29px;
-      cursor: pointer;
+  &__input {
+    &--dark {
+      max-width: 185px;
+      width: 185px;
       border-width: 1px;
       border-style: solid;
+      background: #2c2f33;
+      color: #efefef;
+    }
+
+    &--light {
+      max-width: 185px;
+      width: 185px;
+      border-width: 1px;
+      border-style: solid;
+      background: #efefef;
+    }
+
+    &--FAST {
+      text-align: center;
+      color: #6ba6c5;
+      margin-top: 25px;
+    }
+
+    &--SAFE {
+      text-align: center;
+      color: #e9b14f;
+      margin-top: 25px;
+    }
+  }
+
+  &__select {
+    max-width: 185px;
+    width: 185px;
+    @include themify($themes) {
+      background: themed('inputBackground') !important;
+    }
+    &:disabled {
+      @include themify($themes) {
+        background: themed('inputBackgroundDisabled');
+      }
+    }
+  }
+
+  &__size {
+    max-width: 185px;
+    width: 120px;
+    @include themify($themes) {
+      background: themed('inputBackground') !important;
+    }
+    &:disabled {
+      @include themify($themes) {
+        background: themed('inputBackgroundDisabled');
+      }
+    }
+  }
+
+  &__variation {
+    height: 29px;
+    max-width: 85px;
+    @media screen and (min-width: 1250px) and (min-height: 745px) {
+      height: 35px !important;
+      transition: ease all 0.5s;
+    }
+
+    @include themify($themes) {
+      background: themed('inputBackground');
+    }
+    &:disabled {
+      @include themify($themes) {
+        background: themed('inputBackgroundDisabled');
+      }
+    }
+  }
+
+  &__delay {
+    height: 29px;
+    max-width: 60px;
+    @media screen and (min-width: 1250px) and (min-height: 745px) {
+      height: 35px !important;
+      transition: ease all 0.5s;
+    }
+
+    @include themify($themes) {
+      background: themed('inputBackground');
+    }
+    &:disabled {
+      @include themify($themes) {
+        background: themed('inputBackgroundDisabled');
+      }
+    }
+  }
+
+  &__amount {
+    &--dark {
+      border-width: 1px;
       border-radius: 3px;
+      border-style: solid;
+      background: #2c2f33;
+      color: #efefef;
+      width: 45px;
+      height: 29px;
       @include font-base;
       font-weight: 500;
       text-align: center;
-      @include themify($themes) {
-        background: themed('inputBackground');
-      }
     }
 
-    &__submit {
-      @include button-base;
-      margin-right: -1px;
-      @include themify($themes) {
-        background: themed('buttonColorPrimary');
-      }
-      color: #f4f4f4 !important;
+    &--light {
+      border-width: 1px;
+      border-radius: 3px;
+      border-style: solid;
+      background: #efefef;
+      width: 55px;
+      height: 29px;
+      @include font-base;
+      font-weight: 500;
+      text-align: center;
     }
+  }
+
+  &__submit {
+    @include button-base;
+    margin-right: -1px;
+    background: #f0405e;
+    color: #f4f4f4 !important;
   }
 }

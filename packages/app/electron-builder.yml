@@ -27,9 +27,9 @@ releaseInfo:
   releaseNotesFile: ./RELEASE-NOTES.md
 
 dmg:
-  backgroundColor: "#46adb4"
+  backgroundColor: "#23272a"
   artifactName: 'Nebula.Orion-${version}-installer.${ext}'
-  icon: "build/assets/icons/mac/icon.icns"
+  icon: "build/assets/icon.icns"
   iconSize: 128
   contents:
     - type: link
@@ -41,7 +41,7 @@ dmg:
       y: 150
 
 mac:
-  icon: "build/assets/icons/mac/icon.icns"
+  icon: "build/assets/icon.icns"
   artifactName: 'Nebula.Orion-${version}-installer.${ext}'
   category: public.app-category.productivity
 
@@ -53,7 +53,7 @@ linux:
 
 win:
   target: nsis
-  icon: "build/assets/icons/win/icon.ico"
+  icon: "build/assets/icon.ico"
 
 nsis:
   artifactName: 'Nebula.Orion-${version}-installer.${ext}'

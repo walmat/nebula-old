@@ -29,6 +29,7 @@ export default class Timer {
   reset() {
     this._start = null;
     this._end = null;
+    this._total = 0;
   }
 
   /**
@@ -51,7 +52,7 @@ export default class Timer {
    * @return
    */
   getRunTime(time = now()) {
-    return (time - this._start).toFixed(2);
+    return (time - this._start).toFixed(0);
   }
 
   getTotalTime(fixed = 2) {

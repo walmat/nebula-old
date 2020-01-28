@@ -17,7 +17,7 @@ if (nebulaEnv.isDevelopment()) {
 
 let rateFetcherRequest = null;
 let handlers = [];
-const RATE_FETCHER_ID = 'srr';
+const RATE_FETCHER_ID = 100000;
 
 const taskEventHandler = (...params) => handlers.forEach(h => h(...params));
 
@@ -125,7 +125,7 @@ const _startShippingRateTask = task => {
     // Define srr message handler to retrive data
     const srrMessageHandler = (_, payload) => {
       // Only respond to specific type and id
-      if (payload[RATE_FETCHER_ID] && payload[RATE_FETCHER_ID].type === TaskTypes.ShippingRates) {
+      if (payload[RATE_FETCHER_ID] && payload[RATE_FETCHER_ID].type === TaskTypes.Rates) {
         // Task type is exposed from the task package
         response.rates = payload[RATE_FETCHER_ID].rates || response.rates; // update rates if it exists
         response.selectedRate = payload[RATE_FETCHER_ID].selected || response.selectedRate; // update selected if it exists
@@ -154,7 +154,7 @@ const _startShippingRateTask = task => {
 
     rateFetcherRequest = request;
     _registerForTaskEvents(srrMessageHandler);
-    _startTasks(request.task, { type: TaskTypes.ShippingRates });
+    _startTasks(request.task, { type: TaskTypes.Rates });
   });
 
   return request.promise;
@@ -169,22 +169,24 @@ const _stopShippingRateTask = () => {
   return Promise.resolve();
 };
 
-/**
- * Sends proxies(s) that should be add to launcher.js
- */
+const _addWebhooks = webhooks => {
+  util.sendEvent(IPCKeys.RequestAddWebhooks, webhooks);
+};
+
+const _removeWebhooks = webhooks => {
+  util.sendEvent(IPCKeys.RequestRemoveWebhooks, webhooks);
+};
+
 const _addProxies = proxies => {
   util.sendEvent(IPCKeys.RequestAddProxies, proxies);
 };
 
-/**
- * Sends task(s) that should be removed to launcher.js
- */
 const _removeProxies = proxies => {
   util.sendEvent(IPCKeys.RequestRemoveProxies, proxies);
 };
 
-const _changeDelay = (delay, type) => {
-  util.sendEvent(IPCKeys.RequestChangeDelay, delay, type);
+const _changeDelay = (delay, type, tasks) => {
+  util.sendEvent(IPCKeys.RequestChangeDelay, delay, type, tasks);
 };
 
 const _updateHook = (hook, type) => {
@@ -242,6 +244,8 @@ process.once('loaded', () => {
     restartTasks: _restartTasks,
     stopTasks: _stopTasks,
     openInDefaultBrowser: _openInDefaultBrowser,
+    addWebhooks: _addWebhooks,
+    removeWebhooks: _removeWebhooks,
     addProxies: _addProxies,
     removeProxies: _removeProxies,
     changeDelay: _changeDelay,

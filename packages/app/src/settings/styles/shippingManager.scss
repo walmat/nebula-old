@@ -28,7 +28,7 @@
         border-radius: 3px;
       }
 
-      &--site {
+      &--store {
         @include select-font;
         flex-grow: 2;
         border-radius: 3px;
@@ -48,8 +48,8 @@
         @include themify($themes) {
           background: themed('buttonColorPrimary') !important;
           color: themed('buttonPrimaryText') !important;
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
         }
-        flex-grow: 0.5;
         width: 83px !important;
         min-width: 124px;
         &:disabled {
@@ -63,8 +63,8 @@
         @include themify($themes) {
           background: themed('buttonColorSecondary') !important;
           color: themed('buttonPrimaryText') !important;
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
         }
-        flex-grow: 0.5;
         width: 83px !important;
       }
     }

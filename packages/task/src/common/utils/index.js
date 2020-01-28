@@ -5,14 +5,17 @@ import { isEqual } from 'lodash';
 import { createLogger, setLevels } from './logger';
 import rfrl from './rfrl';
 
-import { Task, Monitor } from '../constants';
+import { Monitor } from '../constants';
 
 const { ParseType } = Monitor;
-const { Types } = Task;
 
 export const waitForDelay = (time, signal) => delay(time, { signal });
 export const reflect = p =>
-  p.then(v => ({ v, status: 'fulfilled' }), e => ({ e, status: 'rejected' }));
+  p.then(
+    v => ({ v, status: 'fulfilled' }),
+    e => ({ e, status: 'rejected' }),
+  );
+
 export const userAgent =
   'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; LCTE; rv:11.0) like Gecko';
 
@@ -76,30 +79,30 @@ export const deregisterForEvent = (event, context, cb) => {
 
 // don't expose this..
 const _emitEvent = (context, ids, event, payload) => {
-  const { logger, events } = context;
+  const { events } = context;
   events.emit(event, ids, payload, event);
-  logger.silly('Event %s emitted: %j', event, payload);
 };
 
-export const emitEvent = (context, ids, payload = {}, event, type = Types.Normal) => {
-  const { message } = payload;
-  if (message && message !== context.messsage) {
-    context.setMessage(message);
-    _emitEvent(context, ids, event, payload.message);
-  }
+export const emitEvent = (context, ids, payload = {}, event) => {
+  context.setMessage(payload.message);
+  _emitEvent(context, ids, event, { ...payload });
 };
 
 export const compareProductData = async (product1, product2, parseType) => {
   // we only care about keywords/url matching here...
   switch (parseType) {
     case ParseType.Keywords: {
-      const { pos: posKeywords, pos: negKeywords } = product1;
-      const samePositiveKeywords = isEqual(product2.pos.sort(), posKeywords.sort());
-      const sameNegativeKeywords = isEqual(product2.neg.sort(), negKeywords.sort());
+      const { pos, neg } = product1;
+      const samePositiveKeywords = isEqual(product2.pos.sort(), pos.sort());
+      const sameNegativeKeywords = isEqual(product2.neg.sort(), neg.sort());
       return samePositiveKeywords && sameNegativeKeywords;
     }
     case ParseType.Url: {
       const { url } = product1;
+      if (!url) {
+        return false;
+      }
+
       return product2.url.toUpperCase() === url.toUpperCase();
     }
     case ParseType.Variant: {

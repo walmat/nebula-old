@@ -1,94 +1,108 @@
 import React, { PureComponent } from 'react';
-import { AppContainer } from 'react-hot-loader';
+import { AppContainer, setConfig } from 'react-hot-loader';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
-import { sortBy, isEmpty } from 'lodash';
+import { isEmpty } from 'lodash';
+import moment from 'moment';
 import PropTypes from 'prop-types';
 
 // Components
+import Titlebar from './components/titlebar';
 import Navbar from '../navbar';
 import Tasks from '../tasks';
 import Profiles from '../profiles';
 import Settings from '../settings';
-import { ROUTES, taskActions, appActions, globalActions } from '../store/actions';
-import { THEMES, mapBackgroundThemeToColor, mapToNextTheme } from '../constants/themes';
 
-import { addTestId, renderSvgIcon } from '../utils';
-
-// SVGs
-import { ReactComponent as CloseIcon } from '../styles/images/app/close.svg';
-import { ReactComponent as DeactivateIcon } from '../styles/images/app/logout.svg';
-import { ReactComponent as MinimizeIcon } from '../styles/images/app/minimize.svg';
-import { ReactComponent as NightModeIcon } from '../styles/images/app/moon.svg';
-import { ReactComponent as LightModeIcon } from '../styles/images/app/sun.svg';
+import { ROUTES, taskActions, appActions } from '../store/actions';
+import {
+  THEMES,
+  mapBackgroundThemeToColor,
+  mapToNextTheme,
+  fetchSites,
+  States,
+} from '../constants';
 
 // Styles
 import '../styles/index.scss';
 
 export class App extends PureComponent {
-  static close(e) {
-    e.preventDefault();
-    if (window.Bridge) {
-      window.Bridge.close();
-    }
-  }
-
-  static minimize(e) {
-    e.preventDefault();
-    if (window.Bridge) {
-      window.Bridge.minimize();
-    }
-  }
-
-  static deactivate(store) {
-    return async e => {
-      e.preventDefault();
-      if (window.Bridge) {
-        const confirm = await window.Bridge.showDialog(
-          'Are you sure you want to deactivate? Doing so will erase all data!',
-          'question',
-          ['Okay', 'Cancel'],
-          'Confirm',
-        );
-        if (confirm) {
-          store.dispatch(globalActions.reset());
-          window.Bridge.deactivate();
-        }
-      }
-    };
-  }
-
   constructor(props) {
     super(props);
     this.taskHandler = this.taskHandler.bind(this);
-    this._cleanup = this._cleanup.bind(this);
+    this._cleanupTasks = this._cleanupTasks.bind(this);
+    this._schedule = this._schedule.bind(this);
+    this._setTheme = this._setTheme.bind(this);
 
+    this.scheduler = null;
     this.siteInterval = null;
   }
 
   componentDidMount() {
+    const { store } = this.props;
     if (window.Bridge) {
-      const { store } = this.props;
       const {
         App: { theme },
+        Webhooks,
       } = store.getState();
       const backgroundColor = mapBackgroundThemeToColor[theme];
       window.Bridge.setTheme({ backgroundColor });
       window.Bridge.registerForTaskEvents(this.taskHandler);
+      if (Webhooks.length) {
+        window.Bridge.addWebhooks(Webhooks);
+      }
     }
-    this.fetchSites();
-    this.siteInterval = setInterval(() => this.fetchSites(), 5000);
-    window.addEventListener('beforeunload', this._cleanup);
+
+    // fetch store API updates
+    fetchSites(store);
+    this.siteInterval = setInterval(() => fetchSites(store), 5000);
+
+    // start the task scheduler
+    this._schedule();
+    this.scheduler = setInterval(() => this._schedule(), 1000);
+    window.addEventListener('beforeunload', this._cleanupTasks);
   }
 
   componentWillUnmount() {
-    this._cleanup();
+    this._cleanupTasks();
     clearInterval(this.siteInterval);
     this.siteInterval = null;
-    window.removeEventListener('beforeunload', this._cleanup);
+    window.removeEventListener('beforeunload', this._cleanupTasks);
   }
 
-  setTheme(store) {
+  _cleanupTasks() {
+    const { store } = this.props;
+    const { Tasks: tasks } = store.getState();
+
+    const runningTasks = tasks.filter(t => t.state === States.Running);
+    if (runningTasks && runningTasks.length) {
+      store.dispatch(taskActions.stop(runningTasks));
+    }
+    if (window.Bridge) {
+      window.Bridge.deregisterForTaskEvents(this.taskHandler);
+    }
+  }
+
+  _schedule() {
+    const { store } = this.props;
+    const { Tasks: tasks, Delays: delays, Proxies: proxies } = store.getState();
+
+    const timeChecker = now => {
+      const diff = moment(now).diff(moment(), 'seconds');
+
+      // if the tasks are more than 10s overdue, don't start them...
+      return diff <= 0 && diff > -10;
+    };
+
+    const tasksToRun = tasks.filter(
+      t => t.schedule && timeChecker(t.schedule) && t.state !== States.Running,
+    );
+    if (tasksToRun && tasksToRun.length) {
+      store.dispatch(taskActions.start(tasksToRun, delays, proxies));
+    }
+  }
+
+  _setTheme() {
+    const { store } = this.props;
     const {
       App: { theme },
     } = store.getState();
@@ -101,56 +115,15 @@ export class App extends PureComponent {
     this.forceUpdate();
   }
 
-  taskHandler(_, statusMessageBuffer) {
+  taskHandler(_, statusMessages) {
     const { store } = this.props;
-    if (!isEmpty(statusMessageBuffer)) {
-      store.dispatch(taskActions.message(statusMessageBuffer));
-    }
-  }
-
-  _cleanup() {
-    this._cleanupTaskLog();
-    this._cleanupTaskEvents();
-  }
-
-  _cleanupTaskLog() {
-    const { store } = this.props;
-    const { Tasks: tasks } = store.getState();
-
-    const runningTasks = tasks.filter(t => t.status !== 'running');
-    if (runningTasks.length) {
-      store.dispatch(taskActions.stopAll(runningTasks));
-    }
-  }
-
-  _cleanupTaskEvents() {
-    if (window.Bridge) {
-      window.Bridge.deregisterForTaskEvents(this.taskHandler);
-    }
-  }
-
-  async fetchSites() {
-    const { store } = this.props;
-    try {
-      const res = await fetch(`https://nebula-orion-api.herokuapp.com/sites`);
-
-      if (!res.ok) {
-        return;
-      }
-
-      const sites = await res.json();
-
-      if (sites && sites.length) {
-        const sorted = sortBy(sites, site => site.index);
-        store.dispatch(appActions.sites(sorted));
-      }
-    } catch (error) {
-      // silently fail...
+    if (!isEmpty(statusMessages)) {
+      store.dispatch(taskActions.message(statusMessages));
     }
   }
 
   render() {
-    const { store, onKeyPress } = this.props;
+    const { store } = this.props;
     const {
       App: { theme },
       Navbar: { location: stateLocation },
@@ -165,72 +138,7 @@ export class App extends PureComponent {
         <Provider store={store}>
           <BrowserRouter>
             <div id="container-wrapper" className={`theme-${theme}`}>
-              <div className="titlebar">
-                <div
-                  className="deactivate-button"
-                  role="button"
-                  tabIndex={0}
-                  title="deactivate"
-                  onKeyPress={onKeyPress}
-                  onClick={App.deactivate(store)}
-                  draggable="false"
-                  data-testid={addTestId('App.button.deactivate')}
-                >
-                  {renderSvgIcon(DeactivateIcon, {
-                    alt: '',
-                    style: { marginTop: '6px', marginLeft: '6px' },
-                  })}
-                </div>
-                <div
-                  className="minimize-button"
-                  role="button"
-                  tabIndex={0}
-                  title="minimize"
-                  onKeyPress={onKeyPress}
-                  onClick={App.minimize}
-                  draggable="false"
-                  data-testid={addTestId('App.button.minimize')}
-                >
-                  {renderSvgIcon(MinimizeIcon)}
-                </div>
-                <div
-                  className="close-button"
-                  role="button"
-                  tabIndex={0}
-                  title="close"
-                  onKeyPress={onKeyPress}
-                  onClick={App.close}
-                  draggable="false"
-                  data-testid={addTestId('App.button.close')}
-                >
-                  {renderSvgIcon(CloseIcon, {
-                    alt: '',
-                    style: { marginTop: '6px', marginLeft: '6px' },
-                  })}
-                </div>
-                <div
-                  className="theme-icon"
-                  role="button"
-                  tabIndex={0}
-                  title="theme"
-                  onKeyPress={onKeyPress}
-                  onClick={() => this.setTheme(store)}
-                  draggable="false"
-                  data-testid={addTestId('App.button.theme')}
-                >
-                  {theme === THEMES.LIGHT
-                    ? renderSvgIcon(NightModeIcon, {
-                        alt: 'night mode',
-                        'data-testid': addTestId('App.button.theme.light-mode'),
-                        style: { marginTop: '5px', marginLeft: '5px' },
-                      })
-                    : renderSvgIcon(LightModeIcon, {
-                        alt: 'light mode',
-                        'data-testid': addTestId('App.button.theme.dark-mode'),
-                        style: { marginTop: '6px', marginLeft: '4px' },
-                      })}
-                </div>
-              </div>
+              <Titlebar theme={theme} store={store} onSetTheme={this._setTheme} />
               <Navbar />
               <div className="main-container">
                 <Switch>
@@ -252,13 +160,9 @@ export class App extends PureComponent {
 
 App.propTypes = {
   store: PropTypes.objectOf(PropTypes.any).isRequired,
-  onKeyPress: PropTypes.func,
 };
 
-App.defaultProps = {
-  onKeyPress: () => {},
-};
-
+setConfig({ showReactDomPatchNotification: false });
 const createApp = (store, props) => <App store={store} {...props} />;
 
 export default createApp;

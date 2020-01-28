@@ -118,7 +118,7 @@ function createLogger({ dir, name, prefix }) {
     }),
   ];
 
-  if (_isDevelopment || process.env.NEBULA_ENABLE_CONSOLE) {
+  if (process.env.NEBULA_ENABLE_CONSOLE) {
     // Add console transport only when in dev mode or if we define the enable flag
     transports.push(
       new winston.transports.Console({

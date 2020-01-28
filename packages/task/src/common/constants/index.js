@@ -19,9 +19,11 @@ const TaskEvents = {
   SwapTaskProxy: 'SWAP_TASK_PROXY',
   SwapMonitorProxy: 'SWAP_MONITOR_PROXY',
   ReceiveProxy: 'RECEIVE_PROXY',
+  CheckpointCookies: 'CHECKPOINT_COOKIES',
 };
 
 const SharedStates = {
+  WAIT_FOR_PRODUCT: 'WAIT_FOR_PRODUCT',
   SWAP: 'SWAP',
   DONE: 'DONE',
   ERROR: 'ERROR',
@@ -40,11 +42,13 @@ const Platforms = {
 
 const ErrorCodes = {
   NoStylesFound: 'Style not found',
+  NoMatchesFound: 'Product not matched',
   PasswordPage: 'Password page',
   VariantsNotAvailable: 'Variant not available',
   VariantNotFound: 'Variation not found',
   ProductNotFound: 'Product not found',
   ProductNotLive: 'Product not live',
+  InvalidParseType: 'Invalid parse type',
 };
 
 const HarvestStates = {
@@ -80,6 +84,11 @@ const SiteKeyForPlatform = {
   [Platforms.Mesh]: '',
 };
 
+const HostForPlatform = {
+  [Platforms.Shopify]: 'http://checkout.shopify.com',
+  [Platforms.Supreme]: 'http://www.supremenewyork.com',
+};
+
 const Manager = {
   Events: TaskManagerEvents,
 };
@@ -99,4 +108,4 @@ const Task = {
   States: SharedStates,
 };
 
-export { Manager, Task, Monitor, ErrorCodes, Platforms, SiteKeyForPlatform };
+export { Manager, Task, Monitor, ErrorCodes, Platforms, SiteKeyForPlatform, HostForPlatform };

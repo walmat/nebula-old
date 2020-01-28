@@ -36,7 +36,7 @@ const route = (type, history) => dispatch => {
     _type = NAVBAR_ACTIONS.ROUTE_HOME;
   }
   history.push(mapActionsToRoutes[_type] || '/');
-  dispatch(_routeAction(_type)(history));
+  return dispatch(_routeAction(_type)(history));
 };
 
 // Public Specific Route Action Generator

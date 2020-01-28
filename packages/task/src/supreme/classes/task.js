@@ -1,37 +1,32 @@
-/* eslint-disable consistent-return */
-/* eslint-disable array-callback-return */
+import { isEmpty } from 'lodash';
 import { Task, Regions } from '../constants';
-import notification from '../hooks';
-import getHeaders, { getRegion, Forms, pickVariant } from '../utils';
+import getHeaders, { getRegion, Forms, pickVariant, matchVariation } from '../utils';
 import { Utils, Bases, Classes, Constants } from '../../common';
 
-const { cart, backupForm } = Forms;
-const { Manager, Task: TaskConstants, Platforms } = Constants;
-const { Events: TaskManagerEvents } = Manager;
+const { cart, backupForm, parseForm, FormTypes } = Forms;
+const { Task: TaskConstants, Platforms } = Constants;
 const { States } = Task;
 const { Events } = TaskConstants;
 const { BaseTask } = Bases;
 const { emitEvent, waitForDelay } = Utils;
-const { Timer, Captcha } = Classes;
+const { Captcha } = Classes;
 
 // SUPREME
 export default class TaskPrimitive extends BaseTask {
   constructor(context, platform = Platforms.Supreme) {
-    super(context, platform);
+    super(context, States.WAIT_FOR_PRODUCT, platform);
 
     // internals
     this._sentWebhook = false;
-    this._state = States.WAIT_FOR_PRODUCT;
-    this._prevState = this._state;
-    this._timer = new Timer();
+    this._product = null;
     this._region = getRegion(context.task.store.name);
-    this._pooky = false;
+    this._pooky = null;
     this._slug = null;
-    this._form = null;
+    this._form = '';
   }
 
   async _handleError(error = {}, state) {
-    const { aborted, logger } = this._context;
+    const { aborted, logger } = this.context;
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
@@ -69,15 +64,15 @@ export default class TaskPrimitive extends BaseTask {
 
     if (/(?!([235][0-9]))\d{3}/g.test(status)) {
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        [this.context.id],
         {
-          message: `Delaying ${this._context.task.error}ms (${status})`,
+          message: `Delaying ${this.context.task.monitor}ms (${status})`,
         },
         Events.TaskStatus,
       );
 
-      this._delayer = waitForDelay(this._context.task.error, this._aborter.signal);
+      this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
       await this._delayer;
     }
 
@@ -85,21 +80,53 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleWaitForProduct() {
-    const { aborted, logger } = this._context;
+    const { aborted, logger } = this.context;
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
       return States.ABORT;
     }
 
-    if (this._context.task.product.variants) {
-      const variant = await pickVariant(this._context);
-      // maybe we should loop back around?
+    if (this.context.task.product.styles) {
+      const matchedVariation = await matchVariation(
+        this.context.task.product.styles,
+        this.context.task.variation,
+        this.context.task.randomInStock,
+        logger,
+      );
+
+      if (!matchedVariation) {
+        emitEvent(
+          this.context,
+          [this.context.id],
+          {
+            productName: `${this.context.task.product.name}`,
+            message: 'Waiting for restock',
+          },
+          Events.TaskStatus,
+        );
+
+        this._delayer = waitForDelay(150, this._aborter.signal);
+        await this._delayer;
+
+        return States.WAIT_FOR_PRODUCT;
+      }
+
+      this._product = {
+        id: matchedVariation.id,
+        variants: matchedVariation.sizes,
+        currency: matchedVariation.currency,
+        image: matchedVariation.swatch_url_hi || matchedVariation.image_url,
+        chosenVariation: matchedVariation.name,
+      };
+
+      const variant = await pickVariant(this._product, this.context);
+
       if (!variant) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
-            message: 'No sizes found',
+            message: 'No size matched',
           },
           Events.TaskStatus,
         );
@@ -107,60 +134,97 @@ export default class TaskPrimitive extends BaseTask {
         return States.ERROR;
       }
 
-      logger.debug('Chose variant: %j', variant);
-      this._context.updateVariant(variant);
-      this._context.setProductFound(true);
+      emitEvent(
+        this.context,
+        [this.context.id],
+        {
+          productImage: `${this._product.image}`.startsWith('http')
+            ? this._product.image
+            : `https:${this._product.image}`,
+          productImageHi: `${matchedVariation.image_url}`.startsWith('http')
+            ? matchedVariation.image_url
+            : `https:${matchedVariation.image_url}`,
+          productName: `${this.context.task.product.name} / ${this._product.chosenVariation}`,
+          chosenSize: variant.name,
+        },
+        Events.TaskStatus,
+      );
+      this._product.variant = variant;
       return States.ADD_TO_CART;
     }
 
-    this._delayer = waitForDelay(500, this._aborter.signal);
+    this._delayer = waitForDelay(150, this._aborter.signal);
     await this._delayer;
 
     return States.WAIT_FOR_PRODUCT;
   }
 
   async generatePooky(region = Regions.US) {
-    const { NEBULA_API_BASE, NEBULA_API_UUID } = process.env;
+    const { logger } = this.context;
 
-    const regionMap = {
-      [Regions.EU]: 'EU',
-      [Regions.JP]: 'JP',
-      [Regions.US]: 'NA',
-    };
+    logger.info('--------------------------GENERATING POOKY--------------------------');
+    const { NEBULA_API_BASE, NEBULA_API_AUTH } = process.env;
 
+    const lastid = Date.now();
     try {
-      const res = await this._fetch(
-        `${NEBULA_API_BASE}?key=${NEBULA_API_UUID}&region=${regionMap[region]}`,
-      );
+      const res = await this._fetch(`${NEBULA_API_BASE}?license=${NEBULA_API_AUTH}&site=${region}`);
 
-      const { status } = res;
       if (!res.ok) {
-        if (status === 404) {
-          // pooky disabled flag...
-          return true;
-        }
         const error = new Error('Unable to fetch cookies');
         error.status = res.status || res.errno;
         throw error;
       }
 
       const body = await res.json();
-      if (!body || (body && !body.length)) {
-        const error = new Error('Invalid cookie list');
+      if (!body || isEmpty(body)) {
+        const error = new Error('Invalid cookies');
         error.status = res.status || res.errno;
         throw error;
       }
 
-      const { jar, task } = this._context;
+      this.context.jar.setCookieSync(`lastid=${lastid};`, this.context.task.store.url);
+      Object.entries(body).map(([name, value]) =>
+        this.context.jar.setCookieSync(`${name}=${value};`, this.context.task.store.url),
+      );
 
-      return body.map(({ name, value }) => jar.setCookieSync(`${name}=${value};`, task.store.url));
+      return true;
     } catch (err) {
-      throw err;
+      return false;
+    }
+  }
+
+  async generateForm(type) {
+    const { NEBULA_FORM_API, NEBULA_FORM_AUTH } = process.env;
+
+    try {
+      const res = await this._fetch(`${NEBULA_FORM_API}/supreme/${type}?region=${this._region}`, {
+        headers: {
+          Authorization: `Basic ${Buffer.from(`nebula:${NEBULA_FORM_AUTH}`).toString('base64')}`,
+        },
+      });
+
+      if (!res.ok) {
+        const error = new Error('Unable to fetch form');
+        error.status = res.status || 404;
+        throw error;
+      }
+
+      const form = await res.json();
+
+      if (!form || (form && !form.length)) {
+        return false;
+      }
+
+      this._form = await parseForm(form, type, this._product, this.context.task);
+
+      return true;
+    } catch (error) {
+      return false;
     }
   }
 
   async _handleAddToCart() {
-    const { aborted, proxy, logger } = this._context;
+    const { aborted, proxy, logger } = this.context;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -168,30 +232,37 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     const {
-      product: {
-        id: st,
-        variant: { id: s },
-      },
-      monitor,
-      captcha,
-    } = this._context.task;
+      id: st,
+      variant: { id: s },
+    } = this._product;
+
+    const { randomInStock, size, monitor, captcha } = this.context.task;
 
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      [this.context.id],
       {
         message: 'Adding to cart',
       },
       Events.TaskStatus,
     );
 
-    if (!this._pooky) {
-      try {
-        this._pooky = await this.generatePooky(this._region);
-      } catch (error) {
-        // TODO!
+    if (!this._form) {
+      const generated = await this.generateForm(FormTypes.Cart);
+
+      // fallback to hardcoded form...
+      if (!generated) {
+        this._form = cart(s, st, this._region);
       }
     }
+
+    if (!this._pooky && this.context.pookyEnabled) {
+      this._pooky = await this.generatePooky(this._region);
+    }
+
+    await this._logCookies(this.context.jar);
+    this.context.jar.setCookieSync('lastVisitedFragment=checkout;', this.context.task.store.url);
+    await this._logCookies(this.context.jar);
 
     try {
       const res = await this._fetch(`/shop/${s}/add.json`, {
@@ -201,7 +272,7 @@ export default class TaskPrimitive extends BaseTask {
           ...getHeaders(),
           'content-type': 'application/x-www-form-urlencoded',
         },
-        body: cart(s, st, this._region),
+        body: this._form,
       });
 
       if (!res.ok) {
@@ -210,94 +281,105 @@ export default class TaskPrimitive extends BaseTask {
         throw error;
       }
 
-      // start the padding timer...
-      this._timer.start(new Date().getTime());
-
+      // start the checkout padding timer...
+      this.context.timers.checkout.start(new Date().getTime());
       const body = await res.json();
 
-      if ((body && !body.length) || (body && body.length && !body[0].in_stock)) {
+      if (!body || (body && !body.length) || (body && body.length && !body[0].in_stock)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
-            message: `Out of stock, delaying ${monitor}ms`,
+            message: `Out of stock! Delaying ${monitor}ms`,
           },
           Events.TaskStatus,
         );
 
+        this.context.jar.removeAllCookiesSync();
+
         this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
+
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: `Adding to cart`,
           },
           Events.TaskStatus,
         );
 
+        this._form = '';
+        this._pooky = false;
+
+        if (/random/i.test(size) && randomInStock) {
+          return States.WAIT_FOR_PRODUCT;
+        }
+
         return States.ADD_TO_CART;
       }
 
-      if (captcha && !this.captchaToken) {
+      this._form = '';
+      if (captcha && !this.context.captchaToken) {
         return States.CAPTCHA;
       }
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
+      this._form = '';
+      this._pooky = false;
       return this._handleError(error, States.ADD_TO_CART);
     }
   }
 
   async _handleCaptcha() {
-    const { aborted, logger } = this._context;
+    const { aborted, logger } = this.context;
     // exit if abort is detected
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
-      if (this._context.captchaRequest) {
+      if (this.context.captchaRequest) {
         // cancel the request if it was previously started
-        this._context.captchaRequest.cancel('aborted');
+        this.context.captchaRequest.cancel('aborted');
       }
       return States.ABORT;
     }
 
     // start request if it hasn't started already
-    if (!this._context.captchaRequest) {
+    if (!this.context.captchaRequest) {
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        [this.context.id],
         {
           message: 'Waiting for captcha',
         },
         Events.TaskStatus,
       );
 
-      const requester = await Captcha.getCaptcha(
-        this._context,
-        this._handleHarvest,
-        this._platform,
-      );
-      this._context.setCaptchaRequest(requester);
+      const requester = await Captcha.getCaptcha(this.context, this._handleHarvest, this._platform);
+      this.context.setCaptchaRequest(requester);
     }
 
     // Check the status of the request
-    switch (this._context.captchaRequest.status) {
+    switch (this.context.captchaRequest.status) {
       case 'pending': {
         // waiting for token, sleep for 1s and then return same state to check again
+        if (!this._form) {
+          this.generateForm(FormTypes.Checkout);
+        }
         await new Promise(resolve => setTimeout(resolve, 1000));
         return States.CAPTCHA;
       }
       case 'fulfilled': {
         // token was returned, store it and remove the request
-        const { value } = this._context.captchaRequest;
-        this._context.setCaptchaToken(value);
-        this._context.setCaptchaRequest(null);
+        const { value } = this.context.captchaRequest;
+        this.context.setCaptchaToken(value);
+        this.context.setCaptchaRequest(null);
         // We have the token, so suspend harvesting for now
-        Captcha.suspendHarvestCaptcha(this._context, this._platform);
+        Captcha.suspendHarvestCaptcha(this.context, this._platform);
 
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: 'Submitting checkout',
           },
@@ -308,16 +390,13 @@ export default class TaskPrimitive extends BaseTask {
       }
       case 'cancelled':
       case 'destroyed': {
-        logger.silly(
-          'Harvest Captcha status: %s, stopping...',
-          this._context.captchaRequest.status,
-        );
+        logger.silly('Harvest Captcha status: %s, stopping...', this.context.captchaRequest.status);
         return States.ERROR;
       }
       default: {
         logger.silly(
           'Unknown Harvest Captcha status! %s, stopping...',
-          this._context.captchaRequest.status,
+          this.context.captchaRequest.status,
         );
         return States.ERROR;
       }
@@ -329,8 +408,12 @@ export default class TaskPrimitive extends BaseTask {
       aborted,
       logger,
       proxy,
-      task: { checkoutDelay, monitor },
-    } = this._context;
+      task: {
+        profile: { matches, shipping, billing, payment },
+        checkoutDelay,
+        monitor,
+      },
+    } = this.context;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -338,40 +421,36 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!this._form) {
-      const {
-        profile: { payment, shipping, billing, billingMatchesShipping },
-        product: {
-          variant: { id: s },
-        },
-      } = this._context.task;
+      const generated = await this.generateForm(FormTypes.Checkout);
 
-      const profileInfo = billingMatchesShipping ? shipping : billing;
-      this._form = backupForm(this._region, profileInfo, payment, s);
+      if (!generated) {
+        const profileInfo = matches ? shipping : billing;
+        const { id: size } = this._product.variant;
+        this._form = backupForm(this._region, profileInfo, payment, size);
+      }
 
       // patch in the captcha token
-      if (this._context.captchaToken) {
-        this._form += `&g-recaptcha-response=${this._context.captchaToken}`;
+      if (this.context.captchaToken) {
+        this._form += `&g-recaptcha-response=${this.context.captchaToken}`;
       }
     }
 
-    if (!this._pooky) {
-      try {
-        this._pooky = await this.generatePooky(this._region);
-      } catch (error) {
-        // TODO!
-      }
+    if (!this._pooky && this.context.pookyEnabled) {
+      this._pooky = await this.generatePooky(this._region);
     }
 
     // stop the padding timer...
-    this._timer.stop(new Date().getTime());
+    this.context.timers.checkout.stop(new Date().getTime());
+    const totalTimeout =
+      checkoutDelay - this.context.timers.checkout.getRunTime(new Date().getTime());
+    this.context.timers.checkout.reset(); // reset the timer just in case...
 
-    const totalTimeout = checkoutDelay - this._timer.getTotalTime(0);
     if (totalTimeout && totalTimeout > 0) {
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        [this.context.id],
         {
-          message: `Delaying ${totalTimeout}ms`,
+          message: `Submitting checkout in ${totalTimeout}ms`,
         },
         Events.TaskStatus,
       );
@@ -380,11 +459,9 @@ export default class TaskPrimitive extends BaseTask {
       await this._delayer;
     }
 
-    logger.info('parsed form: %j', this._form);
-
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      [this.context.id],
       {
         message: 'Submitting checkout',
       },
@@ -403,6 +480,8 @@ export default class TaskPrimitive extends BaseTask {
         body: this._form,
       });
 
+      this._form = '';
+
       if (!res.ok) {
         const error = new Error('Failed submitting checkout');
         error.status = res.status || res.errno;
@@ -410,15 +489,14 @@ export default class TaskPrimitive extends BaseTask {
       }
 
       const body = await res.json();
-      console.log(body);
       if (body && body.status && /queued/i.test(body.status)) {
         const { slug } = body;
         if (!slug) {
           emitEvent(
-            this._context,
-            this._context.ids,
+            this.context,
+            [this.context.id],
             {
-              message: 'Invalid slug',
+              message: 'Invalid checkout slug',
             },
             Events.TaskStatus,
           );
@@ -426,13 +504,13 @@ export default class TaskPrimitive extends BaseTask {
         }
 
         this._slug = slug;
-        return States.CHECK_STATUS;
+        return States.CHECK_ORDER;
       }
 
       if (body && body.status && /out/i.test(body.status)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: `Out of stock! Delaying ${monitor}ms`,
           },
@@ -442,22 +520,13 @@ export default class TaskPrimitive extends BaseTask {
         this._delayer = waitForDelay(monitor, this._aborter.signal);
         await this._delayer;
 
-        emitEvent(
-          this._context,
-          this._context.ids,
-          {
-            message: 'Submitting checkout',
-          },
-          Events.TaskStatus,
-        );
-
-        return States.SUBMIT_CHECKOUT;
+        this._pooky = null;
       }
 
       if (body && body.status && /dup/i.test(body.status)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
             message: 'Duplicate order',
           },
@@ -469,29 +538,32 @@ export default class TaskPrimitive extends BaseTask {
 
       if (body && body.status && /failed/i.test(body.status)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
-            message: `Checkout failed!`,
+            message: 'Checkout failed',
           },
           Events.TaskStatus,
         );
 
-        this._context.task.checkoutDelay += 250;
-        return States.ADD_TO_CART;
+        this._pooky = null;
       }
 
       return States.SUBMIT_CHECKOUT;
     } catch (error) {
-      if (/invalid json/i.test(error)) {
-        return States.ADD_TO_CART;
-      }
+      this._pooky = null;
+      this._form = '';
       return this._handleError(error, States.SUBMIT_CHECKOUT);
     }
   }
 
-  async _handleCheckStatus() {
-    const { aborted, logger, proxy, events } = this._context;
+  async _handleCheckOrder() {
+    const {
+      aborted,
+      logger,
+      proxy,
+      task: { monitor },
+    } = this.context;
 
     if (aborted) {
       logger.silly('Abort Detected, Stopping...');
@@ -499,10 +571,10 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     emitEvent(
-      this._context,
-      this._context.ids,
+      this.context,
+      [this.context.id],
       {
-        message: `Checking status`,
+        message: `Checking order`,
       },
       Events.TaskStatus,
     );
@@ -511,14 +583,13 @@ export default class TaskPrimitive extends BaseTask {
       const res = await this._fetch(`/checkout/${this._slug}/status.json`, {
         method: 'GET',
         agent: proxy ? proxy.proxy : null,
-        headers: {
-          ...getHeaders(),
-          'content-type': 'application/x-www-form-urlencoded',
-        },
+        headers: getHeaders(),
       });
 
+      this._form = '';
+
       if (!res.ok) {
-        const error = new Error('Failed checking order status');
+        const error = new Error('Failed checking order');
         error.status = res.status || res.errno;
         throw error;
       }
@@ -526,133 +597,124 @@ export default class TaskPrimitive extends BaseTask {
       const body = await res.json();
 
       if (body && body.status && /failed|out/i.test(body.status)) {
+        const message = /out/.test(body.status)
+          ? `Out of stock! Delaying ${monitor}ms`
+          : 'Checkout failed';
+
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
-            message: `Checkout failed`,
+            message,
           },
           Events.TaskStatus,
         );
 
         const {
+          image,
+          currency,
+          variant: { name: size },
+        } = this._product;
+
+        const {
           task: {
-            product: {
-              name: productName,
-              image,
-              price,
-              currency,
-              variant: { name: size },
-            },
+            product: { name: productName, price },
             store: { name: storeName, url: storeUrl },
-            profile: { profileName },
+            profile: { name },
           },
-          slack,
-          discord,
-        } = this._context;
+          webhookManager,
+        } = this.context;
 
         if (!this._sentWebhook) {
           this._sentWebhook = true;
-          const hooks = await notification(slack, discord, {
+          webhookManager.insert({
             success: false,
             product: productName,
             price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
               price.toString().slice(0, -2),
             ),
             store: { name: storeName, url: storeUrl },
-            profile: profileName,
+            profile: name,
             size,
             image: `${image}`.startsWith('http') ? image : `https:${image}`,
           });
-
-          // emit the webhook event
-          events.emit(TaskManagerEvents.Webhook, hooks);
+          webhookManager.send();
         }
 
-        this._context.setCaptchaToken(null);
-        this._context.task.checkoutDelay = 0;
+        this._pooky = null;
+        this.context.setCaptchaToken(null);
 
-        if (this._region === Regions.US) {
-          emitEvent(
-            this._context,
-            this._context.ids,
-            {
-              message: `Delaying ${this._context.task.monitor}ms`,
-            },
-            Events.TaskStatus,
-          );
-
-          this._delayer = waitForDelay(this._context.task.monitor, this._aborter.signal);
-          await this._delayer;
-
-          return States.SUBMIT_CHECKOUT;
+        if (this._region !== Regions.US) {
+          return States.CAPTCHA;
         }
 
-        return States.CAPTCHA;
+        this._delayer = waitForDelay(this.context.task.monitor, this._aborter.signal);
+        await this._delayer;
+
+        return States.SUBMIT_CHECKOUT;
       }
 
       if (body && body.status && /paid/i.test(body.status)) {
         emitEvent(
-          this._context,
-          this._context.ids,
+          this.context,
+          [this.context.id],
           {
-            message: 'Payment successful',
+            message: 'Check email!',
           },
           Events.TaskStatus,
         );
 
         const {
-          task: {
-            product: {
-              name: productName,
-              image,
-              price,
-              currency,
-              variant: { name: size },
-            },
-            store: { name: storeName, url: storeUrl },
-            profile: { profileName },
-          },
-          slack,
-          discord,
-        } = this._context;
+          image,
+          currency,
+          variant: { name: size },
+        } = this._product;
 
-        const hooks = await notification(slack, discord, {
+        const {
+          task: {
+            product: { name: productName, price },
+            store: { name: storeName, url: storeUrl },
+            profile: { name },
+          },
+          webhookManager,
+        } = this.context;
+
+        webhookManager.insert({
           success: true,
           product: productName,
           price: new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(
             price.toString().slice(0, -2),
           ),
           store: { name: storeName, url: storeUrl },
-          profile: profileName,
+          profile: name,
           size,
           image: `${image}`.startsWith('http') ? image : `https:${image}`,
         });
+        webhookManager.send();
 
-        events.emit(TaskManagerEvents.Webhook, hooks);
         return States.DONE;
       }
 
-      this._delayer = waitForDelay(1000, this._aborter.signal);
+      this._delayer = waitForDelay(500, this._aborter.signal);
       await this._delayer;
 
       emitEvent(
-        this._context,
-        this._context.ids,
+        this.context,
+        [this.context.id],
         {
-          message: 'Checking status',
+          message: `Checking order`,
         },
         Events.TaskStatus,
       );
 
-      return States.CHECK_STATUS;
+      return States.CHECK_ORDER;
     } catch (error) {
-      return this._handleError(error, States.CHECK_STATUS);
+      return this._handleError(error, States.CHECK_ORDER);
     }
   }
 
   async _handleStepLogic(currentState) {
-    const { logger } = this._context;
+    const { logger } = this.context;
 
     async function defaultHandler() {
       throw new Error('Reached Unknown State!');
@@ -665,7 +727,7 @@ export default class TaskPrimitive extends BaseTask {
       [States.ADD_TO_CART]: this._handleAddToCart,
       [States.CAPTCHA]: this._handleCaptcha,
       [States.SUBMIT_CHECKOUT]: this._handleSubmitCheckout,
-      [States.CHECK_STATUS]: this._handleCheckStatus,
+      [States.CHECK_ORDER]: this._handleCheckOrder,
       [States.SWAP]: this._handleSwap,
       [States.DONE]: () => States.DONE,
       [States.ERROR]: () => States.DONE,

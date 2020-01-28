@@ -6,7 +6,7 @@ import { GLOBAL_ACTIONS } from '../../../store/actions';
 import { APP_ACTIONS } from '../actions';
 import { App } from '../initial';
 
-export default (state = App, action) => {
+export default (state = App, action = {}) => {
   // Return State if a null/undefined action is given
   if (!action) {
     return state || App;

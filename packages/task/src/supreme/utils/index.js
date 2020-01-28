@@ -1,11 +1,12 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable consistent-return */
+import strip from 'strip-bom';
 import { filter, every, some, sortBy } from 'lodash';
 
 import { Utils } from '../../common';
 import { Regions } from '../constants';
 import pickVariant from './pickVariant';
-import { cart, backupForm, parseForm } from './forms';
+import { cart, backupForm, parseForm, Forms as FormTypes } from './forms';
 
 const { getRandomIntInclusive } = Utils;
 
@@ -75,7 +76,7 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
   }
 
   const matches = filter(products, product => {
-    const name = product.name.toUpperCase();
+    const name = strip(product.name).toUpperCase();
 
     // defaults
     let pos = true;
@@ -89,7 +90,10 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
     }
 
     if (keywords.neg.length) {
-      neg = some(keywords.neg.map(k => k.toUpperCase()), keyword => name.indexOf(keyword) > -1);
+      neg = some(
+        keywords.neg.map(k => k.toUpperCase()),
+        keyword => name.indexOf(keyword) > -1,
+      );
     }
 
     return pos && !neg;
@@ -107,7 +111,11 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
       'Searched %d products. %d Products Found',
       products.length,
       matches.length,
-      JSON.stringify(matches.map(({ name }) => name), null, 2),
+      JSON.stringify(
+        matches.map(({ name }) => name),
+        null,
+        2,
+      ),
     );
     if (_filter && _filter.sorter && _filter.limit) {
       _logger.log('silly', 'Using given filtering heuristic on the products...');
@@ -147,26 +155,45 @@ export const matchKeywords = async (products, keywords, _filter, logger, returnA
   return returnAll ? matches : matches[0];
 };
 
-export const matchVariation = async (variations, variation, logger = { log: () => {} }) => {
+export const matchVariation = async (
+  variations,
+  variation,
+  inStock = false,
+  logger = { log: () => {} },
+) => {
+  let grouping = [...variations];
+
   if (/random/i.test(variation)) {
-    const rand = getRandomIntInclusive(0, variations.length - 1);
-    const variant = variations[rand];
+    grouping = grouping.filter(({ sizes }) =>
+      sizes.some(({ stock_level: stockLevel }) => stockLevel > 0),
+    );
+
+    logger.debug('Variations in stock: %j', grouping);
+
+    // if we care about stock level, return null to signify a circle back
+    if ((!grouping || !grouping.length) && inStock) {
+      return null;
+    }
+
+    grouping = [...variations];
+    // otherwise, choose a random variation and move onward
+    const rand = getRandomIntInclusive(0, grouping.length - 1);
+    const variant = grouping[rand];
     return variant;
   }
 
-  return variations.find(v => {
+  return grouping.find(v => {
     const { name } = v;
     let variationMatcher;
     if (/[0-9]+/.test(name)) {
-      // We are matching a shoe size
-      variationMatcher = s => new RegExp(`${name}`, 'i').test(s);
+      // We are matching a shoe name
+      variationMatcher = s => new RegExp(s, 'i').test(strip(name));
     } else {
-      // We are matching a garment size
-      variationMatcher = s => !/[0-9]+/.test(s) && new RegExp(`^${name}`, 'i').test(s.trim());
+      // We are matching a garment name
+      variationMatcher = s => !/[0-9]+/.test(s) && new RegExp(s, 'i').test(strip(name));
     }
 
     if (variationMatcher(variation)) {
-      logger.log('debug', 'Choosing variant: %j', v);
       return v;
     }
   });
@@ -187,6 +214,7 @@ export const Forms = {
   cart,
   parseForm,
   backupForm,
+  FormTypes,
 };
 
 export { pickVariant };

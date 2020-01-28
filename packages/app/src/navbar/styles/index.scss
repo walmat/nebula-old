@@ -22,13 +22,13 @@ $randomNumber: random(5);
 
 @keyframes rotation {
   0% {
-    transform: rotate3d(0);
+    transform: rotate3d(0, 0, 0, 0);
   }
   50% {
     transform: rotate3d(1, 1, 180, 45deg);
   }
   100% {
-    transform: rotate3d(0);
+    transform: rotate3d(0, 0, 0, 0);
   }
 }
 
@@ -60,6 +60,7 @@ $randomNumber: random(5);
     margin-top: 15px !important;
 
     &--image {
+      -webkit-user-drag: none;
       @include themify($themes) {
         filter: drop-shadow(8px 8px 1px themed('liveLogtableRowSelected'));
       }
@@ -104,6 +105,7 @@ $randomNumber: random(5);
       @include themify($themes) {
         background: themed('buttonColorPrimary');
         color: themed('buttonPrimaryText');
+        box-shadow: 0 0 5px themed('liveLogTableBorderTop');
       }
       margin-top: 19px;
       width: 75px;
@@ -113,6 +115,7 @@ $randomNumber: random(5);
       @include themify($themes) {
         background: themed('buttonColorSecondary');
         color: themed('buttonPrimaryText');
+        box-shadow: 0 0 5px themed('liveLogTableBorderTop');
       }
       margin-top: 19px;
       width: 75px;

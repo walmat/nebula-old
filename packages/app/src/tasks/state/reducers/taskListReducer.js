@@ -1,10 +1,15 @@
-import PLATFORMS from '../../../constants/platforms';
-import { _getId, States } from '../../../constants/tasks';
+import moment from 'moment';
+import { _getId, States, Platforms } from '../../../constants';
 import parseProductType from '../../../utils/parseProductType';
-import { TASK_LIST_ACTIONS, GLOBAL_ACTIONS } from '../../../store/actions';
+import {
+  TASK_LIST_ACTIONS,
+  PROFILE_ACTIONS,
+  ACCOUNT_ACTIONS,
+  GLOBAL_ACTIONS,
+} from '../../../store/actions';
 import { Tasks } from '../initial';
 
-export default (state = Tasks, action) => {
+export default (state = Tasks, action = {}) => {
   const { type } = action;
 
   if (type === GLOBAL_ACTIONS.RESET) {
@@ -12,15 +17,9 @@ export default (state = Tasks, action) => {
   }
 
   if (type === TASK_LIST_ACTIONS.CREATE_TASK) {
-    const { response } = action;
+    const { task } = action;
 
-    if (!response) {
-      return state;
-    }
-
-    const { task, amount } = response;
-
-    if (!task || !amount) {
+    if (!task) {
       return state;
     }
 
@@ -30,17 +29,17 @@ export default (state = Tasks, action) => {
       return state;
     }
 
-    const newTask = task;
+    const newTask = { ...task };
     newTask.product = parsedProduct;
 
     // trim some fat off the task object..
     switch (newTask.platform) {
-      case PLATFORMS.Supreme: {
+      case Platforms.Supreme: {
         delete newTask.type;
         delete newTask.account;
         break;
       }
-      case PLATFORMS.Shopify: {
+      case Platforms.Shopify: {
         delete newTask.product.variation;
         delete newTask.checkoutDelay;
         delete newTask.category;
@@ -50,6 +49,12 @@ export default (state = Tasks, action) => {
         break;
     }
 
+    if (newTask.schedule && moment(newTask.schedule).diff(moment(), 'seconds') > 0) {
+      newTask.message = `Starting at ${moment(newTask.schedule).format('h:mm:ss A')}`;
+    }
+
+    const { amount } = task;
+    delete newTask.amount;
     const newTasks = [...Array(amount)].map(() => {
       const { id } = _getId(state);
       return { ...newTask, id };
@@ -58,67 +63,19 @@ export default (state = Tasks, action) => {
     return [...state, ...newTasks];
   }
 
-  if (type === TASK_LIST_ACTIONS.REMOVE_TASK) {
-    const { id } = action;
-
-    if (!id) {
-      return state;
-    }
-
-    return state.filter(t => t.id !== id);
-  }
-
-  if (type === TASK_LIST_ACTIONS.REMOVE_ALL_TASKS) {
-    return Tasks;
-  }
-
-  if (type === TASK_LIST_ACTIONS.UPDATE_TASK) {
+  if (type === TASK_LIST_ACTIONS.REMOVE_TASKS) {
     const { response } = action;
-
     if (!response) {
       return state;
     }
 
-    const { task } = response;
+    const { tasks } = response;
 
-    if (!task) {
+    if (!tasks || !tasks.length) {
       return state;
     }
 
-    const parsedProduct = parseProductType(task.product);
-    if (!parsedProduct) {
-      return state;
-    }
-
-    task.product = parsedProduct;
-
-    if (window.Bridge) {
-      window.Bridge.restartTasks(task, { override: false });
-    }
-
-    return state.map(t => {
-      if (t.id === task.id) {
-        return task;
-      }
-      return t;
-    });
-  }
-
-  if (type === TASK_LIST_ACTIONS.SELECT_TASK) {
-    const { task } = action;
-
-    if (!task) {
-      return state;
-    }
-
-    task.selected = true;
-
-    return state.map(t => {
-      if (t.id === task.id) {
-        return task;
-      }
-      return t;
-    });
+    return state.filter(t => !tasks.some(task => task.id === t.id));
   }
 
   if (type === TASK_LIST_ACTIONS.UPDATE_MESSAGE) {
@@ -128,10 +85,15 @@ export default (state = Tasks, action) => {
       return state;
     }
 
-    return state.map(t => ({
-      ...t,
-      message: buffer[t.id] || t.message,
-    }));
+    return state.map(t => {
+      if (t.state === States.Running) {
+        return {
+          ...t,
+          ...buffer[t.id],
+        };
+      }
+      return t;
+    });
   }
 
   if (type === TASK_LIST_ACTIONS.DUPLICATE_TASK) {
@@ -159,7 +121,132 @@ export default (state = Tasks, action) => {
   }
 
   if (type === TASK_LIST_ACTIONS.SELECT_TASK) {
-    // TODO;
+    const { ctrl, task } = action;
+
+    if (!task) {
+      return state;
+    }
+
+    console.log(state);
+
+    const lastSelected = state.findIndex(t => t.selected);
+
+    console.log(lastSelected);
+    if (!ctrl || (ctrl && !lastSelected)) {
+      return state.map(t => {
+        if (task.id === t.id) {
+          return {
+            ...t,
+            selected: !t.selected,
+            lastSelected: t.lastSelected ? null : t.id,
+          };
+        }
+        if (t.selected && t.id !== task.id) {
+          return {
+            ...t,
+            selected: !t.selected,
+            lastSelected: t.lastSelected ? null : t.id,
+          };
+        }
+        return t;
+      });
+    }
+
+    if (lastSelected >= 0) {
+      const to = state.findIndex(t => t.id === task.id);
+
+      // if the incoming task is earlier on in the table than the last selected task
+      if (to === lastSelected) {
+        return state.map((t, idx) => {
+          if (idx === to) {
+            return {
+              ...t,
+              selected: !t.selected,
+              lastSelected: t.lastSelected ? null : t.id,
+            };
+          }
+          return t;
+        });
+      }
+
+      if (to < lastSelected) {
+        return state.map((t, idx) => {
+          if (idx === lastSelected) {
+            return {
+              ...t,
+              selected: !t.selected,
+              lastSelected: t.id,
+            };
+          }
+
+          if (idx >= to && idx < lastSelected) {
+            return {
+              ...t,
+              selected: !t.selected,
+            };
+          }
+          return t;
+        });
+      }
+
+      if (to > lastSelected) {
+        return state.map((t, idx) => {
+          if (idx === to) {
+            return {
+              ...t,
+              selected: !t.selected,
+              lastSelected: t.id,
+            };
+          }
+
+          if (idx >= lastSelected && idx < to) {
+            return {
+              ...t,
+              selected: !t.selected,
+            };
+          }
+          return t;
+        });
+      }
+    }
+
+    // todo.. perfect this a bit more
+    if (ctrl) {
+      const from = state.findIndex(t => t.lastSelected);
+      if (from >= 0) {
+        const to = state.findIndex(t => t.id === task.id);
+        const needsSelected = state.some((tk, idx) => idx > from && idx <= to && !tk.selected);
+
+        return state.map((t, i) => {
+          if (i === to) {
+            return {
+              ...t,
+              selected: needsSelected ? true : !t.selected,
+              lastSelected: t.id,
+            };
+          }
+
+          if (i > from && i < to) {
+            return {
+              ...t,
+              selected: needsSelected ? true : !t.selected,
+            };
+          }
+          return t;
+        });
+      }
+    }
+
+    return state.map(t => {
+      if (t.id === task.id) {
+        return {
+          ...t,
+          selected: !t.selected,
+          lastSelected: t.id,
+        };
+      }
+      return t;
+    });
   }
 
   if (type === TASK_LIST_ACTIONS.SELECT_ALL_TASKS) {
@@ -172,59 +259,7 @@ export default (state = Tasks, action) => {
     return state.map(t => ({ ...t, selected: !t.selected }));
   }
 
-  if (type === TASK_LIST_ACTIONS.START_TASK) {
-    const { response } = action;
-    if (!response) {
-      return state;
-    }
-
-    const { task } = response;
-
-    if (!task) {
-      return state;
-    }
-
-    const { id } = task;
-
-    return state.map(t => {
-      if (t.id === id) {
-        return {
-          ...t,
-          state: States.Running,
-          message: 'Starting task!',
-        };
-      }
-      return t;
-    });
-  }
-
-  if (type === TASK_LIST_ACTIONS.STOP_TASK) {
-    const { response } = action;
-    if (!response) {
-      return state;
-    }
-
-    const { task } = response;
-
-    if (!task) {
-      return state;
-    }
-
-    const { id } = task;
-
-    return state.map(t => {
-      if (t.id === id) {
-        return {
-          ...t,
-          state: States.Stopped,
-          message: '',
-        };
-      }
-      return t;
-    });
-  }
-
-  if (type === TASK_LIST_ACTIONS.START_ALL_TASKS || type === TASK_LIST_ACTIONS.STOP_ALL_TASKS) {
+  if (type === TASK_LIST_ACTIONS.START_TASKS || type === TASK_LIST_ACTIONS.STOP_TASKS) {
     const { response } = action;
     if (!response) {
       return state;
@@ -238,6 +273,44 @@ export default (state = Tasks, action) => {
 
     // return the found task, or return the existing task..
     return state.map(t => tasks.find(task => task.id === t.id) || t);
+  }
+
+  // MARK: PROFILE ACTIONS
+  if (type === PROFILE_ACTIONS.UPDATE_PROFILE) {
+    const { profile } = action;
+
+    if (!profile) {
+      return state;
+    }
+
+    return state.map(t => {
+      if (t.profile.id === profile.id) {
+        return {
+          ...t,
+          profile,
+        };
+      }
+      return t;
+    });
+  }
+
+  // MARK: ACCOUNT ACTIONS
+  if (type === ACCOUNT_ACTIONS.CREATE_ACCOUNT) {
+    const { account } = action;
+
+    if (!account || (account && !account.id)) {
+      return state;
+    }
+
+    return state.map(t => {
+      if (t.account && t.account.id === account.id) {
+        return {
+          ...t,
+          account,
+        };
+      }
+      return t;
+    });
   }
 
   return state;

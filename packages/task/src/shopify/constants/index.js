@@ -14,9 +14,8 @@ const MonitorStates = {
 const CheckoutStates = {
   ...TaskConstants.States,
   LOGIN: 'LOGIN',
-  PAYMENT_TOKEN: 'PAYMENT_TOKEN',
+  PAYMENT_SESSION: 'PAYMENT_SESSION',
   GATHER_DATA: 'GATHER_DATA',
-  WAIT_FOR_PRODUCT: 'WAIT_FOR_PRODUCT',
   ADD_TO_CART: 'ADD_TO_CART',
   GO_TO_CART: 'GO_TO_CART',
   GO_TO_CHECKPOINT: 'GO_TO_CHECKPOINT',
@@ -28,25 +27,16 @@ const CheckoutStates = {
   GO_TO_SHIPPING: 'GO_TO_SHIPPING',
   SUBMIT_SHIPPING: 'SUBMIT_SHIPPING',
   GO_TO_PAYMENT: 'GO_TO_PAYMENT',
-  SUBMIT_PAYMENT: 'SUBMIT_PAYMENT',
+  SUBMIT_CHECKOUT: 'SUBMIT_CHECKOUT',
   GO_TO_REVIEW: 'GO_TO_REVIEW',
-  COMPLETE_PAYMENT: 'COMPLETE_PAYMENT',
-  PROCESS_PAYMENT: 'PROCESS_PAYMENT',
-};
-
-// Runner Type will be used on frontend, so changing
-// these values may break certain things on the
-// Frontend!
-const TaskTypes = {
-  Normal: 'normal',
-  ShippingRates: 'srr',
+  COMPLETE_CHECKOUT: 'COMPLETE_CHECKOUT',
+  CHECK_ORDER: 'CHECK_ORDER',
 };
 
 const Modes = {
-  SAFE: 'SAFE',
   FAST: 'FAST',
-  CART: 'CART',
-  UNKNOWN: 'UNKNOWN',
+  SAFE: 'SAFE',
+  DYNO: 'DYNO',
 };
 
 /**
@@ -64,8 +54,8 @@ const QueueNextState = {
     if (type === Modes.SAFE && /dsm sg|dsm jp|dsm uk/i.test(task.store.name)) {
       if (shippingMethod && shippingMethod.id) {
         return {
-          message: 'Submitting payment',
-          nextState: CheckoutStates.SUBMIT_PAYMENT,
+          message: 'Submitting checkout',
+          nextState: CheckoutStates.SUBMIT_CHECKOUT,
         };
       }
       return {
@@ -108,7 +98,7 @@ const QueueNextState = {
         }
         return {
           message: 'Submitting pament',
-          nextState: CheckoutStates.PAYMENT_TOKEN,
+          nextState: CheckoutStates.PAYMENT_SESSION,
         };
       }
       return {
@@ -143,49 +133,45 @@ const QueueNextState = {
   [CheckoutStates.SUBMIT_SHIPPING]: type => {
     if (type === Modes.FAST) {
       return {
-        message: 'Submitting payment',
-        nextState: CheckoutStates.SUBMIT_PAYMENT,
+        message: 'Submitting checkout',
+        nextState: CheckoutStates.SUBMIT_CHECKOUT,
       };
     }
     return {
-      message: 'Submitting payment',
+      message: 'Submitting checkout',
       nextState: CheckoutStates.GO_TO_PAYMENT,
     };
   },
-  [CheckoutStates.SUBMIT_PAYMENT]: type => {
+  [CheckoutStates.SUBMIT_CHECKOUT]: type => {
     if (type === Modes.FAST) {
       return {
         message: 'Completing payment',
-        nextState: CheckoutStates.COMPLETE_PAYMENT,
+        nextState: CheckoutStates.COMPLETE_CHECKOUT,
       };
     }
     return {
-      message: 'Submitting payment',
+      message: 'Submitting checkout',
       nextState: CheckoutStates.GO_TO_PAYMENT,
     };
   },
-  [CheckoutStates.COMPLETE_PAYMENT]: type => {
+  [CheckoutStates.COMPLETE_CHECKOUT]: type => {
     if (type === Modes.FAST) {
       return {
-        message: 'Submitting payment',
-        nextState: CheckoutStates.COMPLETE_PAYMENT,
+        message: 'Submitting checkout',
+        nextState: CheckoutStates.COMPLETE_CHECKOUT,
       };
     }
     return {
-      message: 'Submitting payment',
+      message: 'Submitting checkout',
       nextState: CheckoutStates.GO_TO_PAYMENT,
     };
   },
 };
 
-const CheckoutRefreshTimeout = 98000;
-
 const Task = {
-  Types: TaskTypes,
   Modes,
   States: CheckoutStates,
   StateMap: QueueNextState,
-  CheckoutRefresh: CheckoutRefreshTimeout,
 };
 
 const Monitor = {

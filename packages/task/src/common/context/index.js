@@ -1,6 +1,7 @@
 import EventEmitter from 'eventemitter3';
 import { CookieJar } from 'tough-cookie';
 
+import { Timer } from '../classes';
 import { Task as TaskConstants } from '../constants';
 
 const { HarvestStates, Types } = TaskConstants;
@@ -15,9 +16,8 @@ export default class Context {
     message = '',
     events = new EventEmitter(),
     jar = new CookieJar(),
+    shared = {},
     logger,
-    discord,
-    slack,
     aborted = false,
     proxyManager,
     webhookManager,
@@ -25,6 +25,7 @@ export default class Context {
     captchaRequest = null,
     captchaQueue = null,
     captchaToken = null,
+    pookyEnabled = true,
   }) {
     this.id = id;
     this.ids = [id];
@@ -35,10 +36,13 @@ export default class Context {
     this.lastProxy = proxy;
     this.message = message;
     this.events = events;
+    this.timers = {
+      checkout: new Timer(),
+      monitor: new Timer(),
+    };
     this.jar = jar;
+    this.shared = shared;
     this.logger = logger;
-    this.discord = discord;
-    this.slack = slack;
     this.aborted = aborted;
     this.proxyManager = proxyManager;
     this.webhookManager = webhookManager;
@@ -46,6 +50,8 @@ export default class Context {
     this.captchaRequest = captchaRequest;
     this.captchaQueue = captchaQueue;
     this.captchaToken = captchaToken;
+
+    this.pookyEnabled = pookyEnabled;
   }
 
   addId(id) {
@@ -88,6 +94,10 @@ export default class Context {
     this.jar = jar;
   }
 
+  setShared(datum) {
+    this.shared.cookies = datum;
+  }
+
   setLogger(logger) {
     this.logger = logger;
   }
@@ -102,10 +112,6 @@ export default class Context {
 
   setAborted(aborted) {
     this.aborted = aborted;
-  }
-
-  setProductFound(productFound) {
-    this.productFound = productFound;
   }
 
   setHarvestState(harvestState) {
@@ -129,5 +135,9 @@ export default class Context {
       ...this.task.product,
       variant,
     };
+  }
+
+  setPookyEnabled(pookyEnabled) {
+    this.pookyEnabled = pookyEnabled;
   }
 }

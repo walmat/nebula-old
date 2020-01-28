@@ -1,45 +1,26 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable react/destructuring-assignment */
 /* eslint-disable no-nested-ternary */
 import { components } from 'react-select';
 import React from 'react';
-import PropTypes from 'prop-types';
 import { ReactComponent as DropDownClosed } from '../images/dd-down.svg';
 import { ReactComponent as DropDownOpened } from '../images/dd-up.svg';
-import { ReactComponent as ErrorsDropDownClosed } from '../images/dd-down-errors.svg';
-import { ReactComponent as ErrorsDropDownOpened } from '../images/dd-up-errors.svg';
-import { THEMES, mapThemeToColor, mapToNextTheme } from '../../constants/themes';
+import { THEMES, mapThemeToColor, mapToNextTheme } from '../../constants';
 import { renderSvgIcon } from '../../utils/index';
 
-export const DropdownIndicator = props => {
-
-  const {
-    selectProps: { menuIsOpen },
-    errors,
-  } = props;
-
-  let IconOpened = DropDownOpened;
-  let IconClosed = DropDownClosed;
-  if (errors) {
-    IconOpened = ErrorsDropDownOpened;
-    IconClosed = ErrorsDropDownClosed;
-  }
-  return (
-    <components.DropdownIndicator {...props}>
-      {menuIsOpen
-        ? renderSvgIcon(IconOpened, {
-            alt: '',
-            style: { marginRight: '-5px', cursor: 'pointer' },
-          })
-        : renderSvgIcon(IconClosed, {
-            alt: '',
-            style: { marginRight: '-5px', cursor: 'pointer' },
-          })}
-    </components.DropdownIndicator>
-  );
-};
-DropdownIndicator.propTypes = {
-  errors: PropTypes.objectOf(PropTypes.any).isRequired,
-  selectProps: PropTypes.objectOf(PropTypes.any).isRequired,
-};
+export const DropdownIndicator = props => (
+  <components.DropdownIndicator {...props}>
+    {props.selectProps.menuIsOpen
+      ? renderSvgIcon(DropDownOpened, {
+          alt: '',
+          style: { marginRight: '-5px', cursor: 'pointer' },
+        })
+      : renderSvgIcon(DropDownClosed, {
+          alt: '',
+          style: { marginRight: '-5px', cursor: 'pointer' },
+        })}
+  </components.DropdownIndicator>
+);
 
 export const IndicatorSeparator = () => null;
 
@@ -51,8 +32,7 @@ export const Menu = props => <components.Menu {...props} data-private />;
 
 export const MenuList = props => <components.MenuList {...props} data-private />;
 
-export const colourStyles = (theme, provided) => {
-
+export const colourStyles = theme => {
   const borderColor = mapThemeToColor[mapToNextTheme[theme]];
 
   return {
@@ -75,15 +55,15 @@ export const colourStyles = (theme, provided) => {
         backgroundColor,
       };
     },
-    Indicator: styles => ({
+    input: styles => ({
+      ...styles,
+      color: theme === THEMES.DARK ? '#efefef' : '#161318',
+    }),
+    indicator: styles => ({
       ...styles,
       padding: '0 8px',
     }),
-    IndicatorsContainer: styles => ({
-      ...styles,
-      padding: '0 8px',
-    }),
-    DropdownIndicator: styles => ({
+    dropdownIndicator: styles => ({
       ...styles,
       padding: '0 8px',
       color: borderColor,

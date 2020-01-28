@@ -21,11 +21,11 @@ export const Shipping = {
     neg: null,
     url: null,
   },
-  site: null,
+  store: null,
   profile: null,
+  status: 'idle',
 };
 
 export const Delays = {
   monitor: 1500,
-  error: 1500,
 };

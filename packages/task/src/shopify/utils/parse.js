@@ -1,10 +1,13 @@
+import cheerio from 'cheerio';
 import { sortBy, map, find, flatten, filter, every, some } from 'lodash';
 import { parseString } from 'xml2js';
 
-import { isSpecialStore } from './storeOptions';
-import { Platforms, Monitor } from '../../common/constants';
+import { Utils, Constants } from '../../common';
+
+const { Monitor, ErrorCodes } = Constants;
 
 const { ParseType } = Monitor;
+const { userAgent, rfrl } = Utils;
 
 /**
  * Determine the type of parsing we need to
@@ -13,56 +16,242 @@ const { ParseType } = Monitor;
  *
  * @param {TaskProduct} product
  */
-export function getParseType(product, store, platform = Platforms.Shopify) {
+export function getParseType(product) {
   if (!product) {
     return ParseType.Unknown;
   }
 
-  switch (platform) {
-    case Platforms.Shopify: {
-      if (product.variant) {
-        return ParseType.Variant;
-      }
+  if (product.variant) {
+    return ParseType.Variant;
+  }
 
-      if ((store && isSpecialStore(store)) || (store && /travis/i.test(store.name))) {
-        return ParseType.Special;
-      }
+  if (product.url) {
+    return ParseType.Url;
+  }
 
-      if (product.url) {
-        return ParseType.Url;
-      }
-
-      if (product.pos && product.neg) {
-        return ParseType.Keywords;
-      }
-      break;
-    }
-    case Platforms.Supreme: {
-      if (product.variant) {
-        return ParseType.Variant;
-      }
-
-      if (product.url) {
-        return ParseType.Url;
-      }
-
-      if (product.pos && product.neg) {
-        return ParseType.Keywords;
-      }
-      break;
-    }
-    case Platforms.Footsites: {
-      break;
-    }
-    case Platforms.Mesh: {
-      break;
-    }
-    default:
-      break;
+  if (product.pos && product.neg) {
+    return ParseType.Keywords;
   }
 
   return ParseType.Unknown;
 }
+
+export const parseProductInfoPageForHash = ($, logger) => {
+  const regex = /\$\(\s*atob\(\s*'PGlucHV0IHR5cGU9ImhpZGRlbiIgbmFtZT0icHJvcGVydGllc1tfSEFTSF0iIC8\+'\s*\)\s*\)\s*\.val\(\s*'(.+)'\s*\)/;
+
+  try {
+    const hashes = [];
+    $('#MainContent > script').each((i, e) => {
+      // should match only one, but just in case, let's loop over all possibilities
+      logger.silly('parsing script element %d for hash...', i);
+      if (e.children) {
+        // check to see if we can find the hash property
+        const elements = regex.exec(e.children[0].data);
+        if (elements) {
+          logger.silly('Found match %s', elements[0]);
+          hashes.push(elements[1]);
+        } else {
+          logger.silly('No match found %s', e.children[0].data);
+        }
+      }
+    });
+
+    switch (hashes.length) {
+      case 0: {
+        logger.silly('No Hash Found, returning null...');
+        return null;
+      }
+      case 1: {
+        const [hash] = hashes;
+        logger.silly('Found 1 Hash: %s, returning...', hash);
+        return hash;
+      }
+      default: {
+        const [hash] = hashes;
+        logger.silly('Found %d Hashes! using the first one: %s', hashes.length, hash);
+        return hash;
+      }
+    }
+  } catch (err) {
+    logger.error('ERROR parsing hash property: %s %s', err.statusCode || err.status, err.message);
+    return null;
+  }
+};
+
+export const getProductInfoPage = async (fetch, url, proxy, logger) => {
+  logger.debug('Requesting product page for info');
+  try {
+    const res = await fetch(url, {
+      redirect: 'follow',
+      follow: 5,
+      agent: proxy ? proxy.proxy : null,
+      headers: {
+        'X-Shopify-Api-Features': Math.random() * Number.MAX_SAFE_INTEGER,
+        'user-agent': userAgent,
+      },
+    });
+
+    const { url: redirectUrl } = res;
+
+    if (redirectUrl) {
+      if (/password/i.test(redirectUrl)) {
+        const error = new Error('Password Page');
+        error.status = ErrorCodes.PasswordPage;
+        throw error;
+      }
+    }
+
+    const body = await res.text();
+
+    const $ = cheerio.load(body, {
+      normalizeWhitespace: true,
+      xmlMode: false,
+    });
+
+    const product = $('script#ProductJson-product-template');
+    if (!product || product.attr('type') !== 'application/json') {
+      logger.silly('No products found on product page');
+      // If no products are found, throw an error, but specify a special status to stop the task
+      // TODO: Maybe replace with a custom error object?
+      const error = new Error('No Items Found');
+      error.status = ErrorCodes.ProductNotFound;
+      throw error;
+    }
+
+    const parsedProduct = JSON.parse(product.html());
+
+    logger.debug('Parsed product: %j', parsedProduct);
+
+    if (/eflash-us/i.test(url)) {
+      logger.debug('Parsing DSM US hash...');
+      const hash = await parseProductInfoPageForHash($, logger);
+
+      return {
+        ...parsedProduct,
+        hash,
+      };
+    }
+
+    if (/eflash/i.test(url) && !/sg|jp/i.test(url)) {
+      logger.debug('Parsing DSM UK hash...');
+      return {
+        ...parsedProduct,
+        hash: 'ee3e8f7a9322eaa382e04f8539a7474c11555',
+      };
+    }
+
+    return parsedProduct;
+  } catch (err) {
+    throw err;
+  }
+};
+
+/**
+ * Retrieve the full product info for a given product
+ *
+ * This method takes a given single product url and attempts to
+ * get the full info for the product, filling in the gaps missed
+ * by xml or atom parsing. This method sends out two requests,
+ * one for the `.js` file and one for the `.oembed` file. The
+ * first request to complete returns the full product info. If
+ * both requests error out, a list of errors is returned.
+ *
+ * @param {node-fetch instance} fetch
+ * @param {String} url
+ * @param {Object} proxy
+ * @param {Object} logger
+ */
+export const getFullProductInfo = (fetch, url, proxy, logger) => {
+  const _logger = logger || { log: () => {} };
+  _logger.log('silly', 'Parser: Getting Full Product Info...');
+
+  if (/eflash/i.test(url)) {
+    return getProductInfoPage(fetch, url, proxy, logger);
+  }
+
+  _logger.log('silly', 'Parser: Requesting %s.(js|oembed) in a race', url);
+  const genRequestPromise = productUrl =>
+    fetch(productUrl, {
+      method: 'GET',
+      redirect: 'follow',
+      follow: 1,
+      compress: true,
+      agent: proxy ? proxy.proxy : null,
+      headers: {
+        'X-Shopify-Api-Features': Math.random() * Number.MAX_SAFE_INTEGER,
+        'user-agent': userAgent,
+      },
+    });
+
+  return rfrl(
+    [
+      genRequestPromise(`${url}.js`).then(
+        // {productUrl}.js contains the format we need -- just return it
+        async res => {
+          if (!res.ok) {
+            const err = new Error(res.message);
+            err.status = res.status || 404;
+            err.name = res.name;
+            throw err;
+          }
+          return res.json();
+        },
+        async error => {
+          if (error && error.type && /system/i.test(error.type)) {
+            const rethrow = new Error(error.errno);
+            rethrow.status = error.code;
+            throw rethrow;
+          }
+          // Error occured, return a rejection with the status code attached
+          const err = new Error(error.message);
+          err.status = error.status || 404;
+          err.name = error.name;
+          throw err;
+        },
+      ),
+      genRequestPromise(`${url}.oembed`).then(
+        async res => {
+          if (!res.ok) {
+            // Error occured, return a rejection with the status code attached
+            const err = new Error(res.message);
+            err.status = res.status || 404;
+            err.name = res.name;
+            throw err;
+          }
+          // {productUrl}.oembed requires a little transformation before returning:
+          const json = await res.json();
+
+          return {
+            title: json.title,
+            vendor: json.provider,
+            handle: json.product_id,
+            featured_image: json.thumbnail_url,
+            variants: json.offers.map(offer => ({
+              title: offer.title,
+              id: offer.offer_id,
+              price: `${offer.price}`,
+              available: offer.in_stock || false,
+            })),
+          };
+        },
+        async error => {
+          if (error && error.type && /system/i.test(error.type)) {
+            const rethrow = new Error(error.errno);
+            rethrow.status = error.code;
+            throw rethrow;
+          }
+          // Error occured, return a rejection with the status code attached
+          const err = new Error(error.message);
+          err.status = error.status || 404;
+          err.name = error.name;
+          throw err;
+        },
+      ),
+    ],
+    `info - ${url}`,
+    _logger,
+  );
+};
 
 /**
  * Filter a list using a sorter and limit
@@ -84,7 +273,7 @@ export function getParseType(product, store, platform = Platforms.Shopify) {
  * @param {Sorter} sorter the method of sorting
  * @param {num} limit the limit to use
  */
-export function filterAndLimit(list, sorter, limit, logger) {
+export const filterAndLimit = (list, sorter, limit, logger) => {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Filtering given list with sorter: %s and limit: %d ...', sorter, limit);
   if (!list) {
@@ -110,7 +299,7 @@ export function filterAndLimit(list, sorter, limit, logger) {
   _logger.log('silly', 'Descending Limit detected, limiting...');
   // slice, then reverse elements to get the proper order
   return sorted.slice(0, _limit).reverse();
-}
+};
 
 /**
  * Match a variant id to a product
@@ -129,7 +318,7 @@ export function filterAndLimit(list, sorter, limit, logger) {
  * @param {List} products list of products to search
  * @param {String} variantId the variant id to match
  */
-export function matchVariant(products, variantId, logger) {
+export const matchVariant = (products, variantId, logger) => {
   const _logger = logger || { log: () => {} };
   _logger.log('silly', 'Starting variant matching for variant: %s', variantId);
   if (!products) {
@@ -178,7 +367,7 @@ export function matchVariant(products, variantId, logger) {
     variantId,
   );
   return null;
-}
+};
 
 /**
  * Match a set of keywords to a product
@@ -200,10 +389,7 @@ export function matchVariant(products, variantId, logger) {
  * @param {Object} keywords an object containing two arrays of strings (`pos` and `neg`)
  * @see filterAndLimit
  */
-export function matchKeywords(products, keywords, _filter, logger, returnAll, random) {
-  if (random) {
-    return products[0];
-  }
+export const matchKeywords = (products, keywords, _filter, logger, returnAll) => {
   const _logger = logger || { log: () => {} };
   _logger.log(
     'silly',
@@ -238,10 +424,21 @@ export function matchKeywords(products, keywords, _filter, logger, returnAll, ra
     if (keywords.pos.length > 0) {
       pos = every(
         keywords.pos.map(k => k.toUpperCase()),
-        keyword =>
-          title.indexOf(keyword.toUpperCase()) > -1 ||
-          handle.indexOf(keyword) > -1 ||
-          bodyHtml.indexOf(keyword) > -1,
+        keyword => {
+          if (title) {
+            return title.indexOf(keyword.toUpperCase()) > -1;
+          }
+
+          if (handle) {
+            return handle.indexOf(keyword.toUpperCase()) > -1;
+          }
+
+          if (bodyHtml) {
+            return bodyHtml.toUpperCase().indexOf(keyword.toUpperCase()) > -1;
+          }
+
+          return false;
+        },
       );
     }
 
@@ -249,10 +446,21 @@ export function matchKeywords(products, keywords, _filter, logger, returnAll, ra
     if (keywords.neg.length > 0) {
       neg = some(
         keywords.neg.map(k => k.toUpperCase()),
-        keyword =>
-          title.indexOf(keyword) > -1 ||
-          handle.indexOf(keyword) > -1 ||
-          bodyHtml.indexOf(keyword) > -1,
+        keyword => {
+          if (title) {
+            return title.indexOf(keyword.toUpperCase()) > -1;
+          }
+
+          if (handle) {
+            return handle.indexOf(keyword.toUpperCase()) > -1;
+          }
+
+          if (bodyHtml) {
+            return bodyHtml.toUpperCase().indexOf(keyword.toUpperCase()) > -1;
+          }
+
+          return false;
+        },
       );
     }
     return pos && !neg;
@@ -269,7 +477,11 @@ export function matchKeywords(products, keywords, _filter, logger, returnAll, ra
       'Searched %d products. %d Products Found',
       products.length,
       matches.length,
-      JSON.stringify(matches.map(({ title }) => title), null, 2),
+      JSON.stringify(
+        matches.map(({ title }) => title),
+        null,
+        2,
+      ),
     );
     if (_filter && _filter.sorter && _filter.limit) {
       _logger.log('silly', 'Using given filtering heuristic on the products...');
@@ -278,7 +490,7 @@ export function matchKeywords(products, keywords, _filter, logger, returnAll, ra
         _logger.log('silly', "Overriding filter's limit and returning all products...");
         limit = 0;
       }
-      filtered = filterAndLimit(matches, _filter.sorter, limit, this._logger);
+      filtered = filterAndLimit(matches, _filter.sorter, limit, _logger);
       if (!returnAll) {
         _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
         return filtered[0];
@@ -292,11 +504,11 @@ export function matchKeywords(products, keywords, _filter, logger, returnAll, ra
     );
     if (returnAll) {
       _logger.log('silly', 'Returning all products...');
-      filtered = filterAndLimit(matches, 'updated_at', 0, this._logger);
+      filtered = filterAndLimit(matches, 'updated_at', 0, _logger);
       _logger.log('silly', 'Returning %d Matched Products', filtered);
       return filtered;
     }
-    filtered = filterAndLimit(matches, 'updated_at', -1, this._logger);
+    filtered = filterAndLimit(matches, 'updated_at', -1, _logger);
     _logger.log('silly', 'Returning Matched Product: %s', filtered[0].title);
     return filtered[0];
   }
@@ -307,7 +519,7 @@ export function matchKeywords(products, keywords, _filter, logger, returnAll, ra
     matches[0].title,
   );
   return returnAll ? matches : matches[0];
-}
+};
 
 /**
  * Convert an XML String to JSON
@@ -317,8 +529,8 @@ export function matchKeywords(products, keywords, _filter, logger, returnAll, ra
  *
  * @param {String} xml
  */
-export function convertToJson(xml) {
-  return new Promise((resolve, reject) => {
+export const convertToJson = xml =>
+  new Promise((resolve, reject) => {
     parseString(xml, (err, result) => {
       if (err) {
         reject(err);
@@ -326,4 +538,43 @@ export function convertToJson(xml) {
       resolve(result);
     });
   });
-}
+
+export const match = (context, products) => {
+  const { parseType, logger, task } = context;
+  logger.silly('Starting match for parse type: %j', parseType);
+  switch (parseType) {
+    case ParseType.Variant: {
+      const product = matchVariant(products, task.product.variant, null, logger);
+      if (!product) {
+        logger.silly('Unable to find matching product!');
+        const error = new Error('ProductNotFound');
+        error.status = ErrorCodes.ProductNotFound;
+        throw error;
+      }
+      logger.silly('Product found!');
+      return product;
+    }
+    case ParseType.Keywords: {
+      const keywords = {
+        pos: task.product.pos,
+        neg: task.product.neg,
+      };
+
+      const product = matchKeywords(products, keywords, null, logger, false); // no need to use a custom filter at this point...
+      if (!product) {
+        logger.silly('Unable to find matching product!');
+        const error = new Error('ProductNotFound');
+        error.status = ErrorCodes.ProductNotFound;
+        throw error;
+      }
+      logger.silly('Product found!');
+      return product;
+    }
+    default: {
+      logger.silly('Invalid parsing type %s!', parseType);
+      const error = new Error('InvalidParseType');
+      error.status = ErrorCodes.InvalidParseType;
+      throw error;
+    }
+  }
+};

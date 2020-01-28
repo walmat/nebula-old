@@ -3,15 +3,7 @@ import { Task as TaskConstants } from '../constants';
 
 const { States } = TaskConstants;
 
-export const patchCheckoutForm = (
-  billingMatchesShipping,
-  shipping,
-  billing,
-  payment,
-  variant,
-  name,
-  hash,
-) => {
+export const patchCheckoutForm = (matches, shipping, billing, payment, token) => {
   const shippingProvinceValue = shipping.province ? shipping.province.value : '';
   let data = {
     complete: '1',
@@ -27,12 +19,12 @@ export const patchCheckoutForm = (
         country: shipping.country.value,
         province: shippingProvinceValue,
         state: shippingProvinceValue,
-        zip: shipping.zipCode,
+        zip: shipping.zip,
         phone: shipping.phone,
       },
     },
   };
-  if (billingMatchesShipping) {
+  if (matches) {
     data = {
       ...data,
       checkout: {
@@ -46,7 +38,7 @@ export const patchCheckoutForm = (
           country: shipping.country.value,
           province: shippingProvinceValue,
           state: shippingProvinceValue,
-          zip: shipping.zipCode,
+          zip: shipping.zip,
           phone: shipping.phone,
         },
       },
@@ -66,35 +58,15 @@ export const patchCheckoutForm = (
           country: billing.country.value,
           province: billingProvinceValue,
           state: billingProvinceValue,
-          zip: billing.zipCode,
+          zip: billing.zip,
           phone: billing.phone,
         },
       },
     };
   }
 
-  if (variant) {
-    data = {
-      ...data,
-      checkout: {
-        ...data.checkout,
-        line_items: [
-          {
-            variant_id: variant,
-            quantity: 1,
-            properties: /dsm uk/i.test(name)
-              ? {
-                  _hash: hash,
-                }
-              : /dsm us/i.test(name)
-              ? {
-                  _HASH: hash,
-                }
-              : {},
-          },
-        ],
-      },
-    };
+  if (token) {
+    data['g-recaptcha-response'] = token;
   }
 
   return data;
@@ -106,7 +78,7 @@ export const addToCart = (variant, name, hash, props = {}) => {
       return `id=${variant}&quantity=1&properties%5B_HASH%5D=${hash}`;
     }
     case 'DSM UK': {
-      return `id=${variant}&quantity=1&properties%5B_hash%5D=${hash ||
+      return `id=${variant}&add=&properties%5B_hash%5D=${hash ||
         'ee3e8f7a9322eaa382e04f8539a7474c11555'}`;
     }
     case 'Funko Shop': {
@@ -148,7 +120,7 @@ export const patchToCart = variant => ({
   },
 });
 
-export const parseForm = async ($, state, checkoutToken, profile, formName, wanted) => {
+export const parseForm = async ($, state, hash, profile, formName, wanted) => {
   let count = 0;
   const data = [];
   await $(formName).each((i, form) => {
@@ -175,7 +147,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
 
         // just set the dba to true and fill the rest of the form
         if (/different_billing_address/i.test(name)) {
-          value = !profile.billingMatchesShipping;
+          value = !profile.matches;
         }
 
         if (/recaptcha/i.test(name)) {
@@ -183,7 +155,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
         }
 
         if (
-          (profile.billingMatchesShipping &&
+          (profile.matches &&
             data.some(({ name: existing }) => /shipping_address/i.test(existing)) &&
             /billing_address/i.test(name) &&
             !/different_billing_address/i.test(name)) ||
@@ -213,14 +185,14 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
 
         if (
           /hosted_fields_redirect|field_start|field_end/i.test(name) ||
-          ((/payment_gateway/i.test(name) && /free|3700574/i.test(value)) ||
-            (/payment_gateway/i.test(name) &&
-              data.some(({ name: existing }) => /payment_gateway/i.test(existing))))
+          (/payment_gateway/i.test(name) && /free|3700574/i.test(value)) ||
+          (/payment_gateway/i.test(name) &&
+            data.some(({ name: existing }) => /payment_gateway/i.test(existing)))
         ) {
           // added check for the field_end to patch in the count...
           if (/field_end/i.test(name)) {
             data.push({
-              name: `${checkoutToken}-count`,
+              name: `${hash}-count`,
               value: count,
             });
           }
@@ -244,7 +216,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
     data.push({ name: 'checkout[client_details][browser_tz]', value: 240 });
   }
 
-  const billingInfo = profile.billingMatchesShipping ? profile.shipping : profile.billing;
+  const billingInfo = profile.matches ? profile.shipping : profile.billing;
 
   const formValuesObj = {
     'checkout[email]': encodeURIComponent(profile.payment.email),
@@ -258,7 +230,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
     'checkout[shipping_address][province]': profile.shipping.province
       ? profile.shipping.province.value
       : '',
-    'checkout[shipping_address][zip]': profile.shipping.zipCode,
+    'checkout[shipping_address][zip]': profile.shipping.zip,
     'checkout[shipping_address][phone]': profile.shipping.phone,
     'checkout[billing_address][first_name]': billingInfo.firstName,
     'checkout[billing_address][last_name]': billingInfo.lastName,
@@ -267,7 +239,7 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
     'checkout[billing_address][city]': billingInfo.city,
     'checkout[billing_address][country]': billingInfo.country.label,
     'checkout[billing_address][province]': billingInfo.province ? billingInfo.province.value : '',
-    'checkout[billing_address][zip]': billingInfo.zipCode,
+    'checkout[billing_address][zip]': billingInfo.zip,
     'checkout[billing_address][phone]': billingInfo.phone,
   };
 
@@ -289,3 +261,54 @@ export const parseForm = async ($, state, checkoutToken, profile, formName, want
 
   return formValues.join('').slice(0, -1);
 };
+
+export const contactForm = (profile, captchaToken) => {
+  const { email } = profile.payment;
+  const {
+    firstName,
+    lastName,
+    address,
+    province,
+    country,
+    city,
+    apt,
+    zip,
+    phone,
+  } = profile.shipping;
+
+  const provinceValue = province ? province.value : '';
+  let form = `_method=patch&authenticity_token=&previous_step=contact_information&step=shipping_method&checkout%5Bemail%5D=${email}&checkout%5Bshipping_address%5D%5Bfirst_name%5D=${firstName}&checkout%5Bshipping_address%5D%5Blast_name%5D=${lastName}&checkout%5Bshipping_address%5D%5Bcompany%5D=&checkout%5Bshipping_address%5D%5Baddress1%5D=${address}&checkout%5Bshipping_address%5D%5Baddress2%5D=${apt}&checkout%5Bshipping_address%5D%5Bcity%5D=${city}&checkout%5Bshipping_address%5D%5Bcountry%5D=${country.label}&checkout%5Bshipping_address%5D%5Bprovince%5D=${provinceValue}&checkout%5Bshipping_address%5D%5Bzip%5D=${zip}&checkout%5Bshipping_address%5D%5Bphone%5D=${phone}&checkout%5Bshipping_address%5D%5Bfirst_name%5D=${firstName}&checkout%5Bshipping_address%5D%5Blast_name%5D=${lastName}&checkout%5Bshipping_address%5D%5Bcompany%5D=&checkout%5Bshipping_address%5D%5Baddress1%5D=${address}&checkout%5Bshipping_address%5D%5Baddress2%5D=${apt}&checkout%5Bshipping_address%5D%5Bcity%5D=${city}&checkout%5Bshipping_address%5D%5Bcountry%5D=${country.label}&checkout%5Bshipping_address%5D%5Bprovince%5D=${provinceValue}&checkout%5Bshipping_address%5D%5Bzip%5D=${zip}&checkout%5Bshipping_address%5D%5Bphone%5D=${phone}&checkout%5Bremember_me%5D=&checkout%5Bremember_me%5D=0&checkout%5Bremember_me%5D=1`;
+
+  if (captchaToken) {
+    form += `&g-recaptcha-response=${captchaToken}`;
+  }
+
+  form += `&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1238&checkout%5Bclient_details%5D%5Bbrowser_height%5D=453&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
+
+  return form.replace(/\s/g, '+');
+};
+
+export const shippingForm = rate =>
+  `_method=patch&authenticity_token=&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURIComponent(
+    rate,
+  )}&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29');
+
+export const paymentForm = (profile, gateway = '', s) => {
+  const { matches, billing } = profile;
+  const { firstName, lastName, address, province, country, city, apt, zip, phone } = billing;
+
+  const provinceValue = province ? province.value : '';
+
+  const form = `_method=patch&authenticity_token=&previous_step=payment_method&step=&s=${s}&checkout%5Bpayment_gateway%5D=${gateway}&checkout%5Bcredit_card%5D%5Bvault%5D=false&checkout%5Bdifferent_billing_address%5D=${!matches}&checkout%5Bbilling_address%5D%5Bfirst_name%5D=${firstName}&checkout%5Bbilling_address%5D%5Blast_name%5D=${lastName}&checkout%5Bbilling_address%5D%5Bcompany%5D=&checkout%5Bbilling_address%5D%5Baddress1%5D=${address}&checkout%5Bbilling_address%5D%5Baddress2%5D=${apt}&checkout%5Bbilling_address%5D%5Bcity%5D=${city}&checkout%5Bbilling_address%5D%5Bcountry%5D=${
+    country.label
+  }&checkout%5Bbilling_address%5D%5Bprovince%5D=${provinceValue}&checkout%5Bbilling_address%5D%5Bzip%5D=${zip}&checkout%5Bbilling_address%5D%5Bphone%5D=${phone}&checkout%5Bbilling_address%5D%5Bfirst_name%5D=${firstName}&checkout%5Bbilling_address%5D%5Blast_name%5D=${lastName}&checkout%5Bbilling_address%5D%5Bcompany%5D=&checkout%5Bbilling_address%5D%5Baddress1%5D=${address}&checkout%5Bbilling_address%5D%5Baddress2%5D=${apt}&checkout%5Bbilling_address%5D%5Bcity%5D=${city}&checkout%5Bbilling_address%5D%5Bcountry%5D=${
+    country.label
+  }&checkout%5Bbilling_address%5D%5Bprovince%5D=${provinceValue}&checkout%5Bbilling_address%5D%5Bzip%5D=${zip}&checkout%5Bbilling_address%5D%5Bphone%5D=${phone}&checkout%5Btotal_price%5D=&complete=1&checkout%5Bclient_details%5D%5Bbrowser_width%5D=1238&checkout%5Bclient_details%5D%5Bbrowser_height%5D=453&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1&checkout%5Bclient_details%5D%5Bcolor_depth%5D=24&checkout%5Bclient_details%5D%5Bjava_enabled%5D=false&checkout%5Bclient_details%5D%5Bbrowser_tz%5D=240`;
+
+  return form.replace(/\s/g, '+');
+};
+
+export const completeForm = price =>
+  `_method=patch&authenticity_token=&checkout%5Btotal_price%5D=${price}&complete=1&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=910&checkout%5Bclient_details%5D%5Bbrowser_height%5D=528&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`;

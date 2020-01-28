@@ -5,7 +5,7 @@ const log = require('electron-log');
 
 const { IPCKeys } = require('../common/constants');
 const nebulaEnv = require('./env');
-const { createAboutWindow, createAuthWindow, createMainWindow, urls } = require('./windows');
+const { createAuthWindow, createMainWindow, urls } = require('./windows');
 
 const CaptchaWindowManager = require('./captchaWindowManager');
 
@@ -36,12 +36,6 @@ class WindowManager {
      * @type {Map.<String, BrowserWindow>}
      */
     this._windows = new Map();
-
-    /**
-     * About dialog.
-     * @type {BrowserWindow}
-     */
-    this._aboutDialog = null;
 
     /**
      * Main Window
@@ -171,16 +165,12 @@ class WindowManager {
       this._notifyUpdateWindowIDs(win.id);
       win.show();
 
-      if (win === this._main) {
+      if (win === this._main && !nebulaEnv.isDevelopment()) {
         log.info('Starting update check...');
         autoUpdater.checkForUpdates();
 
-        // attach event listeners
         autoUpdater.on('checking-for-update', () => {
           log.info('CHECKING FOR UPDATE');
-          // if (this._main) {
-          //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate);
-          // }
         });
 
         autoUpdater.on('update-available', info => {
@@ -205,37 +195,25 @@ class WindowManager {
 
         autoUpdater.on('update-not-available', info => {
           log.info('UPDATE NOT AVAILABLE: ', info);
-          // if (this._main) {
-          //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
-          // }
         });
 
         autoUpdater.on('error', error => {
           log.info('ERROR: ', error);
-          // if (this._main) {
-          //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true, error });
-          // }
         });
 
         autoUpdater.on('download-progress', progressObj => {
           log.info('DOWNLOADING: ', progressObj.bytesPerSecond);
-          // if (this._main) {
-          //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { progressObj });
-          // }
         });
 
         autoUpdater.on('update-downloaded', async info => {
           log.info('NEW UPDATE DOWNLOADED: ', info);
           if (this._shouldUpdate) {
-            // if (this._main) {
-            //   this._main.webContents.send(IPCKeys.RequestCheckForUpdate, { done: true });
-            // }
             autoUpdater.quitAndInstall();
           }
         });
-        // generate captcha window sessions
-        await this._captchaWindowManager.generateSessions();
       }
+      // generate captcha window sessions
+      await this._captchaWindowManager.generateSessions();
     };
   }
 
@@ -255,9 +233,7 @@ class WindowManager {
       this._windows.delete(winId);
       this._notifyUpdateWindowIDs(winId);
 
-      if (this._aboutDialog && winId === this._aboutDialog.id) {
-        this._aboutDialog = null;
-      } else if (this._main && winId === this._main.id) {
+      if (this._main && winId === this._main.id) {
         // Stop the task launcher when the main window closes
         this._context.taskLauncher.stop();
         await this._captchaWindowManager.freeAllSessions();
@@ -416,8 +392,8 @@ class WindowManager {
    *
    * Forward call to Captcha Window Manager
    */
-  startHarvestingCaptcha(id, siteKey, host) {
-    this._captchaWindowManager.startHarvesting(id, siteKey, host);
+  startHarvestingCaptcha(id, sitekey, host, checkpoint) {
+    this._captchaWindowManager.startHarvesting(id, sitekey, host, checkpoint);
   }
 
   /**
@@ -425,8 +401,8 @@ class WindowManager {
    *
    * Forward call to Captcha Window Manager
    */
-  stopHarvestingCaptcha(id, siteKey) {
-    this._captchaWindowManager.stopHarvesting(id, siteKey);
+  stopHarvestingCaptcha(id, sitekey) {
+    this._captchaWindowManager.stopHarvesting(id, sitekey);
   }
 
   /**

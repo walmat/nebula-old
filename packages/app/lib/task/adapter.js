@@ -37,10 +37,13 @@ class TaskManagerAdapter {
      */
     this._taskEventHandler = async (taskIds, message) => {
       if (message) {
-        return Promise.all(
-          // eslint-disable-next-line array-callback-return
-          [...taskIds].map(taskId => (this.statusMessages[taskId] = message)),
-        );
+        [...taskIds].forEach(taskId => {
+          const previous = this.statusMessages[taskId];
+          this.statusMessages[taskId] = {
+            ...previous,
+            ...message,
+          };
+        });
       }
       return null;
     };
@@ -54,9 +57,9 @@ class TaskManagerAdapter {
 
     // TODO: Research if this should always listened to, or if we can dynamically
     //       Start/Stop listening like we with task events
-    this._taskManager.captchaManager._events.on(TaskManager.Events.StartHarvest, (...args) =>
-      ipcRenderer.send(IPCKeys.RequestStartHarvestCaptcha, ...args),
-    );
+    this._taskManager.captchaManager._events.on(TaskManager.Events.StartHarvest, (...args) => {
+      ipcRenderer.send(IPCKeys.RequestStartHarvestCaptcha, ...args);
+    });
     this._taskManager.captchaManager._events.on(TaskManager.Events.StopHarvest, (...args) =>
       ipcRenderer.send(IPCKeys.RequestStopHarvestCaptcha, ...args),
     );
@@ -85,6 +88,8 @@ class TaskManagerAdapter {
     ipcRenderer.on(IPCKeys.RequestStartTasks, this._onStartTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestRestartTasks, this._onRestartTasksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestStopTasks, this._onStopTasksRequest.bind(this));
+    ipcRenderer.on(IPCKeys.RequestAddWebhooks, this._onAddWebhooksRequest.bind(this));
+    ipcRenderer.on(IPCKeys.RequestRemoveWebhooks, this._onRemoveWebhooksRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestAddProxies, this._onAddProxiesRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestRemoveProxies, this._onRemoveProxiesRequest.bind(this));
     ipcRenderer.on(IPCKeys.RequestChangeDelay, this._onChangeDelayRequest.bind(this));
@@ -127,6 +132,14 @@ class TaskManagerAdapter {
     }
   }
 
+  _onAddWebhooksRequest(_, webhooks) {
+    this._taskManager.webhookManager.registerAll(webhooks);
+  }
+
+  _onRemoveWebhooksRequest(_, webhooks) {
+    this._taskManager.webhookManager.deregisterAll(webhooks);
+  }
+
   _onAddProxiesRequest(_, proxies) {
     this._taskManager.proxyManager.registerAll(proxies);
   }
@@ -135,8 +148,8 @@ class TaskManagerAdapter {
     this._taskManager.proxyManager.deregisterAll(proxies);
   }
 
-  _onChangeDelayRequest(_, delay, type) {
-    this._taskManager.changeDelay(delay, type);
+  _onChangeDelayRequest(_, delay, type, tasks) {
+    this._taskManager.changeDelay(delay, type, tasks);
   }
 
   _onRequestWebhookUpdate(_, hook, type) {
@@ -149,9 +162,8 @@ class TaskManagerAdapter {
 }
 
 process.once('loaded', () => {
+  let tma = null;
   ipcRenderer.once('LOG_PATH', (_, logPath) => {
-    console.log(`Received log path: ${logPath}`);
-    // eslint-disable-next-line no-unused-vars
-    const tma = new TaskManagerAdapter(logPath);
+    tma = new TaskManagerAdapter(logPath);
   });
 });

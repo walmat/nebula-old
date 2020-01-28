@@ -7,6 +7,7 @@ const { Events } = Manager;
 export default class CaptchaManager {
   constructor(logger) {
     this._logger = logger;
+
     // Captcha Map
     this._requesters = new Map();
     this._tokens = new Map();
@@ -63,18 +64,18 @@ export default class CaptchaManager {
     if (tokens && tokens.length) {
       // Get the next task to pass the token
       const { id, priority } = tokens.shift();
-      this._logger.debug('TaskManager: Grabbed requester: %s with priority %s', id, priority);
+      this._logger.debug('Grabbed requester: %s with priority %s', id, priority);
       // Use the task id to get the container
       // TODO: investigate what the container holds here..
       const container = this._requesters.get(id);
       if (!container) {
         // The current container no longer exists in the captcha queue,
         // Call recursively to get the next task
-        this._logger.debug('TaskManager: Task not found! Recursive calling next task');
+        this._logger.debug('Task not found! Recursive calling next task');
         this.harvest(id, token, sitekey);
       }
       // Send event to pass data to task
-      this._logger.debug('TaskManager: Sending token to %s', id);
+      this._logger.debug('Sending token to %s', id);
       this._events.emit(Events.Harvest, id, token);
 
       // stop the harvester for that task..
@@ -83,9 +84,12 @@ export default class CaptchaManager {
   }
 
   // handle start harvest
-  start(id, sitekey, host, priority = 1) {
-    this._logger.debug('Inserting requester %s with %s priority', id, priority);
+  start(id, sitekey, host, checkpoint = false) {
+    this._logger.debug('Inserting requester %s with %s priority', id, checkpoint ? 1 : 0);
     let container = this._requesters.get(id);
+
+    const priority = checkpoint ? 1 : 0;
+    this._logger.error('%s container: %j', id, container);
     if (!container) {
       // We haven't started harvesting for this task yet, create a queue and start harvesting
       container = {};
@@ -93,23 +97,22 @@ export default class CaptchaManager {
       this._requesters.set(id, container);
 
       let tokens = this._tokens.get(sitekey);
-
-      if (!tokens) {
+      this._logger.error('Tokens for %s: %j', sitekey, tokens);
+      if (!tokens || !tokens.length) {
         this._tokens.set(sitekey, []);
         this._logger.debug('Pushing %s to first place in line', id);
 
         tokens = this._tokens.get(sitekey);
         tokens.push({ id, host, priority });
 
-        this._events.emit(Events.StartHarvest, id, sitekey, host);
+        this._events.emit(Events.StartHarvest, id, sitekey, host, checkpoint);
         return;
       }
 
       let contains = false;
-      // priority checks...
+      // priority check...
       this._logger.debug('Token queue length: %s', tokens.length);
       for (let i = 0; i < tokens.length; i += 1) {
-        // if the new items priority is less than, splice it in place.
         if (tokens[i].priority > priority) {
           this._logger.debug('Inserting %s as: %s place in line', id, i);
           tokens.splice(i, 0, { id, host, priority });
@@ -125,7 +128,7 @@ export default class CaptchaManager {
       }
 
       // Emit an event to start harvesting
-      this._events.emit(Events.StartHarvest, id, sitekey, host);
+      this._events.emit(Events.StartHarvest, id, sitekey, host, checkpoint);
     }
   }
 
@@ -133,6 +136,7 @@ export default class CaptchaManager {
   stop(id, sitekey) {
     const container = this._requesters.get(id);
 
+    this._logger.error('%s container: %j', id, container);
     // If this container was never started, there's no need to do anything further
     if (!container) {
       return;
@@ -142,11 +146,15 @@ export default class CaptchaManager {
     this._requesters.delete(id);
 
     const tokens = this._tokens.get(sitekey);
+    this._logger.error('Tokens for %s: %j', sitekey, this._tokens.get(sitekey));
 
     // if we have any tokens for that task, remove them
     if (tokens) {
-      tokens.filter(({ id: tId }) => tId !== id);
+      const newTokens = tokens.filter(({ id: tId }) => tId !== id);
+      this._tokens.set(sitekey, newTokens);
     }
+
+    this._logger.error('Tokens after filter %s: %j', sitekey, this._tokens.get(sitekey));
 
     // Emit an event to stop harvesting
     this._events.emit(Events.StopHarvest, id, sitekey);

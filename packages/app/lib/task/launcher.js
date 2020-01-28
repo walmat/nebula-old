@@ -41,8 +41,9 @@ class TaskLauncher {
       IPCKeys.RequestStopTasks,
       IPCKeys.RequestAddProxies,
       IPCKeys.RequestRemoveProxies,
+      IPCKeys.RequestAddWebhooks,
+      IPCKeys.RequestRemoveWebhooks,
       IPCKeys.RequestChangeDelay,
-      IPCKeys.RequestWebhookUpdate,
       IPCKeys.RequestWebhookTest,
     ].forEach(key => {
       context.ipc.on(key, (ev, ...params) => {
@@ -146,7 +147,6 @@ class TaskLauncher {
         console.log('Launcher Ready!');
         this._launcherWindow.webContents.openDevTools();
       }
-
       // Start listening for events since we have at least one listener
       this._sendToLauncher(IPCKeys.RegisterTaskEventHandler);
       this._context.ipc.on(_TASK_EVENT_KEY, this._taskEventHandler);
@@ -234,10 +234,10 @@ class TaskLauncher {
     }
   }
 
-  _taskEventHandler(_, statusMessageBuffer) {
+  _taskEventHandler(_, statusMessages) {
     // forward event if we have listeners
     if (this._eventListeners.length > 0) {
-      Promise.all(this._eventListeners.map(l => l.send(_TASK_EVENT_KEY, statusMessageBuffer)));
+      Promise.all(this._eventListeners.map(l => l.send(_TASK_EVENT_KEY, statusMessages)));
     }
   }
 
@@ -284,18 +284,10 @@ class TaskLauncher {
   }
 
   _addEventListener(listener) {
-    // Don't do anything if we haven't launched yet
-    if (!this._launcherWindow) {
-      return;
-    }
     this._eventListeners.push(listener);
   }
 
   _removeEventListener(listener) {
-    // Don't do anything if we haven't launched yet
-    if (!this._launcherWindow) {
-      return;
-    }
     this._eventListeners = this._eventListeners.filter(l => l !== listener);
   }
 
@@ -304,7 +296,9 @@ class TaskLauncher {
     id,
     sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
     host = 'http://checkout.shopify.com',
+    checkpoint = false,
   ) {
+    console.log(checkpoint);
     // Bump the semaphore only if we don't already have it tracked
     if (!this._captchaRequesters[id]) {
       this._captchaRequesters[id] = [];
@@ -312,7 +306,7 @@ class TaskLauncher {
 
       // If this is the first harvest event, start harvesting
       if (this._captchaSemaphore === 1) {
-        await this._context.windowManager.startHarvestingCaptcha(id, sitekey, host);
+        await this._context.windowManager.startHarvestingCaptcha(id, sitekey, host, checkpoint);
       }
     }
 

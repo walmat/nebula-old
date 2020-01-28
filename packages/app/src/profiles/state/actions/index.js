@@ -4,6 +4,7 @@ import prefixer from '../../../store/reducers/prefixer';
 const prefix = '@@Profile';
 const actionsList = [
   'CREATE_PROFILE',
+  'DUPLICATE_PROFILE',
   'REMOVE_PROFILE',
   'EDIT_PROFILE',
   'SELECT_PROFILE',
@@ -13,8 +14,11 @@ const actionsList = [
   'TRANSFER_SHIPPING',
 ];
 
+export const profileActionsNeededForTask = ['@@Profile/REMOVE_PROFILE', '@@Profile/UPDATE_PROFILE'];
+
 export const profileActionsList = [
   '@@Profile/CREATE_PROFILE',
+  '@@Profile/DUPLICATE_PROFILE',
   '@@Profile/REMOVE_PROFILE',
   '@@Profile/EDIT_PROFILE',
   '@@Profile/SELECT_PROFILE',
@@ -27,6 +31,7 @@ export const PROFILE_ACTIONS = prefixer(prefix, actionsList);
 
 // Private Actions
 const createProfile = makeActionCreator(PROFILE_ACTIONS.CREATE_PROFILE, 'profile');
+const duplicateProfile = makeActionCreator(PROFILE_ACTIONS.DUPLICATE_PROFILE, 'profile');
 const removeProfile = makeActionCreator(PROFILE_ACTIONS.REMOVE_PROFILE, 'id');
 const updateProfile = makeActionCreator(PROFILE_ACTIONS.UPDATE_PROFILE, 'profile');
 
@@ -40,10 +45,11 @@ const editProfile = makeActionCreator(
 );
 const transferProfile = makeActionCreator(PROFILE_ACTIONS.TRANSFER_SHIPPING);
 const selectProfile = makeActionCreator(PROFILE_ACTIONS.SELECT_PROFILE, 'profile');
-const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'site', 'rate');
+const deleteRate = makeActionCreator(PROFILE_ACTIONS.DELETE_RATE, 'store', 'rate');
 
 export const profileActions = {
   create: createProfile,
+  duplicate: duplicateProfile,
   remove: removeProfile,
   edit: editProfile,
   select: selectProfile,
@@ -58,7 +64,7 @@ export const PROFILE_FIELDS = {
   EDIT_BILLING: 'EDIT_BILLING',
   EDIT_PAYMENT: 'EDIT_PAYMENT',
   EDIT_RATES: 'EDIT_RATES',
-  EDIT_SELECTED_SITE: 'EDIT_SELECTED_SITE',
+  EDIT_SELECTED_STORE: 'EDIT_SELECTED_STORE',
   TOGGLE_MATCHES: 'TOGGLE_MATCHES',
   EDIT_NAME: 'EDIT_NAME',
 };
@@ -93,7 +99,7 @@ export const mapProfileFieldToKey = {
   [PROFILE_FIELDS.EDIT_BILLING]: 'billing',
   [PROFILE_FIELDS.EDIT_PAYMENT]: 'payment',
   [PROFILE_FIELDS.EDIT_RATES]: 'rates',
-  [PROFILE_FIELDS.EDIT_SELECTED_SITE]: 'selectedSite',
+  [PROFILE_FIELDS.EDIT_SELECTED_STORE]: 'selectedStore',
   [PROFILE_FIELDS.TOGGLE_MATCHES]: 'matches',
   [PROFILE_FIELDS.EDIT_NAME]: 'profileName',
 };

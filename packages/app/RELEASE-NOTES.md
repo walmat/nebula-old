@@ -1,5 +1,3 @@
-Version 1.2.40:
+Version 1.4.4:
 
-- Small performance improvements
-- App UI tweaks/fixes
-- Supreme Desktop/Mobile concurrency
+- Quality of life updates

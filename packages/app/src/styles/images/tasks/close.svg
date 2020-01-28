@@ -1,0 +1,13 @@
+<svg id="Page-1" xmlns="http://www.w3.org/2000/svg" width="22.987" height="24" viewBox="0 0 22.987 24">
+  <g id="Authorization">
+    <g id="Action-Icons_All-Selection">
+      <g id="Stop-All-Icon">
+        <rect id="Rectangle-8" width="22.987" height="24" rx="1.068" fill="#6d6e70"/>
+        <g id="Stop-Task-Icon" transform="translate(7.18 8.25)">
+          <path id="Path-7" d="M1.058.172l8.3,8.559" transform="translate(-0.928 -0.172)" fill="none" stroke="#161318" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.89" fill-rule="evenodd"/>
+          <path id="Path-7-2" data-name="Path-7" stroke="#161318" d="M0,0,8.3,8.559" fill="none" transform="translate(8.559 0.129) rotate(90)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.89" fill-rule="evenodd"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

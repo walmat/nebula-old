@@ -1,26 +1,89 @@
-import { Discord, Slack } from '../../shopify/hooks';
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
+import Discord from './discord';
+import Slack from './slack';
 import { Task } from '../constants';
 
 const { HookTypes } = Task;
 
 export default class WebhookManager {
-  constructor(logger) {
-    this._logger = logger;
-    this._queue = [];
+  static sanitize(embed = {}) {
+    const newEmbed = embed;
+    delete newEmbed.profile;
+    delete newEmbed.order;
+    delete newEmbed.checkoutUrl;
+    return newEmbed;
   }
 
-  // send hooks here..
-  notify({ embed, client }) {
-    const interval = setInterval(async () => {
-      try {
-        await client.send(embed);
-        clearInterval(interval);
-      } catch (e) {
-        this._logger.error('Error sending webhook! %j', e);
-        // fail silently...
-        this.notify({ embed, client });
+  constructor(logger) {
+    this._logger = logger;
+    this._webhooks = new Map();
+    this._queue = [];
+
+    const url =
+      process.env.NEBULA_ENV === 'development'
+        ? process.env.NEBULA_ENV_WEBHOOK_DEV_URL
+        : process.env.NEBULA_ENV_WEBHOOK_URL;
+
+    this._webhooks.set(process.env.NEBULA_ENV_WEBHOOK_ID, new Discord(url));
+  }
+
+  registerAll(webhooks) {
+    webhooks.forEach(w => this.register(w));
+  }
+
+  deregisterAll(webhooks) {
+    webhooks.forEach(w => this.deregister(w));
+  }
+
+  register({ id, url, type }) {
+    this._logger.debug('Registering %s webhook...', type);
+
+    let exists = this._webhooks.get(id);
+    if (exists) {
+      if (type === HookTypes.discord) {
+        exists = new Discord(url);
+      } else if (type === HookTypes.slack) {
+        exists = new Slack(url);
       }
-    }, 2500);
+      return this._webhooks.set(id, exists);
+    }
+
+    this._logger.debug('New Webhook Detected! Adding now');
+
+    let client;
+    if (type === HookTypes.discord) {
+      client = new Discord(url);
+    } else if (type === HookTypes.slack) {
+      client = new Slack(url);
+    }
+
+    this._logger.debug('Webhook added with id %s', id);
+    return this._webhooks.set(id, client);
+  }
+
+  deregister({ id }) {
+    this._logger.debug('Deregistering %s webhook...', id);
+    return this._webhooks.delete(id);
+  }
+
+  async notify(webhooks, embed) {
+    try {
+      for (const [id, client] of webhooks.entries()) {
+        if (id === process.env.NEBULA_ENV_WEBHOOK_ID && embed.success) {
+          const toSend = await client.build(WebhookManager.sanitize(embed));
+          await client.send(toSend);
+        } else if (id !== process.env.NEBULA_ENV_WEBHOOK_ID) {
+          const toSend = await client.build(embed);
+          await client.send(toSend);
+        }
+        webhooks.delete(id);
+      }
+    } catch (e) {
+      this._logger.error('Error sending webhook! %j', e);
+      // recursively call notify again to finish emitting the webhooks
+      this.notify(webhooks, embed);
+    }
   }
 
   insert(datum) {
@@ -30,36 +93,37 @@ export default class WebhookManager {
   }
 
   async send() {
+    this._logger.debug('Queue length: %j', this._queue.length);
     if (this._queue.length) {
-      await this.notify(this._queue.pop());
+      return this.notify(new Map(this._webhooks), this._queue.pop());
     }
+    return null;
   }
 
   async test(hook, type) {
     this._logger.silly('Testing %s with url: %s', type, hook);
-    const payload = [
-      true,
-      'SAFE',
-      null,
-      { name: 'Yeezy Boost 350 v2 – Static', url: 'https://example.com' },
-      '$220.00',
-      { name: 'Test Site', url: 'https://example.com' },
-      { number: '#123123', url: 'https://example.com' },
-      'Test Profile',
-      'Random',
-      'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
-    ];
+    const payload = {
+      success: true,
+      type: 'SAFE',
+      checkoutUrl: null,
+      product: 'Yeezy Boost 350 v2 – Static',
+      price: '$220.00',
+      store: { name: 'Test Site', url: 'https://example.com' },
+      order: { number: '#123123', url: 'https://example.com' },
+      profile: 'Test Profile',
+      size: 'Random',
+      image:
+        'https://stockx-360.imgix.net/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Images/Adidas-Yeezy-Boost-350-V2-Static-Reflective/Lv2/img01.jpg',
+    };
 
-    let webhook;
+    let client;
     if (type === HookTypes.discord) {
-      webhook = new Discord(hook).build(...payload);
+      client = new Discord(hook);
     } else if (type === HookTypes.slack) {
-      webhook = new Slack(hook).build(...payload);
+      client = new Slack(hook);
     }
 
-    if (webhook) {
-      this.insert(webhook);
-      await this.send();
-    }
+    const embed = client.build(payload);
+    return client.send(embed);
   }
 }

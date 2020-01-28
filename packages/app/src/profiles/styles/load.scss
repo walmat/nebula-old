@@ -6,7 +6,7 @@
   .profiles-load {
     @include themify($themes) {
       border-color: themed('tableBorderColor');
-      box-shadow: 5px 5px 15px themed('liveLogTableBorderTop');
+      box-shadow: 0 0 10px themed('liveLogTableBorderTop');
     }
     border-width: 0;
     border-style: solid;
@@ -37,11 +37,27 @@
         height: 29px;
       }
 
+      &--duplicate {
+        @include button-font;
+        @include themify($themes) {
+          background: themed('buttonColorPrimary');
+          color: themed('buttonPrimaryText');
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
+        }
+        border-radius: 3px;
+        border: none;
+        width: 83px;
+        height: 29px;
+        cursor: pointer;
+        margin-top: 14px;
+      }
+
       &--delete {
         @include button-font;
         @include themify($themes) {
           background: themed('buttonColorSecondary');
           color: themed('buttonPrimaryText');
+          box-shadow: 0 0 5px themed('liveLogTableBorderTop');
         }
         border-radius: 3px;
         border: none;

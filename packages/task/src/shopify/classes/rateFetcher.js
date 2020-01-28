@@ -1,16 +1,19 @@
+import AbortController from 'abort-controller';
 import { pick } from 'lodash';
 
 import { Constants, Utils, Bases } from '../../common';
-import { Parse, pickVariant, Forms } from '../utils';
-import { Monitor } from '../constants';
-import { Parser, getSpecialParser, getParsers } from '../parsers';
+import { pickVariant, Forms, Parse } from '../utils';
+import { getParsers } from '../parsers';
 
+const { getFullProductInfo } = Parse;
 const { addToCart } = Forms;
-const { getParseType } = Parse;
 const { BaseTask } = Bases;
 const { rfrl, userAgent } = Utils;
-const { Platforms } = Constants;
-const { ParseType } = Monitor;
+const {
+  Platforms,
+  Task: { Events },
+  Monitor: { ParseType },
+} = Constants;
 
 export default class RateFetcher extends BaseTask {
   constructor(context, platform = Platforms.Shopify) {
@@ -29,28 +32,47 @@ export default class RateFetcher extends BaseTask {
     this._state = this.states.PARSE;
   }
 
+  // MARK: Event Emitting
+  _emitEvent(event, payload) {
+    switch (event) {
+      // Emit supported events on their specific channel
+      case Events.TaskStatus: {
+        this.context.events.emit(event, [this.context.id], payload, event);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    this.context.logger.silly('Event %s emitted: %j', event, payload);
+  }
+
+  _emitTaskEvent(payload = {}) {
+    if (payload.message && payload.message !== this.message) {
+      this.message = payload.message;
+      this._emitEvent(Events.TaskStatus, { ...payload, type: this.context.type });
+    }
+  }
+
   async keywords() {
     let parsed;
 
-    const Parsers = getParsers(this.task.store.url);
-
-    const parsers = Parsers(
-      this._monitorRequest,
-      this.task,
-      this.proxy,
-      this.monitorAborter,
-      this._logger,
-    );
+    const Parsers = getParsers(this.context.task.store.url);
+    const parsers = Parsers(this.context, new AbortController(), this._fetch);
 
     try {
-      parsed = await rfrl(parsers.map(p => p.run()), 'parsers');
+      parsed = await rfrl(
+        parsers.map(p => p.run()),
+        'parsers',
+      );
     } catch (error) {
       if (!/aborterror/i.test(error.name)) {
         return { nextState: this.states.ERROR, message: error.message || 'No product found' };
       }
     }
-    this.task.product.restockUrl = parsed.url;
-    this.task.product.variants = parsed.variants.map(v =>
+
+    this.context.task.product.restockUrl = parsed.url;
+    this.context.task.product.variants = parsed.variants.map(v =>
       pick(
         v,
         'id',
@@ -65,76 +87,30 @@ export default class RateFetcher extends BaseTask {
       ),
     );
 
-    this.task.product.url = `${this.task.store.url}/products/${parsed.handle}`;
+    this.context.task.product.url = `${this.context.task.store.url}/products/${parsed.handle}`;
 
     return { nextState: this.states.CART, message: 'Adding to cart' };
   }
 
   async url() {
-    const [url] = this.task.product.url.split('?');
+    const { task, proxy, logger } = this.context;
+
+    const [url] = task.product.url.split('?');
 
     let fullProductInfo;
     try {
       // Try getting full product info
-      fullProductInfo = await Parser.getFullProductInfo(
-        url,
-        this.proxy,
-        this._monitorRequest,
-        this._logger,
-      );
-      this.monitorAborter.abort();
+      fullProductInfo = await getFullProductInfo(this._fetch, url, proxy, logger);
     } catch (error) {
       const cont = error.some(e => /aborterror/i.test(e.name));
       if (!cont) {
         return { nextState: this.states.ERROR, message: error.message || 'No product found' };
       }
     }
-    this.task.product.restockUrl = fullProductInfo.url;
-    this.task.product.variants = fullProductInfo.variants.map(v =>
-      pick(
-        v,
-        'id',
-        'product_id',
-        'title',
-        'available',
-        'price',
-        'option1',
-        'option2',
-        'option3',
-        'option4',
-      ),
-    );
 
-    return { nextState: this.states.CART, message: 'Adding to cart' };
-  }
-
-  async special() {
-    const { product } = this.task;
-    const ParserCreator = getSpecialParser(this.task.store);
-    const parseType = getParseType(product, null, Platforms.Shopify);
-    const parser = ParserCreator(
-      this._monitorRequest,
-      parseType,
-      this.task,
-      this.proxy,
-      this.monitorAborter,
-      this._logger,
-    );
-
-    let parsed;
-    try {
-      parsed = await parser.run();
-    } catch (errors) {
-      return this.states.ERROR;
-    }
-
-    if (this.task.product.variant) {
-      this.task.product.variants = [{ id: this.task.product.variant }];
-      return { nextState: this.states.CART, message: 'Adding to cart' };
-    }
-
-    this.task.product.restockUrl = parsed.url;
-    this.task.product.variants = parsed.variants.map(v =>
+    this.context.task.product.hash = fullProductInfo.hash;
+    this.context.task.product.restockUrl = fullProductInfo.url;
+    this.context.task.product.variants = fullProductInfo.variants.map(v =>
       pick(
         v,
         'id',
@@ -156,30 +132,27 @@ export default class RateFetcher extends BaseTask {
     let nextState;
     let message;
 
-    switch (this.parseType) {
+    const { parseType, logger } = this.context;
+
+    switch (parseType) {
       case ParseType.Variant: {
-        this._logger.silly('RATE FETCHER: Variant Parsing Detected');
-        this.task.product.variants = [{ id: this.task.product.variant }];
+        logger.silly('RATE FETCHER: Variant Parsing Detected');
+        this.context.task.product.variants = [{ id: this.context.task.product.variant }];
         nextState = this.states.CART;
         break;
       }
       case ParseType.Url: {
-        this._logger.silly('RATE FETCHER: Url Parsing Detected');
+        logger.silly('RATE FETCHER: Url Parsing Detected');
         ({ nextState, message } = await this.url());
         break;
       }
       case ParseType.Keywords: {
-        this._logger.silly('RATE FETCHER: Keyword Parsing Detected');
+        logger.silly('RATE FETCHER: Keyword Parsing Detected');
         ({ nextState, message } = await this.keywords());
         break;
       }
-      case ParseType.Special: {
-        this._logger.silly('RATE FETCHER: Special Parsing Detected');
-        ({ nextState, message } = await this.special());
-        break;
-      }
       default: {
-        this._logger.error('RATE FETCHER: Unable to Monitor Type: %s -- Aborting', this.parseType);
+        logger.error('RATE FETCHER: Unable to Monitor Type: %s -- Aborting', parseType);
         return { nextState: this.states.ERROR, message: 'Invalid parse type' };
       }
     }
@@ -188,14 +161,18 @@ export default class RateFetcher extends BaseTask {
 
   async cart() {
     const {
-      store: { name, url },
-      product: { variants, hash, restockUrl },
-      size,
-    } = this.task;
+      task: {
+        store: { name, url },
+        product: { variants, hash, restockUrl },
+        size,
+      },
+      proxy,
+      logger,
+    } = this.context;
 
-    const variant = await pickVariant(variants, size, url, this._logger, false);
+    const variant = await pickVariant(variants, size, url, logger, false);
 
-    this._logger.debug('Adding %j to cart', variant);
+    logger.debug('Adding %j to cart', variant);
     if (!variant) {
       return {
         message: 'No size matched! Stopping...',
@@ -203,13 +180,18 @@ export default class RateFetcher extends BaseTask {
       };
     }
 
+    let contentType = 'application/json';
+    if (/dsm uk/i.test(name)) {
+      contentType = 'application/x-www-form-urlencoded';
+    }
+
     const { option, id } = variant;
 
-    this.task.product.size = option;
+    this.context.task.product.size = option;
     try {
-      const res = await this._request('/cart/add.js', {
+      const res = await this._fetch('/cart/add.js', {
         method: 'POST',
-        agent: this.proxy,
+        agent: proxy ? proxy.proxy : null,
         headers: {
           'user-agent': userAgent,
           referer: restockUrl,
@@ -217,7 +199,7 @@ export default class RateFetcher extends BaseTask {
           host: `${url.split('/')[2]}`,
           'accept-encoding': 'gzip, deflate, br',
           'accept-language': 'en-US,en;q=0.9',
-          'content-type': 'application/json',
+          'content-type': contentType,
         },
         body: addToCart(id, name, hash),
       });
@@ -240,18 +222,22 @@ export default class RateFetcher extends BaseTask {
 
   async rates() {
     const {
-      store: { url },
-      profile: {
-        shipping: { country, province, zipCode },
+      task: {
+        store: { url },
+        profile: {
+          shipping: { country, province, zip },
+        },
       },
-    } = this.task;
+      logger,
+      proxy,
+    } = this.context;
 
-    this._logger.silly('fetching rates');
+    logger.silly('fetching rates');
 
     let res;
     try {
-      res = await this._request(
-        `/cart/shipping_rates.json?shipping_address[zip]=${zipCode.replace(
+      res = await this._fetch(
+        `/cart/shipping_rates.json?shipping_address[zip]=${zip.replace(
           /\s/g,
           '+',
         )}&shipping_address[country]=${country.value.replace(
@@ -260,10 +246,10 @@ export default class RateFetcher extends BaseTask {
         )}&shipping_address[province]=${province ? province.value.replace(/\s/g, '+') : ''}`,
         {
           method: 'GET',
-          agent: this.proxy,
+          agent: proxy ? proxy.proxy : null,
           headers: {
-            Origin: url,
-            'User-Agent': userAgent,
+            origin: url,
+            'user-agent': userAgent,
           },
         },
       );
@@ -321,13 +307,13 @@ export default class RateFetcher extends BaseTask {
     let message;
 
     try {
-      ({ nextState, message } = await this.stateMachine(this.state));
+      ({ nextState, message } = await this.stateMachine(this._state));
     } catch (e) {
       nextState = this.states.ERROR;
     }
 
-    if (this.state !== nextState) {
-      this.state = nextState;
+    if (this._state !== nextState) {
+      this._state = nextState;
     }
 
     return { nextState, message };
@@ -337,9 +323,9 @@ export default class RateFetcher extends BaseTask {
     let nextState;
     let message;
 
-    this.parseType = getParseType(this.task.product, this.task.store);
+    const { aborted } = this._context;
 
-    while (nextState !== this.states.ERROR && !this.aborted) {
+    while (nextState !== this.states.ERROR && !aborted) {
       // eslint-disable-next-line no-await-in-loop
       ({ nextState, message } = await this.loop());
 

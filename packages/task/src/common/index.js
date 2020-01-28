@@ -23,6 +23,7 @@ import {
 // Classes
 import {
   AsyncQueue,
+  CapacityQueue,
   BaseMonitor,
   BaseTask,
   Captcha,
@@ -56,6 +57,7 @@ const Classes = {
   Captcha,
   Timer,
   AsyncQueue,
+  CapacityQueue,
   ProxyManager,
   WebhookManager,
   CaptchaManager,

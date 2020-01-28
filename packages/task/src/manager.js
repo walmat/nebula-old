@@ -1,26 +1,17 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 import EventEmitter from 'eventemitter3';
+import { isEmpty } from 'lodash';
 
 // Shared includes
 import { Utils, Classes, Constants, Context } from './common';
 
 // Shopify includes
-import {
-  Monitor as ShopifyMonitor,
-  Task as ShopifyTask,
-  RateFetcher,
-  Discord as ShopifyDiscord,
-  Slack as ShopifySlack,
-  TaskTypes,
-} from './shopify';
+import { Monitor as ShopifyMonitor, chooseTask, RateFetcher } from './shopify';
 import { Parse } from './shopify/utils';
 
 // Supreme includes
-import {
-  Monitor as SupremeMonitor,
-  Task as SupremeTask,
-  Discord as SupremeDiscord,
-  Slack as SupremeSlack,
-} from './supreme';
+import { Monitor as SupremeMonitor, Task as SupremeTask } from './supreme';
 
 import {
   Monitor as FootsitesMonitor,
@@ -38,11 +29,11 @@ import {
 
 const { getParseType } = Parse;
 const { createLogger, registerForEvent, deregisterForEvent, compareProductData } = Utils;
-const { ProxyManager, WebhookManager, CaptchaManager } = Classes;
+const { ProxyManager, WebhookManager, CaptchaManager, Captcha } = Classes;
 const { Platforms, Manager, Task, Monitor } = Constants;
 const { ParseType } = Monitor;
 const { Events } = Manager;
-const { Events: TaskEvents, HookTypes } = Task;
+const { Events: TaskEvents, Types } = Task;
 
 export default class TaskManager {
   get logPath() {
@@ -69,7 +60,7 @@ export default class TaskManager {
       prefix: 'manager',
     });
 
-    this.proxyManager = new ProxyManager(this._logger);
+    this.proxyManager = new ProxyManager(this._logger, this._tasks);
     this.captchaManager = new CaptchaManager(this._logger);
     this.webhookManager = new WebhookManager(this._logger);
 
@@ -94,49 +85,24 @@ export default class TaskManager {
     this._events.removeListener('status', callback);
   }
 
-  async handleWebhook(hooks = {}) {
-    if (hooks instanceof Array) {
-      hooks.map(async hook => {
-        if (hook) {
-          this.webhookManager.insert(hook);
-          await this.webhookManager.send();
-        }
-      });
-    }
-    const { embed, client } = hooks;
-    if (client) {
-      this.webhookManager.insert({ embed, client });
-      return this.webhookManager.send();
-    }
-    return null;
-  }
-
-  // TODO: Move this somewhere where it makes more sense?
   async handleSuccess(task) {
-    // eslint-disable-next-line array-callback-return
-    return Object.values(this._tasks).map(r => {
-      // if we are using the same profile, emit the abort event
-      this._logger.debug(
-        'ONE CHECKOUT: Same profile?: %j, Same site?: %j, Same product?: %j',
-        r.task.profile.id === task.profile.id,
-        r.task.store === task.store.url,
-        TaskManager._compareProductInput(task.product, r.task.product),
-      );
-
-      if (
-        r.task.profile.id === task.profile.id &&
-        r.task.store === task.store.url &&
-        TaskManager._compareProductInput(task.product, r.task.product)
-      ) {
-        this._events.emit(
-          'status',
-          task.id,
-          { message: 'Profile already used!', status: 'used' },
-          TaskEvents.TaskStatus,
-        );
-        this.stop(r.task);
-      }
-    });
+    Promise.all(
+      Object.values(this._tasks).map(({ context }) => {
+        if (
+          context.task.profile.id === task.profile.id &&
+          context.task.store === task.store.url &&
+          compareProductData(task.product, context.task.product)
+        ) {
+          this.mergeStatusUpdates(
+            [task.id],
+            { message: 'Already checked out' },
+            TaskEvents.TaskStatus,
+          );
+          this.stop(task);
+        }
+        return task;
+      }),
+    );
   }
 
   /**
@@ -151,25 +117,26 @@ export default class TaskManager {
    * @param {Task.Event} event the type of event that was emitted
    */
   mergeStatusUpdates(taskIds, message, event) {
-    this._logger.silly('Tasks: %j posted new event %s - %j', taskIds, event, message);
     // For now only re emit Task Status Events
     if (event === TaskEvents.TaskStatus) {
-      this._logger.silly('Reemitting this task update...');
       this._events.emit('status', taskIds, message, event);
     }
 
     if (event === TaskEvents.MonitorStatus) {
-      this._logger.silly('Reemitting this monitor update...');
       this._events.emit('status', taskIds, message, event);
     }
   }
 
-  changeDelay(delay, type) {
-    this._logger.silly('Changing %s to: %s ms', type, delay);
-    // since monitor/task pairs share the same context, we can just update the tasks' context here..
-    return Promise.all(
-      Object.values(this._tasks).map(t => {
-        const task = t;
+  changeDelay(delay, type, tasks = []) {
+    // if we don't have any tasks, don't change the delays..
+    if (isEmpty(this._tasks)) {
+      return;
+    }
+
+    this._logger.silly('Changing %s tasks %s delay to: %s ms', tasks.length, type, delay);
+    Promise.all(
+      tasks.map(t => {
+        const task = Object.values(this._tasks).find(ta => ta.context.id === t.id);
         task.context.task[type] = delay;
 
         const monitor = Object.values(this._monitors).find(m => m.context.hasId(task.context.id));
@@ -179,44 +146,6 @@ export default class TaskManager {
 
         if (task.delayer) {
           task.delayer.clear();
-        }
-        return task;
-      }),
-    );
-  }
-
-  updateHook(hook, type) {
-    this._logger.silly('Updating %s webhook to: %s', type, hook);
-    // since monitor/task pairs share the same context, we can just update the tasks' context here..
-    return Promise.all(
-      Object.values(this._tasks).map(t => {
-        const task = t;
-        const { platform } = task;
-        task.context.task[type] = hook;
-
-        switch (platform) {
-          case Platforms.Shopify: {
-            if (type === HookTypes.discord) {
-              const discord = hook ? new ShopifyDiscord(hook) : null;
-              task.context.setDiscord(discord);
-            } else if (type === HookTypes.slack) {
-              const slack = hook ? new ShopifySlack(hook) : null;
-              task.context.setSlack(slack);
-            }
-            break;
-          }
-          case Platforms.Supreme: {
-            if (type === HookTypes.discord) {
-              const discord = hook ? new SupremeDiscord(hook) : null;
-              task.context.setDiscord(discord);
-            } else if (type === HookTypes.slack) {
-              const slack = hook ? new SupremeSlack(hook) : null;
-              task.context.setSlack(slack);
-            }
-            break;
-          }
-          default:
-            break;
         }
         return task;
       }),
@@ -235,8 +164,8 @@ export default class TaskManager {
    * @param {object} options Options to customize the task:
    *   - type - The task type to start
    */
-  async start(task, { type = TaskTypes.Normal }) {
-    const proxy = await this.proxyManager.reserve(task.id, task.store.url, task.platform);
+  async start(task, { type = Types.Normal }) {
+    const proxy = await this.proxyManager.reserve(task.id, task.store.url);
 
     this._logger.silly('Starting task for %s with proxy %j', task.id, proxy);
     return this._start([task, proxy, type]);
@@ -314,6 +243,9 @@ export default class TaskManager {
       this._logger.warn('This task was not previously running or has already been stopped!');
       return null;
     }
+
+    // remove captcha handler
+    Captcha.stopHarvestCaptcha(task.context, task._handleHarvest, task.platform);
 
     this._logger.info('Stopping task: %s', task.context.id);
     task.stop();
@@ -393,12 +325,7 @@ export default class TaskManager {
 
     // If we have a proxy, make sure to free that up
     if (taskContext.proxy) {
-      this.proxyManager.release(
-        taskContext.id,
-        taskContext.task.store.url,
-        task.platform,
-        taskContext.proxy.id,
-      );
+      this.proxyManager.release(taskContext.id, taskContext.task.store.url, taskContext.proxy.id);
     }
 
     return taskContext.id;
@@ -424,39 +351,36 @@ export default class TaskManager {
             name: `Task-${id}`,
             prefix: `task-${id}`,
           }),
-          discord: new ShopifyDiscord(task.discord),
-          slack: new ShopifySlack(task.slack),
           proxyManager: this.proxyManager,
           webhookManager: this.webhookManager,
         });
 
-        if (type === TaskTypes.Normal) {
-          newTask = new ShopifyTask(context);
-
-          const found = Object.values(this._monitors).find(async m => {
+        if (type === Types.Normal) {
+          let found = null;
+          for (const m of Object.values(this._monitors)) {
             if (m.platform === platform) {
               const { context: mContext } = m;
-              const isSameProduct = await compareProductData(
-                mContext.task.product,
-                context.task.product,
-                parseType,
-              );
+              const isSameStore = mContext.task.store.url === context.task.store.url;
 
-              this._logger.debug(
-                'Same product data?: %j Same URL?: %j',
-                isSameProduct,
-                mContext.task.store.url === context.task.store.url,
-              );
+              if (isSameStore) {
+                const isSameProduct = await compareProductData(
+                  mContext.task.product,
+                  context.task.product,
+                  parseType,
+                );
 
-              if (isSameProduct && mContext.task.store.url === context.task.store.url) {
-                return m;
+                if (isSameProduct) {
+                  found = m;
+                  break;
+                }
               }
             }
-            return null;
-          });
+          }
+
+          const ShopifyTask = chooseTask(task.type, task.store.url);
+          newTask = new ShopifyTask(context);
 
           this._logger.debug('Existing monitor? %j', found || false);
-
           if (found) {
             this._logger.debug('Existing monitor found! Just adding id');
             found.context.addId(id);
@@ -465,7 +389,7 @@ export default class TaskManager {
           } else {
             monitor = new ShopifyMonitor(context);
           }
-        } else if (type === TaskTypes.ShippingRates) {
+        } else if (type === Types.Rates) {
           newTask = new RateFetcher(context);
         }
         break;
@@ -481,15 +405,12 @@ export default class TaskManager {
             name: `Task-${id}`,
             prefix: `task-${id}`,
           }),
-          discord: new SupremeDiscord(task.discord),
-          slack: new SupremeSlack(task.slack),
           proxyManager: this.proxyManager,
           webhookManager: this.webhookManager,
         });
 
-        newTask = new SupremeTask(context);
-
-        const found = Object.values(this._monitors).find(async m => {
+        let found = null;
+        for (const m of Object.values(this._monitors)) {
           if (m.platform === platform) {
             const { context: mContext } = m;
             const isSameProduct = await compareProductData(
@@ -498,26 +419,20 @@ export default class TaskManager {
               ParseType.Keywords,
             );
 
-            this._logger.debug(
-              'Same product?: %j Same category?: %j Same URL?: %j',
-              isSameProduct,
-              mContext.task.category === context.task.category,
-              mContext.task.store.url === context.task.store.url,
-            );
-
             if (
               isSameProduct &&
               mContext.task.category === context.task.category &&
               mContext.task.store.url === context.task.store.url
             ) {
-              return m;
+              found = m;
+              break;
             }
           }
-          return null;
-        });
+        }
+
+        newTask = new SupremeTask(context);
 
         this._logger.debug('Existing monitor? %j', found || false);
-
         if (found) {
           this._logger.debug('Existing monitor found! Just adding ids');
           found.context.addId(id);
@@ -651,6 +566,7 @@ export default class TaskManager {
     if (monitor) {
       this._monitors[id] = monitor;
     }
+
     this._tasks[id] = newTask;
 
     this._logger.silly('Attaching events...');

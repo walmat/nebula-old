@@ -6,7 +6,6 @@ export default product => {
   const validKeywords = kws.every(kw => regexes.keywordRegex.test(kw));
 
   if (regexes.urlRegex.test(product.raw)) {
-    // test a url match
     return {
       ...product,
       url: product.raw,
@@ -14,7 +13,6 @@ export default product => {
   }
 
   if (regexes.variantRegex.test(product.raw)) {
-    // test variant match
     return {
       ...product,
       variant: product.raw,
@@ -34,8 +32,13 @@ export default product => {
         negKeywords.push(kw.slice(1, kw.length));
       }
     });
+
+    const modifiedProduct = product;
+    delete modifiedProduct.url;
+
     return {
-      ...product,
+      ...modifiedProduct,
+      raw: product.raw,
       pos: posKeywords,
       neg: negKeywords,
     };

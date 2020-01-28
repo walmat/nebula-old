@@ -1,7 +1,7 @@
 import { parseURL } from 'whatwg-url';
 import {
-  SHARED_ACTIONS,
   SHIPPING_ACTIONS,
+  PROFILE_ACTIONS,
   GLOBAL_ACTIONS,
   SETTINGS_FIELDS,
 } from '../../../store/actions';
@@ -14,59 +14,71 @@ export default function shippingReducer(state = Shipping, action = {}) {
     return Shipping;
   }
 
-  if (type === SHARED_ACTIONS.EDIT_SETTINGS) {
+  if (type === SHIPPING_ACTIONS.EDIT_SHIPPING) {
     switch (field) {
       case SETTINGS_FIELDS.EDIT_SHIPPING_PRODUCT: {
         const { value, sites } = action;
 
         let change = {
-          ...state.product,
-          raw: value || '',
+          ...state,
+          product: {
+            ...state.product,
+            raw: value || '',
+          },
         };
 
         if (!value || !value.startsWith('http')) {
-          return { ...state, product: { ...change } };
+          return { ...state, ...change };
         }
 
         const URL = parseURL(value);
         if (!URL || !URL.host) {
-          return { ...state, product: { ...change } };
+          return { ...state, ...change };
         }
-        let newSite;
+        let newStore;
 
         sites.forEach(category => {
           const exists = category.options.find(s => URL.host.includes(s.value.split('/')[2]));
           if (exists) {
-            newSite = exists;
+            newStore = exists;
           }
         });
 
-        if (!newSite || newSite.label === state.site.name) {
-          return { ...state, product: { ...change } };
+        if (!newStore || (newStore.label && state.store && newStore.label === state.store.name)) {
+          return { ...state, ...change };
         }
 
         change = {
           ...change,
-          site: {
-            url: newSite.value,
-            name: newSite.label,
-            apiKey: newSite.apiKey,
+          store: {
+            url: newStore.value,
+            name: newStore.label,
+            apiKey: newStore.apiKey,
           },
         };
-        return { ...state, product: { ...change } };
+        return { ...state, ...change };
       }
-      case SETTINGS_FIELDS.EDIT_SHIPPING_SITE: {
+      case SETTINGS_FIELDS.EDIT_SHIPPING_STORE: {
         const { value } = action;
         if (!value) {
-          return { ...state, site: Shipping.site };
+          return { ...state, store: Shipping.store };
         }
 
         // if we're selecting the same site...
-        if (state.site && value.name === state.site.name) {
+        if (state.store && value.name === state.store.name) {
           return state;
         }
 
-        return { ...state, site: value };
+        return { ...state, store: value };
+      }
+      case SETTINGS_FIELDS.EDIT_SHIPPING_PROFILE: {
+        const { value } = action;
+
+        if (!value) {
+          return state;
+        }
+
+        return { ...state, profile: value };
       }
       default:
         return state;
@@ -85,6 +97,16 @@ export default function shippingReducer(state = Shipping, action = {}) {
   if (type === SHIPPING_ACTIONS.CLEANUP_SHIPPING) {
     const { message } = action;
     return { ...state, message, status: 'idle' };
+  }
+
+  if (type === PROFILE_ACTIONS.REMOVE_PROFILE) {
+    const { id } = action;
+
+    if (!id || !state.profile || id !== state.profile.id) {
+      return state;
+    }
+
+    return { ...state, profile: null };
   }
 
   return state;

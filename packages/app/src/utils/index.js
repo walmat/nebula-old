@@ -1,5 +1,4 @@
 import renderSvgIcon from './renderSvgIcon';
-import addTestId from './addTestId';
 
 export const rangeArr = (from, to) => {
   const result = [];
@@ -7,7 +6,7 @@ export const rangeArr = (from, to) => {
     // eslint-disable-next-line no-param-reassign
     [from, to] = [to, from];
   }
-  for (let i = from; i <= to; i++) {
+  for (let i = from; i <= to; i += 1) {
     result.push(i);
   }
   return result;
@@ -17,4 +16,4 @@ export const min = arr => arr.reduce((result, i) => (i < result ? i : result), a
 
 export const max = arr => arr.reduce((result, i) => (i > result ? i : result), arr[0]);
 
-export { renderSvgIcon, addTestId };
+export { renderSvgIcon };

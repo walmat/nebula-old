@@ -1,8 +1,9 @@
-import { Utils } from './common';
+import { Utils, Constants } from './common';
 import TaskManager from './manager';
-import { Task } from './shopify/constants';
 
 const { setLevels } = Utils;
-const { Types: TaskTypes } = Task;
+const {
+  Task: { Types: TaskTypes },
+} = Constants;
 
 export { setLevels, TaskManager, TaskTypes };

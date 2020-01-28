@@ -1,22 +1,22 @@
 import { APP_ACTIONS } from '../actions';
-import { Sites } from '../initial';
+import { Stores } from '../initial';
 
-export default (state = Sites, action) => {
+export default (state = Stores, action = {}) => {
   // Return state if a null/undefined action is given
   if (!action) {
-    return state || Sites;
+    return state || Stores;
   }
 
   const { type } = action;
 
   switch (type) {
-    case APP_ACTIONS.FETCH_SITES: {
-      const { sites } = action;
-      if (!sites || (sites && JSON.stringify(sites) === JSON.stringify(state))) {
+    case APP_ACTIONS.FETCH_STORES: {
+      const { stores } = action;
+      if (!stores || (stores && JSON.stringify(stores) === JSON.stringify(state))) {
         return state;
       }
 
-      return sites;
+      return stores;
     }
     default:
       return state;

@@ -1,30 +1,33 @@
-import { Task, Manager, SiteKeyForPlatform } from '../constants';
+import { Task, Manager, SiteKeyForPlatform, HostForPlatform } from '../constants';
 import AsyncQueue from './asyncQueue';
 
 const { HarvestStates } = Task;
 const { Events } = Manager;
 
 // eslint-disable-next-line import/prefer-default-export
-export const getCaptcha = async (context, eventFn, platform) => {
+export const getCaptcha = async (context, eventFn, platform, checkpoint) => {
   const { id, events, logger } = context;
   if (context.harvestState === HarvestStates.idle) {
+    logger.error('IDLE state for: %s', id);
     context.setCaptchaQueue(new AsyncQueue());
     events.on(Events.Harvest, eventFn);
     context.setHarvestState(HarvestStates.start);
   }
 
   if (context.harvestState === HarvestStates.suspend) {
+    logger.error('SUSPEND state for: %s', id);
     context.setHarvestState(HarvestStates.start);
   }
 
   if (context.harvestState === HarvestStates.start) {
-    logger.silly('[DEBUG]: Starting harvest...');
+    logger.error('START state for: %s', id);
+    logger.debug(checkpoint);
     events.emit(
       Events.StartHarvest,
       id,
-      SiteKeyForPlatform[platform],
-      'http://www.supremenewyork.com',
-      1,
+      context.task.store.sitekey || SiteKeyForPlatform[platform],
+      HostForPlatform[platform],
+      checkpoint,
     );
   }
 
@@ -38,18 +41,20 @@ export const suspendHarvestCaptcha = (context, platform) => {
     return null;
   }
 
-  logger.silly('[DEBUG]: Suspending harvest...');
+  logger.error('Suspending harvest for: %s', id);
   events.emit(
     Events.StopHarvest,
     id,
-    SiteKeyForPlatform[platform],
-    'http://www.supremenewyork.com',
+    context.task.store.sitekey || SiteKeyForPlatform[platform],
+    HostForPlatform[platform],
   );
   return context.setHarvestState(HarvestStates.suspend);
 };
 
 export const stopHarvestCaptcha = (context, eventFn, platform) => {
   const { id, harvestState, captchaQueue, logger, events } = context;
+
+  logger.error('Stopping harvest for: %s', id);
   if (harvestState === HarvestStates.start || harvestState === HarvestStates.suspend) {
     captchaQueue.destroy();
     context.setCaptchaQueue(null);
@@ -57,8 +62,8 @@ export const stopHarvestCaptcha = (context, eventFn, platform) => {
     events.emit(
       Events.StopHarvest,
       id,
-      SiteKeyForPlatform[platform],
-      'http://www.supremenewyork.com',
+      context.task.store.sitekey || SiteKeyForPlatform[platform],
+      HostForPlatform[platform],
     );
     events.removeListener(Events.Harvest, eventFn);
     context.setHarvestState(HarvestStates.stop);
