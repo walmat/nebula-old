@@ -103,9 +103,9 @@ class TaskManagerAdapter {
     await this._taskManager.stopAll([], { force: true, wait: true });
   }
 
-  _onHarvestToken(_, id, token, sitekey) {
+  _onHarvestToken(_, id, token, sitekey, s) {
     console.log(`Harvesting Token: ${token}\nTask: ${id}\nkey: ${sitekey}`);
-    this._taskManager.captchaManager.harvest(id, token, sitekey);
+    this._taskManager.captchaManager.harvest(id, token, sitekey, s);
   }
 
   _onStartTasksRequest(_, tasks, options) {

@@ -61,6 +61,22 @@ export default class TaskPrimitive extends BaseTask {
     this._product = null;
   }
 
+  async parseRecaptcha(body) {
+    const sitekey = body.match(/(?<=sitekey: ")[0-9a-zA-Z_-]{40}(?=")/g);
+    if (sitekey && sitekey.length) {
+      [, this.context.task.store.sitekey] = sitekey;
+    }
+
+    try {
+      const sParam = body.split("s: '")[1].split("'")[0];
+      if (sParam) {
+        this.context.task.store.sParam = sParam;
+      }
+    } catch (e) {
+      // fail silently...
+    }
+  }
+
   async getCheckpointCookies(jar) {
     const store = jar.Store || jar.store;
 
@@ -522,25 +538,16 @@ export default class TaskPrimitive extends BaseTask {
       }
     });
 
-    // recaptcha sitekey regex...
-    const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-    if (match && match.length) {
-      [, this.context.task.store.sitekey] = match;
-    }
-
     if (this._form.endsWith('&')) {
       this._form = this._form.slice(0, -1);
     }
 
-    const requester = await Captcha.getCaptcha(
-      this.context,
-      this._handleHarvest,
-      this._platform,
-      true,
-    );
-    this.context.setCaptchaRequest(requester);
+    if (body.includes('class="g-recaptcha"')) {
+      await this.parseRecaptcha(body);
+      return States.CAPTCHA;
+    }
 
-    return States.CAPTCHA;
+    return States.GO_TO_CHECKPOINT;
   }
 
   async _handleSubmitCheckpoint() {
@@ -1075,32 +1082,8 @@ export default class TaskPrimitive extends BaseTask {
       this.protection = true;
     }
 
-    const grecaptcha = body.match(/.*grecaptcha.render\('g-recaptcha',\s*?(\{.*\})\);\s*?};/s);
-
-    if (grecaptcha) {
-      const [, obj] = grecaptcha;
-
-      if (obj) {
-        try {
-          const jsonObject = JSON.parse(JSON.parse(JSON.stringify(obj.replace(/\s\s+/g, ' '))));
-          console.log(jsonObject);
-        } catch (e) {
-          // fallback to recaptcha sitekey parser...
-          const sitekey = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-          if (sitekey && sitekey.length) {
-            [, this.context.task.store.sitekey] = sitekey;
-          }
-        }
-      }
-    } else {
-      // fallback to recaptcha sitekey parser...
-      const sitekey = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-      if (sitekey && sitekey.length) {
-        [, this.context.task.store.sitekey] = sitekey;
-      }
-    }
-
-    if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
+    if ((body.includes('class="g-recaptcha"') || captcha) && !captchaToken) {
+      await this.parseRecaptcha(body);
       return States.CAPTCHA;
     }
 
@@ -1341,13 +1324,8 @@ export default class TaskPrimitive extends BaseTask {
       'input, select, textarea, button',
     );
 
-    // recaptcha sitekey parser...
-    const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-    if (match && match.length) {
-      [, this.context.task.store.sitekey] = match;
-    }
-
-    if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
+    if ((body.includes('class="g-recaptcha"') || captcha) && !captchaToken) {
+      await this.parseRecaptcha(body);
       return States.CAPTCHA;
     }
 
@@ -1424,13 +1402,8 @@ export default class TaskPrimitive extends BaseTask {
       return States.SUBMIT_SHIPPING;
     }
 
-    // recaptcha sitekey parser...
-    const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-    if (match && match.length) {
-      [, this.context.task.store.sitekey] = match;
-    }
-
-    if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
+    if ((body.includes('class="g-recaptcha"') || captcha) && !captchaToken) {
+      await this.parseRecaptcha(body);
       return States.CAPTCHA;
     }
 
@@ -1526,7 +1499,14 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async _handleSubmitCheckout() {
-    if (this.context.aborted) {
+    const {
+      id,
+      aborted,
+      task: { captcha, profile },
+      captchaToken,
+    } = this.context;
+
+    if (aborted) {
       return States.ABORT;
     }
 
@@ -1541,7 +1521,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (!this._form) {
-      this._form = paymentForm(this.context.task.profile, this._gateway, this._token);
+      this._form = paymentForm(profile, this._gateway, this._token);
     }
 
     if (this._form.indexOf(this._token) === -1) {
@@ -1606,7 +1586,7 @@ export default class TaskPrimitive extends BaseTask {
 
       if (gatewayInput) {
         this._gateway = gatewayInput.attr('value');
-        this._form = paymentForm(this.context.task.profile, this._gateway, this._token);
+        this._form = paymentForm(profile, this._gateway, this._token);
       }
     }
 
@@ -1615,12 +1595,13 @@ export default class TaskPrimitive extends BaseTask {
       return States.CAPTCHA;
     }
 
-    if (/recaptcha/i.test(body) && !this.context.captchaToken) {
+    if ((body.includes('class="g-recaptcha"') || captcha) && !captchaToken) {
+      await this.parseRecaptcha(body);
       return States.CAPTCHA;
     }
 
     if (/Your payment can’t be processed/i.test(body)) {
-      emitEvent(this.context, [this.context.id], { message: 'Checkout failed' }, Events.TaskStatus);
+      emitEvent(this.context, [id], { message: 'Checkout failed' }, Events.TaskStatus);
       return States.GO_TO_PAYMENT;
     }
 
@@ -1629,12 +1610,7 @@ export default class TaskPrimitive extends BaseTask {
     }
 
     if (/Calculating taxes/i.test(body)) {
-      emitEvent(
-        this.context,
-        [this.context.id],
-        { message: 'Calculating taxes' },
-        Events.TaskStatus,
-      );
+      emitEvent(this.context, [id], { message: 'Calculating taxes' }, Events.TaskStatus);
 
       this._delayer = waitForDelay(250, this._aborter.signal);
       await this._delayer;

@@ -28,6 +28,7 @@ export const getCaptcha = async (context, eventFn, platform, checkpoint) => {
       context.task.store.sitekey || SiteKeyForPlatform[platform],
       HostForPlatform[platform],
       checkpoint,
+      context.task.store.sParam,
     );
   }
 

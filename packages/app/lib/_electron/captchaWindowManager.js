@@ -202,8 +202,7 @@ class CaptchaWindowManager {
    *
    * If no captcha windows are present, one is created
    */
-  async startHarvesting(id, sitekey, host, checkpoint) {
-    console.log(checkpoint);
+  async startHarvesting(id, sitekey, host, checkpoint, s) {
     if (checkpoint) {
       if (!this._checkpointWindows[sitekey]) {
         this._checkpointWindows[sitekey] = [];
@@ -215,14 +214,15 @@ class CaptchaWindowManager {
         sitekey,
         host,
         checkpoint,
+        s,
       };
 
       if (!this._checkpointWindows[sitekey].length) {
-        await this.spawnCaptchaWindow({ id, sitekey, host, checkpoint });
+        await this.spawnCaptchaWindow({ id, sitekey, host, checkpoint, s });
       } else {
         Promise.all(
           this._checkpointWindows[sitekey].map(win =>
-            win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host),
+            win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host, s),
           ),
         );
       }
@@ -240,11 +240,11 @@ class CaptchaWindowManager {
       };
 
       if (this._captchaWindows[sitekey].length === 0) {
-        await this.spawnCaptchaWindow({ id, sitekey, host });
+        await this.spawnCaptchaWindow({ id, sitekey, host, s });
       } else {
         Promise.all(
           this._captchaWindows[sitekey].map(win =>
-            win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host),
+            win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host, s),
           ),
         );
       }
@@ -363,7 +363,7 @@ class CaptchaWindowManager {
    * Create a captcha window and show it
    */
   spawnCaptchaWindow(options = {}) {
-    const { id, host, sitekey, checkpoint } = options;
+    const { id, host, sitekey, checkpoint, s } = options;
 
     if (!this._harvestStatus[sitekey]) {
       this._harvestStatus[sitekey] = {
@@ -371,6 +371,7 @@ class CaptchaWindowManager {
         id,
         sitekey,
         host,
+        s,
       };
     }
 
@@ -396,9 +397,9 @@ class CaptchaWindowManager {
 
     let session = {};
     // eslint-disable-next-line no-restricted-syntax
-    for (const s of Object.values(this._sessions)) {
-      if (s && !s.inUse[host]) {
-        session = s;
+    for (const sess of Object.values(this._sessions)) {
+      if (sess && !sess.inUse[host]) {
+        session = sess;
         break;
       }
     }
@@ -477,7 +478,7 @@ class CaptchaWindowManager {
 
       // If we are actively harvesting, start harvesting on the new window as well
       if (state === HARVEST_STATES.ACTIVE) {
-        win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host);
+        win.webContents.send(IPCKeys.StartHarvestCaptcha, id, sitekey, host, s);
 
         if (Notification.isSupported()) {
           const sound = nebulaEnv.isDevelopment()
@@ -509,7 +510,7 @@ class CaptchaWindowManager {
         );
       }
 
-      const { id: sessionId } = Object.values(this._sessions).find(s => s.window === winId);
+      const { id: sessionId } = Object.values(this._sessions).find(sess => sess.window === winId);
 
       console.log(`[DEBUG]: Session for window: ${sessionId}`);
 
@@ -726,7 +727,7 @@ class CaptchaWindowManager {
    * Start the check token interval if it hasn't started already. This will
    * periodically check and remove expired tokens
    */
-  _onHarvestToken(_, id, token, sitekey = 'unattached', host = 'http://checkout.shopify.com') {
+  _onHarvestToken(_, id, token, sitekey = 'unattached', host = 'http://checkout.shopify.com', s) {
     if (!this._tokenQueue[sitekey]) {
       this._tokenQueue[sitekey] = new AsyncQueue();
 
@@ -743,6 +744,7 @@ class CaptchaWindowManager {
       token,
       sitekey,
       host,
+      s,
       timestamp: new Date(),
     });
 

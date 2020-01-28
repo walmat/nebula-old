@@ -57,14 +57,15 @@ export default class CaptchaManager {
   }
 
   // harvestCaptchaToken
-  harvest(_, token, sitekey) {
+  harvest(tId, token, sitekey, _s) {
     // Check if we have tokens to pass through
     const tokens = this._tokens.get(sitekey);
     this._logger.debug('Token queue length: %s', (tokens || []).length);
     if (tokens && tokens.length) {
       // Get the next task to pass the token
-      const { id, priority } = tokens.shift();
+      const { id, priority, s } = tokens.find(({ id: _id }) => _id === tId);
       this._logger.debug('Grabbed requester: %s with priority %s', id, priority);
+      this._logger.debug('s parameter match?: %s', _s === s);
       // Use the task id to get the container
       // TODO: investigate what the container holds here..
       const container = this._requesters.get(id);
@@ -84,7 +85,7 @@ export default class CaptchaManager {
   }
 
   // handle start harvest
-  start(id, sitekey, host, checkpoint = false) {
+  start(id, sitekey, host, checkpoint = false, s) {
     this._logger.debug('Inserting requester %s with %s priority', id, checkpoint ? 1 : 0);
     let container = this._requesters.get(id);
 
@@ -103,9 +104,9 @@ export default class CaptchaManager {
         this._logger.debug('Pushing %s to first place in line', id);
 
         tokens = this._tokens.get(sitekey);
-        tokens.push({ id, host, priority });
+        tokens.push({ id, host, priority, s });
 
-        this._events.emit(Events.StartHarvest, id, sitekey, host, checkpoint);
+        this._events.emit(Events.StartHarvest, id, sitekey, host, checkpoint, s);
         return;
       }
 
@@ -115,7 +116,7 @@ export default class CaptchaManager {
       for (let i = 0; i < tokens.length; i += 1) {
         if (tokens[i].priority > priority) {
           this._logger.debug('Inserting %s as: %s place in line', id, i);
-          tokens.splice(i, 0, { id, host, priority });
+          tokens.splice(i, 0, { id, host, priority, s });
           contains = true;
           break;
         }
@@ -124,11 +125,11 @@ export default class CaptchaManager {
       if (!contains) {
         this._logger.debug('Pushing %s to last place in line', id);
         // Add the task to the back of the token reserve queue
-        tokens.push({ id, host, priority });
+        tokens.push({ id, host, priority, s });
       }
 
       // Emit an event to start harvesting
-      this._events.emit(Events.StartHarvest, id, sitekey, host, checkpoint);
+      this._events.emit(Events.StartHarvest, id, sitekey, host, checkpoint, s);
     }
   }
 

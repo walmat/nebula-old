@@ -187,6 +187,7 @@
       /* eslint-disable import/no-extraneous-dependencies */
       /* eslint-disable no-restricted-globals */
       let _sitekey = '';
+      let _s = '';
       let _host = null;
       let _runnerId = '';
       let _started = false;
@@ -268,7 +269,7 @@
         _submitting = false;
       }
 
-      function _registerStartHandler(_, runnerId, sitekey, host) {
+      function _registerStartHandler(_, runnerId, sitekey, host, s) {
         if (_started) {
           return;
         }
@@ -276,6 +277,7 @@
         _runnerId = runnerId;
         _sitekey = sitekey;
         _host = host;
+        _s = s;
         _started = true;
 
         // Show the form if it was previous hidden
@@ -290,18 +292,27 @@
         try {
           const isPluginArray = navigator.plugins instanceof PluginArray
           const hasPlugins = isPluginArray && navigator.plugins.length > 0
-          if (isPluginArray && hasPlugins) {
+          if (!hasPlugins) {
             mockPluginsAndMimeTypes();
           }
         } catch (err) {}
 
         if (!_initialized) {
           const dataSize = /supreme/i.test(_host) ? 'invisible' : 'normal';
-          grecaptcha.render('captchaContainer', {
-            sitekey,
-            size: dataSize,
-            callback: submitCaptcha,
-          });
+          if (_s) {
+            grecaptcha.render('captchaContainer', {
+              sitekey,
+              size: dataSize,
+              callback: submitCaptcha,
+              s: _s,
+            });
+          } else {
+            grecaptcha.render('captchaContainer', {
+              sitekey,
+              size: dataSize,
+              callback: submitCaptcha,
+            });
+          }
           const container = document.getElementById('captchaContainer');
           container.setAttribute('data-sitekey', `${sitekey}`);
           container.setAttribute('data-theme', 'dark');

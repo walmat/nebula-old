@@ -297,8 +297,8 @@ class TaskLauncher {
     sitekey = '6LeoeSkTAAAAAA9rkZs5oS82l69OEYjKRZAiKdaF',
     host = 'http://checkout.shopify.com',
     checkpoint = false,
+    s,
   ) {
-    console.log(checkpoint);
     // Bump the semaphore only if we don't already have it tracked
     if (!this._captchaRequesters[id]) {
       this._captchaRequesters[id] = [];
@@ -306,7 +306,7 @@ class TaskLauncher {
 
       // If this is the first harvest event, start harvesting
       if (this._captchaSemaphore === 1) {
-        await this._context.windowManager.startHarvestingCaptcha(id, sitekey, host, checkpoint);
+        await this._context.windowManager.startHarvestingCaptcha(id, sitekey, host, checkpoint, s);
       }
     }
 
@@ -318,7 +318,7 @@ class TaskLauncher {
       // Track request so we can handle it
       request.promise.then(
         ({ token }) => {
-          this._sendToLauncher(IPCKeys.HarvestCaptcha, id, token, sitekey);
+          this._sendToLauncher(IPCKeys.HarvestCaptcha, id, token, sitekey, s);
         },
         () => {}, // Add empty reject handler in case this gets canceled...
       );
