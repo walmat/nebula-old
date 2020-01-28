@@ -2,13 +2,8 @@ import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
-<<<<<<< HEAD
-import { waitForDelay, emitEvent } from '../utils';
-import { Monitor, Task, Platforms } from '../constants';
-=======
 import { emitEvent } from '../utils';
-import { Monitor, Task } from '../constants';
->>>>>>> shopify-rework
+import { Monitor, Task, Platforms } from '../constants';
 
 const { States } = Monitor;
 const { Events } = Task;

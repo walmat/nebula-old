@@ -2,15 +2,9 @@ import AbortController from 'abort-controller';
 import fetch from 'node-fetch';
 import defaults from 'fetch-defaults';
 
-<<<<<<< HEAD
-import { waitForDelay, emitEvent } from '../utils';
-import { stopHarvestCaptcha } from './captcha';
-import { Task, Platforms } from '../constants';
-=======
 import CapacityQueue from './capacityQueue';
 import { emitEvent } from '../utils';
-import { Task } from '../constants';
->>>>>>> shopify-rework
+import { Task, Platforms } from '../constants';
 
 const { States, Events } = Task;
 
