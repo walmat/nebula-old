@@ -1075,10 +1075,29 @@ export default class TaskPrimitive extends BaseTask {
       this.protection = true;
     }
 
-    // recaptcha sitekey parser...
-    const sitekey = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
-    if (sitekey && sitekey.length) {
-      [, this.context.task.store.sitekey] = sitekey;
+    const grecaptcha = body.match(/.*grecaptcha.render\('g-recaptcha',\s*?(\{.*\})\);\s*?};/s);
+
+    if (grecaptcha) {
+      const [, obj] = grecaptcha;
+
+      if (obj) {
+        try {
+          const jsonObject = JSON.parse(JSON.parse(JSON.stringify(obj.replace(/\s\s+/g, ' '))));
+          console.log(jsonObject);
+        } catch (e) {
+          // fallback to recaptcha sitekey parser...
+          const sitekey = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+          if (sitekey && sitekey.length) {
+            [, this.context.task.store.sitekey] = sitekey;
+          }
+        }
+      }
+    } else {
+      // fallback to recaptcha sitekey parser...
+      const sitekey = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+      if (sitekey && sitekey.length) {
+        [, this.context.task.store.sitekey] = sitekey;
+      }
     }
 
     if ((/recaptcha/i.test(body) || captcha) && !captchaToken) {
