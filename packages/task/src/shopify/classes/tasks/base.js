@@ -1226,7 +1226,7 @@ export default class TaskPrimitive extends BaseTask {
       const newRate = {
         name,
         price,
-        id: encodeURIComponent(`${source}-${code}-${price}`),
+        id: encodeURI(`${source}-${code}-${price}`),
       };
 
       if (

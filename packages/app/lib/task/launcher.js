@@ -84,12 +84,17 @@ class TaskLauncher {
       });
 
       // attach a secondary listener to track harvested tokens
-      context.ipc.on(IPCKeys.HarvestCaptcha, (_, id, token, siteKey) => {
+      context.ipc.on(IPCKeys.HarvestCaptcha, (_, id, token, sitekey) => {
         this._debugHarvestedTokens.push({
           id,
           token,
-          siteKey,
+          sitekey,
         });
+
+        if (this._captchaRequesters[id]) {
+          delete this._captchaRequesters[id];
+          this._captchaSemaphore -= 1;
+        }
       });
     }
   }
@@ -300,6 +305,7 @@ class TaskLauncher {
     s,
   ) {
     // Bump the semaphore only if we don't already have it tracked
+    console.log(this._captchaSemaphore, this._captchaRequesters[id]);
     if (!this._captchaRequesters[id]) {
       this._captchaRequesters[id] = [];
       this._captchaSemaphore += 1;

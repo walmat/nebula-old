@@ -180,7 +180,7 @@ export const parseForm = async ($, state, hash, profile, formName, wanted) => {
           if (data.some(({ name: existing }) => /shipping_rate/i.test(existing))) {
             return;
           }
-          value = encodeURIComponent(value);
+          value = encodeURI(value);
         }
 
         if (
@@ -289,7 +289,7 @@ export const contactForm = (profile, captchaToken) => {
 };
 
 export const shippingForm = rate =>
-  `_method=patch&authenticity_token=&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURIComponent(
+  `_method=patch&authenticity_token=&previous_step=shipping_method&step=payment_method&checkout%5Bshipping_rate%5D%5Bid%5D=${encodeURI(
     rate,
   )}&button=&checkout%5Bclient_details%5D%5Bbrowser_width%5D=927&checkout%5Bclient_details%5D%5Bbrowser_height%5D=967&checkout%5Bclient_details%5D%5Bjavascript_enabled%5D=1`
     .replace(/\(/g, '%28')
