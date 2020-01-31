@@ -62,9 +62,11 @@ export default class TaskPrimitive extends BaseTask {
   }
 
   async parseRecaptcha(body) {
-    const sitekey = body.match(/(?<=sitekey: ")[0-9a-zA-Z_-]{40}(?=")/g);
-    if (sitekey && sitekey.length) {
-      [, this.context.task.store.sitekey] = sitekey;
+    // recaptcha sitekey parser...
+    const match = body.match(/.*<noscript>.*<iframe\s.*src=.*\?k=(.*)"><\/iframe>/);
+    if (match && match.length) {
+      [, this._context.task.store.sitekey] = match;
+      this.context.logger.debug('PARSED SITEKEY!: %j', this._context.task.store.sitekey);
     }
 
     try {
