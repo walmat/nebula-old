@@ -127,125 +127,72 @@ export default (state = Tasks, action = {}) => {
       return state;
     }
 
-    console.log(state);
+    const selectedIdx = state.findIndex(t => t.selected);
+    const numSelected = state.filter(t => t.selected);
 
-    const lastSelected = state.findIndex(t => t.selected);
+    if (ctrl && selectedIdx > -1 && numSelected.length < 2) {
+      const taskIndex = state.findIndex(t => t.id === task.id);
 
-    console.log(lastSelected);
-    if (!ctrl || (ctrl && !lastSelected)) {
-      return state.map(t => {
-        if (task.id === t.id) {
+      // select all going forwards...
+      if (selectedIdx < taskIndex) {
+        return state.map((t, idx) => {
+          if (idx <= taskIndex) {
+            return {
+              ...t,
+              selected: true,
+            };
+          }
           return {
             ...t,
-            selected: !t.selected,
-            lastSelected: t.lastSelected ? null : t.id,
+            selected: false,
           };
-        }
-        if (t.selected && t.id !== task.id) {
+        });
+      }
+
+      // select all going backwards...
+      if (selectedIdx > taskIndex) {
+        return state.map((t, idx) => {
+          if (idx >= taskIndex) {
+            return {
+              ...t,
+              selected: true,
+            };
+          }
           return {
             ...t,
-            selected: !t.selected,
-            lastSelected: t.lastSelected ? null : t.id,
+            selected: false,
           };
-        }
-        return t;
-      });
-    }
-
-    if (lastSelected >= 0) {
-      const to = state.findIndex(t => t.id === task.id);
-
-      // if the incoming task is earlier on in the table than the last selected task
-      if (to === lastSelected) {
-        return state.map((t, idx) => {
-          if (idx === to) {
-            return {
-              ...t,
-              selected: !t.selected,
-              lastSelected: t.lastSelected ? null : t.id,
-            };
-          }
-          return t;
         });
       }
 
-      if (to < lastSelected) {
-        return state.map((t, idx) => {
-          if (idx === lastSelected) {
-            return {
-              ...t,
-              selected: !t.selected,
-              lastSelected: t.id,
-            };
-          }
-
-          if (idx >= to && idx < lastSelected) {
+      // toggle selected...
+      if (selectedIdx === taskIndex) {
+        return state.map(t => {
+          if (task.id === t.id) {
             return {
               ...t,
               selected: !t.selected,
             };
           }
-          return t;
-        });
-      }
-
-      if (to > lastSelected) {
-        return state.map((t, idx) => {
-          if (idx === to) {
-            return {
-              ...t,
-              selected: !t.selected,
-              lastSelected: t.id,
-            };
-          }
-
-          if (idx >= lastSelected && idx < to) {
-            return {
-              ...t,
-              selected: !t.selected,
-            };
-          }
-          return t;
-        });
-      }
-    }
-
-    // todo.. perfect this a bit more
-    if (ctrl) {
-      const from = state.findIndex(t => t.lastSelected);
-      if (from >= 0) {
-        const to = state.findIndex(t => t.id === task.id);
-        const needsSelected = state.some((tk, idx) => idx > from && idx <= to && !tk.selected);
-
-        return state.map((t, i) => {
-          if (i === to) {
-            return {
-              ...t,
-              selected: needsSelected ? true : !t.selected,
-              lastSelected: t.id,
-            };
-          }
-
-          if (i > from && i < to) {
-            return {
-              ...t,
-              selected: needsSelected ? true : !t.selected,
-            };
-          }
-          return t;
+          return {
+            ...t,
+            selected: false,
+          };
         });
       }
     }
 
     return state.map(t => {
-      if (t.id === task.id) {
+      if (task.id === t.id) {
         return {
           ...t,
           selected: !t.selected,
-          lastSelected: t.id,
         };
       }
-      return t;
+      return {
+        ...t,
+        selected: false,
+      };
     });
   }
 

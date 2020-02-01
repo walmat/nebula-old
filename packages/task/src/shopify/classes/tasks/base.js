@@ -626,12 +626,6 @@ export default class TaskPrimitive extends BaseTask {
       return States.WAIT_FOR_PRODUCT;
     }
 
-    // const cookies = await this.getCheckpointCookies(this.context.jar);
-
-    // if (cookies.length) {
-    //   this.context.setShared(cookies);
-    // }
-
     if (nextState) {
       return nextState;
     }
