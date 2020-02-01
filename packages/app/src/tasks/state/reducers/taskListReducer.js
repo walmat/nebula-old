@@ -275,6 +275,24 @@ export default (state = Tasks, action = {}) => {
     return state.map(t => tasks.find(task => task.id === t.id) || t);
   }
 
+  if (type === TASK_LIST_ACTIONS.EDIT_ALL) {
+    const { response } = action;
+    if (!response) {
+      return state;
+    }
+
+    const { tasks } = response;
+
+    if (!tasks || !tasks.length) {
+      return state;
+    }
+
+    window.Bridge.restartTasks(tasks, { override: false });
+
+    // return the found task, or return the existing task..
+    return state.map(t => tasks.find(task => task.id === t.id) || t);
+  }
+
   // MARK: PROFILE ACTIONS
   if (type === PROFILE_ACTIONS.UPDATE_PROFILE) {
     const { profile } = action;

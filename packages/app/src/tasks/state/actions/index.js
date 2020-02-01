@@ -14,6 +14,7 @@ const tasksListActions = [
   'CREATE_TASK',
   'DUPLICATE_TASK',
   'UPDATE_MESSAGE',
+  'EDIT_ALL',
   'SELECT_TASK',
   'SELECT_ALL_TASKS',
   'START_TASKS',
@@ -25,6 +26,7 @@ export const taskListActionsList = [
   '@@Task/CREATE_TASK',
   '@@Task/DUPLICATE_TASK',
   '@@Task/UPDATE_MESSAGE',
+  '@@Task/EDIT_ALL',
   '@@Task/SELECT_TASK',
   '@@Task/SELECT_ALL_TASKS',
   '@@Task/START_TASKS',
@@ -75,6 +77,17 @@ const _stopTasksRequest = async tasks => {
   };
 };
 
+const _editAllTasksRequest = async (tasks, { url }) => ({
+  tasks: tasks.map(t => ({
+    ...t,
+    product: {
+      ...t.product,
+      raw: url,
+      url,
+    },
+  })),
+});
+
 const _removeTasksRequest = async tasks => {
   if (!tasks.length) {
     return null;
@@ -89,6 +102,7 @@ const _removeTasksRequest = async tasks => {
 
 // Private Actions
 const _startTasks = makeActionCreator(TASK_LIST_ACTIONS.START_TASKS, 'response');
+const _editAllTasks = makeActionCreator(TASK_LIST_ACTIONS.EDIT_ALL, 'response');
 const _stopTasks = makeActionCreator(TASK_LIST_ACTIONS.STOP_TASKS, 'response');
 const _removeTask = makeActionCreator(TASK_LIST_ACTIONS.REMOVE_TASKS, 'response');
 
@@ -110,6 +124,9 @@ const startTasks = (tasks, delays, proxies) => dispatch =>
 const stopTasks = tasks => dispatch =>
   _stopTasksRequest(tasks).then(response => dispatch(_stopTasks(response)));
 
+const editAllTasks = (tasks, edits) => dispatch =>
+  _editAllTasksRequest(tasks, edits).then(response => dispatch(_editAllTasks(response)));
+
 // Field Edits
 export const TASK_FIELDS = {
   EDIT_PRODUCT: 'EDIT_PRODUCT',
@@ -124,6 +141,7 @@ export const TASK_FIELDS = {
   EDIT_AMOUNT: 'EDIT_AMOUNT',
   TOGGLE_CAPTCHA: 'TOGGLE_CAPTCHA',
   TOGGLE_RANDOM_IN_STOCK: 'TOGGLE_RANDOM_IN_STOCK',
+  TOGGLE_LOCALHOST: 'TOGGLE_LOCALHOST',
   TOGGLE_ONE_CHECKOUT: 'TOGGLE_ONE_CHECKOUT',
   TOGGLE_RESTOCK_MODE: 'TOGGLE_RESTOCK_MODE',
   TOGGLE_SCHEDULE: 'TOGGLE_SCHEDULE',
@@ -133,6 +151,7 @@ export const TASK_FIELDS = {
 export const taskActions = {
   edit: editTask,
   create: createTask,
+  editAll: editAllTasks,
   select: selectTask,
   selectAll: selectAllTasks,
   message: messageTask,
@@ -156,5 +175,6 @@ export const mapTaskFieldsToKey = {
   [TASK_FIELDS.EDIT_DATE_TIME]: 'date',
   [TASK_FIELDS.TOGGLE_CAPTCHA]: 'captcha',
   [TASK_FIELDS.TOGGLE_RANDOM_IN_STOCK]: 'randomInStock',
+  [TASK_FIELDS.TOGGLE_LOCALHOST]: 'useLocalhost',
   [TASK_FIELDS.TOGGLE_SCHEDULE]: 'schedule',
 };

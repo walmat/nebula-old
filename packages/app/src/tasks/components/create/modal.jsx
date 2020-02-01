@@ -12,29 +12,31 @@ import Captcha from './shared/captcha';
 import AmountField from './shared/amount';
 import CreateButton from './shared/button';
 import RandomInStockToggle from './shared/randomInStock';
+import LocalhostToggle from './shared/localhostToggle';
 
 const ModalBody = ({ toggleCreate }) => (
-  <>
+  <div className="create-tasks col col--expand col--no-gutter">
     <CloseModal toggleCreate={toggleCreate} />
-    <div className="create-tasks col col--expand col--no-gutter">
-      <div className="row row--start row--expand">
-        <ProductField />
-        <StoreSelect />
-      </div>
-      <div className="row row--start row--expand">
-        <ProfileSelect />
-        <SizeSelect />
-        <RandomInStockToggle />
-      </div>
-      <PlatformFields />
-      <div className="row row--start row--expand">
-        <Schedule />
-        <Captcha />
-        <AmountField />
-        <CreateButton />
-      </div>
+    <div className="row row--start row--expand">
+      <ProductField />
+      <StoreSelect />
     </div>
-  </>
+    <div className="row row--start row--expand">
+      <ProfileSelect />
+      <SizeSelect />
+      <RandomInStockToggle />
+    </div>
+    <PlatformFields />
+    <div className="row row--start row--expand" style={{ marginTop: 6 }}>
+      <Schedule />
+      <Captcha />
+      <LocalhostToggle />
+    </div>
+    <div className="row row--end row--expand" style={{ alignItems: 'flex-end' }}>
+      <AmountField />
+      <CreateButton />
+    </div>
+  </div>
 );
 
 ModalBody.propTypes = {

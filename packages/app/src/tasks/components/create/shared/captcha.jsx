@@ -11,7 +11,7 @@ import { makeCurrentTask } from '../../../state/selectors';
 import { THEMES } from '../../../../constants';
 
 const ForceCaptcha = ({ theme, captcha, onToggle }) => (
-  <div className="col col--start col--no-gutter col--expand">
+  <div className="col col--start col--gutter col--expand" style={{ flexGrow: 0 }}>
     <Switch
       checked={captcha}
       checkedIcon={

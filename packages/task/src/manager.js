@@ -151,7 +151,10 @@ export default class TaskManager {
    *   - type - The task type to start
    */
   async start(task, { type = Types.Normal }) {
-    const proxy = await this.proxyManager.reserve(task.id, task.store.url);
+    let proxy = null;
+    if (!task.useLocalhost) {
+      proxy = await this.proxyManager.reserve(task.id, task.store.url);
+    }
 
     this._logger.silly('Starting task for %s with proxy %j', task.id, proxy);
     return this._start([task, proxy, type]);

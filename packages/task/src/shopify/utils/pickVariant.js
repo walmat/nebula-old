@@ -19,14 +19,16 @@ export default async (variants, size, logger = { log: () => {} }, randomInStock 
   if (/random/i.test(size)) {
     const rand = getRandomIntInclusive(0, variantGroup.length - 1);
     const variant = variantGroup[rand];
-    const option = variant.option1 || variant.option2 || variant.option3;
-    return { id: variant.id, option };
+
+    const { option1, option2, option3, title } = variant;
+    const options = [option1, option2, option3, title].filter(opt => opt && !/-|\/|\\/g.test(opt));
+    return { id: variant.id, option: options[0] };
   }
 
   let variant = variantGroup.find(v => {
-    const { option1, option2, option3 } = v;
+    const { option1, option2, option3, title } = v;
 
-    const options = [option1, option2, option3].filter(Boolean);
+    const options = [option1, option2, option3, title].filter(opt => opt && !/-|\/|\\/g.test(opt));
     // Determine if we are checking for shoe sizes or not
     let sizeMatcher;
     if (/[0-9]+/.test(size)) {
@@ -49,14 +51,23 @@ export default async (variants, size, logger = { log: () => {} }, randomInStock 
       if (!available) {
         const rand = getRandomIntInclusive(0, variantGroup.length - 1);
         variant = variantGroup[rand];
-        const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
-        return { id: variant.id, option };
+        const { option1, option2, option3, title } = variant;
+        const options = [option1, option2, option3, title].filter(
+          opt => opt && !/-|\/|\\/g.test(opt),
+        );
+
+        return { id: variant.id, option: options[0] };
       }
     } else {
       const rand = getRandomIntInclusive(0, variantGroup.length - 1);
       variant = variantGroup[rand];
-      const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
-      return { id: variant.id, option };
+
+      const { option1, option2, option3, title } = variant;
+      const options = [option1, option2, option3, title].filter(
+        opt => opt && !/-|\/|\\/g.test(opt),
+      );
+
+      return { id: variant.id, option: options[0] };
     }
   }
 
@@ -64,7 +75,8 @@ export default async (variants, size, logger = { log: () => {} }, randomInStock 
     return null;
   }
 
-  const option = variant.option1 || variant.option2 || variant.option3 || variant.title;
+  const { option1, option2, option3, title } = variant;
+  const options = [option1, option2, option3, title].filter(opt => opt && !/-|\/|\\/g.test(opt));
 
-  return { id: variant.id, option };
+  return { id: variant.id, option: options[0] };
 };

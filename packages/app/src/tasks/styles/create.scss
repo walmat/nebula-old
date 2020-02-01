@@ -12,6 +12,10 @@
   border-left: none !important;
 }
 
+.rw-datetime-picker {
+  min-width: 185px;
+}
+
 .rw-btn {
   vertical-align: unset !important;
 }
@@ -78,6 +82,16 @@
 
   &__shorter {
     width: 55px !important;
+  }
+
+  &__text {
+    &--dark {
+      color: #efefef;
+    }
+
+    &--light {
+      color: #161318;
+    }
   }
 
   &__input {

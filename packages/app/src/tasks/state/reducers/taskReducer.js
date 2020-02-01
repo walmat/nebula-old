@@ -105,6 +105,12 @@ export default (state = CurrentTask, action = {}) => {
             randomInStock: !state.randomInStock,
           };
 
+        case TASK_FIELDS.TOGGLE_LOCALHOST:
+          return {
+            ...state,
+            useLocalhost: !state.useLocalhost,
+          };
+
         case TASK_FIELDS.TOGGLE_ONE_CHECKOUT:
           return {
             ...state,

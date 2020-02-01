@@ -199,13 +199,6 @@ export default class TaskPrimitive extends BaseTask {
       emitEvent(this.context, [this.context.id], { message }, Events.TaskStatus);
     }
 
-    // we need to do this before every request..
-    // if (this.context.shared.cookies && this.context.shared.cookies.length) {
-    //   this.context.shared.cookies.map(cookie =>
-    //     this.context.jar.setCookieSync(cookie, this.context.task.store.url),
-    //   );
-    // }
-
     const baseOptions = {
       compress: true,
       agent: proxy ? proxy.proxy : null,

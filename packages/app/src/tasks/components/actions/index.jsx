@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-// import { parseURL } from 'whatwg-url';
+import { parseURL } from 'whatwg-url';
 import PropTypes from 'prop-types';
 
 import Delays from '../delays';
 import CreateModal from '../create';
+
+import { States } from '../../../constants';
 
 import { taskActions } from '../../state/actions';
 import { makeSelectedTasks } from '../../state/selectors';
@@ -55,20 +57,20 @@ class ActionBar extends Component {
           return stop(tasks);
         }
         case 116: {
-          // const url = await navigator.clipboard.readText();
-          // const URL = parseURL(url);
+          const url = await navigator.clipboard.readText();
+          const URL = parseURL(url);
 
-          // if (!URL || !URL.host || (URL.path && !URL.path[0])) {
-          //   break;
-          // }
+          if (!URL || !URL.host || (URL.path && !URL.path[0])) {
+            break;
+          }
 
-          // const { tasks, onMassEdit } = this.props;
+          const { tasks, massEdit } = this.props;
 
-          // const tasksToChange = tasks.filter(
-          //   t => t.site.url.indexOf(URL.host) > -1 && t.status === 'running',
-          // );
+          const tasksToChange = tasks.filter(
+            t => t.store.url.indexOf(URL.host) > -1 && t.state === States.Running,
+          );
 
-          // onMassEdit(tasksToChange, { url });
+          massEdit(tasksToChange, { url });
           break;
         }
         case 117: {
@@ -189,6 +191,7 @@ ActionBar.propTypes = {
   tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
   delays: PropTypes.objectOf(PropTypes.any).isRequired,
   proxies: PropTypes.arrayOf(PropTypes.string).isRequired,
+  massEdit: PropTypes.func.isRequired,
   select: PropTypes.func.isRequired,
   start: PropTypes.func.isRequired,
   stop: PropTypes.func.isRequired,
@@ -206,6 +209,7 @@ const mapDispatchToProps = dispatch => ({
   start: (tasks, delays, proxies) => dispatch(taskActions.start(tasks, delays, proxies)),
   stop: tasks => dispatch(taskActions.stop(tasks)),
   remove: tasks => dispatch(taskActions.remove(tasks)),
+  massEdit: (tasks, edits) => dispatch(taskActions.editAll(tasks, edits)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ActionBar);

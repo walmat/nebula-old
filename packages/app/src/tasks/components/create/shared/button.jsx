@@ -7,7 +7,7 @@ import { taskActions } from '../../../../store/actions';
 import { makeCurrentTask } from '../../../state/selectors';
 
 const AmountField = ({ task, onCreate }) => (
-  <div className="col col--start col--expand">
+  <div className="col">
     <button
       type="button"
       className="create-tasks__submit"

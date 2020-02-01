@@ -17,7 +17,7 @@ moment.locale('en');
 momentLocalizer();
 
 const ScheduleToggle = ({ theme, schedule, onChange }) => (
-  <div className="col col--start col--expand" style={{ flexGrow: 1 }}>
+  <div className="col col--start col--expand" style={{ flexGrow: 0 }}>
     <DateTimePicker
       containerClassName={theme === THEMES.LIGHT ? 'rw--light' : 'rw--dark'}
       dropUp
