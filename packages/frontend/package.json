@@ -80,7 +80,7 @@
     "concurrently": "^4.1.0",
     "cross-env": "^5.2.0",
     "discord.js": "^11.5.1",
-    "electron": "6.0.12",
+    "electron": "9.1.0",
     "electron-builder": "21.2.0",
     "electron-devtools-installer": "^2.2.4",
     "enzyme": "^3.6.0",
